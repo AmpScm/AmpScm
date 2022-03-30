@@ -30,7 +30,7 @@ namespace AmpScm.Git.Objects
             if (!File.Exists(path))
                 return null;
 
-            var fileReader = FileBucket.OpenRead(path);
+            var fileReader = FileBucket.OpenRead(path, false);
             try
             {
                 var rdr = new GitObjectFileBucket(fileReader);
@@ -69,7 +69,7 @@ namespace AmpScm.Git.Objects
             if (!File.Exists(path))
                 return default;
 
-            var fileReader = FileBucket.OpenRead(path);
+            var fileReader = FileBucket.OpenRead(path, false);
             return new ValueTask<GitObjectBucket?>(new GitObjectFileBucket(fileReader));
         }
 
@@ -86,7 +86,7 @@ namespace AmpScm.Git.Objects
                     if (!GitId.TryParse(idString, out var id))
                         continue;
 
-                    var fileReader = FileBucket.OpenRead(file);
+                    var fileReader = FileBucket.OpenRead(file, false);
 
                     var rdr = new GitObjectFileBucket(fileReader);
 
