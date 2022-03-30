@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 
 namespace AmpScm.Buckets
 {
@@ -14,8 +17,12 @@ namespace AmpScm.Buckets
             readonly string _path;
             readonly Stack<FileStream> _keep = new Stack<FileStream>();
             readonly FileStream _primary;
+            SafeFileHandle _handle;
             int _nRefs;
             long? _length;
+            bool _asyncWin;
+            Queue<FileWaitHandler> _fwhs;
+            Action _disposers;
 
             public FileHolder(FileStream primary, string path)
             {
@@ -24,6 +31,29 @@ namespace AmpScm.Buckets
 
                 if (primary.IsAsync)
                     _keep.Push(primary);
+
+                _disposers = _primary.Dispose;
+                _fwhs = default!;
+                _handle = primary.SafeFileHandle;
+            }
+
+            public FileHolder(SafeFileHandle handle, string path)
+            {
+                if (handle?.IsInvalid ?? true)
+                    throw new ArgumentNullException(nameof(handle));
+                if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                    throw new InvalidOperationException("Only supported on Windows at this time");
+
+                _primary = default!;
+                _handle = handle;
+                _path = path ?? throw new ArgumentNullException(nameof(path));
+                _asyncWin = true;
+                _fwhs = new Queue<FileWaitHandler>();
+
+                _disposers = _handle.Dispose;
+                _handle = handle;
+
+                _length = NativeMethods.GetFileSize(_handle);
             }
 
             public void AddRef()
@@ -47,7 +77,7 @@ namespace AmpScm.Buckets
                             r.Dispose();
                         }
                     }
-                    _primary.Dispose();
+                    _disposers.Invoke();
                 }
             }
 
@@ -58,7 +88,9 @@ namespace AmpScm.Buckets
                 else if (readPos > 0 && readPos >= Length)
                     return new ValueTask<int>(0);
 
-                if (_primary.IsAsync)
+                if (_asyncWin)
+                    return AsyncWinReadAsync(readPos, buffer, readLen);
+                else if (_primary.IsAsync)
                     return TrueReadAtAsync(readPos, buffer, readLen);
                 else
                 {
@@ -73,6 +105,66 @@ namespace AmpScm.Buckets
 
                         return new ValueTask<int>(r);
                     }
+                }
+            }
+
+            public ValueTask<int> AsyncWinReadAsync(long readPos, byte[] buffer, int readLen)
+            {
+                FileWaitHandler fwh;
+
+                if (readLen < 1)
+                    throw new ArgumentOutOfRangeException();
+
+                long fp = readPos + readLen;
+                if (fp > _length!.Value)
+                {
+                    long rl = (_length.Value - readPos);
+
+                    if (rl < 1)
+                        return new ValueTask<int>(0);
+                    readLen = (int)rl;
+                }
+
+                lock (_fwhs)
+                {
+                    if (_fwhs.Count > 0)
+                        fwh = _fwhs.Dequeue();
+                    else
+                    {
+                        int sz = Marshal.SizeOf<NativeOverlapped>();
+                        IntPtr p = Marshal.AllocCoTaskMem(Marshal.SizeOf<NativeOverlapped>() * 16);
+
+                        if (p == IntPtr.Zero)
+                            throw new InvalidOperationException();
+
+                        for (int i = 1; i < 16; i++)
+                        {
+                            var f = new FileWaitHandler(this, (IntPtr)((long)p + i * sz));
+                            _disposers += f.Dispose;
+                            _fwhs.Enqueue(f);
+                        }
+                        fwh = new FileWaitHandler(this, p); // And keep the last one
+                        _disposers += fwh.Dispose;
+
+                        _disposers += () => Marshal.FreeCoTaskMem(p);
+                    }
+                }
+                TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+
+                if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, fwh.Alloc(tcs, readPos, buffer)))
+                {
+                    fwh.Release();
+                    return new ValueTask<int>((int)read); // Done reading
+                }
+                else if (Marshal.GetLastWin32Error() == 997 /* Pending IO */)
+                {
+                    return new ValueTask<int>(tcs.Task);
+                }
+                else
+                {
+                    fwh.Release();
+
+                    throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new BucketException("ReadFileEx failed");
                 }
             }
 
@@ -150,7 +242,7 @@ namespace AmpScm.Buckets
                 }
             }
 
-            public long Length => _length ??= _primary.Length;
+            public long Length => _length ?? (_length = _primary?.Length).Value;
 
 
             sealed class Returner : IDisposable
@@ -169,6 +261,150 @@ namespace AmpScm.Buckets
                     _fh?.Return(_fs);
                     _fh = null;
                 }
+            }
+
+            sealed class FileWaitHandler
+            {
+                readonly FileHolder _holder;
+                TaskCompletionSource<int>? _tcs;
+                IntPtr _overlapped;
+                GCHandle _pin;
+                EventWaitHandle _eventWaitHandle;
+                RegisteredWaitHandle? _registeredWaitHandle;
+
+
+                public FileWaitHandler(FileHolder holder, IntPtr overlapped)
+                {
+                    _holder = holder;
+                    _overlapped = overlapped;
+                    _eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+                }
+
+                void OnSignal(object? state, bool timedOut)
+                {
+                    _eventWaitHandle.Reset();
+                    if (_pin.IsAllocated)
+                        _pin.Free(); // Release pinning of result array
+
+                    if (NativeMethods.GetOverlappedResult(_holder._handle, _overlapped, out var t, false))
+                    {
+                        _tcs!.TrySetResult((int)t);
+                    }
+                    else
+                        _tcs!.SetException(new InvalidOperationException("GetOverlappedResult failed"));
+
+                    Release();
+                }
+
+                public void Release()
+                {
+                    if (_pin.IsAllocated)
+                        _pin.Free(); // Release pinning of result array
+
+                    _tcs = null;
+
+
+                    lock (_holder._fwhs)
+                        _holder._fwhs.Enqueue(this);
+                }
+
+
+                public IntPtr Alloc(TaskCompletionSource<int> tcs, long offset, object toPin)
+                {
+                    if (_pin.IsAllocated)
+                        throw new InvalidOperationException();
+
+                    if (toPin is not null)
+                        _pin = GCHandle.Alloc(toPin, GCHandleType.Pinned);
+                    _tcs = tcs;
+
+                    _registeredWaitHandle ??= ThreadPool.RegisterWaitForSingleObject(_eventWaitHandle, OnSignal, this, -1, false);
+
+                    NativeOverlapped nol = default;
+                    nol.OffsetLow = (int)(offset & uint.MaxValue);
+                    nol.OffsetHigh = (int)(offset >> 32);
+                    nol.EventHandle = _eventWaitHandle.SafeWaitHandle.DangerousGetHandle();
+
+                    Marshal.StructureToPtr(nol, _overlapped, false);
+
+                    return _overlapped;
+                }
+
+                public void Dispose()
+                {
+                    if (_pin.IsAllocated)
+                        _pin.Free();
+
+                    _registeredWaitHandle?.Unregister(_eventWaitHandle);
+                    _registeredWaitHandle = null;
+
+                    _eventWaitHandle?.Dispose();
+                    _eventWaitHandle = null!;
+                }
+            }
+
+            static class NativeMethods
+            {
+                [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+                [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+                public static extern SafeFileHandle CreateFileW(
+                    [MarshalAs(UnmanagedType.LPWStr)] string filename,
+                    uint access,
+                    uint share,
+                    IntPtr securityAttributes,
+                    uint creationDisposition,
+                    uint flagsAndAttributes,
+                    IntPtr templateFile);
+
+                public delegate void IOCompletionCallback(uint errorCode, uint numBytes, IntPtr lpOverlapped);
+
+                [DllImport("kernel32.dll", SetLastError = true)]
+                [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+                public static extern bool ReadFileEx(SafeFileHandle hFile, [Out] byte[] lpBuffer,
+                    int nNumberOfBytesToRead, [In] IntPtr lpOverlapped,
+                    IOCompletionCallback lpCompletionRoutine);
+
+
+                [DllImport("kernel32.dll", SetLastError = true)]
+                [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+                public static extern bool ReadFile(SafeFileHandle hFile, [Out] byte[] lpBuffer,
+                    int nNumberOfBytesToRead, out uint pRead, IntPtr pOverlapped);
+
+
+                [DllImport("kernel32.dll", SetLastError = true)]
+                [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+                public static extern bool GetOverlappedResult(SafeFileHandle hFile, IntPtr lpOverlapped, out uint lpNumberOfBytesTransferred, bool bWait);
+
+
+                [DllImport("kernel32.dll", SetLastError = true)]
+                [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+                static extern bool GetFileSizeEx(SafeFileHandle hFile, out ulong size);
+
+                internal static long? GetFileSize(SafeFileHandle handle)
+                {
+                    if (GetFileSizeEx(handle, out var size))
+                        return (long)size;
+                    else
+                        return null;
+                }
+            }
+
+            internal static SafeFileHandle OpenAsyncWin32(string path)
+            {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                SafeFileHandle handle = NativeMethods.CreateFileW(path,
+                    access: 0x80000000 /* GENERIC_READ */, // We want to read
+                    share: 0x00000004 /* FILE_SHARE_DELETE */ | 0x00000001 /* FILE_SHARE_READ */, // Others can read, delete, rename, but we keep our file open
+                    securityAttributes: IntPtr.Zero,
+                    creationDisposition: 3 /* OPEN_EXISTING */,
+                    0x80 /* Normal attributes */ | 0x40000000 /* Overlapped */,
+                    IntPtr.Zero);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+                if (!handle.IsInvalid)
+                    return handle;
+                else
+                    throw new FileNotFoundException($"Couldn't open {path}");
             }
         }
     }

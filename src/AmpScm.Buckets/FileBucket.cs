@@ -163,19 +163,27 @@ namespace AmpScm.Buckets
 
         public static FileBucket OpenRead(string path, bool forAsync)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));
 
-            FileStream primary;
+            FileStream? primary = null;
+            FileHolder? fh = null;
 
             if (forAsync)
-                primary = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, FileOptions.Asynchronous);
+            {
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                    fh = new FileHolder(FileHolder.OpenAsyncWin32(path), path);
+                else
+                    primary = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, FileOptions.Asynchronous);
+            }
             else
                 primary = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096);
 
-            FileHolder fh = new FileHolder(primary, path);
+            fh ??= new FileHolder(primary!, path);
 
             return new FileBucket(fh);
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         public static FileBucket OpenRead(string path)
