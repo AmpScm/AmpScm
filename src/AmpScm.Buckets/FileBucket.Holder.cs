@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +38,9 @@ namespace AmpScm.Buckets
                 _handle = primary.SafeFileHandle;
             }
 
+#if NET5_0_OR_GREATER
+            [SupportedOSPlatform("windows")]
+#endif
             public FileHolder(SafeFileHandle handle, string path)
             {
                 if (handle?.IsInvalid ?? true)
@@ -81,26 +85,28 @@ namespace AmpScm.Buckets
                 }
             }
 
-            public ValueTask<int> ReadAtAsync(long readPos, byte[] buffer, int readLen)
+            public ValueTask<int> ReadAtAsync(long offset, byte[] buffer, int length)
             {
-                if (readLen <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(readLen));
-                else if (readPos > 0 && readPos >= Length)
+                if (length <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(length));
+                else if (offset > 0 && offset >= Length)
                     return new ValueTask<int>(0);
 
                 if (_asyncWin)
-                    return AsyncWinReadAsync(readPos, buffer, readLen);
+#pragma warning disable CA1416 // Validate platform compatibility
+                    return AsyncWinReadAsync(offset, buffer, length);
+#pragma warning restore CA1416 // Validate platform compatibility
                 else if (_primary.IsAsync)
-                    return TrueReadAtAsync(readPos, buffer, readLen);
+                    return TrueReadAtAsync(offset, buffer, length);
                 else
                 {
                     using (GetFileStream(out var p))
                     {
-                        if (p.Position != readPos)
-                            p.Position = readPos;
+                        if (p.Position != offset)
+                            p.Position = offset;
 
 #pragma warning disable CA1849 // Call async methods when in an async method
-                        int r = p.Read(buffer, 0, readLen);
+                        int r = p.Read(buffer, 0, length);
 #pragma warning restore CA1849 // Call async methods when in an async method
 
                         return new ValueTask<int>(r);
@@ -108,17 +114,20 @@ namespace AmpScm.Buckets
                 }
             }
 
-            public ValueTask<int> AsyncWinReadAsync(long readPos, byte[] buffer, int readLen)
+#if NET5_0_OR_GREATER
+            [SupportedOSPlatform("windows")]
+#endif
+            public ValueTask<int> AsyncWinReadAsync(long offset, byte[] buffer, int readLen)
             {
                 FileWaitHandler fwh;
 
                 if (readLen < 1)
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(readLen));
 
-                long fp = readPos + readLen;
+                long fp = offset + readLen;
                 if (fp > _length!.Value)
                 {
-                    long rl = (_length.Value - readPos);
+                    long rl = (_length.Value - offset);
 
                     if (rl < 1)
                         return new ValueTask<int>(0);
@@ -151,7 +160,7 @@ namespace AmpScm.Buckets
                 }
                 TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
 
-                if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, fwh.Alloc(tcs, readPos, buffer)))
+                if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, fwh.Alloc(tcs, offset, buffer)))
                 {
                     fwh.Release();
                     return new ValueTask<int>((int)read); // Done reading
@@ -168,7 +177,7 @@ namespace AmpScm.Buckets
                 }
             }
 
-            public async ValueTask<int> TrueReadAtAsync(long readPos, byte[] buffer, int readLen)
+            public async ValueTask<int> TrueReadAtAsync(long offset, byte[] buffer, int readLen)
             {
                 bool primary = false;
                 try
@@ -176,8 +185,8 @@ namespace AmpScm.Buckets
                     using (GetFileStream(out var p))
                     {
                         primary = (p == _primary);
-                        if (p.Position != readPos)
-                            p.Position = readPos;
+                        if (p.Position != offset)
+                            p.Position = offset;
 
 #if !NETFRAMEWORK
                         var r = await p.ReadAsync(buffer.AsMemory(0, readLen)).ConfigureAwait(false);
@@ -242,7 +251,7 @@ namespace AmpScm.Buckets
                 }
             }
 
-            public long Length => _length ?? (_length = _primary?.Length).Value;
+            public long Length => _length ??= _primary.Length;
 
 
             sealed class Returner : IDisposable
@@ -263,7 +272,10 @@ namespace AmpScm.Buckets
                 }
             }
 
-            sealed class FileWaitHandler
+#if NET5_0_OR_GREATER
+            [SupportedOSPlatform("windows")]
+#endif
+            sealed class FileWaitHandler : IDisposable
             {
                 readonly FileHolder _holder;
                 TaskCompletionSource<int>? _tcs;
@@ -391,6 +403,8 @@ namespace AmpScm.Buckets
 
             internal static SafeFileHandle OpenAsyncWin32(string path)
             {
+                if (string.IsNullOrEmpty(path))
+                    throw new ArgumentNullException(nameof(path));
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 SafeFileHandle handle = NativeMethods.CreateFileW(path,
                     access: 0x80000000 /* GENERIC_READ */, // We want to read
@@ -404,7 +418,7 @@ namespace AmpScm.Buckets
                 if (!handle.IsInvalid)
                     return handle;
                 else
-                    throw new FileNotFoundException($"Couldn't open {path}");
+                    throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new FileNotFoundException($"Couldn't open {path}");
             }
         }
     }

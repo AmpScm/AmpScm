@@ -172,7 +172,12 @@ namespace AmpScm.Buckets
 
             if (forAsync)
             {
+#if NET5_0_OR_GREATER
+                if (OperatingSystem.IsWindows())
+#else
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+#endif
+
                     fh = new FileHolder(FileHolder.OpenAsyncWin32(path), path);
                 else
                     primary = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, FileOptions.Asynchronous);

@@ -490,7 +490,7 @@ namespace AmpScm.Git.Objects
             GitObjectType gitObjectType = GetGitObjectType(typeof(TGitObject));
             int bit = 0;
             int? bitLength = null;
-            while (await ewahBitmap.NextByteAsync().ConfigureAwait(false) is byte b)
+            while (await ewahBitmap.ReadByteAsync().ConfigureAwait(false) is byte b)
             {
                 if (b != 0)
                 {

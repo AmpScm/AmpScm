@@ -72,7 +72,7 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_compound_assignment = true:suggestion
 dotnet_style_prefer_simplified_interpolation = true:suggestion
 dotnet_style_namespace_match_folder = true:suggestion
-dotnet_code_quality.CA2000.excluded_symbol_names = AmpScm.Buckets.Bucket
+dotnet_code_quality.CA2000.excluded_type_names_with_derived_types = AmpScm.Buckets.Bucket
 ###############################
 # C# Coding Conventions       #
 ###############################

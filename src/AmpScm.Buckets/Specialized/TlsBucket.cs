@@ -113,15 +113,8 @@ namespace AmpScm.Buckets.Specialized
                 _bytesRead += len;
                 if (len > requested)
                 {
-                    try
-                    {
-                        _unread = new BucketBytes(_inputBuffer, requested, len - requested);
-                        return new BucketBytes(_inputBuffer, 0, requested);
-                    }
-                    catch(Exception e)
-                    {
-                        throw new Exception($"{requested}, {len}, {_inputBuffer.Length}", e);
-                    }
+                    _unread = new BucketBytes(_inputBuffer, requested, len - requested);
+                    return new BucketBytes(_inputBuffer, 0, requested);
                 }
                 else
                 {

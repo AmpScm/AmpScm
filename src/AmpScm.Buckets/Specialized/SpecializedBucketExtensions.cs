@@ -243,9 +243,11 @@ namespace AmpScm.Buckets.Specialized
         }
 
 
-        public static async ValueTask<byte?> NextByteAsync(this Bucket self)
+        public static async ValueTask<byte?> ReadByteAsync(this Bucket self)
         {
-            var bb = await self.ReadFullAsync(1).ConfigureAwait(false);
+            if (self is null)
+                throw new ArgumentNullException(nameof(self));
+            var bb = await self.ReadAsync(1).ConfigureAwait(false);
 
             if (bb.Length != 1)
                 return null;

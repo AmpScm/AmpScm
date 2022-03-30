@@ -20,7 +20,6 @@ virtual AmpScm.Buckets.Bucket.Dispose(bool disposing) -> void
 virtual AmpScm.Buckets.Bucket.DuplicateAsync(bool reset) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Bucket!>
 virtual AmpScm.Buckets.Bucket.Name.get -> string!
 virtual AmpScm.Buckets.Bucket.Position.get -> long?
-virtual AmpScm.Buckets.Bucket.ReadBucket<TBucket>() -> System.Threading.Tasks.ValueTask<TBucket?>
 virtual AmpScm.Buckets.Bucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 virtual AmpScm.Buckets.Bucket.ReadSkipAsync(int requested) -> System.Threading.Tasks.ValueTask<int>
 virtual AmpScm.Buckets.Bucket.ReadUntilEolAsync(AmpScm.Buckets.BucketEol acceptableEols, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
@@ -175,7 +174,6 @@ override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.DuplicateAsync(bool res
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Position.get -> long?
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadBucket<TReadBucket>() -> System.Threading.Tasks.ValueTask<TReadBucket?>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadSkipAsync(int requested) -> System.Threading.Tasks.ValueTask<int>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadUntilEolAsync(AmpScm.Buckets.BucketEol acceptableEols, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
@@ -253,12 +251,12 @@ static AmpScm.Buckets.Specialized.NetBitConverter.ToUInt32(AmpScm.Buckets.Bucket
 static AmpScm.Buckets.Specialized.NetBitConverter.ToUInt32(byte[]! value, int startOffset) -> uint
 static AmpScm.Buckets.Specialized.NetBitConverter.ToUInt64(AmpScm.Buckets.BucketBytes value, int startOffset) -> ulong
 static AmpScm.Buckets.Specialized.NetBitConverter.ToUInt64(byte[]! value, int startOffset) -> ulong
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Crc32(this AmpScm.Buckets.Bucket! self, System.Action<int>! created) -> AmpScm.Buckets.Specialized.CreateHashBucket!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.MD5(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Specialized.CreateHashBucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Crc32(this AmpScm.Buckets.Bucket! self, System.Action<int>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.MD5(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilAsync(this AmpScm.Buckets.Bucket! self, byte b) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEolFullAsync(this AmpScm.Buckets.Bucket! self, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA1(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Specialized.CreateHashBucket!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA256(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Specialized.CreateHashBucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA1(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA256(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.ValueOrEof.Eof.get -> AmpScm.Buckets.ValueOrEof
 static AmpScm.Buckets.ValueOrEof.operator !=(AmpScm.Buckets.ValueOrEof left, AmpScm.Buckets.ValueOrEof right) -> bool
 static AmpScm.Buckets.ValueOrEof.operator ==(AmpScm.Buckets.ValueOrEof left, AmpScm.Buckets.ValueOrEof right) -> bool
