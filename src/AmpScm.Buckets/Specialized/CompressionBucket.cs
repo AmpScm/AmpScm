@@ -95,8 +95,8 @@ namespace AmpScm.Buckets.Specialized
 #if !NETFRAMEWORK
                         await Processed.WriteAsync(bb.Memory).ConfigureAwait(false);
 #else
-                        var bytes = bb.ToArray();
-                        await Processed.WriteAsync(bytes, 0, bytes.Length).ConfigureAwait(false);
+                        var (bytes, offset) = bb.ExpandToArray();
+                        await Processed.WriteAsync(bytes, offset, bytes.Length).ConfigureAwait(false);
 #endif
                     }
 

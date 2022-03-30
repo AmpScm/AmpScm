@@ -216,15 +216,7 @@ namespace AmpScm.Buckets
 
             using (MemoryStream ms = new MemoryStream())
             {
-                BucketBytes bb;
-                while (!(bb = await self.ReadAsync().ConfigureAwait(false)).IsEof)
-                {
-#if NETFRAMEWORK
-                    await ms.WriteAsync(bb.ToArray(), 0, bb.Length).ConfigureAwait(false);
-#else
-                    await ms.WriteAsync(bb.Memory).ConfigureAwait(false);
-#endif
-                }
+                await ms.WriteAsync(self).ConfigureAwait(false);
 
                 return ms.ToArray();
             }

@@ -210,7 +210,7 @@ namespace AmpScm.Buckets
                 return (null, -1);
         }
 
-        internal (byte[]?, int) ExpandToArray()
+        internal (byte[] Bytes, int Index) ExpandToArray()
         {
             if (_data.Length == 0)
                 return (Array.Empty<byte>(), 0);
