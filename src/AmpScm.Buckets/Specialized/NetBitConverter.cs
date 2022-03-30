@@ -164,6 +164,16 @@ namespace AmpScm.Buckets.Specialized
             return FromNetwork(BitConverter.ToInt16(value, startOffset));
         }
 
+        public static short ToInt16(BucketBytes value, int startOffset)
+        {
+#if NETFRAMEWORK
+            var b = value.Span.Slice(startOffset, sizeof(short)).ToArray();
+            return FromNetwork(BitConverter.ToInt16(b, 0));
+#else
+            return FromNetwork(BitConverter.ToInt16(value.Span.Slice(startOffset)));
+#endif
+        }
+
         public static int ToInt32(byte[] value, int startOffset)
         {
             return FromNetwork(BitConverter.ToInt32(value, startOffset));
@@ -172,7 +182,7 @@ namespace AmpScm.Buckets.Specialized
         public static int ToInt32(BucketBytes value, int startOffset)
         {
 #if NETFRAMEWORK
-            var b = value.Span.Slice(startOffset, sizeof(uint)).ToArray();
+            var b = value.Span.Slice(startOffset, sizeof(int)).ToArray();
             return FromNetwork(BitConverter.ToInt32(b, 0));
 #else
             return FromNetwork(BitConverter.ToInt32(value.Span.Slice(startOffset)));
@@ -198,6 +208,17 @@ namespace AmpScm.Buckets.Specialized
         public static ushort ToUInt16(byte[] value, int startOffset)
         {
             return FromNetwork(BitConverter.ToUInt16(value, startOffset));
+        }
+
+        [CLSCompliant(false)]
+        public static ushort ToUInt16(BucketBytes value, int startOffset)
+        {
+#if NETFRAMEWORK
+            var b = value.Span.Slice(startOffset, sizeof(ushort)).ToArray();
+            return FromNetwork(BitConverter.ToUInt16(b, 0));
+#else
+            return FromNetwork(BitConverter.ToUInt16(value.Span.Slice(startOffset)));
+#endif
         }
 
         [CLSCompliant(false)]

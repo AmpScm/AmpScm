@@ -100,6 +100,8 @@ namespace AmpScm.Buckets.Specialized
 
             IEnumerable<byte>? result = null;
 
+            int rq = requested;
+            BucketEol acc = acceptableEols;
             if (eolState?._kept.HasValue ?? false)
             {
                 var kept = eolState._kept!.Value;
@@ -107,10 +109,15 @@ namespace AmpScm.Buckets.Specialized
 
                 switch (kept)
                 {
-                    case (byte)'\r' when (0 != (acceptableEols & BucketEol.CR)):
+                    case (byte)'\n' when (0 != (acceptableEols & BucketEol.LF)):
+                        return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.LF);
+                    case (byte)'\r' when (0 != (acceptableEols & BucketEol.CR) && (acceptableEols & BucketEol.CRLF) == 0):
                         return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.CR);
                     case (byte)'\0' when (0 != (acceptableEols & BucketEol.Zero)):
                         return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.Zero);
+                    case (byte)'\r':
+                        rq = 1;
+                        goto default;
                     default:
                         result = new[] { kept };
                         break;
@@ -125,12 +132,24 @@ namespace AmpScm.Buckets.Specialized
                 BucketBytes bb;
                 BucketEol eol;
 
-                (bb, eol) = await self.ReadUntilEolAsync(acceptableEols).ConfigureAwait(false);
+                (bb, eol) = await self.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
+                rq = requested;
+                acc = acceptableEols;
 
                 if (bb.IsEof)
                     return ((result != null) ? result.ToArray() : bb, eol);
                 else if (bb.IsEmpty)
                     throw new InvalidOperationException();
+                else if ((acceptableEols & BucketEol.CRLF) != 0 && result is byte[] rb && rb.Length == 1 && rb[0] == '\r')
+                {
+                    if (bb[0] == '\n')
+                        return (result.Concat(bb.ToArray()).ToArray(), BucketEol.CRLF);
+                    else if ((acceptableEols & BucketEol.CR) != 0)
+                    {
+                        eolState!._kept = bb[0];
+                        return (new[] { (byte)'\r' }, BucketEol.CR);
+                    }
+                }
                 else if (result == null && eol != BucketEol.None && eol != BucketEol.CRSplit)
                     return (bb, eol);
 
@@ -154,7 +173,7 @@ namespace AmpScm.Buckets.Specialized
                     if (!poll.Data.IsEmpty && poll[0] == '\n')
                     {
                         // Phew, we were lucky. We got a \r\n
-                        result = result.Concat(new byte[] { bb[0] }).ToArray();
+                        result = result.Concat(new byte[] { poll[0] });
 
                         await poll.Consume(1).ConfigureAwait(false);
 
