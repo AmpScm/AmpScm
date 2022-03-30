@@ -74,16 +74,17 @@ namespace AmpScm.Git.Client.Plumbing
             a ??= new GitUpdateReferenceArgs();
             a.Verify();
 
-            List<string> args = new List<string>();
-
-            args.Add("--stdin");
-            args.Add("-z");
+            List<string> args = new List<string>
+            {
+                "--stdin",
+                "-z"
+            };
             if (a.CreateReferenceLog)
                 args.Add("--create-reflog");
             if (!string.IsNullOrWhiteSpace(a.Message))
             {
                 args.Add("-m");
-                args.Add(a.Message);
+                args.Add(a.Message!);
             }
 
             var (_, _) = await c.Repository.RunPlumbingCommandOut("update-ref", args.ToArray(),

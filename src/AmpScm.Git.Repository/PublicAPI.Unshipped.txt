@@ -2,7 +2,7 @@
 abstract AmpScm.Git.GitTreeEntry.GitObject.get -> AmpScm.Git.GitObject!
 abstract AmpScm.Git.GitTreeEntry.ReadAsync() -> System.Threading.Tasks.ValueTask
 abstract AmpScm.Git.Objects.GitObjectWriter.Type.get -> AmpScm.Git.GitObjectType
-abstract AmpScm.Git.Objects.GitObjectWriter.WriteToAsync(AmpScm.Git.GitRepository! toRepository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
+abstract AmpScm.Git.Objects.GitObjectWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 abstract AmpScm.Git.References.GitReferenceRepository.GetAll() -> System.Collections.Generic.IAsyncEnumerable<AmpScm.Git.GitReference!>!
 abstract AmpScm.Git.References.GitReferenceRepository.GetUnsafeAsync(string! name, bool findSymbolic) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
 abstract AmpScm.Git.Sets.GitSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
@@ -116,7 +116,6 @@ AmpScm.Git.Objects.GitCommitWriter.Parents.get -> System.Collections.Generic.IRe
 AmpScm.Git.Objects.GitObjectRepository
 AmpScm.Git.Objects.GitObjectRepository.Dispose() -> void
 AmpScm.Git.Objects.GitObjectWriter
-AmpScm.Git.Objects.GitObjectWriter.EnsureId(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 AmpScm.Git.Objects.GitObjectWriter.GitObjectWriter() -> void
 AmpScm.Git.Objects.GitObjectWriter.Id.get -> AmpScm.Git.GitId?
 AmpScm.Git.Objects.GitObjectWriter<TGitObject>.WriteAndFetchAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<TGitObject!>
