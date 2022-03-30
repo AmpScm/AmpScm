@@ -149,6 +149,8 @@ namespace AmpScm.Buckets.Specialized
                         eolState!._kept = bb[0];
                         return (new[] { (byte)'\r' }, BucketEol.CR);
                     }
+                    else if (eol != BucketEol.None)
+                        return (result.Concat(bb.ToArray()).ToArray(), eol); // '\0' case
                 }
                 else if (result == null && eol != BucketEol.None && eol != BucketEol.CRSplit)
                     return (bb, eol);
