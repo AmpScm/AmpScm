@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net5.0;net47;net48;netcoreapp3.1</TargetFrameworks>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
+    <PackageReference Include="NUnit" Version="3.13.2" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AmpScm.Buckets\AmpScm.Buckets.csproj" />
+    <ProjectReference Include="..\..\src\AmpScm.Git.Client\AmpScm.Git.Client.csproj" />
+    <ProjectReference Include="..\..\src\AmpScm.Git.Repository\AmpScm.Git.Repository.csproj" />
+    <ProjectReference Include="..\Git.Repository.Tests\Git.Repository.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="cases\pack-b5a9cccacd266c9fcbdedb43ff509b02aa185b5c.bitmap">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

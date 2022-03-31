@@ -8,9 +8,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
+using BucketTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AmpScm.Tests
+namespace GitRepositoryTests
 {
     [TestClass]
     public class GitPlumbingTests

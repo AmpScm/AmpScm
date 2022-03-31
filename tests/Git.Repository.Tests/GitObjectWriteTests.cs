@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Git;
@@ -14,7 +10,7 @@ using AmpScm.Git.References;
 using AmpScm.Git.Sets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AmpScm.Tests
+namespace GitRepositoryTests
 {
     [TestClass]
     public class GitObjectWriteTests

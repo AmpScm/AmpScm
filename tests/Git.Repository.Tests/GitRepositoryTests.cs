@@ -12,9 +12,10 @@ using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Objects;
 using AmpScm.Git.References;
 using AmpScm.Git.Sets;
+using BucketTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AmpScm.Tests
+namespace GitRepositoryTests
 {
     [TestClass]
     public class GitRepositoryTests
@@ -316,7 +317,7 @@ namespace AmpScm.Tests
                 }
             }
 
-            if (set is Linq.AsyncQueryable.IAsyncQueryable<TProp> aq)
+            if (set is AmpScm.Linq.AsyncQueryable.IAsyncQueryable<TProp> aq)
             {
                 try
                 {

@@ -8,7 +8,7 @@ using AmpScm.Buckets.Specialized;
 using AmpScm.BucketTests.Buckets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AmpScm.Tests.Buckets
+namespace BucketTests
 {
     [TestClass]
     public class CombineTests
@@ -22,7 +22,7 @@ namespace AmpScm.Tests.Buckets
             var xorResult = new BitwiseXorBucket(left, right).ToArray().SelectPer(4).Select(x => BitConverter.ToInt32(x, 0));
 
 
-            Assert.IsTrue(xorResult.SequenceEqual(Enumerable.Range(0, 300).Select(x => x * 27).Zip(Enumerable.Range(0, 300).Reverse().Select(x => x * 31), (x,y)=> x^y)));
+            Assert.IsTrue(xorResult.SequenceEqual(Enumerable.Range(0, 300).Select(x => x * 27).Zip(Enumerable.Range(0, 300).Reverse().Select(x => x * 31), (x, y) => x ^ y)));
 
 
             left = Enumerable.Range(0, 600).SelectMany(x => BitConverter.GetBytes(x * 27)).ToArray().AsBucket();
@@ -30,7 +30,7 @@ namespace AmpScm.Tests.Buckets
 
             xorResult = new BitwiseXorBucket(left, right).ToArray().SelectPer(4).Select(x => BitConverter.ToInt32(x, 0));
 
-            Assert.IsTrue(xorResult.SequenceEqual(Enumerable.Range(0, 600).Select(x => x * 27).Zip(Enumerable.Range(0, 300).Reverse().Select(x => x * 31).Concat(Enumerable.Range(0,300).Select(x=>0)), (x, y) => x ^ y)));
+            Assert.IsTrue(xorResult.SequenceEqual(Enumerable.Range(0, 600).Select(x => x * 27).Zip(Enumerable.Range(0, 300).Reverse().Select(x => x * 31).Concat(Enumerable.Range(0, 300).Select(x => 0)), (x, y) => x ^ y)));
 
 
             left = Enumerable.Range(0, 300).SelectMany(x => BitConverter.GetBytes(x * 27)).ToArray().AsBucket();

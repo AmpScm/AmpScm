@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git;
-using AmpScm.Git.Client;
 using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.References;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AmpScm.Tests
+namespace GitRepositoryTests
 {
     [TestClass]
     public class GitRepositoryWalks

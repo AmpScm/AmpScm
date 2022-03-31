@@ -4,6 +4,7 @@
     <TargetFrameworks>net6.0;net5.0;net47;net48;netcoreapp3.1</TargetFrameworks>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
+    <RootNamespace>GitRepositoryTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,9 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AmpScm.Buckets\AmpScm.Buckets.csproj" />
-    <ProjectReference Include="..\AmpScm.Git.Client\AmpScm.Git.Client.csproj" />
-    <ProjectReference Include="..\AmpScm.Git.Repository\AmpScm.Git.Repository.csproj" />
+    <ProjectReference Include="..\..\src\AmpScm.Buckets\AmpScm.Buckets.csproj" />
+    <ProjectReference Include="..\..\src\AmpScm.Git.Client\AmpScm.Git.Client.csproj" />
+    <ProjectReference Include="..\..\src\AmpScm.Git.Repository\AmpScm.Git.Repository.csproj" />
+    <ProjectReference Include="..\Bucket.Tests\Bucket.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

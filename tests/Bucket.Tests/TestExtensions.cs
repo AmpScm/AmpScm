@@ -8,9 +8,9 @@ using AmpScm.Buckets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
-namespace AmpScm.Tests
+namespace System
 {
-    internal static class TestExtensions
+    public static class TestExtensions
     {
         public static void ReadFull(this Bucket self, byte[] array)
         {
