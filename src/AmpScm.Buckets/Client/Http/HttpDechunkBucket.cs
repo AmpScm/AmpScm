@@ -96,9 +96,9 @@ namespace AmpScm.Buckets.Client.Http
                 {
                     case DechunkState.Start:
                         {
-                            var (bb, eol) = await Inner.ReadUntilEolAsync(BucketEol.CRLF).ConfigureAwait(false);
+                            var (bb, eol) = await Inner.ReadUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
 
-                            if (eol == BucketEol.CRLF)
+                            if (eol == BucketEol.CRLF || eol == BucketEol.LF)
                             {
                                 _chunkLeft = Convert.ToInt32(bb.ToASCIIString(eol), 16);
                                 _state = _chunkLeft > 0 ? DechunkState.Chunk : DechunkState.Fin;
@@ -115,7 +115,7 @@ namespace AmpScm.Buckets.Client.Http
                         break;
                     case DechunkState.Size:
                         {
-                            var (bb, eol) = await Inner.ReadUntilEolAsync(_eol != BucketEol.None ? BucketEol.LF : BucketEol.CRLF).ConfigureAwait(false);
+                            var (bb, eol) = await Inner.ReadUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
 
                             if (eol != BucketEol.None && eol != BucketEol.CRSplit)
                             {
@@ -129,7 +129,7 @@ namespace AmpScm.Buckets.Client.Http
                                 _eol = eol;
                             }
                         }
-                            break;
+                        break;
                     case DechunkState.Term:
                         {
                             var bb = await Inner.ReadAsync(_chunkLeft).ConfigureAwait(false);
