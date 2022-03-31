@@ -101,7 +101,6 @@ namespace AmpScm.Buckets.Specialized
             IEnumerable<byte>? result = null;
 
             int rq = requested;
-            BucketEol acc = acceptableEols;
             if (eolState?._kept.HasValue ?? false)
             {
                 var kept = eolState._kept!.Value;
@@ -117,7 +116,6 @@ namespace AmpScm.Buckets.Specialized
                         return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.Zero);
                     case (byte)'\r' when (0 != (acceptableEols & BucketEol.CRLF)):
                         rq = 1;
-                        acc |= BucketEol.LF;
                         goto default;
                     default:
                         result = new[] { kept };
@@ -133,9 +131,8 @@ namespace AmpScm.Buckets.Specialized
                 BucketBytes bb;
                 BucketEol eol;
 
-                (bb, eol) = await self.ReadUntilEolAsync(acc, rq).ConfigureAwait(false);
+                (bb, eol) = await self.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
                 rq = requested;
-                acc = acceptableEols;
 
                 if (bb.IsEof)
                     return ((result != null) ? result.ToArray() : bb, eol);
@@ -173,29 +170,32 @@ namespace AmpScm.Buckets.Specialized
 
                     var poll = await self.PollReadAsync(1).ConfigureAwait(false);
 
-                    if (!poll.Data.IsEmpty && poll[0] == '\n')
+                    if (!poll.Data.IsEmpty)
                     {
-                        // Phew, we were lucky. We got a \r\n
-                        result = result.Concat(new byte[] { poll[0] });
-
+                        var b = poll[0];
                         await poll.Consume(1).ConfigureAwait(false);
 
-                        return (result.ToArray(), BucketEol.CRLF);
-                    }
-                    else if (!poll.Data.IsEmpty)
-                    {
-                        // We got something else
-                        if (0 != (acceptableEols & BucketEol.CR))
+                        if (b == '\n')
                         {
-                            // Keep the next byte for the next read :(
-                            eolState!._kept = poll[0];
-                            await poll.Consume(1).ConfigureAwait(false);
+                            // Phew, we were lucky. We got a \r\n
+                            result = result.Concat(new byte[] { poll[0] });
+                            return (result.ToArray(), BucketEol.CRLF);
+                        }
+                        else if (0 != (acceptableEols & BucketEol.CR))
+                        {
+                            // We return the part ending with '\r'
+                            eolState!._kept = b; // And keep the next byte
                             return (result.ToArray(), BucketEol.CR);
+                        }
+                        else if (b == '\0' && 0 != (acceptableEols & BucketEol.Zero))
+                        {
+                            // Another edge case :(
+                            result = result.Concat(new byte[] { poll[0] });
+                            return (result.ToArray(), BucketEol.Zero);
                         }
                         else
                         {
-                            await poll.Consume(1).ConfigureAwait(false);
-                            result = result.Concat(new byte[] { poll[0] }).ToArray();
+                            result = result.Concat(new byte[] { b }).ToArray();
                             continue;
                         }
                     }

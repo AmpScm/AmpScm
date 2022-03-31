@@ -83,34 +83,38 @@ namespace AmpScm.Buckets
             int linelen = cr;
             single_cr_requested = false;
 
+            int rq;
+
             if (cr >= 0
                 && buffer[cr] == '\r'
                 && (acceptableEols & BucketEol.CRLF) != 0
                 && linelen + 1 < buffer.Length)
             {
                 if (buffer[cr + 1] == '\n')
-                    requested = linelen + 2; // cr+lf
+                {
+                    rq = linelen + 2; // cr+lf
+                }
                 else if ((acceptableEols & BucketEol.CRLF) != 0)
                 {
-                    requested = linelen + 1; // cr without lf
+                    rq = linelen + 1; // cr without lf
                     single_cr_requested = true;
                 }
                 else
                 {
                     // easy out. Just include the single character after the cr
-                    requested = linelen + 2; // cr+lf
+                    rq = linelen + 2; // cr+lf
                 }
             }
             else if (cr >= 0)
             {
-                requested = linelen + 1;
+                rq = linelen + 1;
             }
             else if (acceptableEols == BucketEol.CRLF)
-                requested = Math.Min(buffer.Length + 2, requested); // No newline in rq_len, and we need 2 chars for eol
+                rq = buffer.Length + 2; // No newline in rq_len, and we need 2 chars for eol
             else
-                requested = Math.Min(buffer.Length + 1, requested); // No newline in rq_len, and we need 1 char for eol
+                rq = buffer.Length + 1; // No newline in rq_len, and we need 1 char for eol
 
-            return requested;
+            return Math.Min(rq, requested);
         }
 
         private static BucketEol GetEolResult(BucketEol acceptableEols, int requested, int pdLength, bool single_cr_requested, ReadOnlySpan<byte> read)
@@ -129,7 +133,7 @@ namespace AmpScm.Buckets
             {
                 found = BucketEol.LF;
             }
-            else if (BucketEol.CR == (acceptableEols & BucketEol.CR | BucketEol.CRLF) && read[read.Length - 1] == '\r')
+            else if (BucketEol.CR == (acceptableEols & (BucketEol.CR | BucketEol.CRLF)) && read[read.Length - 1] == '\r')
             {
                 found = BucketEol.CR;
             }
