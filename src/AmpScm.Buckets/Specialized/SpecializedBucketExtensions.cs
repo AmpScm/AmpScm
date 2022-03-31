@@ -115,15 +115,16 @@ namespace AmpScm.Buckets.Specialized
                         return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.CR);
                     case (byte)'\0' when (0 != (acceptableEols & BucketEol.Zero)):
                         return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.Zero);
-                    case (byte)'\r':
+                    case (byte)'\r' when (0 != (acceptableEols & BucketEol.CRLF)):
                         rq = 1;
+                        acc |= BucketEol.LF;
                         goto default;
                     default:
                         result = new[] { kept };
                         break;
                 }
             }
-            else if (0 != (acceptableEols & BucketEol.CRLF) && eolState == null)
+            else if ((BucketEol.CRLF | BucketEol.CR) != (acceptableEols & BucketEol.CRLF | BucketEol.CR) && eolState is null)
             {
                 throw new ArgumentNullException(nameof(eolState));
             }
@@ -132,7 +133,7 @@ namespace AmpScm.Buckets.Specialized
                 BucketBytes bb;
                 BucketEol eol;
 
-                (bb, eol) = await self.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
+                (bb, eol) = await self.ReadUntilEolAsync(acc, rq).ConfigureAwait(false);
                 rq = requested;
                 acc = acceptableEols;
 

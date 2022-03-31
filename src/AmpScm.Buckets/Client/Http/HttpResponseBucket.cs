@@ -13,7 +13,6 @@ namespace AmpScm.Buckets.Client.Http
 {
     public class HttpResponseBucket : ResponseBucket
     {
-        BucketEolState? _state;
         Bucket? _reader;
         private bool _doneAtEof;
         WebHeaderDictionary? _responseHeaders;
@@ -21,6 +20,8 @@ namespace AmpScm.Buckets.Client.Http
         Action? _authFailed;
         int _nRedirects;
         Stack<Bucket>? _readUntilEof;
+
+        const BucketEol ResponseEol = BucketEol.LF | BucketEol.CRLF;
 
         public string? HttpVersion { get; private set; }
         public int? HttpStatus { get; private set; }
@@ -156,7 +157,7 @@ namespace AmpScm.Buckets.Client.Http
         private async ValueTask<WebHeaderDictionary> ReadHeaderSet()
         {
             WebHeaderDictionary whc = new WebHeaderDictionary();
-            var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.AnyEol, _state).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
             while (bb.Length - eol.CharCount() > 0)
             {
                 string line = bb.ToUTF8String(eol);
@@ -165,7 +166,7 @@ namespace AmpScm.Buckets.Client.Http
 
                 whc[parts[0]] = parts[1].Trim();
 
-                (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.AnyEol, _state).ConfigureAwait(false);
+                (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
             }
 
             return whc;
@@ -178,8 +179,7 @@ namespace AmpScm.Buckets.Client.Http
 
             while (true)
             {
-                _state = new BucketEolState();
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.AnyEol, _state).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
 
                 string line = bb.ToASCIIString(eol);
 
