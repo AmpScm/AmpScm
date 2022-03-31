@@ -122,7 +122,7 @@ namespace AmpScm.Buckets.Specialized
                         break;
                 }
             }
-            else if ((BucketEol.CRLF | BucketEol.CR) != (acceptableEols & BucketEol.CRLF | BucketEol.CR) && eolState is null)
+            else if ((BucketEol.CRLF | BucketEol.CR) == (acceptableEols & (BucketEol.CRLF | BucketEol.CR)) && eolState is null)
             {
                 throw new ArgumentNullException(nameof(eolState));
             }

@@ -409,10 +409,6 @@ namespace BucketTests
                                             Assert.Fail($"Unexpected Zero in test {expected}, part={Escape(s)}");
                                         if (s.Length > 3 && 0 != (acceptableEols & BucketEol.CR) && s.LastIndexOf('\r', s.Length - 3) >= 0)
                                             Assert.Fail($"Unexpected CR in test {expected}, part={Escape(s)}");
-                                        //if (0 != (acceptableEols & BucketEol.CR) && s.LastIndexOf('\r', Math.Max(0, s.Length - 2)) >= 0)
-                                        //    Assert.Fail($"Unexpected CR in test {tst}, {n1}, {n2}");
-                                        //if (0 != (acceptableEols & BucketEol.Zero) && s.LastIndexOf('\0', Math.Max(0,s.Length - 1)) >= 0)
-                                        //    Assert.Fail($"Unexpected Zero in test {tst}, {n1}, {n2}");
                                     }
 
                                     Assert.AreEqual(expected, Escape(total.Insert(n2, "|").Insert(n1, "|")));
