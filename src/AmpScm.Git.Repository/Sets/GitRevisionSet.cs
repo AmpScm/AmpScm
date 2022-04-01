@@ -4,10 +4,11 @@ using System.Linq.Expressions;
 using System.Threading;
 using AmpScm.Git.Implementation;
 using AmpScm.Git.Sets.Walker;
+using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitRevisionSet : GitSet<GitRevision>, IGitAsyncQueryable<GitRevision>
+    public class GitRevisionSet : GitSet<GitRevision>, ISyncAndAsyncQueryable<GitRevision>
     {
         readonly GitRevisionSetOptions _options;
 

@@ -7,10 +7,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Git.Sets;
+using AmpScm.Linq;
 
 namespace AmpScm.Git.Implementation
 {
-    internal class GitQuery<T> : IQueryable<T>, IOrderedQueryable<T>, IGitAsyncQueryable<T>
+    internal class GitQuery<T> : IOrderedSyncAndAsyncQueryable<T>
     {
         public GitQuery(GitQueryProvider provider, Expression expression)
         {
@@ -24,9 +25,9 @@ namespace AmpScm.Git.Implementation
 
         public GitQueryProvider Provider { get; }
 
-        public bool ContainsListCollection => throw new NotImplementedException();
-
         IQueryProvider IQueryable.Provider => Provider;
+
+        IAsyncQueryProvider IAsyncQueryable.Provider => Provider;
 
         public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
@@ -42,6 +43,21 @@ namespace AmpScm.Git.Implementation
         public IEnumerator<T> GetEnumerator()
         {
             return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
+        }
+
+        IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
+        {
+            throw new NotImplementedException();
+        }
+
+        IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
+        {
+            throw new NotImplementedException();
+        }
+
+        IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
+        {
+            throw new NotImplementedException();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

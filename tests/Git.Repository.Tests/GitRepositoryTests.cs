@@ -271,7 +271,7 @@ namespace GitRepositoryTests
             }
         }
 
-        public void WalkSets_TestSet<TSet, TProp>(IQueryable<TProp> set, PropertyInfo pi, HashSet<Type> walked)
+        public async ValueTask WalkSets_TestSet<TSet, TProp>(IQueryable<TProp> set, PropertyInfo pi, HashSet<Type> walked)
         {
             try
             {
@@ -317,11 +317,11 @@ namespace GitRepositoryTests
                 }
             }
 
-            if (set is AmpScm.Linq.AsyncQueryable.IAsyncQueryable<TProp> aq)
+            if (set is IAsyncQueryable<TProp> aq)
             {
                 try
                 {
-                    aq.Any();
+                    await aq.AnyAsync();
                 }
                 catch (Exception e)
                 {

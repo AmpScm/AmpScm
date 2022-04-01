@@ -40,7 +40,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        public async override ValueTask<TGitObject?> GetByIdAsync<TGitObject>(GitId id)
+        public override async ValueTask<TGitObject?> GetByIdAsync<TGitObject>(GitId id)
             where TGitObject : class
         {
             if (TryFindId(id, out var index))
@@ -92,7 +92,7 @@ namespace AmpScm.Git.Objects
             return null;
         }
 
-        internal async override ValueTask<(TGitObject? Result, bool Success)> DoResolveIdString<TGitObject>(string idString, GitId baseGitId)
+        internal override async ValueTask<(TGitObject? Result, bool Success)> DoResolveIdString<TGitObject>(string idString, GitId baseGitId)
             where TGitObject: class
         {
             if (_packs == null)
@@ -140,7 +140,7 @@ namespace AmpScm.Git.Objects
             return TryFindId(id, out var _);
         }
 
-        public async override IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
+        public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
         {
             if (_packs == null)
                 yield break; // Not really loaded yet
@@ -155,7 +155,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        protected async override ValueTask<(GitIdType IdType, int ChunkCount)> ReadHeaderAsync()
+        protected override async ValueTask<(GitIdType IdType, int ChunkCount)> ReadHeaderAsync()
         {
             if (ChunkStream is null)
                 throw new InvalidOperationException();

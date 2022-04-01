@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 using AmpScm.Buckets.Git;
 using AmpScm.Git.Implementation;
 using AmpScm.Git.Sets;
+using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitObjectSet<T> : GitSet<T>, IGitAsyncQueryable<T>
+    public class GitObjectSet<T> : GitSet<T>, ISyncAndAsyncQueryable<T>
         where T : GitObject
     {
         internal GitObjectSet(GitRepository repository, Expression<Func<GitObjectSet<T>>> rootExpression)

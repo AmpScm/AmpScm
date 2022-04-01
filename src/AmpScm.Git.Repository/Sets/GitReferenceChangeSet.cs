@@ -8,10 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Git.Implementation;
+using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitReferenceChangeSet : GitSet<GitReferenceChange>, IGitAsyncQueryable<GitReferenceChange>, IListSource
+    public class GitReferenceChangeSet : GitSet<GitReferenceChange>, ISyncAndAsyncQueryable<GitReferenceChange>, IListSource
     {
         readonly GitReference _reference;
         internal GitReferenceChangeSet(GitRepository repository, GitReference reference) 

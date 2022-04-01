@@ -8,10 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Git.Implementation;
+using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitNamedSet<T> : GitSet<T>, IGitAsyncQueryable<T>
+    public class GitNamedSet<T> : GitSet<T>, ISyncAndAsyncQueryable<T>
         where T : class, IGitNamedObject
     {
         internal GitNamedSet(GitRepository repository, Expression<Func<GitNamedSet<T>>> rootExpression)

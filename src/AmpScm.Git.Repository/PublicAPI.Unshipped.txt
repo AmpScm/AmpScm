@@ -103,7 +103,6 @@ AmpScm.Git.Implementation.GitExecCommandException.GitExecCommandException() -> v
 AmpScm.Git.Implementation.GitExecCommandException.GitExecCommandException(string! message) -> void
 AmpScm.Git.Implementation.GitExecCommandException.GitExecCommandException(string? message, System.Exception? innerException) -> void
 AmpScm.Git.Implementation.GitExecCommandException.GitExecCommandException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
-AmpScm.Git.Implementation.IGitAsyncQueryable<T>
 AmpScm.Git.Objects.GitBlobWriter
 AmpScm.Git.Objects.GitCommitWriter
 AmpScm.Git.Objects.GitCommitWriter.Author.get -> AmpScm.Git.GitSignature?
@@ -132,6 +131,7 @@ AmpScm.Git.References.GitReferenceRepository.GetAsync(string! name) -> System.Th
 AmpScm.Git.References.GitReferenceRepository.GitDir.get -> string!
 AmpScm.Git.References.GitReferenceRepository.GitReferenceRepository(AmpScm.Git.GitRepository! repository, string! gitDir, string! workTreeDir) -> void
 AmpScm.Git.References.GitReferenceRepository.Repository.get -> AmpScm.Git.GitRepository!
+AmpScm.Git.References.GitReferenceRepository.WorkTreeDir.get -> string!
 AmpScm.Git.References.GitSymbolicReference
 AmpScm.Git.References.GitSymbolicReference.Reference.get -> AmpScm.Git.GitReference?
 AmpScm.Git.References.GitSymbolicReference.ReferenceName.get -> string?
@@ -199,6 +199,7 @@ override AmpScm.Git.GitTreeEntry<TEntry, TObject>.ReadAsync() -> System.Threadin
 override AmpScm.Git.Objects.GitBlobWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 override AmpScm.Git.Objects.GitCommitWriter.Type.get -> AmpScm.Git.GitObjectType
 override AmpScm.Git.Objects.GitCommitWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
+override AmpScm.Git.Objects.GitTagObjectWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 override AmpScm.Git.Objects.GitTreeWriter.Type.get -> AmpScm.Git.GitObjectType
 override AmpScm.Git.Objects.GitTreeWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 override AmpScm.Git.References.GitSymbolicReference.Commit.get -> AmpScm.Git.GitCommit?
@@ -215,6 +216,7 @@ override sealed AmpScm.Git.GitBlob.Type.get -> AmpScm.Git.GitObjectType
 override sealed AmpScm.Git.GitCommit.Type.get -> AmpScm.Git.GitObjectType
 override sealed AmpScm.Git.GitTreeEntry<TEntry, TObject>.GitObject.get -> AmpScm.Git.GitObject!
 override sealed AmpScm.Git.Objects.GitBlobWriter.Type.get -> AmpScm.Git.GitObjectType
+override sealed AmpScm.Git.Objects.GitTagObjectWriter.Type.get -> AmpScm.Git.GitObjectType
 static AmpScm.Git.GitObject.operator !=(AmpScm.Git.GitObject? one, AmpScm.Git.GitObject? other) -> bool
 static AmpScm.Git.GitObject.operator ==(AmpScm.Git.GitObject? one, AmpScm.Git.GitObject? other) -> bool
 static AmpScm.Git.GitReference.ValidName(string! name, bool allowSpecialSymbols) -> bool

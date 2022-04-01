@@ -6,11 +6,11 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Git.Sets;
-using AmpScm.Linq.AsyncQueryable;
+using AmpScm.Linq;
 
 namespace AmpScm.Git.Implementation
 {
-    internal class GitQueryProvider : IAsyncQueryProvider, IGitQueryRoot
+    internal class GitQueryProvider : SyncAndAsyncQueryProvider, IGitQueryRoot
     {
         public GitQueryProvider(GitRepository repository)
         {
@@ -19,7 +19,7 @@ namespace AmpScm.Git.Implementation
 
         public GitRepository Repository { get; }
 
-        public IQueryable CreateQuery(Expression expression)
+        public override ISyncAndAsyncQueryable CreateQuery(Expression expression)
         {
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression));
@@ -29,22 +29,22 @@ namespace AmpScm.Git.Implementation
             if (type == null)
                 throw new ArgumentOutOfRangeException(nameof(expression));
 
-            return (IQueryable)Activator.CreateInstance(typeof(GitQuery<>).MakeGenericType(type), new object[] { this, expression! })!;
+            return (ISyncAndAsyncQueryable)Activator.CreateInstance(typeof(GitQuery<>).MakeGenericType(type), new object[] { this, expression! })!;
         }
 
-        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        public override ISyncAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             return new GitQuery<TElement>(this, expression);
         }
 
-        public object? Execute(Expression expression)
+        public override object? Execute(Expression expression)
         {
             expression = new GitQueryVisitor().Visit(expression);
 
             return Expression.Lambda<Func<object>>(expression).Compile().Invoke();
         }
 
-        public TResult Execute<TResult>(Expression expression)
+        public override TResult Execute<TResult>(Expression expression)
         {
             expression = new GitQueryVisitor().Visit(expression);
 
