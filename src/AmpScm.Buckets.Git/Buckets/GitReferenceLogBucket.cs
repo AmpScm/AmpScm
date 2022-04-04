@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -36,10 +37,47 @@ namespace AmpScm.Buckets.Git
 
                 int hours = mins / 60;
 
-                offsetMinutes = (mins + (hours * 100) - (hours * 60)).ToString("+0000", CultureInfo.InvariantCulture);
+                offsetMinutes = (mins + (hours * 100) - (hours * 60)).ToString("0000", CultureInfo.InvariantCulture);
+
+                if (offsetMinutes.Length != 5)
+                    offsetMinutes = "+" + offsetMinutes;
             }
 
             return $"{Name} <{Email}> {When.ToUnixTimeSeconds()} {offsetMinutes}";
+        }
+
+
+        public static bool TryReadFromBucket(BucketBytes bucketBytes, [NotNullWhen(true)] out GitSignatureRecord? record)
+        {
+            int n = bucketBytes.IndexOf((byte)'<');
+            if (n < 0)
+            {
+                record = null!;
+                return false;
+            }
+            int n2 = bucketBytes.IndexOf((byte)'>', n);
+            if (n2 < 0)
+            {
+                record = null!;
+                return false;
+            }
+            record = new GitSignatureRecord
+            {
+                Name = bucketBytes.Slice(0, n - 1).ToUTF8String(),
+                Email = bucketBytes.Slice(n + 1, n2 - n - 1).ToUTF8String(),
+                When = ParseWhen(bucketBytes.Slice(n2 + 2).ToUTF8String())
+            };
+            return true;
+        }
+
+        private static DateTimeOffset ParseWhen(string value)
+        {
+            string[] time = value.Split(new[] { ' ' }, 2);
+            if (int.TryParse(time[0], out var unixtime) && int.TryParse(time[1], out var offset))
+            {
+                return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
+            }
+            return DateTimeOffset.Now;
         }
     }
 
@@ -82,14 +120,14 @@ namespace AmpScm.Buckets.Git
             {
                 Original = ReadGitId(bb, 0) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Original)} OID in RefLog line from {Inner.Name}"),
                 Target = ReadGitId(bb, _idLength.Value + 1) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Target)} OID in RefLog line from {Inner.Name}"),
-                Signature = ReadSignature(bb.Slice(0, prefix).Slice(2 * (_idLength.Value + 1))),
+                Signature = GitSignatureRecord.TryReadFromBucket(bb.Slice(0, prefix).Slice(2 * (_idLength.Value + 1)), out var v) ? v : throw new GitBucketException("Invalid reference log item"),
                 Summary = bb.Slice(prefix + 1).ToUTF8String(eol)
             };
         }
 
         private GitId? ReadGitId(BucketBytes bb, int offset)
         {
-            var s = bb.ToASCIIString(offset, _idLength!.Value);
+            var s = bb.Slice(offset, _idLength!.Value);
 
             if (GitId.TryParse(s, out var oid))
             {
@@ -99,28 +137,6 @@ namespace AmpScm.Buckets.Git
             }
             else
                 return null;
-        }
-
-        private static GitSignatureRecord ReadSignature(BucketBytes bb)
-        {
-            int n = bb.IndexOf((byte)'<');
-            int n2 = bb.IndexOf((byte)'>', n);
-            return new GitSignatureRecord
-            {
-                Name = bb.Slice(0, n).ToUTF8String().TrimEnd(),
-                Email = bb.Slice(n + 1, n2 - n).ToUTF8String(),
-                When = ParseWhen(bb.Slice(n2 + 2).ToUTF8String())
-            };
-        }
-
-        private static DateTimeOffset ParseWhen(string value)
-        {
-            string[] time = value.Split(new[] { ' ' }, 2);
-            if (int.TryParse(time[0], out var unixtime) && int.TryParse(time[1], out var offset))
-            {
-                return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
-            }
-            return DateTimeOffset.Now;
         }
     }
 }

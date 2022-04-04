@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Git.Objects
         }
     }
 
-    public class GitTreeReadBucket : GitBucket
+    public sealed class GitTreeReadBucket : GitBucket
     {
         readonly GitIdType _idType;
         bool _checkedType;

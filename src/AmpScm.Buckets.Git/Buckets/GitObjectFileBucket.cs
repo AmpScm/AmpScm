@@ -61,6 +61,8 @@ namespace AmpScm.Buckets.Git
                             break;
                         case 't':
                             continue; // Really need additional byte
+                        default:
+                            throw new GitBucketException($"Unexpected object type in '{Name}' bucket");
                     }
                     return;
                 }
@@ -85,6 +87,8 @@ namespace AmpScm.Buckets.Git
             }
         }
 
+        const int MaxReadForHeader = 5 /* "commit" */+ 1 /* " " */ + 20 /* UInt64.MaxValue.ToString().Length */ + 1 /* '\1' */;
+
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
             if (Type == GitObjectType.None)
@@ -94,10 +98,10 @@ namespace AmpScm.Buckets.Git
 
             if (!_length.HasValue)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero, requested: 48).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero, requested: MaxReadForHeader).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
-                    throw new BucketException($"Expected '\\0' within first 50 characters of '{Inner.Name}'");
+                    throw new BucketException($"Expected '\\0' within first {MaxReadForHeader} characters of '{Inner.Name}'");
 
 
                 int nSize = bb.IndexOf((byte)' ');

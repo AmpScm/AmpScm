@@ -52,5 +52,25 @@ namespace AmpScm.Buckets
         {
             return ToUTF8String(0, Length - eol.CharCount());
         }
+
+        public bool StartsWithASCII(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                throw new ArgumentNullException(nameof(value));
+
+            var p = _data.Span;
+
+            if (p.Length < value.Length)
+                return false;
+
+            for(int i = 0; i < value.Length; i++)
+            {
+                if (p[i] != value[i])
+                    return false;
+            }
+
+            return true;
+        }
+
     }
 }

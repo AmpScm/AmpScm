@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using AmpScm.Buckets;
 
 [assembly: CLSCompliant(true)]
 
@@ -107,7 +109,7 @@ namespace AmpScm.Git
             return 0;
         }
 
-        public static bool TryParse(string idString, out GitId id)
+        public static bool TryParse(string idString, [NotNullWhen(true)] out GitId? id)
         {
             if (idString is null)
                 throw new ArgumentNullException(nameof(idString));
@@ -115,14 +117,14 @@ namespace AmpScm.Git
             if ((idString.Length & 0x3) != 0 && (char.IsWhiteSpace(idString, 0) || char.IsWhiteSpace(idString, idString.Length - 1)))
                 idString = idString.Trim();
 
-            if (idString.Length == 40)
+            if (idString.Length == 40 && TryStringToByteArray(idString, out var b1))
             {
-                id = new GitId(GitIdType.Sha1, StringToByteArray(idString));
+                id = new GitId(GitIdType.Sha1, b1);
                 return true;
             }
-            else if (idString.Length == 64)
+            else if (idString.Length == 64 && TryStringToByteArray(idString, out var b2))
             {
-                id = new GitId(GitIdType.Sha256, StringToByteArray(idString));
+                id = new GitId(GitIdType.Sha256, b2);
                 return true;
             }
             else
@@ -131,6 +133,104 @@ namespace AmpScm.Git
                 return false;
             }
         }
+
+        static bool TryGetHex(char c, out byte b)
+        {
+            if (c >= '0' && c <= '9')
+                b = (byte)(c - '0');
+            else if (c >= 'a' && c <= 'f')
+                b = (byte)(c - 'a' + 10);
+            else if (c >= 'A' && c <= 'F')
+                b = (byte)(c - 'A' + 10);
+            else
+            {
+                b = 0;
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool TryStringToByteArray(string idString, [NotNullWhen(true)] out byte[]? bytes)
+        {
+            if (idString is null)
+                throw new ArgumentNullException(nameof(idString));
+
+            bytes = new byte[idString.Length / 2];
+
+            for(int i = 0; i < idString.Length; i+= 2)
+            {
+                if (TryGetHex(idString[i], out var b1)
+                    && TryGetHex(idString[i+1], out var b2))
+                {
+                    bytes[i / 2] = (byte)((b1 << 4) | b2);
+                }
+                else
+                    return false;
+            }
+            return true;
+        }
+
+        private static bool TryASCIIToByteArray(BucketBytes idBuffer, [NotNullWhen(true)] out byte[]? bytes)
+        {
+            bytes = new byte[idBuffer.Length / 2];
+
+            for (int i = 0; i < idBuffer.Length; i += 2)
+            {
+                if (TryGetHex((char)idBuffer[i], out var b1)
+                    && TryGetHex((char)idBuffer[i+1], out var b2))
+                {
+                    bytes[i / 2] = (byte)((b1 << 4) | b2);
+                }
+                else
+                    return false;
+            }
+            return true;
+        }
+
+        public static bool TryParse(BucketBytes idBuffer, [NotNullWhen(true)] out GitId? id)
+        {
+            int length = idBuffer.Length;
+            if ((length & 0x3) != 0)
+            {
+                while ((length & 0x3) != 0)
+                {
+                    byte c = idBuffer[length - 1];
+
+                    switch (c)
+                    {
+                        case (byte)'\0':
+                        case (byte)'\n':
+                        case (byte)' ':
+                        case (byte)'\r':
+                        case (byte)'\t':
+                            length--;
+                            break;
+                        default:
+                            id = default!;
+                            return false;
+                    }
+                }
+                idBuffer = idBuffer.Slice(0, length);
+            }
+
+            if (length == 40 && TryASCIIToByteArray(idBuffer, out var b1))
+            {
+                id = new GitId(GitIdType.Sha1, b1);
+                return true;
+            }
+            else if (length == 64 && TryASCIIToByteArray(idBuffer, out var b2))
+            {
+                id = new GitId(GitIdType.Sha256, b2);
+                return true;
+            }
+            else
+            {
+                id = null!;
+                return false;
+            }
+        }
+
 
         public static GitId Parse(string idString)
         {
@@ -178,6 +278,11 @@ namespace AmpScm.Git
 
             return new string(chars);
         }
+
+        /// <summary>
+        /// Maximum hash length currently supported. Currently 32
+        /// </summary>
+        public static readonly int MaxHashLength = 32;
 
         /// <summary>
         /// Return length of hash in bytes

@@ -14,9 +14,17 @@ namespace System.Runtime.CompilerServices
 }
 #endif
 
-namespace AmpScm.Buckets.Git
+#if NETFRAMEWORK
+namespace System.Diagnostics.CodeAnalysis
 {
-    //internal class Compatibility
-    //{
-    //}
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    internal sealed class NotNullWhenAttribute : Attribute
+    {
+        public bool ReturnValue { get; }
+        public NotNullWhenAttribute(bool returnValue)
+        {
+            ReturnValue = returnValue;
+        }
+    }
 }
+#endif
