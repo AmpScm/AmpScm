@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git.Buckets.Objects
 {
-    public sealed class GitCommitReadBucket : GitBucket
+    public sealed class GitCommitReadBucket : GitBucket, IBucketPoll
     {
         GitId? _treeId;
         IReadOnlyCollection<GitId>? _parents;
@@ -98,7 +99,9 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
             {
                 var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
-                if (!bb.IsEof && bb.StartsWithASCII("parent "))
+                if (bb.IsEof)
+                    return _parents = parents.Count > 0 ? parents.AsReadOnly() : Array.Empty<GitId>();
+                else if (bb.StartsWithASCII("parent "))
                 {
                     if (GitId.TryParse(bb.Slice(7, bb.Length - "parent ".Length - eol.CharCount()), out var id))
                     {
@@ -108,13 +111,11 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
                     else
                         throw new GitBucketException($"Bad parent header in '{Inner.Name}'");
                 }
-                else if (!bb.IsEof && bb.StartsWithASCII("author "))
+                else if (bb.StartsWithASCII("author "))
                 {
                     _author = GitSignatureRecord.TryReadFromBucket(bb.Slice("author ".Length, eol), out var author) ? author : throw new GitBucketException($"Invalid author line in {Inner.Name}");
                     return _parents = parents.AsReadOnly();
                 }
-                else if (bb.IsEof)
-                    return _parents = parents.Count > 0 ? parents.AsReadOnly() : Array.Empty<GitId>();
                 else
                     throw new GitBucketException($"Expected 'parent' or 'author', but got neither in commit '{Inner.Name}'");
             }
@@ -153,6 +154,22 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
             await ReadCommitter().ConfigureAwait(false);
 
             return await Inner.ReadAsync(requested).ConfigureAwait(false);
+        }
+
+        public override BucketBytes Peek()
+        {
+            if (_committer is not null)
+                return Inner.Peek();
+
+            return BucketBytes.Empty;
+        }
+
+        async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested/* = 1*/)
+        {
+            if (_committer is not null)
+                return await Inner.PollAsync(minRequested).ConfigureAwait(false);
+
+            return BucketBytes.Empty;
         }
     }
 }

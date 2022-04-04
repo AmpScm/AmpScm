@@ -345,6 +345,17 @@ namespace AmpScm.Buckets.Specialized
 
             return await self.ReadAsync(maxRequested).ConfigureAwait(false);
         }
+
+        public static T[] ArrayAppend<T>(this T[] array, T item)
+        {
+            if (array is null)
+                throw new ArgumentNullException(nameof(array));
+
+            T[] nw = new T[array.Length + 1];
+            Array.Copy(array, 0, nw, 0, array.Length);
+            nw[array.Length] = item;
+            return nw;
+        }
     }
 }
 

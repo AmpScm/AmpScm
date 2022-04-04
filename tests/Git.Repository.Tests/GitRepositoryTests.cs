@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Git;
-using AmpScm.Git.Client.Plumbing;
-using AmpScm.Git.Objects;
-using AmpScm.Git.References;
-using AmpScm.Git.Sets;
-using BucketTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests

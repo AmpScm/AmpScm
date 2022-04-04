@@ -21,6 +21,7 @@ AmpScm.Git.GitCommit.Parents.get -> System.Collections.Generic.IReadOnlyList<Amp
 AmpScm.Git.GitCommit.Revisions.get -> AmpScm.Git.Sets.GitRevisionSet!
 AmpScm.Git.GitCommit.Summary.get -> string?
 AmpScm.Git.GitCommit.Tree.get -> AmpScm.Git.GitTree!
+AmpScm.Git.GitCommit.TreeId.get -> AmpScm.Git.GitId!
 AmpScm.Git.GitDirectoryTreeEntry
 AmpScm.Git.GitDirectoryTreeEntry.GitObject.get -> AmpScm.Git.GitTree!
 AmpScm.Git.GitDirectoryTreeEntry.Tree.get -> AmpScm.Git.GitTree!

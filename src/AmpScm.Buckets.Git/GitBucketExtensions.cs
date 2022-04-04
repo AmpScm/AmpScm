@@ -44,7 +44,7 @@ namespace AmpScm.Git
             return Encoding.ASCII.GetBytes(txt).AsBucket();
         }
 
-        internal static BucketBytes Slice(this BucketBytes bb, int start, BucketEol untilEol)
+        public static BucketBytes Slice(this BucketBytes bb, int start, BucketEol untilEol)
         {
             return bb.Slice(start, bb.Length - start - untilEol.CharCount());
         }

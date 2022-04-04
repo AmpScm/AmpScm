@@ -11,7 +11,7 @@ namespace AmpScm.Buckets
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
     {
-        ReadOnlyMemory<byte> _data;
+        readonly ReadOnlyMemory<byte> _data;
         readonly bool _eof;
 
         public BucketBytes(ReadOnlyMemory<byte> data)

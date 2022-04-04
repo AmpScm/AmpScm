@@ -58,7 +58,7 @@ namespace AmpScm.Buckets.Git
             if (reader == null || state != frame_state.body)
                 return BucketBytes.Empty;
 
-            return await reader.PollAsync().ConfigureAwait(false);
+            return await reader.PollAsync(minRequested).ConfigureAwait(false);
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)

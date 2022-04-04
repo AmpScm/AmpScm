@@ -22,35 +22,8 @@ namespace AmpScm.Git.References
 
             if (_reference is null)
             {
-                try
-                {
-#if NETFRAMEWORK
-                    body = File.ReadAllText(Path.Combine(Repository.Repository.GitDir, Name));
-#else
-                    body = await File.ReadAllTextAsync(Path.Combine(Repository.GitDir, Name)).ConfigureAwait(false);
-#endif
-                }
-                catch (FileNotFoundException)
-                {
-                    _reference = "";
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(body))
-                {
-                    _reference = "";
-                    return;
-                }
-
-                if (body.StartsWith("ref: ", StringComparison.Ordinal))
-                {
-                    int n = body.IndexOfAny(new[] { ' ', '\t', '\r', '\n' }, 5);
-
-                    if (n < 0)
-                        n = body.Length;
-
-                    _reference = body.Substring(5, n - 5);
-                }
+                if (GitRepository.TryReadRefFile(Path.Combine(Repository.GitDir, Name), "ref: ", out var val))
+                    _reference = val;
             }
         }
 

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
+using AmpScm.Buckets.Git.Buckets.Objects;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git.Objects;
 using AmpScm.Git.Sets;
@@ -16,8 +17,9 @@ namespace AmpScm.Git
     [DebuggerDisplay("{DebuggerDisplay, nq}")]
     public sealed class GitCommit : GitObject, IGitLazy<GitCommit>
     {
+        GitCommitReadBucket? _rb;
         object? _tree;
-        object? _parent;
+        object[]? _parent;
         Dictionary<string, string>? _headers;
         string? _message;
         string? _summary;
@@ -27,10 +29,27 @@ namespace AmpScm.Git
         internal GitCommit(GitRepository repository, GitObjectBucket objectReader, GitId id)
             : base(repository, id)
         {
-            _tree = objectReader;
+            _rb = new GitCommitReadBucket(objectReader);
         }
 
         public sealed override GitObjectType Type => GitObjectType.Commit;
+
+        public GitId TreeId
+        {
+            get
+            {
+                if (_tree is GitId id)
+                    return id;
+                else if (_tree is GitTree tree)
+                    return tree.Id;
+                else
+                {
+                    id = _rb.ReadTreeIdAsync().AsTask().GetAwaiter().GetResult();
+                    _tree = id;
+                    return id;
+                }
+            }
+        }
 
         public GitTree Tree
         {
@@ -38,30 +57,16 @@ namespace AmpScm.Git
             {
                 if (_tree is GitTree tree)
                     return tree;
-
-                Read();
-
-                if (_tree is string s && !string.IsNullOrEmpty(s) && GitId.TryParse(s, out var oid))
+                else if (TreeId is GitId id)
                 {
-                    _tree = oid;
+                    var t = Repository.ObjectRepository.GetByIdAsync<GitTree>(id).AsTask().Result; // BAD async
 
-                    try
+                    if (t != null)
                     {
-                        var t = Repository.ObjectRepository.GetByIdAsync<GitTree>(oid).AsTask().Result; // BAD async
-
-                        if (t != null)
-                        {
-                            _tree = t;
-                            return t;
-                        }
-                    }
-                    catch
-                    {
-                        _tree = s; // Continue later
-                        throw;
+                        _tree = t;
+                        return t;
                     }
                 }
-
                 return null!;
             }
         }
@@ -74,69 +79,54 @@ namespace AmpScm.Git
         {
             get
             {
-                Read();
+                Read(false);
 
-                return (_parent as Object[])?.Length ?? (_parent is null ? 0 : 1);
+                return _parent!.Length;
             }
         }
 
         private GitCommit? GetParent(int index, bool viaIndex = true)
         {
-            Read();
-            var p = _parent;
+            Read(false);
 
-            var pp = p as object[];
-            if (index < 0 || index >= (pp?.Length ?? ((pp is null && viaIndex) ? 0 : 1)))
+            if (index < 0 || index >= (_parent?.Length ?? 0))
+            {
+                if (index == 0 && !viaIndex)
+                    return null;
+
                 throw new ArgumentOutOfRangeException(nameof(index));
+            }
 
-            if (pp is not null)
-                p = pp[index];
+            object p = _parent![index];
 
-            GitId id;
             if (p is GitCommit c)
                 return c;
-            else if (p is GitId oid)
-                id = oid;
-            else if (p is string ps && GitId.TryParse(ps, out id))
-                SetParent(index, id);
-            else
-                return null;
 
-            return SetParent(index, Repository.ObjectRepository.GetByIdAsync<GitCommit>(id).AsTask().Result);
+            var id = (GitId)p;
+
+            c = Repository.ObjectRepository.GetByIdAsync<GitCommit>(id).AsTask().Result!;
+            if (c != null)
+                _parent[index] = c;
+            return c;
         }
         private GitId? GetParentId(int index, bool viaIndex = true)
         {
-            Read();
-            var p = _parent;
+            Read(false);
 
-            var pp = p as object[];
-            if (index < 0 || index >= (pp?.Length ?? ((pp is null && viaIndex) ? 0 : 1)))
-                throw new ArgumentOutOfRangeException(nameof(index));
-
-            if (pp is not null)
-                p = pp[index];
-
-            if (p is GitId id)
-                return id;
-            else if (p is GitObject o)
-                return o.Id;
-            else if (p is string ps && GitId.TryParse(ps, out id))
-                return SetParent(index, id);
-            else
-                return null;
-        }
-
-        private T? SetParent<T>(int index, T? value)
-            where T : class
-        {
-            if (value is not null)
+            if (index < 0 || index >= (_parent?.Length ?? 0))
             {
-                if (_parent is object[] pp)
-                    pp[index] = value;
-                else if (index == 0)
-                    _parent = value;
+                if (index == 0 && !viaIndex)
+                    return null;
+
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
-            return value;
+
+            object p = _parent![index];
+
+            if (p is GitCommit c)
+                return c.Id;
+            else
+                return (GitId)p;
         }
 
         public IReadOnlyList<GitId> ParentIds => new IdList(this);
@@ -148,7 +138,7 @@ namespace AmpScm.Git
             get
             {
                 if (_message is null)
-                    Read();
+                    Read(true);
 
                 return _message;
             }
@@ -167,7 +157,7 @@ namespace AmpScm.Git
             get
             {
                 if (_author is null)
-                    Read();
+                    Read(false);
 
                 return _author!;
             }
@@ -178,93 +168,90 @@ namespace AmpScm.Git
             get
             {
                 if (_committer is null)
-                    Read();
+                    Read(false);
 
                 return _committer;
             }
         }
 
-        private void Read()
+        private void Read(bool all)
         {
-            ReadAsync().AsTask().GetAwaiter().GetResult();
+            if (!all && _committer is not null)
+                return;
+            ReadAsync(all).AsTask().GetAwaiter().GetResult();
         }
 
-        public override async ValueTask ReadAsync()
+        public override ValueTask ReadAsync()
         {
-            if (_tree is GitObjectBucket b)
+            return ReadAsync(true);
+        }
+
+        async ValueTask ReadAsync(bool all)
+        {
+            if (_rb is null)
+                return;
+
+            _tree ??= await _rb.ReadTreeIdAsync().ConfigureAwait(false);
+            if (_parent is null)
             {
-                await b.ReadTypeAsync().ConfigureAwait(false);
+                var p = await _rb.ReadAllParentIdsAsync().ConfigureAwait(false);
+                _parent = p.ToArray<object>();
+            }
 
-                if (b.Type != GitObjectType.Commit)
-                    throw new InvalidOperationException();
+            _author ??= new GitSignature(await _rb.ReadAuthorAsync().ConfigureAwait(false));
 
-                _tree = "";
-                BucketEolState? _eolState = null;
+            _committer ??= new GitSignature(await _rb.ReadCommitter().ConfigureAwait(false));
 
-                while (true)
+            //if (!all)
+            //    return;
+
+            while (true)
+            {
+                var (bb, eol) = await _rb.ReadUntilEolFullAsync(BucketEol.LF, null).ConfigureAwait(false);
+
+                if (bb.IsEof || bb.Length == eol.CharCount())
+                    break;
+
+                string line = bb.ToUTF8String(eol);
+
+                if (line.Length == 0)
+                    break;
+
+                var parts = line.Split(new[] { ' ' }, 2);
+                switch (parts[0])
                 {
-                    var (bb, eol) = await b.ReadUntilEolFullAsync(BucketEol.LF, _eolState ??= new BucketEolState()).ConfigureAwait(false);
-
-                    if (bb.IsEof || bb.Length == eol.CharCount())
+                    case "mergetag":
                         break;
 
-                    string line = bb.ToUTF8String(eol);
+                    case "encoding":
+                    case "gpgsig":
+                        break; // Ignored for now
 
-                    if (line.Length == 0)
-                        break;
-
-                    var parts = line.Split(new[] { ' ' }, 2);
-                    switch (parts[0])
-                    {
-                        case "tree":
-                            _tree = parts[1];
-                            break;
-                        case "parent":
-                            var id = parts[1];
-
-                            if (_parent is null)
-                                _parent = id;
-                            else if (_parent is object[] o)
-                                _parent = o.Concat(new[] { id }).ToArray();
+                    default:
+                        if (!char.IsWhiteSpace(line, 0))
+                        {
+                            _headers ??= new Dictionary<string, string>();
+                            if (_headers.TryGetValue(parts[0], out var v))
+                                _headers[parts[0]] = v + "\n" + parts[1];
                             else
-                                _parent = new object[] { _parent, id };
-                            break;
-                        case "author":
-                            _author = new GitSignature(parts[1]);
-                            break;
-                        case "committer":
-                            _committer = new GitSignature(parts[1]);
-                            break;
-                        case "mergetag":
-                            break;
-
-                        case "encoding":
-                        case "gpgsig":
-                            break; // Ignored for now
-
-                        default:
-                            if (!char.IsWhiteSpace(line, 0))
-                            {
-                                _headers ??= new Dictionary<string, string>();
-                                if (_headers.TryGetValue(parts[0], out var v))
-                                    _headers[parts[0]] = v + "\n" + parts[1];
-                                else
-                                    _headers[parts[0]] = parts[1];
-                            }
-                            break;
-                    }
-                }
-
-                while (true)
-                {
-                    var (bb, _) = await b.ReadUntilEolFullAsync(BucketEol.Zero, _eolState ??= new BucketEolState()).ConfigureAwait(false);
-
-                    if (bb.IsEof)
+                                _headers[parts[0]] = parts[1];
+                        }
                         break;
-
-                    _message += bb.ToUTF8String();
                 }
             }
+
+            while (true)
+            {
+                var (bb, _) = await _rb.ReadUntilEolFullAsync(BucketEol.Zero, null).ConfigureAwait(false);
+
+                if (bb.IsEof)
+                    break;
+
+                _message += bb.ToUTF8String();
+            }
+
+            _rb.Dispose();
+            _rb = null;
         }
 
         ValueTask<GitId> IGitLazy<GitCommit>.WriteToAsync(GitRepository repository)
@@ -291,12 +278,12 @@ namespace AmpScm.Git
 
         private sealed class IdList : IReadOnlyList<GitId>
         {
-            GitCommit Commit {get;}
+            GitCommit Commit { get; }
 
             public IdList(GitCommit commit)
             {
                 Commit = commit;
-                Commit.Read();
+                Commit.Read(false);
             }
 
             public GitId this[int index] => Commit.GetParentId(index)!;
@@ -339,7 +326,7 @@ namespace AmpScm.Git
             public ParentList(GitCommit commit)
             {
                 Commit = commit;
-                Commit.Read();
+                Commit.Read(false);
             }
 
             public GitCommit this[int index] => Commit.GetParent(index) ?? throw new InvalidOperationException();

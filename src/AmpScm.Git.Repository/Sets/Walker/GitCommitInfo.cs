@@ -54,7 +54,7 @@ namespace AmpScm.Git.Sets.Walker
 
                 if (c != null)
                     _commit = c;
-                return c?.ParentIds ?? Enumerable.Empty<GitId>();
+                return c?.ParentIds.ToArray() ?? Enumerable.Empty<GitId>();
             }
             else
                 throw new InvalidOperationException();

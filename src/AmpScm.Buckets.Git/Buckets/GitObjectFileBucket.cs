@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    public sealed class GitObjectFileBucket : GitObjectBucket
+    public sealed class GitObjectFileBucket : GitObjectBucket, IBucketPoll
     {
         long _startOffset;
         long? _length;
@@ -123,6 +124,14 @@ namespace AmpScm.Buckets.Git
                 return BucketBytes.Empty;
             else
                 return Inner.Peek();
+        }
+
+        ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested /*= 1*/)
+        {
+            if (_startOffset == 0)
+                return BucketBytes.Empty;
+
+            return Inner.PollAsync(minRequested);
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
