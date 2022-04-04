@@ -21,44 +21,51 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask ReadTypeAsync()
         {
-            if (_startOffset == 0)
+            int so = 0;
+            while (Type == GitObjectType.None && _startOffset < 2)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero, null).ConfigureAwait(false);
+                var bb = await Inner.ReadAsync(2 - (int)_startOffset).ConfigureAwait(false);
 
-                if (Type == default)
+                so += bb.Length;
+
+                if (so == 2)
                 {
-                    switch(bb[0])
+                    switch ((char)bb[bb.Length - 1])
                     {
-                        case (byte)'b':
+                        case 'l':
                             Type = GitObjectType.Blob;
                             break;
-                        case (byte)'c':
+                        case 'o':
                             Type = GitObjectType.Commit;
                             break;
-                        case (byte)'r': // If second char
-                        case (byte)'t' when bb.Length > 1 && bb[1] == (byte)'r':
+                        case 'r':
                             Type = GitObjectType.Tree;
                             break;
-                        case (byte)'a': // If second char
-                        case (byte)'t' when bb.Length > 1 && bb[1] == (byte)'a':
+                        case 'a':
                             Type = GitObjectType.Tag;
                             break;
                         default:
-                            if (bb.Length >= 2)
-                                throw new GitBucketException("Unexpected type");
-                            break;
+                            throw new GitBucketException($"Unexpected object type in '{Name}' bucket");
                     }
+                    return; // We know enough
                 }
-
-                if (eol == BucketEol.Zero)
+                else if (bb.Length == 1)
                 {
-                    int nSize = bb.IndexOf((byte)' ');
-
-                    if (nSize > 0 && long.TryParse(bb.ToASCIIString(nSize + 1, bb.Length - nSize - 1, eol), out var len))
-                        _length = len;
-
-                    _startOffset = Inner.Position!.Value;
+                    switch ((char)bb[0])
+                    {
+                        case 'b':
+                            Type = GitObjectType.Blob;
+                            break;
+                        case 'c':
+                            Type = GitObjectType.Commit;
+                            break;
+                        case 't':
+                            continue; // Really need additional byte
+                    }
+                    return;
                 }
+                else
+                    throw new GitBucketException($"Unexpected EOF in header of '{Name}' bucket");
             }
         }
 
@@ -66,7 +73,7 @@ namespace AmpScm.Buckets.Git
         {
             get
             {
-                if (_startOffset == 0)
+                if (!_length.HasValue)
                     return 0;
 
                 var p = Inner.Position;
@@ -80,14 +87,30 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
-            await ReadTypeAsync().ConfigureAwait(false);
-
-            if (_length.HasValue)
+            if (Type == GitObjectType.None)
             {
-                return _length - Position;
+                await ReadTypeAsync().ConfigureAwait(false);
             }
-            else
-                return null;
+
+            if (!_length.HasValue)
+            {
+                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero, requested: 48).ConfigureAwait(false);
+
+                if (eol != BucketEol.Zero)
+                    throw new BucketException($"Expected '\\0' within first 50 characters of '{Inner.Name}'");
+
+
+                int nSize = bb.IndexOf((byte)' ');
+
+                if (nSize > 0 && long.TryParse(bb.ToASCIIString(nSize + 1, bb.Length - nSize - 1, eol), out var len))
+                    _length = len;
+                else
+                    throw new BucketException($"Expected length information within header of '{Inner.Name}'");
+
+                _startOffset = Inner.Position!.Value;
+            }
+
+            return _length.Value - Position;
         }
 
         public override BucketBytes Peek()
@@ -100,8 +123,8 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            if (_startOffset == 0)
-                await ReadTypeAsync().ConfigureAwait(false);
+            if (_length is null)
+                await ReadRemainingBytesAsync().ConfigureAwait(false);
             
             return await Inner.ReadAsync(requested).ConfigureAwait(false);
         }
@@ -113,7 +136,7 @@ namespace AmpScm.Buckets.Git
             await base.ResetAsync().ConfigureAwait(false);
 
             _startOffset = 0; // Handles skip and offset
-            // Keep Type and Length values
+            _length = 0;
         }
     }
 }

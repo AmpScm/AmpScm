@@ -17,7 +17,7 @@ namespace AmpScm.Git
 {
     public sealed class GitTree : GitObject, IEnumerable<GitTreeEntry>, IAsyncEnumerable<GitTreeEntry>, IGitLazy<GitTree>
     {
-        List<GitTreeEntry> _entries = new List<GitTreeEntry>();
+        readonly List<GitTreeEntry> _entries = new ();
         private GitBucket? _rdr;
 
         internal GitTree(GitRepository repository, GitId id)

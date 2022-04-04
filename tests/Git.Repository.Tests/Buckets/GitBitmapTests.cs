@@ -125,7 +125,7 @@ namespace GitRepositoryTests
 
             var allXor = new BitwiseXorBucket(new BitwiseXorBucket(buckets[0], buckets[1]), new BitwiseXorBucket(buckets[2], buckets[3]));
 
-            int maxBits = buckets.Max(x => x.ReadBitLengthAsync().GetAwaiter().GetResult());
+            int maxBits = buckets.Max(x => x.ReadBitLengthAsync().AsTask().GetAwaiter().GetResult());
 
             Assert.AreEqual(2369, maxBits);
             var bb = await allXor.ReadFullAsync((maxBits + 7) / 8);
@@ -136,7 +136,7 @@ namespace GitRepositoryTests
             }
         }
 
-        private string FindResource(string pattern)
+        static string? FindResource(string pattern)
         {
             string dir = Path.GetDirectoryName(typeof(GitTests).Assembly.Location)!;
 

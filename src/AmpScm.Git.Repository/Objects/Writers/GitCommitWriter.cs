@@ -9,43 +9,75 @@ namespace AmpScm.Git.Objects
 {
     public sealed class GitCommitWriter : GitObjectWriter<GitCommit>
     {
+        IReadOnlyList<IGitLazy<GitCommit>>? _parents;
+        GitSignature? _committer;
+        GitSignature? _author;
+        GitTreeWriter? _tree;
+        string? _message;
+
         public override GitObjectType Type => GitObjectType.Commit;
 
-        public GitTreeWriter Tree { get; set; }
-        public IReadOnlyList<IGitLazy<GitCommit>> Parents { get; set; }
+        public GitTreeWriter Tree
+        {
+            get => _tree ?? GitTreeWriter.CreateEmpty();
+            set
+            {
+                _tree = value;
+                Id = null;
+            }
+        }
 
-        public GitSignature? Committer { get; set; }
-        public GitSignature? Author { get; set; }
+        public IReadOnlyList<IGitLazy<GitCommit>> Parents
+        {
+            get => _parents ?? Array.Empty<IGitLazy<GitCommit>>();
+            set
+            {
+                if (value == null)
+                    _parents = null;
+                else if (value.Any(x => x is null))
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                else
+                    _parents = value.ToArray();
+                Id = null;
+            }
+        }
 
-        public string? CommitMessage { get; set; }
+        public GitSignature? Committer
+        {
+            get => _committer;
+            set
+            {
+                _committer = value;
+                Id = null;
+            }
+        }
+
+        public GitSignature? Author
+        {
+            get => _author;
+            set
+            {
+                _author = value;
+                Id = null;
+            }
+        }
+
+        public string? CommitMessage
+        {
+            get => _message;
+            set
+            {
+                _message = value;
+                Id = null;
+            }
+        }
 
         private GitCommitWriter()
         {
-            Parents = default!;
-            Tree = default!;
+            _parents = default!;
         }
 
-        public static GitCommitWriter Create(params GitCommitWriter[] parents)
-        {
-            if (parents?.Any(x=> x == null) ?? false)
-                throw new ArgumentOutOfRangeException(nameof(parents));
-
-            return new GitCommitWriter()
-            {
-                Parents = parents?.ToArray() ?? Array.Empty<IGitLazy<GitCommit>>(),
-                Tree = parents?.FirstOrDefault()?.Tree ?? GitTreeWriter.CreateEmpty()
-            };
-        }
-
-        public static GitCommitWriter CreateFromTree(GitTreeWriter tree)
-        {
-            return new GitCommitWriter()
-            {
-                Tree = tree ?? throw new ArgumentNullException(nameof(tree))
-            };
-        }
-
-        public static GitCommitWriter Create(params GitCommit[] parents)
+        public static GitCommitWriter Create(params IGitLazy<GitCommit>[] parents)
         {
             if (parents?.Any(x => x == null) ?? false)
                 throw new ArgumentOutOfRangeException(nameof(parents));
@@ -53,7 +85,18 @@ namespace AmpScm.Git.Objects
             return new GitCommitWriter()
             {
                 Parents = parents?.ToArray() ?? Array.Empty<IGitLazy<GitCommit>>(),
-                Tree = parents?.FirstOrDefault()?.Tree.AsWriter() ?? GitTreeWriter.CreateEmpty()
+                Tree = (parents?.FirstOrDefault() is IGitLazy<GitCommit> gc ? (gc as GitCommit)?.Tree.AsWriter() ?? (gc as GitCommitWriter)?.Tree : null) ?? GitTreeWriter.CreateEmpty()
+            };
+        }
+
+        public static GitCommitWriter CreateFromTree(IGitLazy<GitTree> tree)
+        {
+            if (tree is null)
+                throw new ArgumentNullException(nameof(tree));
+
+            return new GitCommitWriter()
+            {
+                Tree = (tree as GitTreeWriter) ?? (tree as GitTree)?.AsWriter() ?? throw new ArgumentNullException(nameof(tree))
             };
         }
 

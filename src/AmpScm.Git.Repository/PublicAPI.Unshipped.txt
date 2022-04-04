@@ -112,8 +112,11 @@ AmpScm.Git.Objects.GitCommitWriter.CommitMessage.set -> void
 AmpScm.Git.Objects.GitCommitWriter.Committer.get -> AmpScm.Git.GitSignature?
 AmpScm.Git.Objects.GitCommitWriter.Committer.set -> void
 AmpScm.Git.Objects.GitCommitWriter.Parents.get -> System.Collections.Generic.IReadOnlyList<AmpScm.Git.Objects.IGitLazy<AmpScm.Git.GitCommit!>!>!
+AmpScm.Git.Objects.GitCommitWriter.Tree.get -> AmpScm.Git.Objects.GitTreeWriter!
+AmpScm.Git.Objects.GitCommitWriter.Tree.set -> void
 AmpScm.Git.Objects.GitObjectRepository
 AmpScm.Git.Objects.GitObjectRepository.Dispose() -> void
+AmpScm.Git.Objects.GitObjectRepository.FetchGitIdBucketAsync(AmpScm.Git.GitId! id) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitObjectBucket?>
 AmpScm.Git.Objects.GitObjectWriter
 AmpScm.Git.Objects.GitObjectWriter.GitObjectWriter() -> void
 AmpScm.Git.Objects.GitObjectWriter.Id.get -> AmpScm.Git.GitId?
@@ -229,8 +232,8 @@ static AmpScm.Git.GitTools.GetNormalizedFullPath(string! path) -> string!
 static AmpScm.Git.GitTreeEntry.operator !=(AmpScm.Git.GitTreeEntry! e1, AmpScm.Git.GitTreeEntry! e2) -> bool
 static AmpScm.Git.GitTreeEntry.operator ==(AmpScm.Git.GitTreeEntry! e1, AmpScm.Git.GitTreeEntry! e2) -> bool
 static AmpScm.Git.Objects.GitBlobWriter.CreateFrom(AmpScm.Buckets.Bucket! bucket) -> AmpScm.Git.Objects.GitBlobWriter!
-static AmpScm.Git.Objects.GitCommitWriter.Create(params AmpScm.Git.GitCommit![]! parents) -> AmpScm.Git.Objects.GitCommitWriter!
-static AmpScm.Git.Objects.GitCommitWriter.Create(params AmpScm.Git.Objects.GitCommitWriter![]! parents) -> AmpScm.Git.Objects.GitCommitWriter!
+static AmpScm.Git.Objects.GitCommitWriter.Create(params AmpScm.Git.Objects.IGitLazy<AmpScm.Git.GitCommit!>![]! parents) -> AmpScm.Git.Objects.GitCommitWriter!
+static AmpScm.Git.Objects.GitCommitWriter.CreateFromTree(AmpScm.Git.Objects.IGitLazy<AmpScm.Git.GitTree!>! tree) -> AmpScm.Git.Objects.GitCommitWriter!
 static AmpScm.Git.Objects.GitObjectWriterExtensions.AsWriter(this AmpScm.Git.GitBlob! blob) -> AmpScm.Git.Objects.GitBlobWriter!
 static AmpScm.Git.Objects.GitObjectWriterExtensions.AsWriter(this AmpScm.Git.GitCommit! commit) -> AmpScm.Git.Objects.GitCommitWriter!
 static AmpScm.Git.Objects.GitObjectWriterExtensions.AsWriter(this AmpScm.Git.GitTagObject! tag) -> AmpScm.Git.Objects.GitTagObjectWriter!

@@ -15,7 +15,7 @@ namespace BucketTests
     [TestClass]
     public class EolTests
     {
-        public TestContext TestContext { get; set; }
+        public TestContext TestContext { get; set; } = default!;
 
         [TestMethod]
         public async Task ReadEols()

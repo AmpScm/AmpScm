@@ -181,7 +181,7 @@ namespace GitRepositoryTests
                 TestContext.WriteLine($"Author: {c.Author?.ToString() ?? "-"}");
                 if (c.Parent != null)
                     TestContext.WriteLine($" -parent {c.Parent?.Id} - {GitTools.FirstLine(c.Parent?.Message)}");
-                TestContext.WriteLine($" -tree {c.Tree?.Id}");
+                TestContext.WriteLine($" -tree {c.Tree.Id}");
 
                 foreach (var v in c.Tree)
                 {
@@ -289,7 +289,7 @@ namespace GitRepositoryTests
             {
                 IEnumerable<TProp> set2 = set;
 
-                set2.Any();
+                GC.KeepAlive(set2.Any());
             }
             catch (Exception e)
             {

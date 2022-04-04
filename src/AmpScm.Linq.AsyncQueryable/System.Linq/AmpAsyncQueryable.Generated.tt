@@ -80,7 +80,6 @@ namespace System.Linq
     {
         string name = m.Name;
         string returnType = toQuoted(m.ReturnType, 0).Replace("Queryable", "SyncAndAsyncQueryable");
-        string genericArgs = "T";
         string typeArgs = "<" + string.Join(", ", m.GetGenericArguments().Select(x=>x.Name)) + ">";
 #>
         /// <inheritdoc cref="Queryable.<#=name#><#=typeArgs.Replace("<", "{").Replace(">", "}")#>(<#=

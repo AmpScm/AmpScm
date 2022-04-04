@@ -34,7 +34,7 @@ namespace System
             }
         }
 
-        public static string PerTestDirectory(this TestContext tc, string subPath = null)
+        public static string PerTestDirectory(this TestContext tc, string? subPath = null)
         {
             string dir;
             if (!string.IsNullOrEmpty(subPath))

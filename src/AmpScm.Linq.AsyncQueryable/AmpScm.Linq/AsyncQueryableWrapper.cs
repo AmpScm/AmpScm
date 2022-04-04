@@ -3,10 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AmpScm.Linq;
 
 namespace AmpScm.Linq
 {
@@ -77,15 +75,6 @@ namespace AmpScm.Linq
         public AsyncQueryableProviderWrapper(IQueryProvider provider)
         {
             QueryProvider = provider ?? throw new ArgumentNullException(nameof(provider));
-        }
-
-        public override ISyncAndAsyncQueryable CreateQuery(Expression expression)
-        {
-            var q = QueryProvider.CreateQuery(expression);
-            var el = q.ElementType;
-
-            var m = AmpAsyncQueryable.GetMethod<object>(x => CreateQuery<object>(null!));
-            return (ISyncAndAsyncQueryable)m.MakeGenericMethod(el).Invoke(this, new object[] { expression })!;
         }
 
         public override ISyncAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression)

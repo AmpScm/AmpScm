@@ -49,8 +49,9 @@ namespace AmpScm.Git
             Tags = new GitTagsSet(this, () => this.Tags!);
 
             ObjectRepository = null!;
-            GitDir = null!;
-            FullPath = null!;
+            GitDir = default!;
+            FullPath = default!;
+            WorkTreeDir = default!;
             ReferenceRepository = null!;
         }
 

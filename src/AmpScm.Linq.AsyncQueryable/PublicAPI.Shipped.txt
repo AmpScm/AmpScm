@@ -48,7 +48,6 @@
 ~static System.Linq.AmpAsyncQueryable.Where<TSource>(this AmpScm.Linq.ISyncAndAsyncQueryable<TSource> source, System.Linq.Expressions.Expression<System.Func<TSource, bool>> predicate) -> AmpScm.Linq.ISyncAndAsyncQueryable<TSource>
 ~static System.Linq.AmpAsyncQueryable.Where<TSource>(this AmpScm.Linq.ISyncAndAsyncQueryable<TSource> source, System.Linq.Expressions.Expression<System.Func<TSource, int, bool>> predicate) -> AmpScm.Linq.ISyncAndAsyncQueryable<TSource>
 ~static System.Linq.AmpAsyncQueryable.Zip<TFirst, TSecond, TResult>(this AmpScm.Linq.ISyncAndAsyncQueryable<TFirst> source1, System.Collections.Generic.IEnumerable<TSecond> source2, System.Linq.Expressions.Expression<System.Func<TFirst, TSecond, TResult>> resultSelector) -> AmpScm.Linq.ISyncAndAsyncQueryable<TResult>
-abstract AmpScm.Linq.SyncAndAsyncQueryProvider.CreateQuery(System.Linq.Expressions.Expression! expression) -> AmpScm.Linq.ISyncAndAsyncQueryable!
 abstract AmpScm.Linq.SyncAndAsyncQueryProvider.CreateQuery<TElement>(System.Linq.Expressions.Expression! expression) -> AmpScm.Linq.ISyncAndAsyncQueryable<TElement>!
 abstract AmpScm.Linq.SyncAndAsyncQueryProvider.Execute(System.Linq.Expressions.Expression! expression) -> object?
 abstract AmpScm.Linq.SyncAndAsyncQueryProvider.Execute<TResult>(System.Linq.Expressions.Expression! expression) -> TResult
@@ -63,4 +62,5 @@ static System.Linq.AmpAsyncQueryable.AsSyncAndAsyncQueryable(this System.Linq.IQ
 static System.Linq.AmpAsyncQueryable.AsSyncAndAsyncQueryable<T>(this System.Collections.Generic.IEnumerable<T>! enumerable) -> AmpScm.Linq.ISyncAndAsyncQueryable<T>!
 static System.Linq.AmpAsyncQueryable.AsSyncAndAsyncQueryable<T>(this System.Linq.IQueryable<T>! queryable) -> AmpScm.Linq.ISyncAndAsyncQueryable<T>!
 System.Linq.AmpAsyncQueryable
+virtual AmpScm.Linq.SyncAndAsyncQueryProvider.CreateQuery(System.Linq.Expressions.Expression! expression) -> AmpScm.Linq.ISyncAndAsyncQueryable!
 virtual AmpScm.Linq.SyncAndAsyncQueryProvider.ExecuteAsync<TResult>(System.Linq.Expressions.Expression! expression, System.Threading.CancellationToken token) -> System.Threading.Tasks.ValueTask<TResult>
