@@ -9,54 +9,67 @@ namespace AmpScm.Buckets.Specialized
 {
     public static class SpecializedBucketExtensions
     {
-        public static Bucket SHA1(this Bucket self, Action<byte[]> created)
+        public static Bucket SHA1(this Bucket bucket, Action<byte[]> created)
         {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
 #pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-            return new CreateHashBucket(self, System.Security.Cryptography.SHA1.Create(), created);
+            return new CreateHashBucket(bucket, System.Security.Cryptography.SHA1.Create(), created);
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
         }
 
-        public static Bucket SHA256(this Bucket self, Action<byte[]> created)
+        public static Bucket SHA256(this Bucket bucket, Action<byte[]> created)
         {
-            return new CreateHashBucket(self, System.Security.Cryptography.SHA256.Create(), created);
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new CreateHashBucket(bucket, System.Security.Cryptography.SHA256.Create(), created);
         }
 
-        public static Bucket MD5(this Bucket self, Action<byte[]> created)
+        public static Bucket MD5(this Bucket bucket, Action<byte[]> created)
         {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
 #pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
-            return new CreateHashBucket(self, System.Security.Cryptography.MD5.Create(), created);
+            return new CreateHashBucket(bucket, System.Security.Cryptography.MD5.Create(), created);
 #pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
         }
 
-        public static Bucket Crc32(this Bucket self, Action<int> created)
+        public static Bucket Crc32(this Bucket bucket, Action<int> created)
         {
-            return new CreateHashBucket(self, CreateHashBucket.Crc32.Create(), (v) => created(NetBitConverter.ToInt32(v, 0)));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            return new CreateHashBucket(bucket, CreateHashBucket.Crc32.Create(), (v) => created(NetBitConverter.ToInt32(v, 0)));
         }
 
-        public static Bucket ReadLength(this Bucket self, Action<long> bytesRead)
+        public static Bucket ReadLength(this Bucket bucket, Action<long> bytesRead)
         {
-            return new CreateHashBucket(self, CreateHashBucket.BytesRead.Create(), (v) => bytesRead(BitConverter.ToInt64(v, 0)));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            return new CreateHashBucket(bucket, CreateHashBucket.BytesRead.Create(), (v) => bytesRead(BitConverter.ToInt64(v, 0)));
         }
 
-        public static async ValueTask ReadSkipUntilEofAsync(this Bucket self)
+        public static async ValueTask ReadSkipUntilEofAsync(this Bucket bucket)
         {
-            if (self == null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
 
-            while (0 != await self.ReadSkipAsync(int.MaxValue).ConfigureAwait(false))
+            while (0 != await bucket.ReadSkipAsync(int.MaxValue).ConfigureAwait(false))
             { }
         }
 
-        public static async ValueTask<BucketBytes> ReadFullAsync(this Bucket self, int requested)
+        public static async ValueTask<BucketBytes> ReadFullAsync(this Bucket bucket, int requested)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
 
             byte[]? resultBuffer = null;
             int collected = 0;
             while (true)
             {
-                var bb = await self.ReadAsync(requested).ConfigureAwait(false);
+                var bb = await bucket.ReadAsync(requested).ConfigureAwait(false);
 
                 if (collected == 0)
                 {
@@ -93,10 +106,10 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        public static async ValueTask<(BucketBytes, BucketEol)> ReadUntilEolFullAsync(this Bucket self, BucketEol acceptableEols, BucketEolState? eolState = null, int requested = int.MaxValue)
+        public static async ValueTask<(BucketBytes, BucketEol)> ReadUntilEolFullAsync(this Bucket bucket, BucketEol acceptableEols, BucketEolState? eolState = null, int requested = int.MaxValue)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
 
             IEnumerable<byte>? result = null;
 
@@ -131,7 +144,7 @@ namespace AmpScm.Buckets.Specialized
                 BucketBytes bb;
                 BucketEol eol;
 
-                (bb, eol) = await self.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
+                (bb, eol) = await bucket.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
                 rq = requested;
 
                 if (bb.IsEof)
@@ -168,7 +181,7 @@ namespace AmpScm.Buckets.Specialized
                 {
                     // Bad case. We may have a \r that might be a \n
 
-                    var poll = await self.PollReadAsync(1).ConfigureAwait(false);
+                    var poll = await bucket.PollReadAsync(1).ConfigureAwait(false);
 
                     if (!poll.Data.IsEmpty)
                     {
@@ -216,15 +229,45 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        public static async ValueTask<BucketBytes> ReadUntilAsync(this Bucket self, byte b)
+        public static async ValueTask SeekAsync(this Bucket bucket, long newPosition)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (newPosition < 0)
+                throw new ArgumentNullException(nameof(newPosition));
+            else if (bucket is IBucketSeek seekBucket)
+            {
+                await seekBucket.SeekAsync(newPosition).ConfigureAwait(false);
+                return;
+            }
+
+            long curPosition = bucket.Position!.Value;
+
+            if (newPosition < curPosition)
+            {
+                await bucket.ResetAsync().ConfigureAwait(false);
+                curPosition = 0;
+            }
+
+            while (curPosition < newPosition)
+            {
+                long skipped = await bucket.ReadSkipAsync(newPosition - curPosition).ConfigureAwait(false);
+                if (skipped == 0)
+                    throw new InvalidOperationException($"Unexpected seek failure on {bucket.Name} Bucket position {newPosition} from {curPosition}");
+
+                curPosition += skipped;
+            }
+        }
+
+        public static async ValueTask<BucketBytes> ReadUntilAsync(this Bucket bucket, byte b)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
             IEnumerable<byte>? result = null;
 
             while (true)
             {
-                using var poll = await self.PollReadAsync().ConfigureAwait(false);
+                using var poll = await bucket.PollReadAsync().ConfigureAwait(false);
 
                 if (poll.Data.IsEof)
                     return (result != null) ? new BucketBytes(result.ToArray()) : poll.Data;
@@ -254,22 +297,24 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        public static async ValueTask<int> ReadNetworkInt32Async(this Bucket self)
+        public static async ValueTask<int> ReadNetworkInt32Async(this Bucket bucket)
         {
-            var bb = await self.ReadFullAsync(sizeof(int)).ConfigureAwait(false);
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            var bb = await bucket.ReadFullAsync(sizeof(int)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(uint))
-                throw new BucketException($"Unexpected EOF while reading from {self.Name} bucket");
+                throw new BucketException($"Unexpected EOF while reading from {bucket.Name} bucket");
 
             return NetBitConverter.ToInt32(bb, 0);
         }
 
 
-        public static async ValueTask<byte?> ReadByteAsync(this Bucket self)
+        public static async ValueTask<byte?> ReadByteAsync(this Bucket bucket)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
-            var bb = await self.ReadAsync(1).ConfigureAwait(false);
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            var bb = await bucket.ReadAsync(1).ConfigureAwait(false);
 
             if (bb.Length != 1)
                 return null;
@@ -278,33 +323,39 @@ namespace AmpScm.Buckets.Specialized
         }
 
         [CLSCompliant(false)]
-        public static async ValueTask<uint> ReadNetworkUInt32Async(this Bucket self)
+        public static async ValueTask<uint> ReadNetworkUInt32Async(this Bucket bucket)
         {
-            var bb = await self.ReadFullAsync(sizeof(uint)).ConfigureAwait(false);
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            var bb = await bucket.ReadFullAsync(sizeof(uint)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(uint))
-                throw new BucketException($"Unexpected EOF while reading from {self.Name} bucket");
+                throw new BucketException($"Unexpected EOF while reading from {bucket.Name} bucket");
 
             return NetBitConverter.ToUInt32(bb, 0);
         }
 
-        public static async ValueTask<long> ReadNetworkInt64Async(this Bucket self)
+        public static async ValueTask<long> ReadNetworkInt64Async(this Bucket bucket)
         {
-            var bb = await self.ReadFullAsync(sizeof(long)).ConfigureAwait(false);
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            var bb = await bucket.ReadFullAsync(sizeof(long)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(ulong))
-                throw new BucketException($"Unexpected EOF while reading from {self.Name} bucket");
+                throw new BucketException($"Unexpected EOF while reading from {bucket.Name} bucket");
 
             return NetBitConverter.ToInt64(bb, 0);
         }
 
         [CLSCompliant(false)]
-        public static async ValueTask<ulong> ReadNetworkUInt64Async(this Bucket self)
+        public static async ValueTask<ulong> ReadNetworkUInt64Async(this Bucket bucket)
         {
-            var bb = await self.ReadFullAsync(sizeof(ulong)).ConfigureAwait(false);
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            var bb = await bucket.ReadFullAsync(sizeof(ulong)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(ulong))
-                throw new BucketException($"Unexpected EOF while reading from {self.Name} bucket");
+                throw new BucketException($"Unexpected EOF while reading from {bucket.Name} bucket");
 
             return NetBitConverter.ToUInt64(bb, 0);
         }
@@ -313,16 +364,16 @@ namespace AmpScm.Buckets.Specialized
         /// <summary>
         /// Read in-memory buckets combined in a single buffer
         /// </summary>
-        /// <param name="self"></param>
+        /// <param name="bucket"></param>
         /// <param name="bufferSize"></param>
         /// <param name="maxRequested"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static async ValueTask<BucketBytes> ReadCombinedAsync(this Bucket self, int bufferSize, int maxRequested = int.MaxValue)
+        public static async ValueTask<BucketBytes> ReadCombinedAsync(this Bucket bucket, int bufferSize, int maxRequested = int.MaxValue)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
-            else if (self is IBucketReadBuffers iov)
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (bucket is IBucketReadBuffers iov)
             {
                 var r = await iov.ReadBuffersAsync(bufferSize).ConfigureAwait(false);
 
@@ -343,7 +394,7 @@ namespace AmpScm.Buckets.Specialized
                 }
             }
 
-            return await self.ReadAsync(maxRequested).ConfigureAwait(false);
+            return await bucket.ReadAsync(maxRequested).ConfigureAwait(false);
         }
 
         public static T[] ArrayAppend<T>(this T[] array, T item)

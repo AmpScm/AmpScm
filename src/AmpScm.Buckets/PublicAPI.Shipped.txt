@@ -189,7 +189,7 @@ static AmpScm.Buckets.BucketBytes.implicit operator AmpScm.Buckets.BucketBytes(S
 static AmpScm.Buckets.BucketBytes.implicit operator System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>(AmpScm.Buckets.BucketBytes v) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketBytes.operator !=(AmpScm.Buckets.BucketBytes left, AmpScm.Buckets.BucketBytes right) -> bool
 static AmpScm.Buckets.BucketBytes.operator ==(AmpScm.Buckets.BucketBytes left, AmpScm.Buckets.BucketBytes right) -> bool
-static AmpScm.Buckets.BucketExtensions.Append(this AmpScm.Buckets.Bucket! self, AmpScm.Buckets.Bucket! newLast) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.Append(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Bucket! newLast) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.AsBucket(System.ReadOnlySpan<byte> bytes) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.AsBucket(this byte[]! bytes) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.AsBucket(this byte[]! bytes, bool copy) -> AmpScm.Buckets.Bucket!
@@ -197,25 +197,25 @@ static AmpScm.Buckets.BucketExtensions.AsBucket(this byte[]![]! bytes) -> AmpScm
 static AmpScm.Buckets.BucketExtensions.AsBucket(this byte[]![]! bytes, bool keepOpen) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.AsBucket(this System.Collections.Generic.IEnumerable<AmpScm.Buckets.Bucket!>! buckets) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.AsBucket(this System.Collections.Generic.IEnumerable<AmpScm.Buckets.Bucket!>! buckets, bool keepOpen) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.AsBucket(this System.IO.Stream! self) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.AsBucket(this System.IO.Stream! stream) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.AsBucket(this System.ReadOnlyMemory<byte> memory) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.AsReader(this AmpScm.Buckets.Bucket! self) -> System.IO.TextReader!
-static AmpScm.Buckets.BucketExtensions.AsStream(this AmpScm.Buckets.Bucket! self) -> System.IO.Stream!
-static AmpScm.Buckets.BucketExtensions.AsStream(this AmpScm.Buckets.Bucket! self, AmpScm.Buckets.Interfaces.IBucketWriter! writer) -> System.IO.Stream!
+static AmpScm.Buckets.BucketExtensions.AsReader(this AmpScm.Buckets.Bucket! bucket) -> System.IO.TextReader!
+static AmpScm.Buckets.BucketExtensions.AsStream(this AmpScm.Buckets.Bucket! bucket) -> System.IO.Stream!
+static AmpScm.Buckets.BucketExtensions.AsStream(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Interfaces.IBucketWriter! writer) -> System.IO.Stream!
 static AmpScm.Buckets.BucketExtensions.CharCount(this AmpScm.Buckets.BucketEol eol) -> int
-static AmpScm.Buckets.BucketExtensions.Compress(this AmpScm.Buckets.Bucket! self, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.Decompress(this AmpScm.Buckets.Bucket! self, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.Compress(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.Decompress(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.NoClose(this AmpScm.Buckets.Bucket! bucket, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.PollAsync(this AmpScm.Buckets.Bucket! self, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.BucketExtensions.PollReadAsync(this AmpScm.Buckets.Bucket! self, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketPollBytes!>
-static AmpScm.Buckets.BucketExtensions.Prepend(this AmpScm.Buckets.Bucket! self, AmpScm.Buckets.Bucket! newFirst) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.PollAsync(this AmpScm.Buckets.Bucket! bucket, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.BucketExtensions.PollReadAsync(this AmpScm.Buckets.Bucket! bucket, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketPollBytes!>
+static AmpScm.Buckets.BucketExtensions.Prepend(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Bucket! newFirst) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.SeekOnReset(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.Skip(this AmpScm.Buckets.Bucket! self, long firstPosition, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.Take(this AmpScm.Buckets.Bucket! self, long limit, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.ToArray(this AmpScm.Buckets.Bucket! self) -> byte[]!
-static AmpScm.Buckets.BucketExtensions.ToArrayAsync(this AmpScm.Buckets.Bucket! self) -> System.Threading.Tasks.ValueTask<byte[]!>
-static AmpScm.Buckets.BucketExtensions.WithPosition(this AmpScm.Buckets.Bucket! self, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.Wrap(this AmpScm.Buckets.Bucket! self) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.Skip(this AmpScm.Buckets.Bucket! bucket, long firstPosition, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.Take(this AmpScm.Buckets.Bucket! bucket, long limit, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.ToArray(this AmpScm.Buckets.Bucket! bucket) -> byte[]!
+static AmpScm.Buckets.BucketExtensions.ToArrayAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<byte[]!>
+static AmpScm.Buckets.BucketExtensions.WithPosition(this AmpScm.Buckets.Bucket! bucket, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.Wrap(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.WriteAsync(this System.IO.Stream! stream, AmpScm.Buckets.Bucket! bucket, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.BucketExtensions.WriteAsync(this System.IO.Stream! stream, AmpScm.Buckets.BucketBytes bucketBytes, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.FileBucket.OpenRead(string! path) -> AmpScm.Buckets.FileBucket!
@@ -250,21 +250,21 @@ static AmpScm.Buckets.Specialized.NetBitConverter.ToUInt32(AmpScm.Buckets.Bucket
 static AmpScm.Buckets.Specialized.NetBitConverter.ToUInt32(byte[]! value, int startOffset) -> uint
 static AmpScm.Buckets.Specialized.NetBitConverter.ToUInt64(AmpScm.Buckets.BucketBytes value, int startOffset) -> ulong
 static AmpScm.Buckets.Specialized.NetBitConverter.ToUInt64(byte[]! value, int startOffset) -> ulong
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Crc32(this AmpScm.Buckets.Bucket! self, System.Action<int>! created) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.MD5(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadByteAsync(this AmpScm.Buckets.Bucket! self) -> System.Threading.Tasks.ValueTask<byte?>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadCombinedAsync(this AmpScm.Buckets.Bucket! self, int bufferSize, int maxRequested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadFullAsync(this AmpScm.Buckets.Bucket! self, int requested) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadLength(this AmpScm.Buckets.Bucket! self, System.Action<long>! bytesRead) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkInt32Async(this AmpScm.Buckets.Bucket! self) -> System.Threading.Tasks.ValueTask<int>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkInt64Async(this AmpScm.Buckets.Bucket! self) -> System.Threading.Tasks.ValueTask<long>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt32Async(this AmpScm.Buckets.Bucket! self) -> System.Threading.Tasks.ValueTask<uint>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt64Async(this AmpScm.Buckets.Bucket! self) -> System.Threading.Tasks.ValueTask<ulong>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadSkipUntilEofAsync(this AmpScm.Buckets.Bucket! self) -> System.Threading.Tasks.ValueTask
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilAsync(this AmpScm.Buckets.Bucket! self, byte b) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEolFullAsync(this AmpScm.Buckets.Bucket! self, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA1(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA256(this AmpScm.Buckets.Bucket! self, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Crc32(this AmpScm.Buckets.Bucket! bucket, System.Action<int>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.MD5(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadByteAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<byte?>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadCombinedAsync(this AmpScm.Buckets.Bucket! bucket, int bufferSize, int maxRequested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadFullAsync(this AmpScm.Buckets.Bucket! bucket, int requested) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadLength(this AmpScm.Buckets.Bucket! bucket, System.Action<long>! bytesRead) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkInt32Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<int>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkInt64Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt32Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<uint>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt64Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<ulong>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadSkipUntilEofAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilAsync(this AmpScm.Buckets.Bucket! bucket, byte b) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEolFullAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA1(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA256(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.ValueOrEof.Eof.get -> AmpScm.Buckets.ValueOrEof
 static AmpScm.Buckets.ValueOrEof.operator !=(AmpScm.Buckets.ValueOrEof left, AmpScm.Buckets.ValueOrEof right) -> bool
 static AmpScm.Buckets.ValueOrEof.operator ==(AmpScm.Buckets.ValueOrEof left, AmpScm.Buckets.ValueOrEof right) -> bool

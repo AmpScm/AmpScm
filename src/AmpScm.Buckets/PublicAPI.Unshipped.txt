@@ -1,6 +1,5 @@
 ﻿#nullable enable
 abstract AmpScm.Buckets.Client.BucketWebRequest.GetResponseAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Client.ResponseBucket!>
-AmpScm.Buckets.BucketBytes.Slice(int start, AmpScm.Buckets.BucketEol untilEol) -> AmpScm.Buckets.BucketBytes
 AmpScm.Buckets.BucketBytes.StartsWithASCII(string! value) -> bool
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.get -> string?
@@ -80,6 +79,8 @@ AmpScm.Buckets.Interfaces.IBucketPoll
 AmpScm.Buckets.Interfaces.IBucketPoll.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Interfaces.IBucketReadBuffers
 AmpScm.Buckets.Interfaces.IBucketReadBuffers.ReadBuffersAsync(int maxRequested = 2147483647) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
+AmpScm.Buckets.Interfaces.IBucketSeek
+AmpScm.Buckets.Interfaces.IBucketSeek.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Interfaces.IBucketWriter
 AmpScm.Buckets.Interfaces.IBucketWriter.ShutdownAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Interfaces.IBucketWriter.Write(AmpScm.Buckets.Bucket! bucket) -> void
@@ -143,9 +144,10 @@ override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! toVerify) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.WithTlsClientFor<TBucket>(this TBucket! bucket, string! targetHost) -> AmpScm.Buckets.Specialized.TlsBucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend<T>(this T[]! array, T item) -> T[]!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SeekAsync(this AmpScm.Buckets.Bucket! bucket, long newPosition) -> System.Threading.Tasks.ValueTask
 virtual AmpScm.Buckets.Client.BucketWebClient.Dispose(bool disposing) -> void
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.get -> string?
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.set -> void

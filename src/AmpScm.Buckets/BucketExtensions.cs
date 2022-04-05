@@ -13,65 +13,65 @@ namespace AmpScm.Buckets
 {
     public static partial class BucketExtensions
     {
-        public static Bucket Append(this Bucket self, Bucket newLast)
+        public static Bucket Append(this Bucket bucket, Bucket newLast)
         {
-            if (self is IBucketAggregation col)
+            if (bucket is IBucketAggregation col)
                 return col.Append(newLast);
             else if (newLast is IBucketAggregation nl)
-                return nl.Prepend(self);
+                return nl.Prepend(bucket);
             else
             {
-                return new AggregateBucket(self, newLast);
+                return new AggregateBucket(bucket, newLast);
             }
         }
 
-        public static Bucket Prepend(this Bucket self, Bucket newFirst)
+        public static Bucket Prepend(this Bucket bucket, Bucket newFirst)
         {
-            if (self is IBucketAggregation col)
+            if (bucket is IBucketAggregation col)
                 return col.Prepend(newFirst);
             else if (newFirst is IBucketAggregation nf)
-                return nf.Append(self);
+                return nf.Append(bucket);
             else
             {
-                return new AggregateBucket(newFirst, self);
+                return new AggregateBucket(newFirst, bucket);
             }
         }
 
-        public static Bucket WithPosition(this Bucket self, bool alwaysWrap = false)
+        public static Bucket WithPosition(this Bucket bucket, bool alwaysWrap = false)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
 
-            if (!alwaysWrap && self.Position != null)
-                return self;
+            if (!alwaysWrap && bucket.Position != null)
+                return bucket;
 
-            return new PositionBucket(self);
+            return new PositionBucket(bucket);
         }
 
-        public static Bucket Take(this Bucket self, long limit, bool alwaysWrap = false)
+        public static Bucket Take(this Bucket bucket, long limit, bool alwaysWrap = false)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
             else if (limit < 0)
                 throw new ArgumentOutOfRangeException(nameof(limit));
 
-            if (!alwaysWrap && self is IBucketTake take)
+            if (!alwaysWrap && bucket is IBucketTake take)
                 return take.Take(limit);
             else
-                return new TakeBucket(self, limit);
+                return new TakeBucket(bucket, limit);
         }
 
-        public static Bucket Skip(this Bucket self, long firstPosition, bool alwaysWrap = false)
+        public static Bucket Skip(this Bucket bucket, long firstPosition, bool alwaysWrap = false)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
             else if (firstPosition < 0)
                 throw new ArgumentOutOfRangeException(nameof(firstPosition));
 
-            if (!alwaysWrap && self is IBucketSkip sb)
+            if (!alwaysWrap && bucket is IBucketSkip sb)
                 return sb.Skip(firstPosition);
             else
-                return new SkipBucket(self, firstPosition);
+                return new SkipBucket(bucket, firstPosition);
         }
 
         public static Bucket NoClose(this Bucket bucket, bool alwaysWrap = false)
@@ -87,15 +87,15 @@ namespace AmpScm.Buckets
             return SkipBucket.SeekOnReset(bucket);
         }
 
-        public static Bucket Wrap(this Bucket self)
+        public static Bucket Wrap(this Bucket bucket)
         {
-            return new ProxyBucket.Sealed(self);
+            return new ProxyBucket.Sealed(bucket);
         }
 
-        public static Bucket VerifyBehavior<TBucket>(this TBucket toVerify)
+        public static Bucket VerifyBehavior<TBucket>(this TBucket bucket)
             where TBucket : Bucket
         {
-            return new VerifyBucket<TBucket>(toVerify);
+            return new VerifyBucket<TBucket>(bucket);
         }
 
         public static Bucket AsBucket(this byte[] bytes)
@@ -165,22 +165,25 @@ namespace AmpScm.Buckets
             return new AggregateBucket(keepOpen, buckets.ToArray());
         }
 
-        public static Bucket Decompress(this Bucket self, BucketCompressionAlgorithm algorithm)
+        public static Bucket Decompress(this Bucket bucket, BucketCompressionAlgorithm algorithm)
         {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
             switch (algorithm)
             {
                 case BucketCompressionAlgorithm.ZLib:
-                    return new ZLibBucket(self, algorithm, CompressionMode.Decompress);
+                    return new ZLibBucket(bucket, algorithm, CompressionMode.Decompress);
                 case BucketCompressionAlgorithm.Deflate:
                     // Could be optimized like zlib, but currently unneeded
-                    return new ZLibBucket(self, algorithm, CompressionMode.Decompress);
+                    return new ZLibBucket(bucket, algorithm, CompressionMode.Decompress);
                 case BucketCompressionAlgorithm.GZip:
                     // Could be optimized like zlib, but currently unneeded
-                    return new ZLibBucket(self, algorithm, CompressionMode.Decompress);
+                    return new ZLibBucket(bucket, algorithm, CompressionMode.Decompress);
                 case BucketCompressionAlgorithm.Brotli:
 #if !NETFRAMEWORK
                     // Available starting with .Net Core
-                    return new CompressionBucket(self, (inner) => new BrotliStream(inner, CompressionMode.Decompress));
+                    return new CompressionBucket(bucket, (inner) => new BrotliStream(inner, CompressionMode.Decompress));
 #endif
                 // Maybe: ZStd via https://www.nuget.org/packages/ZstdSharp.Port
                 default:
@@ -188,20 +191,23 @@ namespace AmpScm.Buckets
             }
         }
 
-        public static Bucket Compress(this Bucket self, BucketCompressionAlgorithm algorithm)
+        public static Bucket Compress(this Bucket bucket, BucketCompressionAlgorithm algorithm)
         {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
             switch (algorithm)
             {
                 case BucketCompressionAlgorithm.ZLib:
                 case BucketCompressionAlgorithm.Deflate:
-                    return new ZLibBucket(self, algorithm, CompressionMode.Compress);
+                    return new ZLibBucket(bucket, algorithm, CompressionMode.Compress);
                 case BucketCompressionAlgorithm.GZip:
                     // Could be optimized like zlib, but currently unneeded
-                    return new CompressionBucket(self, (inner) => new GZipStream(inner, CompressionMode.Compress));
+                    return new CompressionBucket(bucket, (inner) => new GZipStream(inner, CompressionMode.Compress));
                 case BucketCompressionAlgorithm.Brotli:
 #if !NETFRAMEWORK
                     // Available starting with .Net Core
-                    return new CompressionBucket(self, (inner) => new BrotliStream(inner, CompressionMode.Compress));
+                    return new CompressionBucket(bucket, (inner) => new BrotliStream(inner, CompressionMode.Compress));
 #endif
                 // Maybe: ZStd via https://www.nuget.org/packages/ZstdSharp.Port
                 default:
@@ -209,50 +215,59 @@ namespace AmpScm.Buckets
             }
         }
 
-        public static async ValueTask<byte[]> ToArrayAsync(this Bucket self)
+        public static async ValueTask<byte[]> ToArrayAsync(this Bucket bucket)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
 
             using (MemoryStream ms = new MemoryStream())
             {
-                await ms.WriteAsync(self).ConfigureAwait(false);
+                await ms.WriteAsync(bucket).ConfigureAwait(false);
 
                 return ms.ToArray();
             }
         }
 
-        public static byte[] ToArray(this Bucket self)
+        public static byte[] ToArray(this Bucket bucket)
         {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
 #pragma warning disable CA2012 // Use ValueTasks correctly
-            return ToArrayAsync(self).ConfigureAwait(true).GetAwaiter().GetResult();
+            return ToArrayAsync(bucket).ConfigureAwait(true).GetAwaiter().GetResult();
 #pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
-        public static Stream AsStream(this Bucket self)
+        public static Stream AsStream(this Bucket bucket)
         {
-            return new Wrappers.BucketStream(self);
+            return new Wrappers.BucketStream(bucket);
         }
 
         /// <summary>
-        /// Wraps <paramref name="self"/> as writable stream, writing to <paramref name="writer"/>
+        /// Wraps <paramref name="bucket"/> as writable stream, writing to <paramref name="writer"/>
         /// </summary>
-        /// <param name="self"></param>
+        /// <param name="bucket"></param>
         /// <param name="writer"></param>
         /// <returns></returns>
-        public static Stream AsStream(this Bucket self, IBucketWriter writer)
+        public static Stream AsStream(this Bucket bucket, IBucketWriter writer)
         {
-            return new Wrappers.BucketStream.WithWriter(self, writer);
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new Wrappers.BucketStream.WithWriter(bucket, writer);
         }
 
-        public static Bucket AsBucket(this Stream self)
+        public static Bucket AsBucket(this Stream stream)
         {
-            return new Wrappers.StreamBucket(self);
+            if (stream is null)
+                throw new ArgumentNullException(nameof(stream));
+
+            return new Wrappers.StreamBucket(stream);
         }
 
-        public static TextReader AsReader(this Bucket self)
+        public static TextReader AsReader(this Bucket bucket)
         {
-            return new StreamReader(self.AsStream());
+            return new StreamReader(bucket.AsStream());
         }
 
 #if NETFRAMEWORK

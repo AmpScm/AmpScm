@@ -12,7 +12,7 @@ namespace AmpScm.Buckets.Specialized
         BestSpeed = ZlibConst.ZBESTSPEED,
         Maximum = ZlibConst.ZBESTCOMPRESSION
     }
-    public sealed class ZLibBucket : WrappingBucket, IBucketPoll
+    public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
     {
         readonly ZStream _z;
         bool _eof, _readEof;
@@ -288,6 +288,45 @@ namespace AmpScm.Buckets.Specialized
             System.Diagnostics.Debug.Assert(bb.Length > 0);
 
             return bb;
+        }
+
+        async ValueTask IBucketSeek.SeekAsync(long newPosition)
+        {
+            if (newPosition < 0)
+                throw new ArgumentOutOfRangeException(nameof(newPosition));
+
+            if (newPosition < _position)
+            {
+                var (b, i) = write_buffer;
+
+                if (b is not null && _position - newPosition < i)
+                {
+                    // We are very lucky. We still have this in our output buffer :-)
+                    int moveBack = (int)(_position - newPosition);
+                    write_buffer = new BucketBytes(b, i - moveBack, write_buffer.Length + moveBack);
+                    _position -= moveBack;
+                }
+                else
+                {
+                    // Reset the world and start reading at the start
+                    await Inner.ResetAsync().ConfigureAwait(false);
+
+                    if (_windowBits is int wb)
+                        _z.InflateInit(wb);
+                    else if (_level.HasValue)
+                        _z.DeflateInit((int)_level);
+
+                    _eof = _readEof = false;
+                    read_buffer = BucketBytes.Empty;
+                    write_buffer = BucketBytes.Empty;
+                    _position = 0;
+                }
+            }
+
+            if (newPosition > _position)
+            {
+                await ReadSkipAsync(newPosition-_position).ConfigureAwait(false);
+            }
         }
 
         public override bool CanReset => Inner.CanReset;

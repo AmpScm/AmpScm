@@ -6,7 +6,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets
 {
-    public sealed partial class FileBucket : Bucket, IBucketPoll
+    public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek
     {
         readonly FileHolder _holder;
         readonly byte[] _buffer;
@@ -64,6 +64,27 @@ namespace AmpScm.Buckets
         {
             _pos = _size;
             _filePos = 0;
+
+            return default;
+        }
+
+        ValueTask IBucketSeek.SeekAsync(long newPosition)
+        {
+            if (newPosition < 0)
+                throw new ArgumentOutOfRangeException(nameof(newPosition));
+
+            if (newPosition > _bufStart && newPosition < _bufStart + _size)
+            {
+                _pos = (int)(_bufStart - newPosition);
+                _filePos = newPosition;
+            }
+            else if (newPosition > _holder.Length)
+                throw new BucketException($"Seek after end of {Name} requested");
+            else
+            {
+                _pos = _size; // Empty buffer
+                _filePos = newPosition;
+            }
 
             return default;
         }

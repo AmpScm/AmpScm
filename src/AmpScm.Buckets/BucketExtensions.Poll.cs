@@ -11,40 +11,40 @@ namespace AmpScm.Buckets
     partial class BucketExtensions
     {
 
-        public static ValueTask<BucketBytes> PollAsync(this Bucket self, int minRequested = 1)
+        public static ValueTask<BucketBytes> PollAsync(this Bucket bucket, int minRequested = 1)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
 
-            if (self is IBucketPoll bp)
+            if (bucket is IBucketPoll bp)
                 return bp.PollAsync(minRequested);
             else
-                return new ValueTask<BucketBytes>(self.Peek());
+                return new ValueTask<BucketBytes>(bucket.Peek());
         }
 
-        public static async ValueTask<BucketPollBytes> PollReadAsync(this Bucket self, int minRequested = 1)
+        public static async ValueTask<BucketPollBytes> PollReadAsync(this Bucket bucket, int minRequested = 1)
         {
-            if (self is null)
-                throw new ArgumentNullException(nameof(self));
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
 
             BucketBytes data;
-            if (self is IBucketPoll bucketPoll)
+            if (bucket is IBucketPoll bucketPoll)
             {
                 data = await bucketPoll.PollAsync(minRequested).ConfigureAwait(false);
 
                 if (!data.IsEmpty || data.IsEof)
-                    return new BucketPollBytes(self, data, 0);
+                    return new BucketPollBytes(bucket, data, 0);
             }
             else
-                data = self.Peek();
+                data = bucket.Peek();
 
             if (data.Length >= minRequested)
-                return new BucketPollBytes(self, data, 0); // Nice peek, move along
+                return new BucketPollBytes(bucket, data, 0); // Nice peek, move along
 
-            data = await self.ReadAsync(minRequested).ConfigureAwait(false);
+            data = await bucket.ReadAsync(minRequested).ConfigureAwait(false);
 
             if (data.IsEmpty)
-                return new BucketPollBytes(self, BucketBytes.Eof, 0); // Nothing to optimize
+                return new BucketPollBytes(bucket, BucketBytes.Eof, 0); // Nothing to optimize
 
             byte byte0 = data[0];
             byte[]? dataBytes = (data.Length > 0) ? data.ToArray() : null;
@@ -53,7 +53,7 @@ namespace AmpScm.Buckets
             // Now the special trick, we might just have triggered a much longer read and in
             // that case we want to provide more data
 
-            data = self.Peek();
+            data = bucket.Peek();
 
             var (arr, offset) = data;
 
@@ -64,7 +64,7 @@ namespace AmpScm.Buckets
                 {
                     // The very lucky, but common case. The peek buffer starts with what we read
 
-                    return new BucketPollBytes(self, new BucketBytes(arr, offset - alreadyRead, data.Length + alreadyRead), alreadyRead);
+                    return new BucketPollBytes(bucket, new BucketBytes(arr, offset - alreadyRead, data.Length + alreadyRead), alreadyRead);
                 }
             }
 
@@ -87,7 +87,7 @@ namespace AmpScm.Buckets
             else if (dataBytes == null)
                 dataBytes = new[] { byte0 };
 
-            return new BucketPollBytes(self, dataBytes, alreadyRead);
+            return new BucketPollBytes(bucket, dataBytes, alreadyRead);
         }
     }
 }
