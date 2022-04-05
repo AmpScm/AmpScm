@@ -70,12 +70,6 @@ namespace AmpScm.Git.Objects
 
         }
 
-        public async ValueTask<TGitObject> WriteAndFetchAsync(GitRepository repository)
-        {
-            var id = await WriteToAsync(repository).ConfigureAwait(false);
-            return await repository.GetAsync<TGitObject>(id).ConfigureAwait(false) ?? throw new InvalidOperationException();
-        }
-
         internal void PutId(GitId id)
         {
             Id ??= id;

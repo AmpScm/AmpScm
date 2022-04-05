@@ -12,7 +12,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public class TlsBucket : WrappingBucket, IBucketWriter, IBucketWriterStats
+    public sealed class TlsBucket : WrappingBucket, IBucketWriter, IBucketWriterStats, IBucketPoll
     {
         readonly byte[] _inputBuffer;
         BucketBytes _unread;
@@ -61,6 +61,17 @@ namespace AmpScm.Buckets.Specialized
             return _unread;
         }
 
+        async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested)
+        {
+            if (_unread.IsEmpty && !_readEof && _authenticated)
+            {
+                // Refill the buffer
+                await ReadFromStream().ConfigureAwait(false);
+            }
+
+            return Peek();
+        }
+
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
             if (requested < 0)
@@ -93,39 +104,32 @@ namespace AmpScm.Buckets.Specialized
 
         async Task<BucketBytes> DoRead(int requested)
         {
+            if (_unread.Length == 0 && !_readEof)
+                await ReadFromStream().ConfigureAwait(false);
+
             if (_unread.Length > 0)
             {
                 var bb = _unread.Slice(0, Math.Min(requested, _unread.Length));
                 _unread = _unread.Slice(bb.Length);
                 return bb;
             }
-            else if (_readEof)
-                return BucketBytes.Eof;
-
-#if NETFRAMEWORK
-            int len = await _stream.ReadAsync(_inputBuffer, 0, _inputBuffer.Length).ConfigureAwait(false);
-#else
-            int len = await _stream.ReadAsync(new Memory<byte>(_inputBuffer)).ConfigureAwait(false);
-#endif
-
-            if (len > 0)
-            {
-                _bytesRead += len;
-                if (len > requested)
-                {
-                    _unread = new BucketBytes(_inputBuffer, requested, len - requested);
-                    return new BucketBytes(_inputBuffer, 0, requested);
-                }
-                else
-                {
-                    return new BucketBytes(_inputBuffer, 0, len);
-                }
-            }
             else
             {
                 _readEof = true;
                 return BucketBytes.Eof;
             }
+        }
+
+        private async ValueTask ReadFromStream()
+        {
+            int length;
+#if NETFRAMEWORK
+            length = await _stream.ReadAsync(_inputBuffer, 0, _inputBuffer.Length).ConfigureAwait(false);
+#else
+            length = await _stream.ReadAsync(new Memory<byte>(_inputBuffer)).ConfigureAwait(false);
+#endif
+            _bytesRead += length;
+            _unread = new BucketBytes(_inputBuffer, 0, length);
         }
 
         public override long? Position => _bytesRead - _unread.Length;

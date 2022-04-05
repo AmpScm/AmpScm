@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Git.References
 {
-    public class GitSymbolicReference : GitReference
+    public sealed class GitSymbolicReference : GitReference
     {
         object? _reference;
 
@@ -16,13 +16,15 @@ namespace AmpScm.Git.References
         {
         }
 
-        public override async ValueTask ReadAsync()
+        public override ValueTask ReadAsync()
         {
             if (_reference is null)
             {
                 if (GitRepository.TryReadRefFile(Path.Combine(Repository.GitDir, Name), "ref: ", out var val))
                     _reference = val;
             }
+
+            return default;
         }
 
         public GitReference? Reference

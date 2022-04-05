@@ -366,10 +366,10 @@ namespace AmpScm.Buckets.Specialized
         /// </summary>
         /// <param name="bucket"></param>
         /// <param name="bufferSize"></param>
-        /// <param name="maxRequested"></param>
+        /// <param name="requested"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static async ValueTask<BucketBytes> ReadCombinedAsync(this Bucket bucket, int bufferSize, int maxRequested = int.MaxValue)
+        public static async ValueTask<BucketBytes> ReadCombinedAsync(this Bucket bucket, int bufferSize, int requested = int.MaxValue)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -394,7 +394,22 @@ namespace AmpScm.Buckets.Specialized
                 }
             }
 
-            return await bucket.ReadAsync(maxRequested).ConfigureAwait(false);
+            return await bucket.ReadAsync(requested).ConfigureAwait(false);
+        }
+
+        public static async ValueTask<(ReadOnlyMemory<byte>[] Buffers, bool Done)> ReadBuffersAsync(this Bucket bucket, int maxRequested = int.MaxValue)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (bucket is IBucketReadBuffers iov)
+                return await iov.ReadBuffersAsync(maxRequested).ConfigureAwait(false);
+
+            var bb = await bucket.ReadAsync(maxRequested).ConfigureAwait(false);
+
+            if (bb.IsEof)
+                return (Array.Empty<ReadOnlyMemory<byte>>(), true);
+            else
+                return (new[] { bb.Memory }, false);
         }
 
         public static T[] ArrayAppend<T>(this T[] array, T item)
@@ -406,6 +421,11 @@ namespace AmpScm.Buckets.Specialized
             Array.Copy(array, 0, nw, 0, array.Length);
             nw[array.Length] = item;
             return nw;
+        }
+
+        internal static ArraySegment<byte>[] AsArraySegments(this ReadOnlyMemory<byte>[] bytes)
+        {
+            return null!;
         }
     }
 }

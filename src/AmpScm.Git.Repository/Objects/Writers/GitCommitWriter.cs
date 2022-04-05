@@ -74,7 +74,6 @@ namespace AmpScm.Git.Objects
 
         private GitCommitWriter()
         {
-            _parents = default!;
         }
 
         public static GitCommitWriter Create(params IGitLazy<GitCommit>[] parents)

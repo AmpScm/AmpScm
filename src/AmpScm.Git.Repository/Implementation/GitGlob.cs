@@ -45,7 +45,7 @@ namespace AmpScm.Git.Repository.Implementation
                         sb.Append("[/\\\\]");
                         break;
                     default:
-                        if ("\\[](){}<>^$".Contains(pattern[i]))
+                        if ("\\[](){}<>^$".Contains(pattern[i], StringComparison.Ordinal))
                             sb.Append(Regex.Escape(pattern[i].ToString()));
                         else
                             sb.Append(pattern[i]);
