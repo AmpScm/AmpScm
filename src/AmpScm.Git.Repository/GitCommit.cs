@@ -163,14 +163,14 @@ namespace AmpScm.Git
             }
         }
 
-        public GitSignature? Committer
+        public GitSignature Committer
         {
             get
             {
                 if (_committer is null)
                     Read(false);
 
-                return _committer;
+                return _committer!;
             }
         }
 
@@ -288,7 +288,7 @@ namespace AmpScm.Git
 
             public GitId this[int index] => Commit.GetParentId(index)!;
 
-            public int Count => (Commit._parent == null) ? 0 : (Commit._parent as Object[])?.Length ?? 1;
+            public int Count => Commit.ParentCount;
 
             public IEnumerator<GitId> GetEnumerator()
             {

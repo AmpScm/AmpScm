@@ -11,7 +11,7 @@ AmpScm.Git.GitBranch
 AmpScm.Git.GitBranch.Reference.get -> AmpScm.Git.GitReference!
 AmpScm.Git.GitCommit
 AmpScm.Git.GitCommit.Author.get -> AmpScm.Git.GitSignature!
-AmpScm.Git.GitCommit.Committer.get -> AmpScm.Git.GitSignature?
+AmpScm.Git.GitCommit.Committer.get -> AmpScm.Git.GitSignature!
 AmpScm.Git.GitCommit.Message.get -> string?
 AmpScm.Git.GitCommit.Parent.get -> AmpScm.Git.GitCommit?
 AmpScm.Git.GitCommit.ParentCount.get -> int

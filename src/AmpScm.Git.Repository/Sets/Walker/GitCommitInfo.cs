@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Git;
+using AmpScm.Buckets.Git.Buckets.Objects;
 using AmpScm.Git.Objects;
 using AmpScm.Git.Repository.Implementation;
 
@@ -16,6 +17,7 @@ namespace AmpScm.Git.Sets.Walker
         Lazy<IEnumerable<GitId>> _parents;
         public GitId Id { get; }
         public IEnumerable<GitId> ParentIds => _parents.Value;
+        long commitTime;
 
         public GitCommitInfo(GitCommit from)
         {
@@ -37,27 +39,10 @@ namespace AmpScm.Git.Sets.Walker
                 return gc.ParentIds;
             else if (_commit is IGitCommitGraphInfo gi)
                 return gi.ParentIds;
-            else if (_commit is GitRepository r)
-            {
-                var info = await r.ObjectRepository.GetCommitInfo(Id).ConfigureAwait(false);
 
-                if (info != null)
-                {
-                    _parents = new Lazy<IEnumerable<GitId>>(() => info.ParentIds);
-                    _commit = info;
+            await ReadCommitInfoByIdAsync().ConfigureAwait(false);
 
-                    _graphValue = info.Value;
-                    return _parents.Value;
-                }
-
-                var c = await r.ObjectRepository.GetByIdAsync<GitCommit>(Id).ConfigureAwait(false);
-
-                if (c != null)
-                    _commit = c;
-                return c?.ParentIds.ToArray() ?? Enumerable.Empty<GitId>();
-            }
-            else
-                throw new InvalidOperationException();
+            return _parents.Value; // Variable replaced
         }
 
         public GitCommitGenerationValue ChainInfo
@@ -89,17 +74,36 @@ namespace AmpScm.Git.Sets.Walker
             return Id.GetHashCode();
         }
 
-        private async ValueTask<GitCommit?> GetCommit()
-        {
-            GitCommit? commit = (_commit as GitCommit) ?? await (_commit as GitRepository)!.ObjectRepository.GetByIdAsync<GitCommit>(Id).ConfigureAwait(false) ?? throw new InvalidOperationException();
-
-            _commit = commit;
-            return commit;
-        }
-
         internal async Task<long> GetCommitTimeValue()
         {
-            return (await GetCommit().ConfigureAwait(false))?.Committer?.When.ToUnixTimeSeconds() ?? 0;
+            if (commitTime != 0)
+                return commitTime;
+            else if (_commit is GitCommit gc)
+                return gc.Committer.When.ToUnixTimeSeconds();
+
+            await ReadCommitInfoByIdAsync().ConfigureAwait(false);
+            return commitTime;
+        }
+
+        async ValueTask ReadCommitInfoByIdAsync()
+        {
+            GitRepository repo = (GitRepository)_commit;
+
+            var info = await repo.ObjectRepository.GetCommitInfo(Id).ConfigureAwait(false);
+
+            if (info != null)
+            {
+                _parents = new GitAsyncLazy<IEnumerable<GitId>>(info.ParentIds);
+                _commit = info;
+
+                _graphValue = info.Value;
+            }
+
+            using var r = await repo.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false);
+            using var cr = new GitCommitReadBucket(r!);
+
+            _parents = new GitAsyncLazy<IEnumerable<GitId>>(await cr.ReadAllParentIdsAsync().ConfigureAwait(false));
+            commitTime = Math.Min((await cr.ReadCommitter().ConfigureAwait(false)).When.ToUnixTimeSeconds(),1);
         }
 
         internal void SetChainInfo(GitCommitGenerationValue newChainInfo)

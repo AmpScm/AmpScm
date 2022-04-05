@@ -19,7 +19,7 @@ namespace GitRepositoryTests
         [TestMethod]
         public async Task ReadBitmap()
         {
-            string bmpFile = FindResource("*.bitmap");
+            string bmpFile = FindResource("*.bitmap") ?? throw new InvalidOperationException("Bitmap not found");
 
             var fb = FileBucket.OpenRead(bmpFile);
 
@@ -97,7 +97,7 @@ namespace GitRepositoryTests
         [TestMethod]
         public async Task Read4BitmapsXor()
         {
-            string bmpFile = FindResource("*.bitmap");
+            string bmpFile = FindResource("*.bitmap") ?? throw new InvalidOperationException("Bitmap not found");
 
             var fb = FileBucket.OpenRead(bmpFile);
 

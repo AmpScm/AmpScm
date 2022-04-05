@@ -528,7 +528,7 @@ namespace AmpScm.Git.Objects
         {
             if (!File.Exists(Path.ChangeExtension(_packFile, ".rev")))
             {
-                await CreateReverseIndex();
+                await CreateReverseIndex().ConfigureAwait(false);
             }
 
             _revIdxBucket ??= FileBucket.OpenRead(Path.ChangeExtension(_packFile, ".rev"));

@@ -18,8 +18,6 @@ namespace AmpScm.Git.References
 
         public override async ValueTask ReadAsync()
         {
-            string body;
-
             if (_reference is null)
             {
                 if (GitRepository.TryReadRefFile(Path.Combine(Repository.GitDir, Name), "ref: ", out var val))
