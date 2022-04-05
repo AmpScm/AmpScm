@@ -8,7 +8,7 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    public sealed class GitPackFrameBucket : GitObjectBucket, IBucketPoll
+    public sealed class GitPackFrameBucket : GitObjectBucket, IBucketPoll, IBucketSeek
     {
         Bucket? reader;
         frame_state state;
@@ -53,12 +53,31 @@ namespace AmpScm.Buckets.Git
             return reader.Peek();
         }
 
-        public async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
+        async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested /*= 1*/)
         {
             if (reader == null || state != frame_state.body)
                 return BucketBytes.Empty;
 
             return await reader.PollAsync(minRequested).ConfigureAwait(false);
+        }
+
+        async ValueTask IBucketSeek.SeekAsync(long newPosition)
+        {
+            if (newPosition < 0)
+                throw new ArgumentOutOfRangeException(nameof(newPosition));
+
+            if (reader == null || state != frame_state.body)
+            {
+                // Not reading yet. Just skip
+                long np = await ReadSkipAsync(newPosition).ConfigureAwait(false);
+
+                if (np != newPosition)
+                    throw new GitBucketException($"Unable to seek to position {newPosition} on {Name}");
+            }
+            else
+            {
+                await reader.SeekAsync(newPosition).ConfigureAwait(false);
+            }
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
@@ -107,7 +126,7 @@ namespace AmpScm.Buckets.Git
                 // In the initial state we use position to keep track of our
                 // location withing the compressed length
 
-                var peeked = Inner.Peek();
+                var peeked = await Inner.PollAsync().ConfigureAwait(false);
 
                 int rq_len;
 
@@ -176,15 +195,22 @@ namespace AmpScm.Buckets.Git
                         position = 0;
                     }
 
-                    while (position < _deltaId.Length)
+                    int hashLen = _idType.HashLength();
+                    while (position < hashLen)
                     {
-                        var read = await Inner.ReadAsync(_deltaId.Length - (int)position).ConfigureAwait(false);
+                        var read = await Inner.ReadAsync(hashLen - (int)position).ConfigureAwait(false);
 
                         if (read.IsEof)
                             return false;
 
-                        for (int i = 0; i < read.Length; i++)
-                            _deltaId[position++] = read[i];
+                        if (read.Length == hashLen)
+                            _deltaId = read.ToArray();
+                        else
+                        {
+                            _deltaId ??= new byte[hashLen];
+                            for (int i = 0; i < read.Length; i++)
+                                _deltaId[position++] = read[i];
+                        }
                     }
 
                     state = frame_state.find_delta;
@@ -281,7 +307,7 @@ namespace AmpScm.Buckets.Git
                     if (_fetchBucketById == null)
                         throw new GitBucketException($"Found delta against {deltaId}, but don't have a resolver to obtain that object");
 
-                    base_reader = await _fetchBucketById(deltaId).ConfigureAwait(false);
+                    base_reader = (await _fetchBucketById(deltaId).ConfigureAwait(false))!;
 
                     if (base_reader == null)
                         throw new GitBucketException($"Can't obtain delta-base bucket for {deltaId}");

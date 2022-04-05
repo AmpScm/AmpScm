@@ -92,6 +92,11 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
 
                 parents = lst; // Still collecting after ReadFirstParentIdAsync()
             }
+            else if (_treeId is null)
+            {
+                await ReadTreeIdAsync().ConfigureAwait(false);
+                parents = new();
+            }
             else
                 parents = new();
 

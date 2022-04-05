@@ -48,7 +48,5 @@ namespace AmpScm.Git
         {
             return bb.Slice(start, bb.Length - start - untilEol.CharCount());
         }
-
-
     }
 }

@@ -4,10 +4,11 @@ using System.Numerics;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Interfaces;
+using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Git
 {
-    public class GitDeltaBucket : GitBucket, IBucketPoll
+    public sealed class GitDeltaBucket : GitBucket, IBucketPoll, IBucketSeek
     {
         protected Bucket BaseBucket { get; }
         long length;
@@ -282,6 +283,29 @@ namespace AmpScm.Buckets.Git
             throw new InvalidOperationException();
         }
 
+        async ValueTask IBucketSeek.SeekAsync(long newPosition)
+        {
+            if (newPosition < 0)
+                throw new ArgumentNullException(nameof(newPosition));
+
+            long curPosition = Position!.Value;
+
+            if (newPosition < curPosition)
+            {
+                await ResetAsync().ConfigureAwait(false);
+                curPosition = 0;
+            }
+
+            while (curPosition < newPosition)
+            {
+                long skipped = await ReadSkipAsync(newPosition - curPosition).ConfigureAwait(false);
+                if (skipped == 0)
+                    throw new InvalidOperationException($"Unexpected seek failure on {Name} Bucket position {newPosition} from {curPosition}");
+
+                curPosition += skipped;
+            }
+        }
+
         public override async ValueTask<int> ReadSkipAsync(int requested)
         {
             int skipped = 0;
@@ -334,32 +358,14 @@ namespace AmpScm.Buckets.Git
             return skipped;
         }
 
-        private async Task SeekBase()
+        private async ValueTask SeekBase()
         {
             while (state == delta_state.base_seek)
             {
-                long cp = BaseBucket.Position!.Value;
+                await BaseBucket.SeekAsync(copy_offset).ConfigureAwait(false);
 
-                if (copy_offset < cp)
-                {
-                    await BaseBucket.ResetAsync().ConfigureAwait(false);
-                    cp = 0;
-                }
-
-                while (cp < copy_offset)
-                {
-                    long skipped = await BaseBucket.ReadSkipAsync(copy_offset - cp).ConfigureAwait(false);
-                    if (skipped == 0)
-                        throw new InvalidOperationException($"Unexpected seek failure on {BaseBucket.Name} Bucket position {copy_offset} from {cp}");
-
-                    cp += skipped;
-                }
-
-                if (cp == copy_offset)
-                {
-                    state = delta_state.base_copy;
-                    copy_offset = 0;
-                }
+                state = delta_state.base_copy;
+                copy_offset = 0;
             }
         }
 
@@ -400,26 +406,15 @@ namespace AmpScm.Buckets.Git
 
         public async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
         {
-            if (state == delta_state.base_copy)
-            {
-                var data = await BaseBucket.PollAsync().ConfigureAwait(false);
+            if (state == delta_state.base_copy || state == delta_state.src_copy)
+                return Peek();
 
-                if (copy_size < data.Length)
-                    data = data.Slice(0, copy_size);
+            await AdvanceAsync().ConfigureAwait(false);
 
-                return data;
-            }
-            else if (state == delta_state.src_copy)
-            {
-                var data = await Inner.PollAsync().ConfigureAwait(false);
+            if (state == delta_state.base_seek)
+                await SeekBase().ConfigureAwait(false);
 
-                if (copy_size < data.Length)
-                    data = data.Slice(0, copy_size);
-
-                return data;
-            }
-            else
-                return BucketBytes.Empty;
+            return Peek();
         }
 
         public override bool CanReset => Inner.CanReset && BaseBucket.CanReset;

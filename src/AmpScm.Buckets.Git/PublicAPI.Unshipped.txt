@@ -186,6 +186,7 @@ static AmpScm.Buckets.Git.GitConfigurationItem.operator >=(AmpScm.Buckets.Git.Gi
 static AmpScm.Buckets.Git.GitSignatureRecord.TryReadFromBucket(AmpScm.Buckets.BucketBytes bucketBytes, out AmpScm.Buckets.Git.GitSignatureRecord? record) -> bool
 static AmpScm.Git.GitBucketExtensions.CreateHeader(this AmpScm.Git.GitObjectType type, long length) -> AmpScm.Buckets.Bucket!
 static AmpScm.Git.GitBucketExtensions.HashLength(this AmpScm.Git.GitIdType type) -> int
+static AmpScm.Git.GitBucketExtensions.Slice(this AmpScm.Buckets.BucketBytes bb, int start, AmpScm.Buckets.BucketEol untilEol) -> AmpScm.Buckets.BucketBytes
 static AmpScm.Git.GitId.FromByteArrayOffset(AmpScm.Git.GitIdType type, byte[]! hash, int offset) -> AmpScm.Git.GitId!
 static AmpScm.Git.GitId.HashLength(AmpScm.Git.GitIdType type) -> int
 static AmpScm.Git.GitId.operator !=(AmpScm.Git.GitId? one, AmpScm.Git.GitId? other) -> bool
