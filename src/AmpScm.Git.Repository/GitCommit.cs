@@ -15,7 +15,9 @@ using AmpScm.Git.Sets;
 namespace AmpScm.Git
 {
     [DebuggerDisplay("{DebuggerDisplay, nq}")]
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
     public sealed class GitCommit : GitObject, IGitLazy<GitCommit>
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         GitCommitReadBucket? _rb;
         object? _tree;
@@ -44,7 +46,7 @@ namespace AmpScm.Git
                     return tree.Id;
                 else
                 {
-                    id = _rb.ReadTreeIdAsync().AsTask().GetAwaiter().GetResult();
+                    id = _rb!.ReadTreeIdAsync().AsTask().GetAwaiter().GetResult();
                     _tree = id;
                     return id;
                 }
@@ -242,12 +244,12 @@ namespace AmpScm.Git
 
             while (true)
             {
-                var (bb, _) = await _rb.ReadUntilEolFullAsync(BucketEol.Zero, null).ConfigureAwait(false);
+                var (bb, _) = await _rb.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     break;
 
-                _message += bb.ToUTF8String();
+                _message += bb.ToUTF8String(); // Includes EOL
             }
 
             _rb.Dispose();

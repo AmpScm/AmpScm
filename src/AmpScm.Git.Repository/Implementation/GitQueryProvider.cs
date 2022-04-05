@@ -98,7 +98,9 @@ namespace AmpScm.Git.Implementation
 
         public IQueryable<TResult> GetAll<TResult>() where TResult : GitObject
         {
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
             return GetEnumerable<TResult>().AsQueryable();
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
         }
 
         public async ValueTask<TResult?> GetByIdAsync<TResult>(GitId id) where TResult : GitObject
@@ -119,7 +121,9 @@ namespace AmpScm.Git.Implementation
         public IQueryable<TResult> GetAllNamed<TResult>()
             where TResult : class, IGitNamedObject
         {
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
             return GetNamedEnumerable<TResult>().AsQueryable();
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
         }
 
         public async ValueTask<TResult?> GetNamedAsync<TResult>(string name)
@@ -135,12 +139,16 @@ namespace AmpScm.Git.Implementation
 
         public IQueryable<GitRevision> GetRevisions(GitRevisionSet set)
         {
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
             return WrapEnumerable(set).AsQueryable();
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
         }
 
         public IQueryable<GitReferenceChange> GetAllReferenceChanges(GitReferenceChangeSet set)
         {
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
             return WrapEnumerable(set).AsQueryable();
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
         }
 
 

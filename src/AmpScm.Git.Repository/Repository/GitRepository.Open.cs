@@ -29,7 +29,9 @@ namespace AmpScm.Git
 
         public static ValueTask<GitRepository> OpenAsync(string path, CancellationToken cancellation = default)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var g = GitRepository.Open(path);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             return new ValueTask<GitRepository>(g);
         }

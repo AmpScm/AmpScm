@@ -9,8 +9,10 @@ namespace AmpScm.Git
     internal static class CompatExtensions
     {
 #if NETFRAMEWORK
-        public static string Replace(this string on, string oldValue, string newValue, StringComparison comparison)
+        public static string Replace(this string? on, string oldValue, string newValue, StringComparison comparison)
         {
+            if (on is null)
+                throw new ArgumentNullException(nameof(on));
             if (comparison != StringComparison.Ordinal)
                 throw new ArgumentOutOfRangeException(nameof(comparison));
             return on.Replace(oldValue, newValue);

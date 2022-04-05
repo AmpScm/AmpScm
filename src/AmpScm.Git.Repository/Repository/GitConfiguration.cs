@@ -121,10 +121,12 @@ namespace AmpScm.Git.Repository
             if (path != null && path.StartsWith("~", StringComparison.Ordinal)
                 && UserHomeDirectory is var homeDir && !string.IsNullOrWhiteSpace(homeDir))
             {
+#pragma warning disable CA1845 // Use span-based 'string.Concat'
                 if (path.StartsWith("~/", StringComparison.Ordinal))
                     path = homeDir!.TrimEnd(Path.DirectorySeparatorChar) + path.Substring(1);
                 else if (char.IsLetterOrDigit(path, 1))
                     path = Path.GetDirectoryName(homeDir) + path.Substring(1); // Might need more work on linux, but not common
+#pragma warning restore CA1845 // Use span-based 'string.Concat'
             }
             return path!;
         }
@@ -495,7 +497,7 @@ namespace AmpScm.Git.Repository
                 // GitHub action uses $ git.exe config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
                 var extraHeader = GetString($"http.{e.Uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped)}/", "extraheader") ?? GetString($"http", "extraheader");
 
-                if (!string.IsNullOrEmpty(extraHeader) && extraHeader.StartsWith("Authorization: Basic ", StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrEmpty(extraHeader) && extraHeader!.StartsWith("Authorization: Basic ", StringComparison.OrdinalIgnoreCase))
                 {
                     var p = extraHeader.Split(new char[] { ' ' }, 3)[2];
 

@@ -162,7 +162,11 @@ namespace AmpScm.Git.Objects
 
             ChunkStream.Seek(0, SeekOrigin.Begin);
             var headerBuffer = new byte[12];
+#if !NETFRAMEWORK
+            if (await ChunkStream.ReadAsync(new Memory<byte>(headerBuffer), CancellationToken.None).ConfigureAwait(false) != headerBuffer.Length)
+#else
             if (await ChunkStream.ReadAsync(headerBuffer, 0, headerBuffer.Length, CancellationToken.None).ConfigureAwait(false) != headerBuffer.Length)
+#endif
                 return (GitIdType.None, 0);
 
             if (!"MIDX\x01".Select(x => (byte)x).SequenceEqual(headerBuffer.Take(5)))
