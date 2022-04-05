@@ -21,7 +21,7 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
         {
         }
 
-        const BucketEol AcceptedEols = BucketEol.LF | BucketEol.CRLF;
+        const BucketEol AcceptedEols = BucketEol.LF;
         const int MaxHeader = 1024;
 
         public async ValueTask<GitId> ReadTreeIdAsync()
