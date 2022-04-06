@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
+using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Git.Objects
 {
-    internal class LazyGitObjectBucket : GitObjectBucket
+    internal sealed class LazyGitObjectBucket : GitObjectBucket, IBucketPoll
     {
         GitRepository Repository { get; }
         GitId Id { get; }
@@ -91,6 +92,24 @@ namespace AmpScm.Git.Objects
                 return _inner.ReadUntilEolAsync(acceptableEols, requested);
 
             return base.ReadUntilEolAsync(acceptableEols, requested);
+        }
+
+        public ValueTask<BucketBytes> PollAsync(int minRequested = 1)
+        {
+            if (_inner != null)
+                return _inner.PollAsync(minRequested);
+
+            return new ValueTask<BucketBytes>(Peek());
+        }
+
+        public override string Name => _inner?.Name ?? base.Name;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                _inner?.Dispose();
+
+            base.Dispose(disposing);
         }
     }
 }

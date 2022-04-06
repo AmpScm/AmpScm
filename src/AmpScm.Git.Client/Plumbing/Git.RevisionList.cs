@@ -37,6 +37,7 @@ namespace AmpScm.Git.Client.Plumbing
 
         // Ordering
         public GitRevisionListOrder Order {get;set;}
+        public bool Reverse { get; set; }
 
         public override void Verify()
         {
@@ -78,8 +79,10 @@ namespace AmpScm.Git.Client.Plumbing
                 args.Add("--simplify-merges");
             if (a.AncestryPath)
                 args.Add("--ancestry-path");
+            if (a.Reverse)
+                args.Add("--reverse");
 
-            switch(a.Order)
+            switch (a.Order)
             {
                 case GitRevisionListOrder.ReverseChronological:
                     break; // Default

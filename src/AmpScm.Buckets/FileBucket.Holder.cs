@@ -172,7 +172,9 @@ namespace AmpScm.Buckets
                     {
                         // Typical all-data cached in filecache case on Windows 10/11 2022-04
                         if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, false))
+                        {
                             return new ValueTask<int>((int)bytes); // Return succes. Task will release lpOverlapped
+                        }
                         else
                             return new ValueTask<int>(tcs.Task); // Wait for task
                     }
@@ -304,8 +306,6 @@ namespace AmpScm.Buckets
                 void OnSignal(object? state, bool timedOut)
                 {
                     _eventWaitHandle.Reset();
-                    if (_pin.IsAllocated)
-                        _pin.Free(); // Release pinning of result array
 
                     if (NativeMethods.GetOverlappedResult(_holder._handle, _overlapped, out var t, false))
                     {
@@ -430,7 +430,7 @@ namespace AmpScm.Buckets
                     share: 0x00000004 /* FILE_SHARE_DELETE */ | 0x00000001 /* FILE_SHARE_READ */, // Others can read, delete, rename, but we keep our file open
                     securityAttributes: IntPtr.Zero,
                     creationDisposition: 3 /* OPEN_EXISTING */,
-                    0x80 /* Normal attributes */ | 0x40000000 /* Overlapped */,
+                    0x80 /* Normal attributes */ | 0x40000000 /* FILE_FLAG_OVERLAPPED */,
                     IntPtr.Zero);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 

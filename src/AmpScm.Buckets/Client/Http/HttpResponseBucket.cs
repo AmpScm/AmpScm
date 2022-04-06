@@ -425,5 +425,19 @@ namespace AmpScm.Buckets.Client.Http
                 return -1;
             }
         }
+
+        public override string? ContentType
+        {
+            get
+            {
+                var v = Headers;
+                if (v is not null && v[HttpResponseHeader.ContentType] is string contentType)
+                {
+                    return contentType;
+                }
+
+                return null;
+            }
+        }
     }
 }

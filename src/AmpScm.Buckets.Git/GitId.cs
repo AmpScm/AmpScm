@@ -29,24 +29,26 @@ namespace AmpScm.Git
             get => new ReadOnlyMemory<byte>(_bytes, _offset, HashLength(Type));
         }
 
-        private byte[] CopyArray()
-        {
-            var newBytes = new byte[HashLength(Type)];
-            Array.Copy(_bytes, _offset, newBytes, 0, newBytes.Length);
-            _bytes = newBytes;
-            _offset = 0;
-            return _bytes;
-        }
-
         public GitId(GitIdType type, byte[] hash)
         {
-            if (type < GitIdType.None || type > GitIdType.Sha256)
+            if (hash is null)
+                throw new ArgumentNullException(nameof(hash));
+            else if (type < GitIdType.None || type > GitIdType.Sha256)
                 throw new ArgumentOutOfRangeException(nameof(type));
+            else if(hash.Length != HashLength(type))
+                throw new ArgumentOutOfRangeException(nameof(hash));
 
             Type = type;
-            _bytes = (type != GitIdType.None ? hash ?? throw new ArgumentNullException(nameof(hash)) : Array.Empty<byte>());
+            _bytes = hash;
         }
 
+        /// <summary>
+        /// Internal helper to optimize using indexes
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="hash"></param>
+        /// <param name="offset"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         GitId(GitIdType type, byte[] hash, int offset)
         {
             Type = type;
