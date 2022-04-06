@@ -87,22 +87,12 @@ namespace AmpScm.Buckets
                     // We got new and old data, but how can we return that?
                     var (arr, offset) = bb;
 
-                    if (arr is not null && offset >= copy)
+                    // Unlikely, but cheap: The return buffer is what we need
+                    if (arr is not null
+                        && offset >= copy
+                        && new ReadOnlySpan<byte>(arr, offset - copy, copy).SequenceEqual(returnData))
                     {
-                        bool equal = true;
-                        for (int i = 0; i < copy; i++)
-                        {
-                            if (arr[offset - copy + 1] != returnData[i])
-                            {
-                                equal = false;
-                                break;
-                            }
-                        }
-
-                        if (equal)
-                        {
-                            return new BucketBytes(arr, offset - copy, bb.Length + copy);
-                        }
+                        return new BucketBytes(arr, offset - copy, bb.Length + copy);
                     }
 
                     byte[] ret = new byte[bb.Length + copy];

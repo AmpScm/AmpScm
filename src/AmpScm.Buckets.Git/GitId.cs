@@ -134,14 +134,28 @@ namespace AmpScm.Git
             }
         }
 
-        static bool TryGetHex(char c, out byte b)
+        static bool TryGetHex(ushort c1, ushort c2, out byte b)
         {
-            if (c >= '0' && c <= '9')
-                b = (byte)(c - '0');
-            else if (c >= 'a' && c <= 'f')
-                b = (byte)(c - 'a' + 10);
-            else if (c >= 'A' && c <= 'F')
-                b = (byte)(c - 'A' + 10);
+            if (c1 >= '0' && c1 <= '9')
+                b = (byte)(c1 - '0');
+            else if (c1 >= 'a' && c1 <= 'f')
+                b = (byte)(c1 - 'a' + 10);
+            else if (c1 >= 'A' && c1 <= 'F')
+                b = (byte)(c1 - 'A' + 10);
+            else
+            {
+                b = 0;
+                return false;
+            }
+
+            b = (byte)(b << 4);
+
+            if (c2 >= '0' && c2 <= '9')
+                b |= (byte)(c2 - '0');
+            else if (c2 >= 'a' && c2 <= 'f')
+                b |= (byte)(c2 - 'a' + 10);
+            else if (c2 >= 'A' && c2 <= 'F')
+                b |= (byte)(c2 - 'A' + 10);
             else
             {
                 b = 0;
@@ -155,15 +169,19 @@ namespace AmpScm.Git
         {
             if (idString is null)
                 throw new ArgumentNullException(nameof(idString));
+            else if (0 != (idString.Length & 1))
+            {
+                bytes = null;
+                return false;
+            }
 
             bytes = new byte[idString.Length / 2];
 
             for(int i = 0; i < idString.Length; i+= 2)
             {
-                if (TryGetHex(idString[i], out var b1)
-                    && TryGetHex(idString[i+1], out var b2))
+                if (TryGetHex(idString[i], idString[i+1], out var b))
                 {
-                    bytes[i / 2] = (byte)((b1 << 4) | b2);
+                    bytes[i / 2] = b;
                 }
                 else
                     return false;
@@ -173,14 +191,19 @@ namespace AmpScm.Git
 
         private static bool TryASCIIToByteArray(BucketBytes idBuffer, [NotNullWhen(true)] out byte[]? bytes)
         {
+            if (0 != (idBuffer.Length & 1))
+            {
+                bytes = null;
+                return false;
+            }
+
             bytes = new byte[idBuffer.Length / 2];
 
             for (int i = 0; i < idBuffer.Length; i += 2)
             {
-                if (TryGetHex((char)idBuffer[i], out var b1)
-                    && TryGetHex((char)idBuffer[i+1], out var b2))
+                if (TryGetHex(idBuffer[i], idBuffer[i + 1], out var b))
                 {
-                    bytes[i / 2] = (byte)((b1 << 4) | b2);
+                    bytes[i / 2] = b;
                 }
                 else
                     return false;
