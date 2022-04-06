@@ -24,9 +24,9 @@ namespace AmpScm.Git
         int _offset;
         public GitIdType Type { get; }
 
-        public byte[] Hash
+        public ReadOnlyMemory<byte> Hash
         {
-            get => (_offset == 0 && _bytes.Length == HashLength(Type)) ? _bytes : CopyArray();
+            get => new ReadOnlyMemory<byte>(_bytes, _offset, HashLength(Type));
         }
 
         private byte[] CopyArray()

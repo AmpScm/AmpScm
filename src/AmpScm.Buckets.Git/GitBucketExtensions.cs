@@ -48,5 +48,10 @@ namespace AmpScm.Git
         {
             return bb.Slice(start, bb.Length - start - untilEol.CharCount());
         }
+
+        public static BucketBytes Slice(this BucketBytes bb, BucketEol untilEol)
+        {
+            return bb.Slice(0, bb.Length - untilEol.CharCount());
+        }
     }
 }

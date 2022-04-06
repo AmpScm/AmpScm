@@ -139,19 +139,24 @@ namespace AmpScm.Buckets.Specialized
             {
                 throw new ArgumentNullException(nameof(eolState));
             }
+
             while (true)
             {
                 BucketBytes bb;
                 BucketEol eol;
 
                 (bb, eol) = await bucket.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
-                rq = requested;
 
-                if (bb.IsEof)
-                    return ((result != null) ? result.ToArray() : bb, eol);
+                if (eol != BucketEol.None && eol != BucketEol.CRSplit && result is null)
+                    return (bb, eol);
                 else if (bb.IsEmpty)
-                    throw new InvalidOperationException();
-                else if ((acceptableEols & BucketEol.CRLF) != 0 && result is byte[] rb && rb.Length == 1 && rb[0] == '\r')
+                {
+                    if (bb.IsEof)
+                        return ((result != null) ? result.ToArray() : bb, eol);
+                    else
+                        throw new InvalidOperationException();
+                }
+                else if (rq == 1 && (acceptableEols & BucketEol.CRLF) != 0 && result is byte[] rb && rb.Length == 1 && rb[0] == '\r')
                 {
                     if (bb[0] == '\n')
                         return (result.Concat(bb.ToArray()).ToArray(), BucketEol.CRLF);
@@ -163,21 +168,22 @@ namespace AmpScm.Buckets.Specialized
                     else if (eol != BucketEol.None)
                         return (result.Concat(bb.ToArray()).ToArray(), eol); // '\0' case
                 }
-                else if (result == null && eol != BucketEol.None && eol != BucketEol.CRSplit)
-                    return (bb, eol);
+                
+                rq = (requested -= bb.Length);
+                if (requested == 0)
+                {
+                    if (result is null)
+                        return (bb, eol);
 
-                requested -= bb.Length;
+                    return (result.Concat(bb.ToArray()).ToArray(), eol);
+                }
 
                 if (result == null)
                     result = bb.ToArray();
                 else
                     result = result.Concat(bb.ToArray());
 
-                if (requested == 0)
-                {
-                    return ((result as byte[]) ?? result.ToArray(), eol);
-                }
-                else if (eol == BucketEol.CRSplit)
+                if (eol == BucketEol.CRSplit)
                 {
                     // Bad case. We may have a \r that might be a \n
 

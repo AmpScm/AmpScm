@@ -42,6 +42,8 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
             return _treeId;
         }
 
+        static readonly int ParentLineReadLength = "parent ".Length + GitId.MaxHashLength * 2 + 2 /* ALL EOL */;
+
         public async ValueTask<GitId?> ReadFirstParentIdAsync()
         {
             if (_parents is not null)
@@ -53,7 +55,8 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
                 await ReadTreeIdAsync().ConfigureAwait(false);
             }
 
-            var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: "parent ".Length + GitId.MaxHashLength * 2 + 2 /* ALL EOL */).ConfigureAwait(false);
+            // Typically every commit has a parent, so optimize for that case
+            var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: ParentLineReadLength).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("parent "))
             {
@@ -64,16 +67,16 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
 
                 // We accidentally read the first part of the author line. Let's keep things clean
 
-                var authorStart = bb.ToArray();
+                if (eol == BucketEol.None)
+                {
+                    var authorBucket = new AggregateBucket(bb.Slice("author ".Length).ToArray().AsBucket(), Inner).NoClose();
+                    (bb, eol) = await authorBucket.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                }
 
-                (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader - bb.Length).ConfigureAwait(false);
-
-                bb = authorStart.Concat(bb.Slice(bb.Length - eol.CharCount()).ToArray()).ToArray();
-
-                _author = GitSignatureRecord.TryReadFromBucket(bb.Slice("author ".Length), out var author) ? author : throw new GitBucketException($"Invalid author line in {Inner.Name}");
+                _author = GitSignatureRecord.TryReadFromBucket(bb.Slice(eol), out var author) ? author : throw new GitBucketException($"Invalid author line in {Inner.Name}");
                 return null;
             }
-            else if (GitId.TryParse(bb.Slice(7, bb.Length), out var id))
+            else if (GitId.TryParse(bb.Slice("parent ".Length, eol), out var id))
             {
                 _parents = new List<GitId>() { id };
                 return id;
@@ -106,19 +109,30 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
 
                 if (bb.IsEof)
                     return _parents = parents.Count > 0 ? parents.AsReadOnly() : Array.Empty<GitId>();
-                else if (bb.StartsWithASCII("parent "))
+                else if (bb.StartsWithASCII("parent ")
+                    && GitId.TryParse(bb.Slice("parent ".Length, eol), out var id))
                 {
-                    if (GitId.TryParse(bb.Slice(7, bb.Length - "parent ".Length - eol.CharCount()), out var id))
+                    parents.Add(id);
+
+                    // Stop scanning if we don't have more parents
+                    bb = Inner.Peek();
+                    if (!bb.IsEmpty && bb[0] != 'p')
                     {
-                        parents.Add(id);
-                        continue;
+                        return _parents = parents.AsReadOnly();
                     }
-                    else
-                        throw new GitBucketException($"Bad parent header in '{Inner.Name}'");
+
+                    continue;
                 }
                 else if (bb.StartsWithASCII("author "))
                 {
-                    _author = GitSignatureRecord.TryReadFromBucket(bb.Slice("author ".Length, eol), out var author) ? author : throw new GitBucketException($"Invalid author line in {Inner.Name}");
+                    // Auch. We overread.
+                    if (eol == BucketEol.None)
+                    {
+                        var authorBucket = new AggregateBucket(bb.Slice("author ".Length).ToArray().AsBucket(), Inner).NoClose();
+                        (bb, eol) = await authorBucket.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                    }
+
+                    _author = GitSignatureRecord.TryReadFromBucket(bb.Slice(eol), out var author) ? author : throw new GitBucketException($"Invalid author line in {Inner.Name}");
                     return _parents = parents.AsReadOnly();
                 }
                 else
@@ -129,7 +143,20 @@ namespace AmpScm.Buckets.Git.Buckets.Objects
         public async ValueTask<GitSignatureRecord> ReadAuthorAsync()
         {
             if (_author is null)
-                await ReadAllParentIdsAsync().ConfigureAwait(false);
+            {
+                if (_parents is null || _parents is List<GitId>)
+                    await ReadAllParentIdsAsync().ConfigureAwait(false);
+
+                var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+
+                if (bb.StartsWithASCII("author ")
+                    && GitSignatureRecord.TryReadFromBucket(bb.Slice("author ".Length, eol), out var author))
+                {
+                    _author = author;
+                }
+                else
+                    throw new GitBucketException($"Expected 'author' in commit '{Inner.Name}'");
+            }
 
             return _author ?? throw new GitBucketException($"Unable to read author header from '{Inner.Name}'");
         }

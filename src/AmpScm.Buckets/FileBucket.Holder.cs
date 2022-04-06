@@ -374,15 +374,6 @@ namespace AmpScm.Buckets
                     uint flagsAndAttributes,
                     IntPtr templateFile);
 
-                public delegate void IOCompletionCallback(uint errorCode, uint numBytes, IntPtr lpOverlapped);
-
-                [DllImport("kernel32.dll", SetLastError = true)]
-                [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-                public static extern bool ReadFileEx(SafeFileHandle hFile, [Out] byte[] lpBuffer,
-                    int nNumberOfBytesToRead, [In] IntPtr lpOverlapped,
-                    IOCompletionCallback lpCompletionRoutine);
-
-
                 [DllImport("kernel32.dll", SetLastError = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
                 public static extern bool ReadFile(SafeFileHandle hFile, [Out] byte[] lpBuffer,

@@ -46,7 +46,6 @@ namespace AmpScm.Buckets.Git
             return $"{Name} <{Email}> {When.ToUnixTimeSeconds()} {offsetMinutes}";
         }
 
-
         public static bool TryReadFromBucket(BucketBytes bucketBytes, [NotNullWhen(true)] out GitSignatureRecord? record)
         {
             int n = bucketBytes.IndexOf((byte)'<');
