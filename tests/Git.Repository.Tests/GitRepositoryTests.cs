@@ -369,6 +369,9 @@ namespace GitRepositoryTests
 
             foreach (var prop in typeof(T).GetProperties().Where(prop => !typeof(IQueryable).IsAssignableFrom(prop.PropertyType) && !prop.GetIndexParameters().Any()))
             {
+                if (prop.PropertyType.IsGenericType && prop.PropertyType.IsValueType && prop.PropertyType.GetGenericTypeDefinition() == typeof(ReadOnlyMemory<>))
+                    continue;
+
                 object? ob;
                 try
                 {
