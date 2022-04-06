@@ -96,17 +96,10 @@ namespace AmpScm.Git
             if (other is null)
                 return 1;
 
-            int sz = HashLength(Type);
+            if (other.Type != Type)
+                return (int)Type - (int)other.Type;
 
-            for (int i = 0; i < sz; i++)
-            {
-                int n = _bytes[i + _offset] - other._bytes[i + other._offset];
-
-                if (n != 0)
-                    return n;
-            }
-
-            return 0;
+            return Hash.Span.SequenceCompareTo(other.Hash.Span);
         }
 
         public static bool TryParse(string idString, [NotNullWhen(true)] out GitId? id)

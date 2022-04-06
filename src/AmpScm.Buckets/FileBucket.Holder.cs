@@ -160,26 +160,28 @@ namespace AmpScm.Buckets
                 }
                 TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
 
-                IntPtr lpOverlapped = waitHandler.Alloc(tcs, offset, buffer);
-                if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, lpOverlapped))
+                using (waitHandler.Alloc(tcs, offset, buffer, out var lpOverlapped))
                 {
-                    // Unlikely direct succes case. No result queued
-                    waitHandler.Release();
-                    return new ValueTask<int>((int)read); // Done reading
-                }
-                else if (Marshal.GetLastWin32Error() == 997 /* Pending IO */)
-                {
-                    // Typical all-data cached in filecache case on Windows 10/11 2022-04
-                    if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped,out uint bytes, false))
-                        return new ValueTask<int>((int)bytes); // Return succes. Task will release lpOverlapped
+                    if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, lpOverlapped))
+                    {
+                        // Unlikely direct succes case. No result queued
+                        waitHandler.ReleaseOne();
+                        return new ValueTask<int>((int)read); // Done reading
+                    }
+                    else if (Marshal.GetLastWin32Error() == 997 /* Pending IO */)
+                    {
+                        // Typical all-data cached in filecache case on Windows 10/11 2022-04
+                        if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, false))
+                            return new ValueTask<int>((int)bytes); // Return succes. Task will release lpOverlapped
+                        else
+                            return new ValueTask<int>(tcs.Task); // Wait for task
+                    }
                     else
-                        return new ValueTask<int>(tcs.Task); // Wait for task
-                }
-                else
-                {
-                    waitHandler.Release();
+                    {
+                        waitHandler.ReleaseOne();
 
-                    throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new BucketException("ReadFileEx failed");
+                        throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new BucketException("ReadFileEx failed");
+                    }
                 }
             }
 
@@ -289,6 +291,7 @@ namespace AmpScm.Buckets
                 GCHandle _pin;
                 EventWaitHandle _eventWaitHandle;
                 RegisteredWaitHandle? _registeredWaitHandle;
+                int _c;
 
 
                 public FileWaitHandler(FileHolder holder, IntPtr overlapped)
@@ -311,23 +314,25 @@ namespace AmpScm.Buckets
                     else
                         _tcs!.SetException(new InvalidOperationException("GetOverlappedResult failed"));
 
-                    Release();
+                    ReleaseOne();
                 }
 
-                public void Release()
+                public void ReleaseOne()
                 {
-                    if (_pin.IsAllocated)
-                        _pin.Free(); // Release pinning of result array
+                    if (Interlocked.Decrement(ref _c) == 0)
+                    {
+                        // When both the callback and caller are done, release overlapped struct and mutex for re-use
+                        if (_pin.IsAllocated)
+                            _pin.Free();
 
-                    _tcs = null;
+                        _tcs = null;
 
-
-                    lock (_holder._waitHandlers)
-                        _holder._waitHandlers.Enqueue(this);
+                        lock (_holder._waitHandlers)
+                            _holder._waitHandlers.Enqueue(this);
+                    }
                 }
 
-
-                public IntPtr Alloc(TaskCompletionSource<int> tcs, long offset, object toPin)
+                public Releaser Alloc(TaskCompletionSource<int> tcs, long offset, object toPin, out IntPtr lpOverlapped)
                 {
                     if (_pin.IsAllocated)
                         throw new InvalidOperationException();
@@ -345,7 +350,9 @@ namespace AmpScm.Buckets
 
                     Marshal.StructureToPtr(nol, _overlapped, false);
 
-                    return _overlapped;
+                    _c = 2; // Release in callback and caller
+                    lpOverlapped = _overlapped;
+                    return new Releaser(this);
                 }
 
                 public void Dispose()
@@ -358,6 +365,21 @@ namespace AmpScm.Buckets
 
                     _eventWaitHandle?.Dispose();
                     _eventWaitHandle = null!;
+                }
+
+                public sealed class Releaser : IDisposable
+                {
+                    readonly FileWaitHandler fileWaitHandler;
+
+                    public Releaser(FileWaitHandler fileWaitHandler)
+                    {
+                        this.fileWaitHandler = fileWaitHandler;
+                    }
+
+                    public void Dispose()
+                    {
+                        fileWaitHandler.ReleaseOne();
+                    }
                 }
             }
 

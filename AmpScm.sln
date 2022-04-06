@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmpScm.Buckets.Git", "src\A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Git.Repository.Tests", "tests\Git.Repository.Tests\Git.Repository.Tests.csproj", "{5C3DE60A-53B2-4CF2-9156-95C7486576E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bucket.Tests", "tests\Bucket.Tests\Bucket.Tests.csproj", "{E2020E5D-E3E8-417F-BC35-E3A2051BBE3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bucket.Tests", "tests\Bucket.Tests\Bucket.Tests.csproj", "{E2020E5D-E3E8-417F-BC35-E3A2051BBE3A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
