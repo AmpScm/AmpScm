@@ -22,7 +22,7 @@ namespace AmpScm.Buckets
             int _nRefs;
             long? _length;
             bool _asyncWin;
-            Queue<FileWaitHandler> _fwhs;
+            Queue<FileWaitHandler> _waitHandlers;
             Action _disposers;
 
             public FileHolder(FileStream primary, string path)
@@ -34,7 +34,7 @@ namespace AmpScm.Buckets
                     _keep.Push(primary);
 
                 _disposers = _primary.Dispose;
-                _fwhs = default!;
+                _waitHandlers = default!;
                 _handle = primary.SafeFileHandle;
             }
 
@@ -52,7 +52,7 @@ namespace AmpScm.Buckets
                 _handle = handle;
                 _path = path ?? throw new ArgumentNullException(nameof(path));
                 _asyncWin = true;
-                _fwhs = new Queue<FileWaitHandler>();
+                _waitHandlers = new Queue<FileWaitHandler>();
 
                 _disposers = _handle.Dispose;
                 _handle = handle;
@@ -119,7 +119,7 @@ namespace AmpScm.Buckets
 #endif
             public ValueTask<int> AsyncWinReadAsync(long offset, byte[] buffer, int readLen)
             {
-                FileWaitHandler fwh;
+                FileWaitHandler waitHandler;
 
                 if (readLen < 1)
                     throw new ArgumentOutOfRangeException(nameof(readLen));
@@ -134,10 +134,10 @@ namespace AmpScm.Buckets
                     readLen = (int)rl;
                 }
 
-                lock (_fwhs)
+                lock (_waitHandlers)
                 {
-                    if (_fwhs.Count > 0)
-                        fwh = _fwhs.Dequeue();
+                    if (_waitHandlers.Count > 0)
+                        waitHandler = _waitHandlers.Dequeue();
                     else
                     {
                         int sz = Marshal.SizeOf<NativeOverlapped>();
@@ -150,28 +150,34 @@ namespace AmpScm.Buckets
                         {
                             var f = new FileWaitHandler(this, (IntPtr)((long)p + i * sz));
                             _disposers += f.Dispose;
-                            _fwhs.Enqueue(f);
+                            _waitHandlers.Enqueue(f);
                         }
-                        fwh = new FileWaitHandler(this, p); // And keep the last one
-                        _disposers += fwh.Dispose;
+                        waitHandler = new FileWaitHandler(this, p); // And keep the last one
+                        _disposers += waitHandler.Dispose;
 
                         _disposers += () => Marshal.FreeCoTaskMem(p);
                     }
                 }
                 TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
 
-                if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, fwh.Alloc(tcs, offset, buffer)))
+                IntPtr lpOverlapped = waitHandler.Alloc(tcs, offset, buffer);
+                if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, lpOverlapped))
                 {
-                    fwh.Release();
+                    // Unlikely direct succes case. No result queued
+                    waitHandler.Release();
                     return new ValueTask<int>((int)read); // Done reading
                 }
                 else if (Marshal.GetLastWin32Error() == 997 /* Pending IO */)
                 {
-                    return new ValueTask<int>(tcs.Task);
+                    // Typical all-data cached in filecache case on Windows 10/11 2022-04
+                    if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped,out uint bytes, false))
+                        return new ValueTask<int>((int)bytes); // Return succes. Task will release lpOverlapped
+                    else
+                        return new ValueTask<int>(tcs.Task); // Wait for task
                 }
                 else
                 {
-                    fwh.Release();
+                    waitHandler.Release();
 
                     throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new BucketException("ReadFileEx failed");
                 }
@@ -316,8 +322,8 @@ namespace AmpScm.Buckets
                     _tcs = null;
 
 
-                    lock (_holder._fwhs)
-                        _holder._fwhs.Enqueue(this);
+                    lock (_holder._waitHandlers)
+                        _holder._waitHandlers.Enqueue(this);
                 }
 
 
