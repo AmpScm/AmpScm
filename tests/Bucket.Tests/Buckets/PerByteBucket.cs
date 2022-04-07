@@ -24,10 +24,5 @@ namespace AmpScm.BucketTests.Buckets
         {
             return base.ReadAsync(1);
         }
-
-        public override ValueTask<int> ReadSkipAsync(int requested)
-        {
-            return base.ReadSkipAsync(1);
-        }
     }
 }

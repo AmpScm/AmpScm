@@ -35,7 +35,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override long? Position => Inner.Position;
 
-        public override ValueTask<int> ReadSkipAsync(int requested)
+        public override ValueTask<long> ReadSkipAsync(long requested)
         {
             return Inner.ReadSkipAsync(requested);
         }

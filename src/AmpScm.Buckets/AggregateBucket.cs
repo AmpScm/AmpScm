@@ -154,7 +154,7 @@ namespace AmpScm.Buckets
             del?.Dispose();
         }
 
-        public override ValueTask<int> ReadSkipAsync(int requested)
+        public override ValueTask<long> ReadSkipAsync(long requested)
         {
             return base.ReadSkipAsync(requested);
         }

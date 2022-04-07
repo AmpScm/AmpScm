@@ -35,7 +35,7 @@ namespace AmpScm.Buckets.Specialized
             return new BucketBytes(_buffer, 0, bb.Length);
         }
 
-        public override ValueTask<int> ReadSkipAsync(int requested)
+        public override ValueTask<long> ReadSkipAsync(long requested)
         {
             return Inner.ReadSkipAsync(requested);
         }

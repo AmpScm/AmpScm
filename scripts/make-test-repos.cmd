@@ -11,6 +11,7 @@ if NOT EXIST libgit2-std              @git clone https://github.com/libgit2/libg
 if NOT EXIST libgit2-bmp              @git clone libgit2-std                                                libgit2-bmp
 if NOT EXIST lin-no-tree-cs           @git clone https://github.com/torvalds/linux.git --filter=tree:0      lin-no-tree-cs
 if NOT EXIST tado-multipack           @git clone https://github.com/germainlefebvre4/libtado.git            tado-multipack
+if NOT EXIST tado-multipack-bmp       @git clone https://github.com/germainlefebvre4/libtado.git            tado-multipack-bmp
 REM if NOT EXIST git-reftable             @git clone https://github.com/git/git.git --filter=tree:0             git-reftable
 
 for /d %%1 in (*-cs) do (
@@ -28,4 +29,8 @@ popd
 
 pushd tado-multipack
 git multi-pack-index write
+popd
+
+pushd tado-multipack-bmp
+git multi-pack-index write --bitmap
 popd

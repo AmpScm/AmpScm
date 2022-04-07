@@ -306,7 +306,7 @@ namespace AmpScm.Buckets.Git
             }
         }
 
-        public override async ValueTask<int> ReadSkipAsync(int requested)
+        public override async ValueTask<long> ReadSkipAsync(long requested)
         {
             int skipped = 0;
             while (requested > 0)
@@ -316,19 +316,20 @@ namespace AmpScm.Buckets.Git
 
                 Debug.Assert(state >= delta_state.src_copy && state <= delta_state.eof);
 
+                int rq = (int)Math.Min(requested, int.MaxValue);
                 int r;
                 switch (state)
                 {
                     case delta_state.base_seek:
                         // Avoid the seek and just do the calculations instead
-                        r = Math.Min(requested, copy_size);
+                        r = Math.Min(rq, copy_size);
                         copy_size -= r;
                         copy_offset += (uint)r;
                         position += r;
                         break;
                     case delta_state.base_copy:
                         // Go back to a to-seek state
-                        r = Math.Min(requested, copy_size);
+                        r = Math.Min(rq, copy_size);
                         copy_size -= r;
                         copy_offset = (uint)(BaseBucket.Position!.Value + r);
                         position += r;
@@ -336,7 +337,7 @@ namespace AmpScm.Buckets.Git
                         break;
                     case delta_state.src_copy:
                         // Just skip the source data
-                        r = await Inner.ReadSkipAsync(Math.Min(requested, copy_size)).ConfigureAwait(false);
+                        r = (int)await Inner.ReadSkipAsync(Math.Min(rq, copy_size)).ConfigureAwait(false);
                         copy_size -= r;
                         position += r;
                         break;
@@ -400,7 +401,7 @@ namespace AmpScm.Buckets.Git
 
                 return data;
             }
-            else 
+            else
                 return BucketBytes.Empty;
         }
 

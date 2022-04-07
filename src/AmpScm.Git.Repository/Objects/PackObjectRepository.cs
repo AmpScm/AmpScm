@@ -509,20 +509,6 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        static GitObjectType GetGitObjectType(Type type)
-        {
-            if (type == typeof(GitCommit))
-                return GitObjectType.Commit;
-            else if (type == typeof(GitTree))
-                return GitObjectType.Tree;
-            else if (type == typeof(GitBlob))
-                return GitObjectType.Blob;
-            else if (type == typeof(GitTagObject))
-                return GitObjectType.Tag;
-            else
-                throw new InvalidOperationException();
-        }
-
         private async ValueTask<TGitObject> GetOneViaPackOffset<TGitObject>(int v, GitObjectType gitObjectType)
             where TGitObject : class
         {
@@ -609,7 +595,7 @@ namespace AmpScm.Git.Objects
                 File.Delete(tmpName);
         }
 
-        private async ValueTask VerifyBitmap(FileBucket bmp)
+        static async ValueTask VerifyBitmap(FileBucket bmp)
         {
             using var bhr = new GitBitmapHeaderBucket(bmp.NoClose());
 
@@ -621,8 +607,8 @@ namespace AmpScm.Git.Objects
                 throw new GitBucketException($"Error during reading of pack header, type='{bhr.BitmapType}");
             else if (bhr.Version != 1)
                 throw new GitBucketException($"Unexpected bitmap version '{bhr.Version}, expected version 1");
-            else if (_fanOut != null && bhr.ObjectCount > _fanOut[255])
-                throw new GitBucketException($"Bitmap Header has {bhr.ObjectCount} commit records, index {_fanOut[255]}, for {Path.GetFileName(_packFile)}");
+            else if ((bhr.Flags & 1) != 1)
+                throw new GitBucketException($"BITMAP_OPT_FULL_DAG not set, flags={bhr.Flags}");
         }
 
         async ValueTask<GitObjectBucket?> MyResolveByOid(GitId id)

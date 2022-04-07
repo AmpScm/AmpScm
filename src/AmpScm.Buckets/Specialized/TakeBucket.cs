@@ -71,14 +71,14 @@ namespace AmpScm.Buckets.Specialized
             return base.ReadAsync(requested); // Position updated in base
         }
 
-        public override ValueTask<int> ReadSkipAsync(int requested)
+        public override ValueTask<long> ReadSkipAsync(long requested)
         {
             long pos = Position!.Value;
 
-            if (pos >= Limit) return new ValueTask<int>(0);
+            if (pos >= Limit) return new ValueTask<long>(0);
 
             if (Limit - pos < requested)
-                requested = (int)(Limit - pos);
+                requested = (long)(Limit - pos);
 
             return base.ReadSkipAsync(requested);
         }

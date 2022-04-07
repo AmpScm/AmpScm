@@ -78,7 +78,7 @@ namespace AmpScm.Git.Objects
             return base.DuplicateAsync(reset);
         }
 
-        public override ValueTask<int> ReadSkipAsync(int requested)
+        public override ValueTask<long> ReadSkipAsync(long requested)
         {
             if (_inner != null)
                 return _inner.ReadSkipAsync(requested);

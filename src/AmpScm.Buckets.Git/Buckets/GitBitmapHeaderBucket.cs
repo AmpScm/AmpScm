@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Git
 {
-    [DebuggerDisplay("{GitType}, Version={Version}, Flags={Flags}, ObjectCount={ObjectCount}")]
+    [DebuggerDisplay("{BitmapType}, Version={Version}, Flags={Flags}, ObjectCount={ObjectCount}")]
     public class GitBitmapHeaderBucket : GitBucket
     {
         BucketStructCollector<GitPackHeader> _header = new BucketStructCollector<GitPackHeader>();

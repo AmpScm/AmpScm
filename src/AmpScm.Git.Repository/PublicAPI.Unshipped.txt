@@ -7,6 +7,9 @@ abstract AmpScm.Git.References.GitReferenceRepository.GetAll() -> System.Collect
 abstract AmpScm.Git.References.GitReferenceRepository.GetUnsafeAsync(string! name, bool findSymbolic) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
 abstract AmpScm.Git.Sets.GitSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 AmpScm.Git.GitBlob
+AmpScm.Git.GitBlob.AsBucket() -> AmpScm.Buckets.Bucket!
+AmpScm.Git.GitBlob.AsStream() -> System.IO.Stream!
+AmpScm.Git.GitBlob.Size.get -> long
 AmpScm.Git.GitBranch
 AmpScm.Git.GitBranch.Reference.get -> AmpScm.Git.GitReference!
 AmpScm.Git.GitCommit
@@ -185,6 +188,7 @@ AmpScm.Git.Sets.IGitNamedObject.Name.get -> string!
 AmpScm.Git.Sets.IGitObject
 AmpScm.Git.Sets.IGitObject.ReadAsync() -> System.Threading.Tasks.ValueTask
 const AmpScm.Git.References.GitReferenceRepository.Head = "HEAD" -> string!
+override AmpScm.Git.GitBlob.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.GitCommit.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.GitDirectoryTreeEntry.ElementType.get -> AmpScm.Buckets.Git.Objects.GitTreeElementType
 override AmpScm.Git.GitDirectoryTreeEntry.EntryName.get -> string!

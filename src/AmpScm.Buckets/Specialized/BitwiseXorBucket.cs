@@ -96,7 +96,7 @@ namespace AmpScm.Buckets.Specialized
             return base.Peek();
         }
 
-        public override ValueTask<int> ReadSkipAsync(int requested)
+        public override ValueTask<long> ReadSkipAsync(long requested)
         {
             // TODO: Skip on both sides
             return base.ReadSkipAsync(requested);

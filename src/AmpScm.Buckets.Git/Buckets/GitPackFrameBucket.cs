@@ -91,7 +91,7 @@ namespace AmpScm.Buckets.Git
             return await reader!.ReadAsync(requested).ConfigureAwait(false);
         }
 
-        public override async ValueTask<int> ReadSkipAsync(int requested)
+        public override async ValueTask<long> ReadSkipAsync(long requested)
         {
             if (reader == null || state != frame_state.body)
             {

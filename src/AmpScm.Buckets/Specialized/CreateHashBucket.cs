@@ -60,7 +60,7 @@ namespace AmpScm.Buckets.Specialized
             return Inner.PollAsync(minRequested);
         }
 
-        public override ValueTask<int> ReadSkipAsync(int requested)
+        public override ValueTask<long> ReadSkipAsync(long requested)
         {
             return SkipByReading(requested);
         }

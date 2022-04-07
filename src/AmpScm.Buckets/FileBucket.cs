@@ -75,7 +75,7 @@ namespace AmpScm.Buckets
 
             if (newPosition > _bufStart && newPosition < _bufStart + _size)
             {
-                _pos = (int)(_bufStart - newPosition);
+                _pos = (int)(newPosition - _bufStart);
                 _filePos = newPosition;
             }
             else if (newPosition > _holder.Length)
@@ -163,7 +163,7 @@ namespace AmpScm.Buckets
             }
         }
 
-        public override ValueTask<int> ReadSkipAsync(int requested)
+        public override ValueTask<long> ReadSkipAsync(long requested)
         {
             if (requested <= 0)
                 throw new ArgumentOutOfRangeException(nameof(requested));
@@ -178,7 +178,7 @@ namespace AmpScm.Buckets
 
                 int skipped = (int)(newPos - _filePos);
                 _filePos = newPos;
-                return new ValueTask<int>(skipped);
+                return new ValueTask<long>(skipped);
             }
         }
 

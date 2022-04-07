@@ -19,7 +19,7 @@ namespace AmpScm.Buckets.Specialized
             return v;
         }
 
-        public override async ValueTask<int> ReadSkipAsync(int requested)
+        public override async ValueTask<long> ReadSkipAsync(long requested)
         {
             var v = await Inner.ReadSkipAsync(requested).ConfigureAwait(false);
 

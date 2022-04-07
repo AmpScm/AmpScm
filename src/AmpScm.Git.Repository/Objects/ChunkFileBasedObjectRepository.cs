@@ -43,6 +43,8 @@ namespace AmpScm.Git.Objects
         Chunk[]? _chunks;
         protected uint[]? FanOut { get; private set; }
 
+        protected long AfterChunkPosition => _chunks?.Select(x => x.Position + x.Length).Last() ?? -1;
+
         protected async ValueTask Init()
         {
             if (FanOut is not null)

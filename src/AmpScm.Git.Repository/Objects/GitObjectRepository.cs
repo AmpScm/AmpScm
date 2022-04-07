@@ -125,5 +125,19 @@ namespace AmpScm.Git.Objects
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        private protected static GitObjectType GetGitObjectType(Type type)
+        {
+            if (type == typeof(GitCommit))
+                return GitObjectType.Commit;
+            else if (type == typeof(GitTree))
+                return GitObjectType.Tree;
+            else if (type == typeof(GitBlob))
+                return GitObjectType.Blob;
+            else if (type == typeof(GitTagObject))
+                return GitObjectType.Tag;
+            else
+                throw new InvalidOperationException();
+        }
     }
 }
