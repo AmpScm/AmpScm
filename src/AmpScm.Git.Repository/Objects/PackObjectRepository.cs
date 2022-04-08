@@ -542,8 +542,8 @@ namespace AmpScm.Git.Objects
             if (_fanOut == null)
                 return;
 
-            var bmpName = Path.ChangeExtension(_packFile, ".rev");
-            var tmpName = bmpName + ".t" + Guid.NewGuid();
+            var revName = Path.ChangeExtension(_packFile, ".rev")!;
+            var tmpName = revName + ".t" + Guid.NewGuid();
 
             // TODO: Use less memory
             byte[] mapBytes;
@@ -589,8 +589,8 @@ namespace AmpScm.Git.Objects
                 await fs.WriteAsync(b).ConfigureAwait(false);
             }
 
-            if (!File.Exists(bmpName))
-                File.Move(tmpName, bmpName);
+            if (!File.Exists(revName))
+                File.Move(tmpName, revName);
             else
                 File.Delete(tmpName);
         }

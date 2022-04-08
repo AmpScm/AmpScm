@@ -129,22 +129,26 @@ namespace GitRepositoryTests
         }
 
 
-        public static IEnumerable<object[]> TestRepositoryArgsBitmapAndRev => TestRepositoryArgs.Where(x => x[0] is string s && Directory.GetFiles(Path.Combine(s, ".git", "objects", "pack"), "*.bitmap").Any()).Concat(new[] { new[]{ "<>" } });
+        public static IEnumerable<object[]> TestRepositoryArgsBitmapAndRev => TestRepositoryArgs.Where(x => x[0] is string s && Directory.GetFiles(Path.Combine(s, ".git", "objects", "pack"), "*.bitmap").Any()).Concat(new[] { "1", "2" }.Select(x => new[] { ">" + x }));
         [TestMethod]
         [DynamicData(nameof(TestRepositoryArgsBitmapAndRev))]
         public async Task WalkObjectsViaBitmap(string path)
         {
-            if (path == "<>")
+            if (path.Contains('>'))
             {
+                var pp = path.Substring(1);
                 GitRepository gc = GitRepository.Open(typeof(GitRepositoryWalks).Assembly.Location);
-                path = TestContext.PerTestDirectory("!!");
+                path = TestContext.PerTestDirectory(pp);
 
                 await gc.GetPlumbing().RunRawCommand("clone", new[] { "--bare", gc.FullPath, path });
 
                 gc = GitRepository.Open(path);
                 Assert.AreEqual(path, gc.FullPath);
-                await gc.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true });
-                await gc.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true, WriteMultiPack = true });
+
+                if (pp == "1")
+                    await gc.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true });
+                else
+                    await gc.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true, WriteMultiPack = true });
             }
             using var repo = await GitRepository.OpenAsync(path);
 

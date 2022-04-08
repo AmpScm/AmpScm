@@ -16,7 +16,7 @@ namespace AmpScm.Git.Objects
         readonly string _dir;
         private string[]? _packNames;
         PackObjectRepository[]? _packs;
-        GitId? _multiPackId;
+        string? _multiPackBitmapPath;
         Lazy<bool> HasBitmap;
         FileBucket? _bitmapBucket;
         FileBucket? _revIdxBucket;
@@ -49,20 +49,18 @@ namespace AmpScm.Git.Objects
 
         bool GetHasBitmap()
         {
-            if (_multiPackId == null)
-            {
-                if (ChunkStream is null)
-                    return false;
+            if (ChunkStream is null)
+                return false;
 
-                ChunkStream!.Seek(AfterChunkPosition, SeekOrigin.Begin);
-                byte[] multiPackId = new byte[Repository.InternalConfig.IdType.HashLength()];
-                if (multiPackId.Length != ChunkStream.Read(multiPackId, 0, multiPackId.Length))
-                    return false;
+            ChunkStream!.Seek(AfterChunkPosition, SeekOrigin.Begin);
+            byte[] multiPackId = new byte[Repository.InternalConfig.IdType.HashLength()];
+            if (multiPackId.Length != ChunkStream.Read(multiPackId, 0, multiPackId.Length))
+                return false;
 
-                _multiPackId = new GitId(Repository.InternalConfig.IdType, multiPackId);
-            }
+            GitId id = new GitId(Repository.InternalConfig.IdType, multiPackId);
 
-            return File.Exists(Path.Combine(_dir, $"multi-pack-index-{_multiPackId}.bitmap"));
+            _multiPackBitmapPath = Path.Combine(_dir, $"multi-pack-index-{id}.bitmap");
+            return File.Exists(_multiPackBitmapPath);
         }
 
         public override async ValueTask<TGitObject?> GetByIdAsync<TGitObject>(GitId id)
@@ -87,7 +85,7 @@ namespace AmpScm.Git.Objects
                 int pack = NetBitConverter.ToInt32(result, 0);
                 long offset = NetBitConverter.ToUInt32(result, 4);
 
-                if (offset > int.MaxValue && GetChunkLength("LOFF") != null) // If not we have 32 bits
+                if (offset > int.MaxValue && GetChunkLength("LOFF") != null) // If chunk does not exist we have 32 bits
                 {
                     throw new NotImplementedException("TODO: Implement LOFF support on MIDX");
                 }
@@ -118,7 +116,7 @@ namespace AmpScm.Git.Objects
         }
 
         internal override async ValueTask<(TGitObject? Result, bool Success)> DoResolveIdString<TGitObject>(string idString, GitId baseGitId)
-            where TGitObject: class
+            where TGitObject : class
         {
             if (_packs == null)
                 return (null, true); // Not really loaded yet
@@ -170,7 +168,6 @@ namespace AmpScm.Git.Objects
             if (_packs == null)
                 yield break; // Not really loaded yet
 
-#if NOT_YET
             if (typeof(TGitObject) != typeof(GitObject) && HasBitmap.Value)
             {
                 await foreach (var x in GetAllViaBitmap<TGitObject>(alreadyReturned))
@@ -179,7 +176,6 @@ namespace AmpScm.Git.Objects
                 }
             }
             else
-#endif
             {
                 // Prefer locality of packs, over the multipack order when not using bitmaps
                 foreach (var p in _packs)
@@ -193,9 +189,9 @@ namespace AmpScm.Git.Objects
         }
 
         async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(HashSet<GitId> alreadyReturned)
-            where TGitObject : class
+            where TGitObject : GitObject
         {
-            if (FanOut is null || FanOut[255] == 0)
+            if (FanOut is null || FanOut[255] == 0 || !HasBitmap.Value)
             {
                 await Init().ConfigureAwait(false);
                 if (FanOut is null || FanOut[255] == 0)
@@ -204,7 +200,7 @@ namespace AmpScm.Git.Objects
 
             if (_bitmapBucket == null)
             {
-                var bmp = FileBucket.OpenRead(Path.Combine(_dir, $"multi-pack-index-{_multiPackId}.bitmap"));
+                var bmp = FileBucket.OpenRead(_multiPackBitmapPath!);
 
                 await VerifyBitmap(bmp).ConfigureAwait(false);
                 _bitmapBucket = bmp;
@@ -245,7 +241,7 @@ namespace AmpScm.Git.Objects
                         {
                             if (bit + n < (bitLength ??= await ewahBitmap.ReadBitLengthAsync().ConfigureAwait(false)))
                             {
-                                yield return await GetOneViaMultiPackOffset<TGitObject>(bit + n, gitObjectType).ConfigureAwait(false);
+                                yield return await GetOneViaMultiPackOffset<TGitObject>(bit + n).ConfigureAwait(false);
                             }
                         }
                     }
@@ -254,32 +250,87 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        private async ValueTask<TGitObject> GetOneViaMultiPackOffset<TGitObject>(int v, GitObjectType gitObjectType)
-            where TGitObject : class
+        private async ValueTask<TGitObject> GetOneViaMultiPackOffset<TGitObject>(int v)
+            where TGitObject : GitObject
         {
-            if (_revIdxBucket is null && !File.Exists(Path.Combine(_dir, $"multi-pack-index-{_multiPackId}.rev")))
+            if (_revIdxBucket is null && !File.Exists(Path.ChangeExtension(_multiPackBitmapPath, ".rev")))
             {
-                //await CreateReverseIndex().ConfigureAwait(false);
-                throw new NotImplementedException();
+                await CreateReverseIndex().ConfigureAwait(false);
             }
 
-            _revIdxBucket ??= FileBucket.OpenRead(Path.Combine(_dir, $"multi-pack-index-{_multiPackId}.bitmap"));
+            _revIdxBucket ??= FileBucket.OpenRead(Path.ChangeExtension(_multiPackBitmapPath!, ".rev"));
             await _revIdxBucket.ResetAsync().ConfigureAwait(false);
             await _revIdxBucket.ReadSkipAsync(12 + sizeof(uint) * v).ConfigureAwait(false);
-            var indexOffs = await _revIdxBucket.ReadNetworkUInt32Async().ConfigureAwait(false);
+            var index = await _revIdxBucket.ReadNetworkUInt32Async().ConfigureAwait(false);
 
-            //byte[] oids = GetOidArray(indexOffs, 1);
-            //byte[] offsets = GetOffsetArray(indexOffs, 1, oids);
-            //
-            //GitId objectId = GitId.FromByteArrayOffset(_idType, oids, 0);
-            //
-            //var rdr = await _packBucket!.DuplicateAsync(true).ConfigureAwait(false);
-            //await rdr.ReadSkipAsync(GetOffset(offsets, 0)).ConfigureAwait(false);
-            //
-            //GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
-            //
-            //return (TGitObject)(object)await GitObject.FromBucketAsync(Repository, pf, objectId, gitObjectType).ConfigureAwait(false);
-            throw new NotImplementedException();
+            GitId id = GetGitIdByIndex(index);
+
+            var ob = await GetByIndexAsync<TGitObject>(index, id).ConfigureAwait(false);
+
+            return ob!;
+        }
+
+        private async ValueTask CreateReverseIndex()
+        {
+            if (FanOut == null)
+                return;
+
+            var revName = Path.ChangeExtension(_multiPackBitmapPath, ".rev")!;
+            var tmpName = revName + ".t" + Guid.NewGuid();
+
+            // TODO: Use less memory
+            byte[] mapBytes;
+            {
+                SortedList<long, int> map = new SortedList<long, int>((int)FanOut[255]);
+
+                uint count = FanOut[255];
+                byte[] offsets = new byte[count * 2 * sizeof(uint)];
+
+                if (ReadFromChunk("OOFF", 0, offsets) != offsets.Length)
+                    throw new InvalidOperationException();
+
+                int n = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    int pack = NetBitConverter.ToInt32(offsets, 0 + 2 * sizeof(uint) * i);
+                    long offset = NetBitConverter.ToUInt32(offsets, 4 + 2 * sizeof(uint) * i);
+
+                    if (offset > int.MaxValue && GetChunkLength("LOFF") != null) // If chunk doesn't exist we have 32 bits
+                    {
+                        throw new NotImplementedException("TODO: Implement LOFF support on MIDX");
+                    }
+
+                    offset += ((long)pack) << 48;
+
+                    map[offset] = n++;
+                }
+
+                mapBytes = new byte[sizeof(uint) * n];
+                n = 0;
+                foreach (var v in map.Values)
+                {
+                    Array.Copy(NetBitConverter.GetBytes(v), 0, mapBytes, n, sizeof(uint));
+
+                    n += sizeof(uint);
+                }
+            }
+
+            byte[]? sha = null;
+            using (Bucket b = (Encoding.ASCII.GetBytes("RIDX").AsBucket()
+                                + NetBitConverter.GetBytes((int)1 /* Version 1 */).AsBucket()
+                                + NetBitConverter.GetBytes((int)Repository.InternalConfig.IdType).AsBucket()
+                                + mapBytes.AsBucket()
+                                + GitId.Parse(Path.GetFileNameWithoutExtension(_multiPackBitmapPath!).Substring("multi-pack-index-".Length)).Hash.AsBucket())
+                            .SHA1(r => sha = r))
+            using (var fs = File.Create(tmpName))
+            {
+                await fs.WriteAsync(b).ConfigureAwait(false);
+            }
+
+            if (!File.Exists(revName))
+                File.Move(tmpName, revName);
+            else
+                File.Delete(tmpName);
         }
 
         static async ValueTask VerifyBitmap(FileBucket bmp)
