@@ -11,11 +11,12 @@ This library provides zero-copy stream layering over different datasources, mode
 ## AmpScm.Git.Repository
 [![latest version](https://img.shields.io/nuget/v/AmpScm.Git.Repository)](https://www.nuget.org/packages/AmpScm.Git.Repository)
 
-Completely managed Git repository level library, providing access to the repository as both *IQueryable<>* and *IAsyncEnumerable<>* and even custom *IAsyncQueryable<>* support, to allow extending the repository walk algorithm dynamically.
+Completely managed Git repository level library, providing access to the repository as both *IQueryable<>* and *IAsyncQueryable<>*, to allow extending the repository walk algorithm with simple linq interaction.
   
 Soon walking history should be as easy as something like:
   
 ```cs
+// Async
 using AmpScm.Git;
     
 using (var repo = await GitRepository.OpenAsync(Environment.CurrentDirectory))
@@ -23,17 +24,34 @@ using (var repo = await GitRepository.OpenAsync(Environment.CurrentDirectory))
     await foreach (var r in repo.Head.Revisions)
     {
         Console.WriteLine($"commit {r.Commit.Id}");
-        Console.WriteLine($"Author: {r.Commit.Author?.Name} <{r.Commit.Author?.Email}>");
-        Console.WriteLine($"Date:   {r.Commit.Author?.When}");
+        Console.WriteLine($"Author: {r.Commit.Author"); // Includes timestamp
+        Console.WriteLine("");
+        Console.WriteLine(r.Commit.Message?.TrimEnd() + "\n");
+    }
+}
+```
+
+Of course you can also use the non async api if needed. This repository layer is built on top of *Amp.Buckets* via *AmpScm.Buckets.Git*, which could
+be used separately if you want to write your own repository layer.
+
+The `IAsyncQueryable<T>` support is supported via the hopefully temporary *AmpScm.Linq.AsyncQueryable*, to avoid usage conflicts between the async and non async implementations that occur when you impelement both. (Let's hope this will be fixed in the BCL)
+  
+```cs
+// Non-Async
+using AmpScm.Git;
+    
+using (var repo = GitRepository.Open(Environment.CurrentDirectory))
+{
+     foreach (var r in repo.Head.Revisions)
+    {
+        Console.WriteLine($"commit {r.Commit.Id}");
+        Console.WriteLine($"Author: {r.Commit.Author"); // Includes timestamp
         Console.WriteLine("");
         Console.WriteLine(r.Commit.Message?.TrimEnd() + "\n");
     }
 }
 ```
  
-Of course you can also use the non async api if needed. This repository layer is built on top of *Amp.Buckets* via *AmpScm.Buckets.Git*, which could
-be used separately. The IAsyncQueryable<T> support is abstracted via the hopefully temporary *AmpScm.Linq.AsyncQueryable*, until Async LINQ is fully
-supported in .NET itself.
   
 Currently this library is mostly read-only, but writing simple database entities (blob, commit, tree, tag) to the object store is supported.
   
