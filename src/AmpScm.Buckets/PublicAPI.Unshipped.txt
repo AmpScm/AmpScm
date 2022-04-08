@@ -136,11 +136,8 @@ override AmpScm.Buckets.Specialized.BitwiseXorBucket.Peek() -> AmpScm.Buckets.Bu
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
-override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadSkipAsync(int requested) -> System.Threading.Tasks.ValueTask<int>
+override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
-override AmpScm.Buckets.Specialized.CreateHashBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadBucket<TReadBucket>() -> TReadBucket?
-override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.TlsBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
@@ -149,9 +146,6 @@ override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 21474836
 static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.WithTlsClientFor<TBucket>(this TBucket! bucket, string! targetHost) -> AmpScm.Buckets.Specialized.TlsBucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend<T>(this T[]! array, T item) -> T[]!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadBuffersAsync(this AmpScm.Buckets.Bucket! bucket, int maxRequested = 2147483647) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SeekAsync(this AmpScm.Buckets.Bucket! bucket, long newPosition) -> System.Threading.Tasks.ValueTask
-virtual AmpScm.Buckets.Bucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 virtual AmpScm.Buckets.Client.BucketWebClient.Dispose(bool disposing) -> void
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.get -> string?
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.set -> void
