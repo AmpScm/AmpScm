@@ -24,7 +24,7 @@ using (var repo = await GitRepository.OpenAsync(Environment.CurrentDirectory))
     await foreach (var r in repo.Head.Revisions)
     {
         Console.WriteLine($"commit {r.Commit.Id}");
-        Console.WriteLine($"Author: {r.Commit.Author"); // Includes timestamp
+        Console.WriteLine($"Author: {r.Commit.Author}"); // Includes timestamp
         Console.WriteLine("");
         Console.WriteLine(r.Commit.Message?.TrimEnd() + "\n");
     }
@@ -45,7 +45,7 @@ using (var repo = GitRepository.Open(Environment.CurrentDirectory))
      foreach (var r in repo.Head.Revisions)
     {
         Console.WriteLine($"commit {r.Commit.Id}");
-        Console.WriteLine($"Author: {r.Commit.Author"); // Includes timestamp
+        Console.WriteLine($"Author: {r.Commit.Author}"); // Includes timestamp
         Console.WriteLine("");
         Console.WriteLine(r.Commit.Message?.TrimEnd() + "\n");
     }
