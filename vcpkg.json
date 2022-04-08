@@ -1,8 +1,0 @@
-{
-  "name": "ampscm",
-  "version-semver": "0.0.1-dev",
-  "dependencies": [
-    "zlib",
-    "apr"
-  ]
-}

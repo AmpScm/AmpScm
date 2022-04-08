@@ -15,7 +15,6 @@ namespace AmpScm.Buckets
     {
         sealed class FileHolder
         {
-            readonly string _path;
             readonly Stack<FileStream> _keep = new Stack<FileStream>();
             readonly FileStream _primary;
             SafeFileHandle _handle;
@@ -28,7 +27,7 @@ namespace AmpScm.Buckets
             public FileHolder(FileStream primary, string path)
             {
                 _primary = primary ?? throw new ArgumentNullException(nameof(primary));
-                _path = path ?? throw new ArgumentNullException(nameof(path));
+                Path = path ?? throw new ArgumentNullException(nameof(path));
 
                 if (primary.IsAsync)
                     _keep.Push(primary);
@@ -37,6 +36,9 @@ namespace AmpScm.Buckets
                 _waitHandlers = default!;
                 _handle = primary.SafeFileHandle;
             }
+
+            public string Path { get; }
+
 
 #if NET5_0_OR_GREATER
             [SupportedOSPlatform("windows")]
@@ -50,7 +52,7 @@ namespace AmpScm.Buckets
 
                 _primary = default!;
                 _handle = handle;
-                _path = path ?? throw new ArgumentNullException(nameof(path));
+                Path = path ?? throw new ArgumentNullException(nameof(path));
                 _asyncWin = true;
                 _waitHandlers = new Queue<FileWaitHandler>();
 
@@ -230,7 +232,7 @@ namespace AmpScm.Buckets
                 if (_primary.IsAsync)
                     return new FileStream(_primary.SafeFileHandle, FileAccess.Read, 4096, true);
 #endif
-                return new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, true);
+                return new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, true);
             }
 
             private void Return(FileStream f)

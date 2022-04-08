@@ -30,7 +30,7 @@ namespace AmpScm.Buckets
             return new ValueTask<long?>(_holder.Length - _filePos);
         }
 
-        public override string Name => "File";
+        public override string Name => "File[" + _holder?.Path + "]";
 
         public override long? Position => _filePos;
 

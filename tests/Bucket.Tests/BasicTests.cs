@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
@@ -533,6 +536,30 @@ namespace BucketTests
 
             byte[] resultBytes = new byte[4096];
             Assert.AreEqual(baseData.Length, rs.Read(resultBytes, 0, resultBytes.Length));
+        }
+
+        [TestMethod]
+        public void VerifyDebuggerDisplayAttribute()
+        {
+            foreach(var type in typeof(Bucket).Assembly.GetTypes())
+            {
+                if (type.GetCustomAttributes(typeof(DebuggerDisplayAttribute), false)?.FirstOrDefault() is DebuggerDisplayAttribute dd)
+                {
+                    string ddP = dd.Value;
+
+                    foreach(var q in Regex.Matches(ddP, "(?<={)[^}]+(?=})").Cast<Match>().Select(x=>x.Value))
+                    {
+                        int n = q.IndexOfAny(new[] { ',', ':', '(' });
+
+                        string name = (n >= 0) ? q.Substring(0, n) : q;
+
+                        var f = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+                        if (type.GetField(name, f) is null && type.GetProperty(name, f) is null)
+                            Assert.Fail($"Member {name} referenced in {nameof(DebuggerDisplayAttribute)} on {type.FullName} not found {dd.Value}");
+                    }
+                }
+            }
         }
     }
 }
