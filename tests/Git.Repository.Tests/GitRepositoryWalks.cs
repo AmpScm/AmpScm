@@ -129,7 +129,7 @@ namespace GitRepositoryTests
         }
 
 
-        public static IEnumerable<object[]> TestRepositoryArgsBitmapAndRev => TestRepositoryArgs.Where(x => x[0] is string s && Directory.GetFiles(Path.Combine(s, ".git", "objects", "pack"), "*.bitmap").Any()).Concat(new[] { "1", "2" }.Select(x => new[] { ">" + x }));
+        public static IEnumerable<object[]> TestRepositoryArgsBitmapAndRev => TestRepositoryArgs.Where(x => x[0] is string s && Directory.GetFiles(Path.Combine(s, ".git", "objects", "pack"), "*.bitmap").Any()).Concat(new[] { "1", "2", "3", "4" }.Select(x => new[] { ">" + x }));
         [TestMethod]
         [DynamicData(nameof(TestRepositoryArgsBitmapAndRev))]
         public async Task WalkObjectsViaBitmap(string path)
@@ -145,10 +145,9 @@ namespace GitRepositoryTests
                 gc = GitRepository.Open(path);
                 Assert.AreEqual(path, gc.FullPath);
 
-                if (pp == "1")
-                    await gc.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true });
-                else
-                    await gc.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true, WriteMultiPack = true });
+                int p = int.Parse(pp);
+
+                await gc.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = (1 == (p & 1)), WriteMultiPack = (2 == (p & 2)), SinglePack = true });
             }
             using var repo = await GitRepository.OpenAsync(path);
 
