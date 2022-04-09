@@ -79,18 +79,20 @@ namespace AmpScm.Git.Sets.Walker
                     if (!c.ChainInfo.HasValue)
                     {
                         int generation;
-                        long correctedTimestamp = await c.GetCommitTimeValue().ConfigureAwait(false);
+                        long timestamp = await c.GetCommitTimeValue().ConfigureAwait(false);
+                        long correctedTimestamp;
                         if (parents?.Count > 0)
                         {
                             generation = parents.Max(p => p.ChainInfo.Generation) + 1;
-                            correctedTimestamp = Math.Max(parents.Max(p => p.ChainInfo.CorrectedTimeValue) + 1, correctedTimestamp);
+                            correctedTimestamp = Math.Max(parents.Max(p => p.ChainInfo.CommitTimeValue) + 1, timestamp);
                         }
                         else
                         {
                             generation = 1;
+                            correctedTimestamp = timestamp;
                         }
 
-                        c.SetChainInfo(new GitCommitGenerationValue(generation, correctedTimestamp));
+                        c.SetChainInfo(new GitCommitGenerationValue(generation, timestamp, correctedTimestamp-timestamp));
                     }
                 }
             }            

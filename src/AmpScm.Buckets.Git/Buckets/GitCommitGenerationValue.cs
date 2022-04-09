@@ -9,14 +9,23 @@ namespace AmpScm.Buckets.Git
     [CLSCompliant(false)]
     public struct GitCommitGenerationValue : IEquatable<GitCommitGenerationValue>
     {
-        ulong value;
+        ulong generationV1Value;
+        long timeCorrection;
 
         public GitCommitGenerationValue(int generation, DateTimeOffset timeStamp)
+            : this(generation, timeStamp, long.MinValue)
+        {
+        }
+
+        public GitCommitGenerationValue(int generation, DateTimeOffset timeStamp, long correctedTimeOffset)
         {
             if (generation < 0)
                 throw new ArgumentOutOfRangeException(nameof(generation));
             else if (generation >= 0x3FFFFFFF)
                 generation = 0x3FFFFFFF;
+
+            if (correctedTimeOffset < 0)
+                correctedTimeOffset = long.MinValue;
 
             var s = timeStamp.ToUnixTimeSeconds();
 
@@ -27,15 +36,25 @@ namespace AmpScm.Buckets.Git
                 s = 0x3FFFFFFFF; // Overflow. We should use overflow handling over 34 bit...
                                  // So somewhere before 2038 + 4 * (2038-1970)... 2242...
 
-            value = ((ulong)generation << 34) | (ulong)s;
+            generationV1Value = ((ulong)generation << 34) | (ulong)s;
+            timeCorrection = correctedTimeOffset;
         }
 
         public GitCommitGenerationValue(int generation, long timeValue)
+            : this(generation, timeValue, long.MinValue)
+        {
+
+        }
+
+        public GitCommitGenerationValue(int generation, long timeValue, long correctedTimeOffset)
         {
             if (generation < 0)
                 throw new ArgumentOutOfRangeException(nameof(generation));
             else if (generation >= 0x3FFFFFFF)
                 generation = 0x3FFFFFFF;
+
+            if (correctedTimeOffset < 0)
+                correctedTimeOffset = long.MinValue;
 
             var s = timeValue;
 
@@ -46,24 +65,32 @@ namespace AmpScm.Buckets.Git
                 s = 0x3FFFFFFFF; // Overflow. We should use overflow handling over 34 bit...
                                  // So somewhere before 2038 + 4 * (2038-1970)... 2242...
 
-            value = ((ulong)generation << 2) | (((ulong)s & 0x300000000) >> 32) | (((ulong)s & 0xFFFFFFFF) << 32);
+            generationV1Value = ((ulong)generation << 2) | (((ulong)s & 0x300000000) >> 32) | (((ulong)s & 0xFFFFFFFF) << 32);
+            timeCorrection = correctedTimeOffset;
         }
 
-        public long CorrectedTimeValue => (long)(value & 0x3FFFFFFFF);
+        public long CommitTimeValue => (long)(generationV1Value & 0x3FFFFFFFF);
 
-        public DateTimeOffset CorrectedTime => DateTimeOffset.FromUnixTimeSeconds(CorrectedTimeValue);
+        public DateTimeOffset CommitTime => DateTimeOffset.FromUnixTimeSeconds(CommitTimeValue);
 
-        public int Generation => (int)(value >> 34);
+        public int Generation => (int)(generationV1Value >> 34);
+
+
+        public long CorrectedTimeValue => CommitTimeValue + (HasTimeCorrection ? (long)timeCorrection : 0);
+
+        public DateTimeOffset CorrectedTime => CommitTime.AddSeconds((HasTimeCorrection ? (double)timeCorrection : 0.0));
+
+        public bool HasTimeCorrection => timeCorrection != uint.MaxValue;
 
 
         public static GitCommitGenerationValue FromValue(ulong value)
         {
-            return new GitCommitGenerationValue { value = value };
+            return new GitCommitGenerationValue { generationV1Value = value };
         }
 
-        public ulong Value => value;
+        public ulong Value => generationV1Value;
 
-        public bool HasValue => value != 0;
+        public bool HasValue => generationV1Value != 0;
 
         public override bool Equals(object? obj)
         {

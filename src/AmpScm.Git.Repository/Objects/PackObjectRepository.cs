@@ -372,7 +372,7 @@ namespace AmpScm.Git.Objects
         {
             if (_packBucket == null)
             {
-                var fb = FileBucket.OpenRead(_packFile);
+                var fb = new FileBucket(_packFile, chunkSize: 2048);
 
                 await VerifyPack(fb).ConfigureAwait(false);
 

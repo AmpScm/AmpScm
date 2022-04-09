@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
@@ -16,13 +17,31 @@ namespace AmpScm.Buckets
         long _bufStart;
         readonly int _chunkSizeMinus1;
 
-        private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 2048)
+        private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 4096)
         {
+            if (bufferSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+            if (chunkSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(chunkSize));
+
             _holder = holder ?? throw new ArgumentNullException(nameof(holder));
             _holder.AddRef();
             _buffer = new byte[bufferSize];
             _chunkSizeMinus1 = chunkSize - 1;
             _bufStart = -bufferSize;
+        }
+
+        /// <summary>
+        /// Creates a filebucket with specific buffer and chunksize. Values should be tweaked
+        /// for the specific usecase (random or sequential IO)
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="bufferSize">The total buffersize. Typically chunkSize*N</param>
+        /// <param name="chunkSize">The chunksize to perform file IO with.</param>
+        [EditorBrowsable(EditorBrowsableState.Advanced)] // Users should use FileBucket.Open(...)
+        public FileBucket(string path, int bufferSize = 8192, int chunkSize = 4096)
+            : this(OpenHolder(path, true), bufferSize, chunkSize)
+        {
         }
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
@@ -228,6 +247,14 @@ namespace AmpScm.Buckets
         /// flag.</remarks>
         public static FileBucket OpenRead(string path, bool forAsync)
         {
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path));
+
+            return new FileBucket(OpenHolder(path, forAsync));
+        }
+
+        static FileHolder OpenHolder(string path, bool forAsync)
+        {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));
@@ -250,9 +277,7 @@ namespace AmpScm.Buckets
             else
                 primary = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096);
 
-            fh ??= new FileHolder(primary!, path);
-
-            return new FileBucket(fh);
+            return fh ??= new FileHolder(primary!, path);
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 

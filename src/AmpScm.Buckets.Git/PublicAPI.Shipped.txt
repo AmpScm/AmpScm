@@ -21,13 +21,18 @@ AmpScm.Buckets.Git.GitBucketException.GitBucketException(string! message) -> voi
 AmpScm.Buckets.Git.GitBucketException.GitBucketException(string? message, System.Exception? innerException) -> void
 AmpScm.Buckets.Git.GitBucketException.GitBucketException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.Git.GitCommitGenerationValue
+AmpScm.Buckets.Git.GitCommitGenerationValue.CommitTime.get -> System.DateTimeOffset
+AmpScm.Buckets.Git.GitCommitGenerationValue.CommitTimeValue.get -> long
 AmpScm.Buckets.Git.GitCommitGenerationValue.CorrectedTime.get -> System.DateTimeOffset
 AmpScm.Buckets.Git.GitCommitGenerationValue.CorrectedTimeValue.get -> long
 AmpScm.Buckets.Git.GitCommitGenerationValue.Equals(AmpScm.Buckets.Git.GitCommitGenerationValue other) -> bool
 AmpScm.Buckets.Git.GitCommitGenerationValue.Generation.get -> int
 AmpScm.Buckets.Git.GitCommitGenerationValue.GitCommitGenerationValue() -> void
 AmpScm.Buckets.Git.GitCommitGenerationValue.GitCommitGenerationValue(int generation, long timeValue) -> void
+AmpScm.Buckets.Git.GitCommitGenerationValue.GitCommitGenerationValue(int generation, long timeValue, long correctedTimeOffset) -> void
 AmpScm.Buckets.Git.GitCommitGenerationValue.GitCommitGenerationValue(int generation, System.DateTimeOffset timeStamp) -> void
+AmpScm.Buckets.Git.GitCommitGenerationValue.GitCommitGenerationValue(int generation, System.DateTimeOffset timeStamp, long correctedTimeOffset) -> void
+AmpScm.Buckets.Git.GitCommitGenerationValue.HasTimeCorrection.get -> bool
 AmpScm.Buckets.Git.GitCommitGenerationValue.HasValue.get -> bool
 AmpScm.Buckets.Git.GitCommitGenerationValue.Value.get -> ulong
 AmpScm.Buckets.Git.GitConfigurationItem

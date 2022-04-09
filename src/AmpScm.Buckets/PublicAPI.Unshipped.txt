@@ -68,6 +68,7 @@ AmpScm.Buckets.Client.WebHeaderDictionary.KeysCollection.IsReadOnly.get -> bool
 AmpScm.Buckets.Client.WebHeaderDictionary.KeysCollection.Remove(string! item) -> bool
 AmpScm.Buckets.Client.WebHeaderDictionary.KeysCollection.this[int index].get -> string!
 AmpScm.Buckets.Client.WebHeaderDictionary.WebHeaderDictionary() -> void
+AmpScm.Buckets.FileBucket.FileBucket(string! path, int bufferSize = 8192, int chunkSize = 4096) -> void
 AmpScm.Buckets.FileBucket.ReadAtAsync(long fileOffset, byte[]! buffer) -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.FileBucket.ReadAtAsync(long fileOffset, byte[]! buffer, int requested) -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.HttpBucketException
