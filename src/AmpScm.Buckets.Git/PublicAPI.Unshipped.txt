@@ -1,1 +1,2 @@
 ﻿#nullable enable
+static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue

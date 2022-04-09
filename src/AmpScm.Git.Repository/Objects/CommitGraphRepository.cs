@@ -13,6 +13,9 @@ namespace AmpScm.Git.Objects
 {
     internal sealed class CommitGraphRepository : ChunkFileBasedObjectRepository
     {
+        bool _haveV2;
+        bool _haveV2bad; // PRE 2.36 version with bad computation in some chain scenarios
+
         public CommitGraphRepository(GitRepository repository, string chainFile)
             : base(repository, chainFile, "CommitGraph:" + chainFile)
         {
@@ -53,6 +56,17 @@ namespace AmpScm.Git.Objects
             return (idType, chunkCount, headerBuffer.Length);
         }
 
+        protected override async ValueTask InitAsync()
+        {
+            await base.InitAsync().ConfigureAwait(false);
+
+            _haveV2 = GetChunkLength("GDA2").HasValue;
+            _haveV2bad = !_haveV2 && GetChunkLength("GDAT").HasValue;
+
+            if (_haveV2bad)
+                _haveV2 = true;
+        }
+
         private async ValueTask<GitId> GetOidAsync(uint i)
         {
             int hashLength = GitId.HashLength(IdType);
@@ -88,7 +102,7 @@ namespace AmpScm.Git.Objects
                 Task<GitId>[] parents;
 
                 if (parent0 == 0x70000000)
-                    return new GitCommitGraphInfo(Array.Empty<GitId>(), chainLevel);
+                    return new GitCommitGraphInfo(Array.Empty<GitId>(), chainLevel, _haveV2 ? await ReadCommitTimeOffset(index).ConfigureAwait(false) : long.MinValue);
                 else if (parent1 == 0x70000000)
                     parents = new[] { GetOidAsync(parent0).AsTask() };
                 else if (parent1 >= 0x80000000)
@@ -110,12 +124,45 @@ namespace AmpScm.Git.Objects
                 else
                     parents = new[] { GetOidAsync(parent0).AsTask(), GetOidAsync(parent1).AsTask() };
 
-                await Task.WhenAll(parents).ConfigureAwait(false);
+                IEnumerable<Task> waits;
+                Task<long>? v2 = null;
+                if (_haveV2)
+                {
+                    v2 = ReadCommitTimeOffset(index).AsTask();
+                    waits = parents.Concat(new Task[] { v2 });
+                }
+                else
+                    waits = parents;
 
-                return new GitCommitGraphInfo(parents.Select(x=>x.Result).ToArray(), chainLevel);
+                await Task.WhenAll(waits).ConfigureAwait(false);
+
+                long offset = v2 != null ? await v2.ConfigureAwait(false) : long.MinValue;
+
+                return new GitCommitGraphInfo(parents.Select(x => x.Result).ToArray(), chainLevel, offset);
             }
 
             return null;
+        }
+
+        private async ValueTask<long> ReadCommitTimeOffset(uint index)
+        {
+            string generationData = (!_haveV2bad) ? "GDA2" : "GDAT" /* buggy version */;
+            var offsetData = new byte[sizeof(int)];
+
+            if (offsetData.Length != await ReadFromChunkAsync(generationData, index * sizeof(int), offsetData).ConfigureAwait(false))
+                return long.MinValue;
+
+            int v = NetBitConverter.ToInt32(offsetData, 0);
+
+            if (v >= 0)
+                return v;
+
+            string overflowData = (!_haveV2bad) ? "GDO2" : "GDOV";
+            offsetData = new byte[sizeof(long)];
+            if (offsetData.Length != await ReadFromChunkAsync(overflowData, (~v) * sizeof(long), offsetData).ConfigureAwait(false))
+                return long.MinValue;
+
+            return NetBitConverter.ToInt64(offsetData, 0);
         }
 
         internal override bool ProvidesGetObject => false;

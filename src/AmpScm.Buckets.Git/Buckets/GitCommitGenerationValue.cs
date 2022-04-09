@@ -88,6 +88,11 @@ namespace AmpScm.Buckets.Git
             return new GitCommitGenerationValue { generationV1Value = value };
         }
 
+        public static GitCommitGenerationValue FromValue(ulong value, long offset)
+        {
+            return new GitCommitGenerationValue { generationV1Value = value, timeCorrection = offset };
+        }
+
         public ulong Value => generationV1Value;
 
         public bool HasValue => generationV1Value != 0;
