@@ -42,7 +42,7 @@ using AmpScm.Git;
     
 using (var repo = GitRepository.Open(Environment.CurrentDirectory))
 {
-     foreach (var r in repo.Head.Revisions)
+    foreach (var r in repo.Head.Revisions)
     {
         Console.WriteLine($"commit {r.Commit.Id}");
         Console.WriteLine($"Author: {r.Commit.Author}"); // Includes timestamp
