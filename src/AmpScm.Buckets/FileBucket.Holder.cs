@@ -87,28 +87,28 @@ namespace AmpScm.Buckets
                 }
             }
 
-            public ValueTask<int> ReadAtAsync(long offset, byte[] buffer, int length)
+            public ValueTask<int> ReadAtAsync(long fileOffset, byte[] buffer, int requested)
             {
-                if (length <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(length));
-                else if (offset > 0 && offset >= Length)
+                if (requested <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(requested));
+                else if (fileOffset > 0 && fileOffset >= Length)
                     return new ValueTask<int>(0);
 
                 if (_asyncWin)
 #pragma warning disable CA1416 // Validate platform compatibility
-                    return AsyncWinReadAsync(offset, buffer, length);
+                    return AsyncWinReadAsync(fileOffset, buffer, requested);
 #pragma warning restore CA1416 // Validate platform compatibility
                 else if (_primary.IsAsync)
-                    return TrueReadAtAsync(offset, buffer, length);
+                    return TrueReadAtAsync(fileOffset, buffer, requested);
                 else
                 {
                     using (GetFileStream(out var p))
                     {
-                        if (p.Position != offset)
-                            p.Position = offset;
+                        if (p.Position != fileOffset)
+                            p.Position = fileOffset;
 
 #pragma warning disable CA1849 // Call async methods when in an async method
-                        int r = p.Read(buffer, 0, length);
+                        int r = p.Read(buffer, 0, requested);
 #pragma warning restore CA1849 // Call async methods when in an async method
 
                         return new ValueTask<int>(r);

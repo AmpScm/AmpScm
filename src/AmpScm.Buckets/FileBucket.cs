@@ -50,7 +50,7 @@ namespace AmpScm.Buckets
             if (_pos < _size)
                 return new BucketBytes(_buffer, _pos, _size - _pos);
 
-            await Refill(minRequested).ConfigureAwait(false);
+            await RefillAsync(minRequested).ConfigureAwait(false);
 
             if (_pos < _size)
                 return new BucketBytes(_buffer, _pos, _size - _pos);
@@ -118,7 +118,7 @@ namespace AmpScm.Buckets
                 return data;
             }
 
-            await Refill(requested).ConfigureAwait(false);
+            await RefillAsync(requested).ConfigureAwait(false);
 
             if (_pos == _size)
                 return BucketBytes.Eof;
@@ -132,7 +132,7 @@ namespace AmpScm.Buckets
             return result;
         }
 
-        private async Task Refill(int requested)
+        private async ValueTask RefillAsync(int requested)
         {
             long basePos = _filePos & ~_chunkSizeMinus1; // Current position round back to chunk
             int extra = (int)(_filePos - basePos); // Position in chunk
@@ -151,7 +151,7 @@ namespace AmpScm.Buckets
                 }
                 else
                 {
-                    _size = await _holder.ReadAtAsync(basePos, _buffer, readLen).ConfigureAwait(false);
+                    _size = await ReadAtAsync(basePos, _buffer, readLen).ConfigureAwait(false);
                     _bufStart = basePos;
                 }
             }
@@ -161,6 +161,37 @@ namespace AmpScm.Buckets
             {
                 _pos = _size;
             }
+        }
+
+        /// <summary>
+        /// Read <paramref name="requested"/> bytes from the file starting at offset <paramref name="fileOffset"/>
+        /// into <paramref name="buffer"/>. Unlike the normal bucket functions, this function's task will only complete
+        /// when as many bytes as available in the file are read into buffer.
+        /// </summary>
+        /// <param name="fileOffset"></param>
+        /// <param name="buffer"></param>
+        /// <param name="requested"></param>
+        /// <returns>The number of bytes actually read</returns>
+        /// <remarks><para>This function exposes the underlying file and doesn't affect this file as <see cref="Bucket"/> and
+        /// as such doesn't change any of the buffering rules as documented on <see cref="Bucket"/></para>
+        /// 
+        /// <para>Normal users of <see cref="FileBucket"/> shouldn't need this feature, but it might help implementations
+        /// that use the same file for streaming <see cref="Bucket"/> IO and as explicit indexes.</para></remarks>
+        public ValueTask<int> ReadAtAsync(long fileOffset, byte[] buffer, int requested)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            return _holder.ReadAtAsync(fileOffset, buffer, requested);
+        }
+
+        /// <inheritdoc cref="ReadAtAsync(long, byte[], int)"/>
+        public ValueTask<int> ReadAtAsync(long fileOffset, byte[] buffer)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            return ReadAtAsync(fileOffset, buffer, buffer.Length);
         }
 
         public override ValueTask<long> ReadSkipAsync(long requested)
@@ -182,6 +213,19 @@ namespace AmpScm.Buckets
             }
         }
 
+        /// <summary>
+        /// Opens the file at <see cref="path"/> as a <see cref="FileBucket"/>. If <see cref="forAsync"/> is true,
+        /// requests async support from the operating system for multiple operations at the same time, otherwise
+        /// all requests will be handled synchronously.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="forAsync"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <remarks>This class has an optimized code path for Windows so async and non-async IO have
+        /// ballpark similar performance even on older .Net version by checking for synchronous success, 
+        /// unlike the standard <see cref="FileStream"/>, which goes fully async when you enable this
+        /// flag.</remarks>
         public static FileBucket OpenRead(string path, bool forAsync)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope

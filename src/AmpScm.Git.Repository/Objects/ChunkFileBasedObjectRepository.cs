@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Git.Objects
@@ -14,19 +15,19 @@ namespace AmpScm.Git.Objects
     {
         readonly string _fileName;
         protected GitIdType IdType { get; private set; }
-        protected FileStream? ChunkStream { get; private set; }
+        protected FileBucket? ChunkReader { get; private set; }
 
         public ChunkFileBasedObjectRepository(GitRepository repository, string mainFile, string key) : base(repository, key)
         {
             _fileName = mainFile ?? throw new ArgumentNullException(nameof(mainFile));
         }
 
-        protected GitId GetGitIdByIndex(uint i)
+        protected async ValueTask<GitId> GetGitIdByIndexAsync(uint i)
         {
             int hashLength = GitId.HashLength(IdType);
             byte[] oidData = new byte[hashLength];
 
-            if (ReadFromChunk("OIDL", i * hashLength, oidData) != hashLength)
+            if (await ReadFromChunkAsync("OIDL", i * hashLength, oidData).ConfigureAwait(false) != hashLength)
                 throw new InvalidOperationException();
 
             return new GitId(IdType, oidData);
@@ -45,49 +46,39 @@ namespace AmpScm.Git.Objects
 
         protected long AfterChunkPosition => _chunks?.Select(x => x.Position + x.Length).Last() ?? -1;
 
-        protected async ValueTask Init()
+        protected async ValueTask InitAsync()
         {
             if (FanOut is not null)
                 return;
 
             await Task.Yield();
-            ChunkStream ??= File.OpenRead(_fileName);
-            ChunkStream.Seek(0, SeekOrigin.Begin);
+            ChunkReader ??= FileBucket.OpenRead(_fileName);
 
-            var (idType, chunkCount) = await ReadHeaderAsync().ConfigureAwait(false);
+            var (idType, chunkCount, chunkTableOffset) = await ReadHeaderAsync().ConfigureAwait(false);
 
             if (chunkCount == 0)
             {
-#if !NETFRAMEWORK
-                await ChunkStream.DisposeAsync().ConfigureAwait(false);
-#else
-                ChunkStream.Dispose();
-#endif
-                ChunkStream = null;
+                ChunkReader.Dispose();
+                ChunkReader = null;
                 return;
             }
             IdType = idType;
 
 
-            await ReadChunks(chunkCount).ConfigureAwait(false);
+            await ReadChunks(chunkTableOffset, chunkCount).ConfigureAwait(false);
         }
 
-        protected abstract ValueTask<(GitIdType IdType, int ChunkCount)> ReadHeaderAsync();
+        protected abstract ValueTask<(GitIdType IdType, int ChunkCount, long ChunkTableOffset)> ReadHeaderAsync();
 
-        async ValueTask ReadChunks(int chunkCount)
+        async ValueTask ReadChunks(long chunkTableOffset, int chunkCount)
         {
-            if (ChunkStream is null)
+            if (ChunkReader is null)
                 throw new InvalidOperationException();
 
             var chunkTable = new byte[(chunkCount + 1) * (4 + sizeof(long))];
 
-#if !NETFRAMEWORK
-            if (await ChunkStream.ReadAsync(chunkTable, CancellationToken.None).ConfigureAwait(false) != chunkTable.Length)
+            if (await ChunkReader.ReadAtAsync(chunkTableOffset, chunkTable).ConfigureAwait(false) != chunkTable.Length)
                 return;
-#else
-            if (await ChunkStream.ReadAsync(chunkTable, 0, chunkTable.Length, CancellationToken.None).ConfigureAwait(false) != chunkTable.Length)
-                return;
-#endif
 
             _chunks = Enumerable.Range(0, chunkCount + 1).Select(i => new Chunk
             {
@@ -100,29 +91,28 @@ namespace AmpScm.Git.Objects
                 _chunks[i].Length = _chunks[i + 1].Position - _chunks[i].Position;
             }
 
-            FanOut = ReadFanOut();
+            FanOut = await ReadFanOutAsync().ConfigureAwait(false);
         }
 
-        protected virtual uint[]? ReadFanOut()
+        protected virtual async ValueTask<uint[]?> ReadFanOutAsync()
         {
             byte[] fanOut = new byte[256 * sizeof(int)];
 
-            if (ReadFromChunk("OIDF", 0, fanOut) != fanOut.Length)
+            if (await ReadFromChunkAsync("OIDF", 0, fanOut).ConfigureAwait(false) != fanOut.Length)
                 return null;
 
             return Enumerable.Range(0, 256).Select(i => NetBitConverter.ToUInt32(fanOut, sizeof(int) * i)).ToArray();
         }
 
-
-        protected int ReadFromChunk(string chunkType, long position, byte[] buffer)
+        protected ValueTask<int> ReadFromChunkAsync(string chunkType, long position, byte[] buffer)
         {
-            return ReadFromChunk(chunkType, position, buffer, 0, buffer.Length);
+            return ReadFromChunkAsync(chunkType, position, buffer, buffer.Length);
         }
 
-        protected int ReadFromChunk(string chunkType, long position, byte[] buffer, int offset, int length)
+        protected ValueTask<int> ReadFromChunkAsync(string chunkType, long position, byte[] buffer, int length)
         {
-            if (_chunks == null || ChunkStream == null)
-                return 0;
+            if (_chunks == null || ChunkReader == null)
+                return new ValueTask<int>(0);
 
             Chunk? ch = null;
             foreach (var c in _chunks)
@@ -134,13 +124,11 @@ namespace AmpScm.Git.Objects
                 }
             }
             if (ch == null)
-                return 0;
-
-            ChunkStream.Seek(ch.Value.Position + position, SeekOrigin.Begin);
+                return new ValueTask<int>(0);
 
             int requested = (int)Math.Min(length, ch.Value.Length - position);
 
-            return ChunkStream.Read(buffer, offset, requested);
+            return ChunkReader.ReadAtAsync(ch.Value.Position + position, buffer, requested);
         }
 
         protected long? GetChunkLength(string chunkType)
@@ -155,12 +143,11 @@ namespace AmpScm.Git.Objects
             return null;
         }
 
-        protected bool TryFindId(GitId id, out uint index)
+        protected async ValueTask<(bool Success, uint Index)> TryFindIdAsync(GitId id)
         {
             if (FanOut == null)
             {
-                index = 0;
-                return false;
+                return (false, 0);
             }
 
             uint first = (id[0] == 0) ? 0 : FanOut[id[0] - 1];
@@ -172,14 +159,13 @@ namespace AmpScm.Git.Objects
             {
                 uint mid = (first + c) / 2;
 
-                var check = GetGitIdByIndex(mid);
+                var check = await GetGitIdByIndexAsync(mid).ConfigureAwait(false);
 
                 int n = id.HashCompare(check);
 
                 if (n == 0)
                 {
-                    index = (uint)mid;
-                    return true;
+                    return (true, mid);
                 }
                 else if (n < 0)
                     c = mid;
@@ -189,21 +175,19 @@ namespace AmpScm.Git.Objects
 
             if (first >= count)
             {
-                index = count;
-                return false;
+                return (false, count);
             }
 
-            var check2 = GetGitIdByIndex(first);
-            index = first;
+            var check2 = await GetGitIdByIndexAsync(first).ConfigureAwait(false);
 
             int n2 = id.HashCompare(check2);
 
             if (n2 == 0)
-                return true;
+                return (true, first);
             else if (n2 > 0)
-                index++;
+                first++;
 
-            return false;
+            return (true, first);
         }
     }
 }

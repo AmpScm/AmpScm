@@ -23,47 +23,42 @@ namespace AmpScm.Git.Objects
             if (!typeof(TGitObject).IsAssignableFrom(typeof(GitCommit)))
                 yield break;
 
-            await Init().ConfigureAwait(false);
+            await InitAsync().ConfigureAwait(false);
 
             for (uint i = 0; i < (FanOut?[255] ?? 0); i++)
             {
-                var oid = GetOid(i);
+                var oid = await GetOidAsync(i).ConfigureAwait(false);
 
                 if (!alreadyReturned.Contains(oid))
                     yield return (TGitObject)(object)new GitCommit(Repository, new LazyGitObjectBucket(Repository, oid, GitObjectType.Commit), oid);
             }
         }
 
-        protected override async ValueTask<(GitIdType IdType, int ChunkCount)> ReadHeaderAsync()
+        protected override async ValueTask<(GitIdType IdType, int ChunkCount, long ChunkTableOffset)> ReadHeaderAsync()
         {
-            if (ChunkStream is null)
+            if (ChunkReader is null)
                 throw new InvalidOperationException();
 
-            ChunkStream.Seek(0, SeekOrigin.Begin);
             var headerBuffer = new byte[8];
-#if !NETFRAMEWORK
-            if (await ChunkStream.ReadAsync(new Memory<byte>(headerBuffer), CancellationToken.None).ConfigureAwait(false) != headerBuffer.Length)
-#else
-            if (await ChunkStream.ReadAsync(headerBuffer, 0, headerBuffer.Length, CancellationToken.None).ConfigureAwait(false) != headerBuffer.Length)
-#endif
-                return (GitIdType.None, 0);
+            if (await ChunkReader.ReadAtAsync(0, headerBuffer).ConfigureAwait(false) != headerBuffer.Length)
+                return (GitIdType.None, 0, -1);
 
             if (!"CGPH\x01".Select(x => (byte)x).SequenceEqual(headerBuffer.Take(5)))
-                return (GitIdType.None, 0);
+                return (GitIdType.None, 0, -1);
 
             var idType = (GitIdType)headerBuffer[5];
             int chunkCount = headerBuffer[6];
             int baseCommitGraphs = headerBuffer[7];
 
-            return (idType, chunkCount);
+            return (idType, chunkCount, headerBuffer.Length);
         }
 
-        private GitId GetOid(uint i)
+        private async ValueTask<GitId> GetOidAsync(uint i)
         {
             int hashLength = GitId.HashLength(IdType);
             byte[] oidData = new byte[hashLength];
 
-            if (ReadFromChunk("OIDL", i * hashLength, oidData) != hashLength)
+            if (hashLength != await ReadFromChunkAsync("OIDL", i * hashLength, oidData).ConfigureAwait(false))
                 throw new InvalidOperationException();
 
             return new GitId(IdType, oidData);
@@ -72,15 +67,17 @@ namespace AmpScm.Git.Objects
 
         internal override async ValueTask<IGitCommitGraphInfo?> GetCommitInfo(GitId id)
         {
-            await Init().ConfigureAwait(false);
+            await InitAsync().ConfigureAwait(false);
 
-            if (TryFindId(id, out var index))
+            var (success, index) = await TryFindIdAsync(id).ConfigureAwait(false);
+
+            if (success)
             {
                 int hashLength = GitId.HashLength(IdType);
                 int commitDataSz = hashLength + 2 * sizeof(uint) + sizeof(ulong);
                 byte[] commitData = new byte[commitDataSz];
 
-                if (ReadFromChunk("CDAT", index * commitDataSz, commitData) != commitDataSz)
+                if (commitDataSz != await ReadFromChunkAsync("CDAT", index * commitDataSz, commitData).ConfigureAwait(false))
                     return null;
 
                 // commitData now contains the root hash, 2 parent indexes and the topological level
@@ -88,31 +85,34 @@ namespace AmpScm.Git.Objects
                 uint parent1 = NetBitConverter.ToUInt32(commitData, hashLength + sizeof(uint));
                 ulong chainLevel = NetBitConverter.ToUInt64(commitData, hashLength + 2 * sizeof(uint));
 
-                GitId[] parents;
+                Task<GitId>[] parents;
 
                 if (parent0 == 0x70000000)
-                    parents = Array.Empty<GitId>();
+                    return new GitCommitGraphInfo(Array.Empty<GitId>(), chainLevel);
                 else if (parent1 == 0x70000000)
-                    parents = new[] { GetOid(parent0) };
+                    parents = new[] { GetOidAsync(parent0).AsTask() };
                 else if (parent1 >= 0x80000000)
                 {
                     var extraParents = new byte[sizeof(uint) * 256];
-                    int len = ReadFromChunk("EDGE", 4 * (parent1 & 0x7FFFFFFF), extraParents) / 4;
+                    int len = await ReadFromChunkAsync("EDGE", 4 * (parent1 & 0x7FFFFFFF), extraParents).ConfigureAwait(false) / sizeof(uint);
 
                     if (len == 0 || len >= 256)
                         return null; // Handle as if not exists in chain. Should never happen
 
                     int? stopAfter = null;
-                    parents = new[] { parent0 }.Concat(
+
+                    parents = new[] { GetOidAsync(parent0).AsTask() }.Concat(
                         Enumerable.Range(0, len)
                             .Select(i => NetBitConverter.ToUInt32(extraParents, i * sizeof(uint)))
-                            .TakeWhile((v, i) => { if (i > stopAfter) return false; else if ((v & 0x80000000) != 0) { stopAfter = i; }; return true; }))
-                            .Select(v => GetOid(v & 0x7FFFFFFF)).ToArray();
+                            .TakeWhile((v, i) => { if (i > stopAfter) return false; else if ((v & 0x80000000) != 0) { stopAfter = i; }; return true; })
+                            .Select(v => GetOidAsync(v & 0x7FFFFFFF).AsTask())).ToArray();
                 }
                 else
-                    parents = new[] { GetOid(parent0), GetOid(parent1) };
+                    parents = new[] { GetOidAsync(parent0).AsTask(), GetOidAsync(parent1).AsTask() };
 
-                return new GitCommitGraphInfo(parents, chainLevel);
+                await Task.WhenAll(parents).ConfigureAwait(false);
+
+                return new GitCommitGraphInfo(parents.Select(x=>x.Result).ToArray(), chainLevel);
             }
 
             return null;

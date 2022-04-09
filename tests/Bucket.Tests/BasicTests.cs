@@ -545,9 +545,7 @@ namespace BucketTests
             {
                 if (type.GetCustomAttributes(typeof(DebuggerDisplayAttribute), false)?.FirstOrDefault() is DebuggerDisplayAttribute dd)
                 {
-                    string ddP = dd.Value;
-
-                    foreach(var q in Regex.Matches(ddP, "(?<={)[^}]+(?=})").Cast<Match>().Select(x=>x.Value))
+                    foreach(var q in Regex.Matches(dd.Value, "(?<={)[^}]+(?=})").Cast<Match>().Select(x=>x.Value))
                     {
                         int n = q.IndexOfAny(new[] { ',', ':', '(' });
 

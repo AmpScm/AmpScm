@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Specialized;
+using AmpScm.Git.Repository.Implementation;
 
 namespace AmpScm.Git.Objects
 {
@@ -24,7 +25,7 @@ namespace AmpScm.Git.Objects
         public MultiPackObjectRepository(GitRepository repository, string multipackFile) : base(repository, multipackFile, "MultiPack:" + repository.GitDir)
         {
             _dir = Path.GetDirectoryName(multipackFile)!;
-            HasBitmap = new Lazy<bool>(GetHasBitmap);
+            HasBitmap = new GitAsyncLazy<bool>(GetHasBitmap);
         }
 
         protected override void Dispose(bool disposing)
@@ -47,14 +48,13 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        bool GetHasBitmap()
+        async ValueTask<bool> GetHasBitmap()
         {
-            if (ChunkStream is null)
+            if (ChunkReader is null)
                 return false;
 
-            ChunkStream!.Seek(AfterChunkPosition, SeekOrigin.Begin);
             byte[] multiPackId = new byte[Repository.InternalConfig.IdType.HashLength()];
-            if (multiPackId.Length != ChunkStream.Read(multiPackId, 0, multiPackId.Length))
+            if (multiPackId.Length != (await ChunkReader.ReadAtAsync(AfterChunkPosition, multiPackId).ConfigureAwait(false)))
                 return false;
 
             GitId id = new GitId(Repository.InternalConfig.IdType, multiPackId);
@@ -66,7 +66,8 @@ namespace AmpScm.Git.Objects
         public override async ValueTask<TGitObject?> GetByIdAsync<TGitObject>(GitId id)
             where TGitObject : class
         {
-            if (TryFindId(id, out var index))
+            var (success, index) = await TryFindIdAsync(id).ConfigureAwait(false);
+            if (success)
             {
                 return await GetByIndexAsync<TGitObject>(index, id).ConfigureAwait(false);
             }
@@ -80,7 +81,7 @@ namespace AmpScm.Git.Objects
                 return null; // Not really loaded yet
 
             var result = new byte[2 * sizeof(uint)];
-            if (ReadFromChunk("OOFF", index * result.Length, result) == result.Length)
+            if (await ReadFromChunkAsync("OOFF", index * result.Length, result).ConfigureAwait(false) == result.Length)
             {
                 int pack = NetBitConverter.ToInt32(result, 0);
                 long offset = NetBitConverter.ToUInt32(result, 4);
@@ -122,13 +123,14 @@ namespace AmpScm.Git.Objects
                 return (null, true); // Not really loaded yet
 
             if (FanOut == null)
-                await Init().ConfigureAwait(false);
+                await InitAsync().ConfigureAwait(false);
 
             uint count = FanOut![255];
 
-            if (TryFindId(baseGitId, out var index) || (index >= 0 && index < count))
+            var (success, index) = await TryFindIdAsync(baseGitId).ConfigureAwait(false);
+            if (success || (index >= 0 && index < count))
             {
-                GitId foundId = GetGitIdByIndex(index);
+                GitId foundId = await GetGitIdByIndexAsync(index).ConfigureAwait(false);
 
                 if (!foundId.ToString().StartsWith(idString, StringComparison.OrdinalIgnoreCase))
                     return (null, true); // Not a match, but success
@@ -136,7 +138,7 @@ namespace AmpScm.Git.Objects
 
                 if (index + 1 < count)
                 {
-                    GitId next = GetGitIdByIndex(index + 1);
+                    GitId next = await GetGitIdByIndexAsync(index + 1).ConfigureAwait(false);
 
                     if (next.ToString().StartsWith(idString, StringComparison.OrdinalIgnoreCase))
                     {
@@ -158,9 +160,9 @@ namespace AmpScm.Git.Objects
                 return false; // Not really loaded yet
 
             if (FanOut == null)
-                Init().AsTask().GetAwaiter().GetResult();
+                InitAsync().AsTask().GetAwaiter().GetResult();
 
-            return TryFindId(id, out var _);
+            return TryFindIdAsync(id).AsTask().GetAwaiter().GetResult().Success;
         }
 
         public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
@@ -193,7 +195,8 @@ namespace AmpScm.Git.Objects
         {
             if (FanOut is null || FanOut[255] == 0 || !HasBitmap.Value)
             {
-                await Init().ConfigureAwait(false);
+                await InitAsync().ConfigureAwait(false);
+
                 if (FanOut is null || FanOut[255] == 0)
                     yield break;
             }
@@ -263,7 +266,7 @@ namespace AmpScm.Git.Objects
             await _revIdxBucket.ReadSkipAsync(12 + sizeof(uint) * v).ConfigureAwait(false);
             var index = await _revIdxBucket.ReadNetworkUInt32Async().ConfigureAwait(false);
 
-            GitId id = GetGitIdByIndex(index);
+            GitId id = await GetGitIdByIndexAsync(index).ConfigureAwait(false);
 
             var ob = await GetByIndexAsync<TGitObject>(index, id).ConfigureAwait(false);
 
@@ -286,7 +289,7 @@ namespace AmpScm.Git.Objects
                 uint count = FanOut[255];
                 byte[] offsets = new byte[count * 2 * sizeof(uint)];
 
-                if (ReadFromChunk("OOFF", 0, offsets) != offsets.Length)
+                if (await ReadFromChunkAsync("OOFF", 0, offsets).ConfigureAwait(false) != offsets.Length)
                     throw new InvalidOperationException();
 
                 int n = 0;
@@ -349,22 +352,18 @@ namespace AmpScm.Git.Objects
                 throw new GitBucketException($"BITMAP_OPT_FULL_DAG not set, flags={bhr.Flags}");
         }
 
-        protected override async ValueTask<(GitIdType IdType, int ChunkCount)> ReadHeaderAsync()
+        protected override async ValueTask<(GitIdType IdType, int ChunkCount, long ChunkTableOffset)> ReadHeaderAsync()
         {
-            if (ChunkStream is null)
+            if (ChunkReader is null)
                 throw new InvalidOperationException();
 
-            ChunkStream.Seek(0, SeekOrigin.Begin);
             var headerBuffer = new byte[12];
-#if !NETFRAMEWORK
-            if (await ChunkStream.ReadAsync(new Memory<byte>(headerBuffer), CancellationToken.None).ConfigureAwait(false) != headerBuffer.Length)
-#else
-            if (await ChunkStream.ReadAsync(headerBuffer, 0, headerBuffer.Length, CancellationToken.None).ConfigureAwait(false) != headerBuffer.Length)
-#endif
-                return (GitIdType.None, 0);
+
+            if (await ChunkReader.ReadAtAsync(0, headerBuffer).ConfigureAwait(false) != headerBuffer.Length)
+                return (GitIdType.None, 0, -1);
 
             if (!"MIDX\x01".Select(x => (byte)x).SequenceEqual(headerBuffer.Take(5)))
-                return (GitIdType.None, 0);
+                return (GitIdType.None, 0, -1);
 
             var idType = (GitIdType)headerBuffer[5];
             int chunkCount = headerBuffer[6];
@@ -372,25 +371,25 @@ namespace AmpScm.Git.Objects
 
             int packCount = NetBitConverter.ToInt32(headerBuffer, 8);
 
-            return (idType, chunkCount);
+            return (idType, chunkCount, headerBuffer.Length);
         }
 
         internal bool CanLoad()
         {
-            Init().AsTask().GetAwaiter().GetResult();
+            InitAsync().AsTask().GetAwaiter().GetResult();
 
-            return (ChunkStream != null);
+            return (ChunkReader != null);
         }
 
         internal bool ContainsPack(string path)
         {
-            if (ChunkStream == null)
+            if (ChunkReader == null)
                 return false;
 
             if (_packNames is null && GetChunkLength("PNAM") is long len)
             {
                 byte[] names = new byte[(int)len];
-                if (ReadFromChunk("PNAM", 0, names) != names.Length)
+                if (ReadFromChunkAsync("PNAM", 0, names).AsTask().GetAwaiter().GetResult() != names.Length)
                     return false;
 
                 var packNames = new List<string>();
