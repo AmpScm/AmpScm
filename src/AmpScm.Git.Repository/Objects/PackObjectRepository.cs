@@ -14,7 +14,7 @@ namespace AmpScm.Git.Objects
     {
         readonly string _packFile;
         readonly GitIdType _idType;
-        FileStream? _fIdx;
+        FileBucket? _fIdx;
         FileBucket? _packBucket;
         FileBucket? _bitmapBucket;
         FileBucket? _revIdxBucket;
@@ -37,6 +37,8 @@ namespace AmpScm.Git.Objects
                 {
                     _packBucket?.Dispose();
                     _bitmapBucket?.Dispose();
+                    _fIdx?.Dispose();
+                    _revIdxBucket?.Dispose();
                 }
             }
             finally
@@ -45,15 +47,15 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        void Init()
+        async ValueTask InitAsync()
         {
             if (_ver == 0)
             {
-                _fIdx ??= File.OpenRead(Path.ChangeExtension(_packFile, ".idx"));
+                _fIdx ??= FileBucket.OpenRead(Path.ChangeExtension(_packFile, ".idx"));
 
                 byte[] header = new byte[8];
                 long fanOutOffset = -1;
-                if (8 == _fIdx.Read(header, 0, header.Length))
+                if (header.Length == await _fIdx.ReadAtAsync(0, header).ConfigureAwait(false))
                 {
                     var index = new byte[] { 255, (byte)'t', (byte)'O', (byte)'c', 0, 0, 0, 2 };
 
@@ -83,9 +85,7 @@ namespace AmpScm.Git.Objects
                 {
                     byte[] fanOut = new byte[4 * 256];
 
-                    _fIdx.Position = fanOutOffset;
-
-                    if (fanOut.Length == _fIdx.Read(fanOut, 0, fanOut.Length))
+                    if (fanOut.Length == await _fIdx.ReadAtAsync(fanOutOffset, fanOut).ConfigureAwait(false))
                     {
                         _fanOut = new uint[256];
                         for (int i = 0; i < 256; i++)
@@ -160,16 +160,16 @@ namespace AmpScm.Git.Objects
             return false;
         }
 
-        private byte[] GetOidArray(uint start, uint count)
+        private async ValueTask<byte[]> GetOidArrayAsync(uint start, uint count)
         {
             if (_ver == 2)
             {
                 int sz = GitId.HashLength(_idType);
                 byte[] data = new byte[sz * count];
 
-                _fIdx!.Position = 8 /* header */ + 256 * 4 /* fanout */ + sz * start;
+                long offset = 8 /* header */ + 256 * 4 /* fanout */ + sz * start;
 
-                if (data.Length != _fIdx.Read(data, 0, data.Length))
+                if (data.Length != await _fIdx!.ReadAtAsync(offset, data).ConfigureAwait(false))
                     return Array.Empty<byte>();
 
                 return data;
@@ -179,9 +179,9 @@ namespace AmpScm.Git.Objects
                 int sz = GitId.HashLength(_idType) + 4;
                 byte[] data = new byte[sz * count];
 
-                _fIdx!.Position = 256 * 4 /* fanout */ + sz * start;
+                long offset = 256 * 4 /* fanout */ + sz * start;
 
-                if (data.Length != _fIdx.Read(data, 0, data.Length))
+                if (data.Length != await _fIdx!.ReadAtAsync(offset, data).ConfigureAwait(false))
                     return Array.Empty<byte>();
 
                 return data;
@@ -190,19 +190,19 @@ namespace AmpScm.Git.Objects
                 return Array.Empty<byte>();
         }
 
-        private byte[] GetOffsetArray(uint start, uint count, byte[] oids)
+        private async ValueTask<byte[]> GetOffsetArrayAsync(uint start, uint count, byte[] oids)
         {
             if (_ver == 2)
             {
                 int sz = GitId.HashLength(_idType);
                 byte[] data = new byte[4 * count];
 
-                _fIdx!.Position = 8 /* header */ + 256 * 4 /* fanout */
+                long offset = 8 /* header */ + 256 * 4 /* fanout */
                         + sz * _fanOut![255] // Hashes
                         + 4 * _fanOut[255] // Crc32
                         + 4 * start;
 
-                if (data.Length != _fIdx.Read(data, 0, data.Length))
+                if (data.Length != await _fIdx!.ReadAtAsync(offset, data).ConfigureAwait(false))
                     return Array.Empty<byte>();
 
                 return data;
@@ -251,7 +251,7 @@ namespace AmpScm.Git.Objects
         public override async ValueTask<TGitObject?> GetByIdAsync<TGitObject>(GitId id)
             where TGitObject : class
         {
-            Init();
+            await InitAsync().ConfigureAwait(false);
 
             if (_fanOut is null)
                 return null;
@@ -261,11 +261,11 @@ namespace AmpScm.Git.Objects
             uint start = (byte0 == 0) ? 0 : _fanOut![byte0 - 1];
             uint count = _fanOut![byte0] - start;
 
-            byte[] oids = GetOidArray(start, count);
+            byte[] oids = await GetOidArrayAsync(start, count).ConfigureAwait(false);
 
             if (TryFindId(oids, id, out var index))
             {
-                var r = GetOffsetArray(index + start, 1, oids);
+                var r = await GetOffsetArrayAsync(index + start, 1, oids).ConfigureAwait(false);
                 var offset = GetOffset(r, 0);
 
                 return await GetByOffsetAsync<TGitObject>(offset, id).ConfigureAwait(false);
@@ -275,7 +275,7 @@ namespace AmpScm.Git.Objects
 
         internal override bool ContainsId(GitId id)
         {
-            Init();
+            InitAsync().AsTask().GetAwaiter().GetResult();
 
             if (_fanOut is null)
                 return false;
@@ -285,7 +285,7 @@ namespace AmpScm.Git.Objects
             uint start = (byte0 == 0) ? 0 : _fanOut![byte0 - 1];
             uint count = _fanOut![byte0] - start;
 
-            byte[] oids = GetOidArray(start, count);
+            byte[] oids = GetOidArrayAsync(start, count).AsTask().GetAwaiter().GetResult();
 
             return TryFindId(oids, id, out var _);
         }
@@ -312,7 +312,7 @@ namespace AmpScm.Git.Objects
         internal override async ValueTask<(TGitObject? Result, bool Success)> DoResolveIdString<TGitObject>(string idString, GitId baseGitId)
             where TGitObject : class
         {
-            Init();
+            await InitAsync().ConfigureAwait(false);
 
             if (_fanOut is null)
                 return (null, true);
@@ -322,7 +322,7 @@ namespace AmpScm.Git.Objects
             uint start = (byte0 == 0) ? 0 : _fanOut![byte0 - 1];
             uint count = _fanOut![byte0] - start;
 
-            byte[] oids = GetOidArray(start, count);
+            byte[] oids = await GetOidArrayAsync(start, count).ConfigureAwait(false);
 
             if (TryFindId(oids, baseGitId, out var index) || (index >= 0 && index < count))
             {
@@ -344,7 +344,7 @@ namespace AmpScm.Git.Objects
                     }
                 }
 
-                var r = GetOffsetArray(index + start, 1, oids);
+                var r = await GetOffsetArrayAsync(index + start, 1, oids).ConfigureAwait(false);
                 var offset = GetOffset(r, 0);
 
                 await OpenPackIfNecessary().ConfigureAwait(false);
@@ -399,7 +399,9 @@ namespace AmpScm.Git.Objects
         public override IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
             where TGitObject : class
         {
-            Init();
+#pragma warning disable CA1849 // Call async methods when in an async method
+            InitAsync().AsTask().GetAwaiter().GetResult();
+#pragma warning restore CA1849 // Call async methods when in an async method
 
             if (typeof(TGitObject) != typeof(GitObject) && _hasBitmap)
             {
@@ -422,8 +424,8 @@ namespace AmpScm.Git.Objects
 
             uint count = _fanOut[255];
 
-            byte[] oids = GetOidArray(0, count);
-            byte[] offsets = GetOffsetArray(0, count, oids);
+            byte[] oids = await GetOidArrayAsync(0, count).ConfigureAwait(false);
+            byte[] offsets = await GetOffsetArrayAsync(0, count, oids).ConfigureAwait(false);
 
             for (int i = 0; i < count; i++)
             {
@@ -522,8 +524,8 @@ namespace AmpScm.Git.Objects
             await _revIdxBucket.ReadSkipAsync(12 + sizeof(uint) * v).ConfigureAwait(false);
             var indexOffs = await _revIdxBucket.ReadNetworkUInt32Async().ConfigureAwait(false);
 
-            byte[] oids = GetOidArray(indexOffs, 1);
-            byte[] offsets = GetOffsetArray(indexOffs, 1, oids);
+            byte[] oids = await GetOidArrayAsync(indexOffs, 1).ConfigureAwait(false);
+            byte[] offsets = await GetOffsetArrayAsync(indexOffs, 1, oids).ConfigureAwait(false);
 
             GitId objectId = GitId.FromByteArrayOffset(_idType, oids, 0);
 
@@ -537,7 +539,7 @@ namespace AmpScm.Git.Objects
 
         private async ValueTask CreateReverseIndex()
         {
-            Init();
+            await InitAsync().ConfigureAwait(false);
 
             if (_fanOut == null)
                 return;
@@ -552,12 +554,12 @@ namespace AmpScm.Git.Objects
 
                 uint count = _fanOut[255];
 
-                byte[]? oids = GetOidArray(0, count);
+                byte[]? oids;
                 if (_ver == 1)
-                    oids = GetOidArray(0, count);
+                    oids = await GetOidArrayAsync(0, count).ConfigureAwait(false);
                 else
                     oids = null;
-                byte[] offsets = GetOffsetArray(0, count, oids!);
+                byte[] offsets = await GetOffsetArrayAsync(0, count, oids!).ConfigureAwait(false);
 
                 int n = 0;
                 for (uint i = 0; i < count; i++)
@@ -623,7 +625,7 @@ namespace AmpScm.Git.Objects
 
         internal override async ValueTask<GitObjectBucket?> ResolveById(GitId id)
         {
-            Init();
+            await InitAsync().ConfigureAwait(false);
 
             if (_fanOut is null)
                 return null!;
@@ -633,11 +635,11 @@ namespace AmpScm.Git.Objects
             uint start = (byte0 == 0) ? 0 : _fanOut![byte0 - 1];
             uint count = _fanOut![byte0] - start;
 
-            byte[] oids = GetOidArray(start, count);
+            byte[] oids = await GetOidArrayAsync(start, count).ConfigureAwait(false);
 
             if (TryFindId(oids, id, out var index))
             {
-                var r = GetOffsetArray(index + start, 1, oids);
+                var r = await GetOffsetArrayAsync(index + start, 1, oids).ConfigureAwait(false);
                 var offset = GetOffset(r, 0);
 
                 await OpenPackIfNecessary().ConfigureAwait(false);

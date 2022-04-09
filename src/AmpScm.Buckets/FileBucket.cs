@@ -214,7 +214,7 @@ namespace AmpScm.Buckets
         }
 
         /// <summary>
-        /// Opens the file at <see cref="path"/> as a <see cref="FileBucket"/>. If <see cref="forAsync"/> is true,
+        /// Opens the file at <paramref name="path"/> as a <see cref="FileBucket"/>. If <paramref name="forAsync"/> is true,
         /// requests async support from the operating system for multiple operations at the same time, otherwise
         /// all requests will be handled synchronously.
         /// </summary>
@@ -256,6 +256,11 @@ namespace AmpScm.Buckets
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
+        /// <summary>
+        /// Opens file <paramref name="path"/> for asynchronous IO as <see cref="FileBucket"/>
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static FileBucket OpenRead(string path)
         {
             return OpenRead(path, true);

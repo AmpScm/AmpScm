@@ -284,7 +284,7 @@ namespace AmpScm.Buckets.Git
                 {
                     // TODO: This is not restartable via async handling, while it should be.
 
-                    // The source needs support for this. Our filestream and memorystreams have this support
+                    // The source needs support for this. Our file and memory buckets have this support
                     Bucket deltaSource = await Inner.DuplicateAsync(true).ConfigureAwait(false);
                     long to_skip = delta_position;
 
