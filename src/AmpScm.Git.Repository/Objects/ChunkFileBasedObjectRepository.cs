@@ -22,6 +22,21 @@ namespace AmpScm.Git.Objects
             _fileName = mainFile ?? throw new ArgumentNullException(nameof(mainFile));
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if (disposing)
+                {
+                    ChunkReader?.Dispose();
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
+
         protected async ValueTask<GitId> GetGitIdByIndexAsync(uint i)
         {
             int hashLength = GitId.HashLength(IdType);

@@ -82,14 +82,12 @@ namespace AmpScm.Buckets
 
             public void AddRef()
             {
-                _nRefs++;
+                Interlocked.Increment(ref _nRefs);
             }
 
             public void Release()
             {
-                _nRefs--;
-
-                if (_nRefs == 0)
+                if (Interlocked.Decrement(ref _nRefs) == 0)
                 {
                     Dispose();
                 }
@@ -109,11 +107,12 @@ namespace AmpScm.Buckets
                             r.Dispose();
                         }
                     }
-                    _disposers.Invoke();
+                    var d = _disposers;
+                    _disposers = () => { };
+                    d.Invoke();
                 }
                 finally
                 {
-                    _disposers = () => { };
                     GC.SuppressFinalize(this);
                 }
             }
@@ -369,16 +368,20 @@ namespace AmpScm.Buckets
                         lock (_holder._waitHandlers)
                             _holder._waitHandlers.Enqueue(this);
 
+                        _holder.Release();
                         _holder = null; // Remove circular reference that keeps holder alive
                     }
                 }
 
                 public Releaser Alloc(FileHolder holder, TaskCompletionSource<int> tcs, long offset, object toPin, out IntPtr lpOverlapped)
                 {
+                    if (holder is null)
+                        throw new ArgumentNullException(nameof(holder));
                     if (_pin.IsAllocated)
                         throw new InvalidOperationException();
 
                     _holder = holder;
+                    _holder.AddRef();
 
                     if (toPin is not null)
                         _pin = GCHandle.Alloc(toPin, GCHandleType.Pinned);

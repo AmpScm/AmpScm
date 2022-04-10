@@ -40,6 +40,7 @@ namespace AmpScm.Git.Objects
                             p.Dispose();
                     }
                     _bitmapBucket?.Dispose();
+                    _revIdxBucket?.Dispose();
                 }
             }
             finally

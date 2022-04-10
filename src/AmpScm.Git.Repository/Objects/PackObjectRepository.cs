@@ -35,9 +35,9 @@ namespace AmpScm.Git.Objects
             {
                 if (disposing)
                 {
+                    _fIdx?.Dispose();
                     _packBucket?.Dispose();
                     _bitmapBucket?.Dispose();
-                    _fIdx?.Dispose();
                     _revIdxBucket?.Dispose();
                 }
             }

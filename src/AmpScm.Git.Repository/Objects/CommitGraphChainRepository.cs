@@ -17,13 +17,30 @@ namespace AmpScm.Git.Objects
             this.chain = chain;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if (disposing && Graphs is not null)
+                {
+                    foreach (var g in Graphs)
+                        g.Dispose();
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+
+        }
+
         public override ValueTask<TGitObject?> GetByIdAsync<TGitObject>(GitId id)
             where TGitObject : class
         {
             return default;
         }
 
-        public IEnumerable <CommitGraphRepository> Chains
+        public IEnumerable<CommitGraphRepository> Chains
         {
             get
             {
@@ -33,7 +50,7 @@ namespace AmpScm.Git.Objects
                 var list = new List<CommitGraphRepository>();
                 try
                 {
-                    foreach(var line in File.ReadAllLines(Path.Combine(chain, "commit-graph-chain")))
+                    foreach (var line in File.ReadAllLines(Path.Combine(chain, "commit-graph-chain")))
                     {
                         string file = Path.Combine(chain, $"graph-{line.TrimEnd()}.graph");
 
@@ -41,7 +58,7 @@ namespace AmpScm.Git.Objects
                             list.Add(new CommitGraphRepository(Repository, file));
                     }
                 }
-                catch(IOException)
+                catch (IOException)
                 { }
                 return Graphs = list;
             }
@@ -52,9 +69,9 @@ namespace AmpScm.Git.Objects
             if (!typeof(TGitObject).IsAssignableFrom(typeof(GitCommit)))
                 yield break;
 
-            foreach(var v in Chains)
+            foreach (var v in Chains)
             {
-                await foreach(var ob in v.GetAll<TGitObject>(alreadyReturned))
+                await foreach (var ob in v.GetAll<TGitObject>(alreadyReturned))
                 {
                     yield return ob;
                 }
