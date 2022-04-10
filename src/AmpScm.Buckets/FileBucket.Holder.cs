@@ -336,12 +336,12 @@ namespace AmpScm.Buckets
 
                 void OnSignal(object? state, bool timedOut)
                 {
+                    Trace.Assert(_holder is not null);
+                    if (_holder is null)
+                        return;
                     try
                     {
-                        _eventWaitHandle.Reset();
-
-                        if (_holder is not null
-                            && NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out var t, false))
+                        if (NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out var t, false))
                         {
                             _tcs!.TrySetResult((int)t);
                         }
@@ -356,21 +356,27 @@ namespace AmpScm.Buckets
 
                 public void ReleaseOne()
                 {
-                    Debug.Assert(_holder != null);
-                    if (Interlocked.Decrement(ref _c) == 0)
+                    var c = Interlocked.Decrement(ref _c);
+                    if (c == 0)
                     {
+                        var h = _holder;
+                        _holder = null;
+
+                        Trace.Assert(h != null);
+
                         // When both the callback and caller are done, release overlapped struct and mutex for re-use
                         if (_pin.IsAllocated)
                             _pin.Free();
 
                         _tcs = null;
 
-                        lock (_holder._waitHandlers)
-                            _holder._waitHandlers.Enqueue(this);
+                        lock (h._waitHandlers)
+                            h._waitHandlers.Enqueue(this);
 
-                        _holder.Release();
-                        _holder = null; // Remove circular reference that keeps holder alive
+                        h.Release();
                     }
+                    else
+                        Trace.Assert(c >= 0);
                 }
 
                 public Releaser Alloc(FileHolder holder, TaskCompletionSource<int> tcs, long offset, object toPin, out IntPtr lpOverlapped)
@@ -385,7 +391,9 @@ namespace AmpScm.Buckets
 
                     if (toPin is not null)
                         _pin = GCHandle.Alloc(toPin, GCHandleType.Pinned);
+
                     _tcs = tcs;
+                    _c = 2; // Release in callback and caller
 
                     _registeredWaitHandle ??= ThreadPool.RegisterWaitForSingleObject(_eventWaitHandle, OnSignal, this, -1, false);
 
@@ -396,7 +404,6 @@ namespace AmpScm.Buckets
 
                     Marshal.StructureToPtr(nol, _overlapped, false);
 
-                    _c = 2; // Release in callback and caller
                     lpOverlapped = _overlapped;
                     return new Releaser(this);
                 }
@@ -415,7 +422,7 @@ namespace AmpScm.Buckets
 
                 public sealed class Releaser : IDisposable
                 {
-                    readonly FileWaitHandler fileWaitHandler;
+                    FileWaitHandler fileWaitHandler;
 
                     public Releaser(FileWaitHandler fileWaitHandler)
                     {
@@ -425,6 +432,7 @@ namespace AmpScm.Buckets
                     public void Dispose()
                     {
                         fileWaitHandler.ReleaseOne();
+                        fileWaitHandler = null;
                     }
                 }
             }
