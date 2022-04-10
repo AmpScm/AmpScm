@@ -69,9 +69,6 @@ namespace AmpScm.Buckets
                 _disposers = null!;
                 foreach (Action a in d.GetInvocationList())
                 {
-                    if (a.Target is IDisposable) // Let explicit disposables do their own work
-                        continue;
-
 #pragma warning disable CA1031 // Do not catch general exception types
                     try
                     {
@@ -340,16 +337,22 @@ namespace AmpScm.Buckets
 
                 void OnSignal(object? state, bool timedOut)
                 {
-                    _eventWaitHandle.Reset();
-
-                    if (NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out var t, false))
+                    try
                     {
-                        _tcs!.TrySetResult((int)t);
-                    }
-                    else
-                        _tcs!.SetException(new InvalidOperationException("GetOverlappedResult failed"));
+                        _eventWaitHandle.Reset();
 
-                    ReleaseOne();
+                        if (_holder is not null
+                            && NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out var t, false))
+                        {
+                            _tcs!.TrySetResult((int)t);
+                        }
+                        else
+                            _tcs!.SetException(new InvalidOperationException("GetOverlappedResult failed"));
+                    }
+                    finally
+                    {
+                        ReleaseOne();
+                    }
                 }
 
                 public void ReleaseOne()
