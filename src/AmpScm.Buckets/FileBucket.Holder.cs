@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -13,7 +14,7 @@ namespace AmpScm.Buckets
 {
     public partial class FileBucket
     {
-        sealed class FileHolder
+        sealed class FileHolder : IDisposable
         {
             readonly Stack<FileStream> _keep = new Stack<FileStream>();
             readonly FileStream _primary;
@@ -62,6 +63,26 @@ namespace AmpScm.Buckets
                 _length = NativeMethods.GetFileSize(_handle);
             }
 
+            ~FileHolder()
+            {
+                var d = _disposers;
+                _disposers = null!;
+                foreach (Action a in d.GetInvocationList())
+                {
+                    if (a.Target is IDisposable) // Let explicit disposables do their own work
+                        continue;
+
+#pragma warning disable CA1031 // Do not catch general exception types
+                    try
+                    {
+                        a.Invoke(); // But do release memory we allocated explicitly
+                    }
+                    catch
+                    { }
+#pragma warning restore CA1031 // Do not catch general exception types
+                }
+            }
+
             public void AddRef()
             {
                 _nRefs++;
@@ -71,7 +92,15 @@ namespace AmpScm.Buckets
             {
                 _nRefs--;
 
-                if (_nRefs >= 0)
+                if (_nRefs == 0)
+                {
+                    Dispose();
+                }
+            }
+
+            public void Dispose()
+            {
+                try
                 {
                     while (_keep.Count > 0)
                     {
@@ -84,6 +113,11 @@ namespace AmpScm.Buckets
                         }
                     }
                     _disposers.Invoke();
+                }
+                finally
+                {
+                    _disposers = () => { };
+                    GC.SuppressFinalize(this);
                 }
             }
 
@@ -150,11 +184,11 @@ namespace AmpScm.Buckets
 
                         for (int i = 1; i < 16; i++)
                         {
-                            var f = new FileWaitHandler(this, (IntPtr)((long)p + i * sz));
+                            var f = new FileWaitHandler((IntPtr)((long)p + i * sz));
                             _disposers += f.Dispose;
                             _waitHandlers.Enqueue(f);
                         }
-                        waitHandler = new FileWaitHandler(this, p); // And keep the last one
+                        waitHandler = new FileWaitHandler(p); // And keep the last one
                         _disposers += waitHandler.Dispose;
 
                         _disposers += () => Marshal.FreeCoTaskMem(p);
@@ -162,7 +196,7 @@ namespace AmpScm.Buckets
                 }
                 TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
 
-                using (waitHandler.Alloc(tcs, offset, buffer, out var lpOverlapped))
+                using (waitHandler.Alloc(this, tcs, offset, buffer, out var lpOverlapped))
                 {
                     if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, lpOverlapped))
                     {
@@ -289,7 +323,7 @@ namespace AmpScm.Buckets
 #endif
             sealed class FileWaitHandler : IDisposable
             {
-                readonly FileHolder _holder;
+                FileHolder? _holder;
                 TaskCompletionSource<int>? _tcs;
                 IntPtr _overlapped;
                 GCHandle _pin;
@@ -298,9 +332,8 @@ namespace AmpScm.Buckets
                 int _c;
 
 
-                public FileWaitHandler(FileHolder holder, IntPtr overlapped)
+                public FileWaitHandler(IntPtr overlapped)
                 {
-                    _holder = holder;
                     _overlapped = overlapped;
                     _eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
                 }
@@ -309,7 +342,7 @@ namespace AmpScm.Buckets
                 {
                     _eventWaitHandle.Reset();
 
-                    if (NativeMethods.GetOverlappedResult(_holder._handle, _overlapped, out var t, false))
+                    if (NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out var t, false))
                     {
                         _tcs!.TrySetResult((int)t);
                     }
@@ -321,6 +354,7 @@ namespace AmpScm.Buckets
 
                 public void ReleaseOne()
                 {
+                    Debug.Assert(_holder != null);
                     if (Interlocked.Decrement(ref _c) == 0)
                     {
                         // When both the callback and caller are done, release overlapped struct and mutex for re-use
@@ -331,13 +365,17 @@ namespace AmpScm.Buckets
 
                         lock (_holder._waitHandlers)
                             _holder._waitHandlers.Enqueue(this);
+
+                        _holder = null; // Remove circular reference that keeps holder alive
                     }
                 }
 
-                public Releaser Alloc(TaskCompletionSource<int> tcs, long offset, object toPin, out IntPtr lpOverlapped)
+                public Releaser Alloc(FileHolder holder, TaskCompletionSource<int> tcs, long offset, object toPin, out IntPtr lpOverlapped)
                 {
                     if (_pin.IsAllocated)
                         throw new InvalidOperationException();
+
+                    _holder = holder;
 
                     if (toPin is not null)
                         _pin = GCHandle.Alloc(toPin, GCHandleType.Pinned);
