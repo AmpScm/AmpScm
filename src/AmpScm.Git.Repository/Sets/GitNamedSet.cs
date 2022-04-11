@@ -13,7 +13,6 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    [DebuggerDisplay("{DebuggerDisplay}")]
     public class GitNamedSet<T> : GitSet<T>, ISyncAndAsyncQueryable<T>
         where T : class, IGitNamedObject
     {

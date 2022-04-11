@@ -156,6 +156,8 @@ namespace GitRepositoryTests
             Assert.IsTrue(repo.Trees.Count() > 0);
             Assert.IsTrue(repo.Blobs.Count() > 0);
             Assert.IsTrue(repo.TagObjects.Count() > 0);
+
+            await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs { });
         }
 
         [TestMethod]
