@@ -61,6 +61,18 @@ namespace AmpScm.Git.References
             }
         }
 
+        protected internal override async ValueTask<GitReference?> ResolveAsync(GitReference gitReference)
+        {
+            await Read().ConfigureAwait(false);
+
+            if (_peelRefs!.TryGetValue(gitReference.Name, out var v))
+            {
+                return new GitReference(this, v.Name, v.Id).SetPeeled(v.Peeled);
+            }
+
+            return null;
+        }
+
         private protected void ParseLineToPeel(string line, ref GitRefPeel? last, int idLength)
         {
             if (string.IsNullOrWhiteSpace(line))

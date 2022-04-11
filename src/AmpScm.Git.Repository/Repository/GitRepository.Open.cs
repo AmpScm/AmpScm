@@ -96,6 +96,14 @@ namespace AmpScm.Git
             return (null, GitRootType.None);
         }
 
+        public static bool TryFindRoot(string path, [NotNullWhen(true)] out string? rootPath)
+        {
+            var (root, type) = FindGitRoot(path);
+
+            rootPath = root;
+            return (root is not null);
+        }
+
         internal static bool TryReadRefFile(string path, string? prefix, [NotNullWhen(true)] out string? result)
         {
             if (string.IsNullOrEmpty(path))

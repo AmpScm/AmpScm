@@ -19,5 +19,8 @@ namespace AmpScm.Git
         public override string Name => Reference.ShortName;
 
         protected override GitObject GitObject => Reference.GitObject!;
+
+
+        public GitTagObject? TagObject => Reference.GitObject as GitTagObject;
     }
 }

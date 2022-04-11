@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Git;
+using AmpScm.Git.Client.Plumbing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests
@@ -229,6 +231,8 @@ namespace GitRepositoryTests
             using var repo = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
             int n = 0;
 
+            var rslv = repo.Head.Resolved;
+
             await foreach (var c in repo.Head.Resolved.ReferenceChanges)
             {
                 TestContext.WriteLine($"{c.OriginalId} {c.TargetId} {c.Signature}\t{c.Summary}");
@@ -240,6 +244,43 @@ namespace GitRepositoryTests
             }
 
             Assert.IsTrue(repo.Head.Resolved.ReferenceChanges.Last().Signature.When >= repo.Head.Commit!.Committer!.When);
+
+            Assert.IsTrue(n > 0);
+        }
+
+        [TestMethod]
+        public async Task WalkRefLogDetachedHead()
+        {
+            var dir = await TestContext.CreateCloneAsync();
+
+            using var repo = GitRepository.Open(dir);
+            await repo.GetPlumbing().RunRawCommand("checkout", new[] { "HEAD~1" });
+
+            Assert.IsTrue(repo.IsHeadDetached, "Head detached");
+            int n = 0;
+
+            Assert.IsTrue(repo.Head.Resolved.ReferenceChanges.Last().Signature.When >= repo.Head.Commit!.Committer!.When);
+
+            Assert.IsTrue(repo.Tags.Count() > 0, "Has tags");
+            Assert.IsTrue(repo.Tags.Count() < repo.References.Count(), "Has more references than tags");
+            var f = repo.Tags.First();
+
+            foreach (var t in repo.Tags)
+            {
+                TestContext.WriteLine(t.Name);
+            }
+
+            Assert.IsNotNull(repo.Head.GitObject, "Has GitObject");
+
+            await foreach (var c in repo.Head.Resolved.ReferenceChanges)
+            {
+                TestContext.WriteLine($"{c.OriginalId} {c.TargetId} {c.Signature}\t{c.Summary}");
+                Assert.IsNotNull(c.OriginalId);
+                Assert.IsNotNull(c.TargetId);
+                Assert.IsNotNull(c.Signature);
+                Assert.IsNotNull(c.Summary);
+                n++;
+            }
 
             Assert.IsTrue(n > 0);
         }

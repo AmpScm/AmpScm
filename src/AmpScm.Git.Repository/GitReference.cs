@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,9 +10,10 @@ using AmpScm.Git.Sets;
 
 namespace AmpScm.Git
 {
-    public class GitReference : IGitNamedObject
+    [DebuggerDisplay("{ShortName}: Target={GitObject}, Name={Name}")]
+    public class GitReference : IGitNamedObject, IEquatable<GitReference>
     {
-        protected GitReferenceRepository Repository { get; }
+        protected GitReferenceRepository ReferenceRepository { get; }
         object? _object;
         object? _commit;
         Lazy<GitId?>? _resolver;
@@ -20,14 +22,14 @@ namespace AmpScm.Git
 
         internal GitReference(GitReferenceRepository repository, string name, Lazy<GitId?> resolver)
         {
-            Repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            ReferenceRepository = repository ?? throw new ArgumentNullException(nameof(repository));
             Name = name ?? throw new ArgumentNullException(nameof(name));
             _resolver = resolver;
         }
 
         internal GitReference(GitReferenceRepository repository, string name, GitId? value)
         {
-            Repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            ReferenceRepository = repository ?? throw new ArgumentNullException(nameof(repository));
             Name = name ?? throw new ArgumentNullException(nameof(name));
             _object = value;
         }
@@ -41,13 +43,13 @@ namespace AmpScm.Git
                 if (_shortName == null)
                 {
                     if (Name.StartsWith("refs/heads/", StringComparison.Ordinal))
-                        _shortName = Name.Substring(11);
+                        _shortName = Name.Substring("refs/heads/".Length);
                     else if (Name.StartsWith("refs/remotes/", StringComparison.Ordinal))
-                        _shortName = Name.Substring(13);
+                        _shortName = Name.Substring("refs/remotes/".Length);
                     else if (Name.StartsWith("refs/tags/", StringComparison.Ordinal))
-                        _shortName = Name.Substring(10);
+                        _shortName = Name.Substring("refs/tags/".Length);
                     else if (Name.StartsWith("refs/", StringComparison.Ordinal))
-                        _shortName = Name.Substring(5);
+                        _shortName = Name.Substring("refs".Length);
                     else
                         _shortName = Name;
                 }
@@ -61,12 +63,12 @@ namespace AmpScm.Git
             if (_object is null)
             {
                 _object = _resolver?.Value;
-                _object ??= await Repository.Repository.References.GetAsync(Name).ConfigureAwait(false);
+                _object ??= await ReferenceRepository.Repository.References.GetAsync(Name).ConfigureAwait(false);
             }
 
             if (_object is GitId oid)
             {
-                _object = await Repository.Repository.GetAsync<GitObject>(oid).ConfigureAwait(false) ?? _object;
+                _object = await ReferenceRepository.Repository.GetAsync<GitObject>(oid).ConfigureAwait(false) ?? _object;
             }
         }
 
@@ -119,7 +121,7 @@ namespace AmpScm.Git
                 }
                 else if (_commit is GitId oid)
                 {
-                    c3 = Repository.Repository.GetAsync<GitCommit>(oid).AsTask().Result!;
+                    c3 = ReferenceRepository.Repository.GetAsync<GitCommit>(oid).AsTask().Result!;
                     _commit = c3;
                     return c3;
                 }
@@ -141,9 +143,9 @@ namespace AmpScm.Git
             }
         }
 
-        public GitRevisionSet Revisions => new GitRevisionSet(Repository.Repository).AddReference(this);
+        public GitRevisionSet Revisions => new GitRevisionSet(ReferenceRepository.Repository).AddReference(this);
 
-        public GitReferenceChangeSet ReferenceChanges => new GitReferenceChangeSet(Repository.Repository, this);
+        public GitReferenceChangeSet ReferenceChanges => new GitReferenceChangeSet(ReferenceRepository.Repository, this);
 
         internal bool IsBranch => Name.StartsWith("refs/heads/", StringComparison.Ordinal) || Name == "HEAD";
         internal bool IsTag => Name.StartsWith("refs/tags/", StringComparison.Ordinal);
@@ -207,9 +209,31 @@ namespace AmpScm.Git
 
         public async ValueTask<GitReference> ResolveAsync()
         {
-            _resolved ??= (await Repository.ResolveAsync(this).ConfigureAwait(false)) ?? this;
+            _resolved ??= (await ReferenceRepository.ResolveAsync(this).ConfigureAwait(false)) ?? this;
 
             return _resolved;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as GitReference);
+        }
+
+        public bool Equals(GitReference? other)
+        {
+            if (other is null)
+                return false;
+
+            return Name == other.Name && other.ReferenceRepository?.Repository == ReferenceRepository?.Repository;
+        }
+
+        public override int GetHashCode()
+        {
+#if !NETFRAMEWORK
+            return Name.GetHashCode(StringComparison.Ordinal);
+#else
+            return Name.GetHashCode();
+#endif
         }
 
         public GitReference Resolved
@@ -217,6 +241,13 @@ namespace AmpScm.Git
             get => ResolveAsync().AsTask().Result;
         }
 
+        public static bool operator ==(GitReference? r1, GitReference? r2)
+            => r1?.Equals(r2) ?? false;
+
+        public static bool operator !=(GitReference? r1, GitReference? r2)
+        {
+            return !(r1 == r2);
+        }
     }
 }
 

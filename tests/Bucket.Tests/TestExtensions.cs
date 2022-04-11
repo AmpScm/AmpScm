@@ -8,7 +8,7 @@ using AmpScm.Buckets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
-namespace System
+namespace AmpScm
 {
     public static class TestExtensions
     {

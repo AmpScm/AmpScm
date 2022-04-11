@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using AmpScm.Git.Sets;
 
 namespace AmpScm.Git
 {
+    [DebuggerDisplay("{TargetId.ToString(\"x12\"),nq} {Signature.When,nq} {Summary,nq}")]
     public sealed class GitReferenceChange : IGitObject
     {
         object _signature;

@@ -23,6 +23,8 @@ namespace AmpScm.Git
         public string FullPath { get; }
         public bool IsBare { get; }
         public bool IsLazy => Configuration.Lazy.RepositoryIsLazy;
+        public bool IsHeadDetached => Head is GitReference r && r.Resolved == r;
+
         public bool IsShallow => Configuration.Lazy.RepositoryIsShallow;
         readonly Lazy<GitConfiguration> _gitConfiguration;
 

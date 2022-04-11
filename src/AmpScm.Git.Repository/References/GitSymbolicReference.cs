@@ -16,15 +16,18 @@ namespace AmpScm.Git.References
         {
         }
 
-        public override ValueTask ReadAsync()
+        public override async ValueTask ReadAsync()
         {
             if (_reference is null)
             {
-                if (GitRepository.TryReadRefFile(Path.Combine(Repository.GitDir, Name), "ref: ", out var val))
+                if (GitRepository.TryReadRefFile(Path.Combine(ReferenceRepository.GitDir, Name), "ref: ", out var val))
+                {
                     _reference = val;
-            }
+                    return;
+                }
 
-            return default;
+                _reference = await ReferenceRepository.ResolveAsync(this);
+            }
         }
 
         public GitReference? Reference
@@ -36,7 +39,7 @@ namespace AmpScm.Git.References
 
                 if (_reference is string r)
                 {
-                    _reference = Repository.Repository.ReferenceRepository.GetUnsafeAsync(r, false).AsTask().Result ?? _reference;
+                    _reference = ReferenceRepository.Repository.ReferenceRepository.GetUnsafeAsync(r, false).AsTask().Result ?? _reference;
                 }
 
                 return _reference as GitReference;
@@ -48,10 +51,10 @@ namespace AmpScm.Git.References
             get => (_reference as string) ?? Reference?.Name ?? (_reference as string); // Last for later resolved
         }
 
-        public override GitObject? GitObject => Reference?.GitObject;
+        public override GitObject? GitObject => ReferenceEquals(Reference, this) ? base.GitObject: Reference?.GitObject;
 
-        public override GitCommit? Commit => Reference?.Commit;
+        public override GitCommit? Commit => ReferenceEquals(Reference, this) ? base.Commit : Reference?.Commit;
 
-        public override GitId? Id => Reference?.Id;
+        public override GitId? Id => Reference?.Id ?? base.Id;
     }
 }

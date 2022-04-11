@@ -55,12 +55,18 @@ namespace AmpScm.Git.References
             if (!File.Exists(fileName))
                 return null;
 
-            if (GitRepository.TryReadRefFile(fileName, "ref: ", out var body))
+            if (GitRepository.TryReadRefFile(fileName, null, out var body))
             {
-                var ob = await Repository.ReferenceRepository.GetAsync(body.Trim()).ConfigureAwait(false);
+                if (body.StartsWith("ref: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    body = body.Substring("ref: ".Length);
+                    var ob = await Repository.ReferenceRepository.GetAsync(body.Trim()).ConfigureAwait(false);
 
-                if (ob is not null)
-                    return ob;
+                    if (ob is not null)
+                        return ob;
+                }
+                else if (GitId.TryParse(body, out var id))
+                    return new GitReference(Repository.ReferenceRepository, gitReference.Name, id);
             }
 
             return gitReference; // Not symbolic, and exists. Or error and exists

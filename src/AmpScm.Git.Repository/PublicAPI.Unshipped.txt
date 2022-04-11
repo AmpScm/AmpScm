@@ -35,6 +35,7 @@ AmpScm.Git.GitObject
 AmpScm.Git.GitObject.Equals(AmpScm.Git.GitObject? other) -> bool
 AmpScm.Git.GitObject.Id.get -> AmpScm.Git.GitId!
 AmpScm.Git.GitReference
+AmpScm.Git.GitReference.Equals(AmpScm.Git.GitReference? other) -> bool
 AmpScm.Git.GitReference.Name.get -> string!
 AmpScm.Git.GitReference.ReferenceChanges.get -> AmpScm.Git.Sets.GitReferenceChangeSet!
 AmpScm.Git.GitReference.ResolveAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference!>
@@ -59,6 +60,7 @@ AmpScm.Git.GitRepository.Dispose() -> void
 AmpScm.Git.GitRepository.FullPath.get -> string!
 AmpScm.Git.GitRepository.Head.get -> AmpScm.Git.GitReference!
 AmpScm.Git.GitRepository.IsBare.get -> bool
+AmpScm.Git.GitRepository.IsHeadDetached.get -> bool
 AmpScm.Git.GitRepository.IsLazy.get -> bool
 AmpScm.Git.GitRepository.IsShallow.get -> bool
 AmpScm.Git.GitRepository.ObjectRepository.get -> AmpScm.Git.Objects.GitObjectRepository!
@@ -85,6 +87,7 @@ AmpScm.Git.GitSignature.Name.get -> string!
 AmpScm.Git.GitSignature.When.get -> System.DateTimeOffset
 AmpScm.Git.GitTag
 AmpScm.Git.GitTag.Reference.get -> AmpScm.Git.GitReference!
+AmpScm.Git.GitTag.TagObject.get -> AmpScm.Git.GitTagObject?
 AmpScm.Git.GitTagObject
 AmpScm.Git.GitTagObject.GitObject.get -> AmpScm.Git.GitObject!
 AmpScm.Git.GitTagObject.Message.get -> string?
@@ -195,6 +198,8 @@ override AmpScm.Git.GitDirectoryTreeEntry.EntryName.get -> string!
 override AmpScm.Git.GitFileTreeEntry.ElementType.get -> AmpScm.Buckets.Git.Objects.GitTreeElementType
 override AmpScm.Git.GitObject.Equals(object? obj) -> bool
 override AmpScm.Git.GitObject.GetHashCode() -> int
+override AmpScm.Git.GitReference.Equals(object? obj) -> bool
+override AmpScm.Git.GitReference.GetHashCode() -> int
 override AmpScm.Git.GitRepository.ToString() -> string!
 override AmpScm.Git.GitSignature.Equals(object? obj) -> bool
 override AmpScm.Git.GitSignature.GetHashCode() -> int
@@ -229,11 +234,14 @@ override sealed AmpScm.Git.Objects.GitBlobWriter.Type.get -> AmpScm.Git.GitObjec
 override sealed AmpScm.Git.Objects.GitTagObjectWriter.Type.get -> AmpScm.Git.GitObjectType
 static AmpScm.Git.GitObject.operator !=(AmpScm.Git.GitObject? one, AmpScm.Git.GitObject? other) -> bool
 static AmpScm.Git.GitObject.operator ==(AmpScm.Git.GitObject? one, AmpScm.Git.GitObject? other) -> bool
+static AmpScm.Git.GitReference.operator !=(AmpScm.Git.GitReference? r1, AmpScm.Git.GitReference? r2) -> bool
+static AmpScm.Git.GitReference.operator ==(AmpScm.Git.GitReference? r1, AmpScm.Git.GitReference? r2) -> bool
 static AmpScm.Git.GitReference.ValidName(string! name, bool allowSpecialSymbols) -> bool
 static AmpScm.Git.GitRepository.Init(string! path) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.Init(string! path, bool isBare) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.Open(string! path) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.OpenAsync(string! path, System.Threading.CancellationToken cancellation = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitRepository!>
+static AmpScm.Git.GitRepository.TryFindRoot(string! path, out string? rootPath) -> bool
 static AmpScm.Git.GitTools.FirstLine(string? message) -> string?
 static AmpScm.Git.GitTools.GetNormalizedFullPath(string! path) -> string!
 static AmpScm.Git.GitTreeEntry.operator !=(AmpScm.Git.GitTreeEntry! e1, AmpScm.Git.GitTreeEntry! e2) -> bool

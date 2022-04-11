@@ -13,6 +13,7 @@ using AmpScm.Buckets.Client.Http;
 using AmpScm.Git;
 using AmpScm.Buckets.Git;
 using BucketTests;
+using AmpScm;
 
 namespace GitRepositoryTests
 {
