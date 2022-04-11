@@ -22,7 +22,7 @@ namespace AmpScm.Buckets
             int _nRefs;
             long? _length;
             bool _asyncWin;
-            Queue<FileWaitHandler> _waitHandlers;
+            Stack<FileWaitHandler> _waitHandlers;
             Action _disposers;
 
             public FileHolder(FileStream primary, string path)
@@ -55,7 +55,7 @@ namespace AmpScm.Buckets
                 _handle = handle;
                 Path = path ?? throw new ArgumentNullException(nameof(path));
                 _asyncWin = true;
-                _waitHandlers = new Queue<FileWaitHandler>();
+                _waitHandlers = new Stack<FileWaitHandler>();
 
                 _disposers = _handle.Dispose;
                 _handle = handle;
@@ -169,7 +169,7 @@ namespace AmpScm.Buckets
                 lock (_waitHandlers)
                 {
                     if (_waitHandlers.Count > 0)
-                        waitHandler = _waitHandlers.Dequeue();
+                        waitHandler = _waitHandlers.Pop();
                     else
                     {
                         int sz = Marshal.SizeOf<NativeOverlapped>();
@@ -182,7 +182,7 @@ namespace AmpScm.Buckets
                         {
                             var f = new FileWaitHandler((IntPtr)((long)p + i * sz));
                             _disposers += f.Dispose;
-                            _waitHandlers.Enqueue(f);
+                            _waitHandlers.Push(f);
                         }
                         waitHandler = new FileWaitHandler(p); // And keep the last one
                         _disposers += waitHandler.Dispose;
@@ -371,7 +371,7 @@ namespace AmpScm.Buckets
                         _tcs = null;
 
                         lock (h._waitHandlers)
-                            h._waitHandlers.Enqueue(this);
+                            h._waitHandlers.Push(this);
 
                         h.Release();
                     }
@@ -465,12 +465,12 @@ namespace AmpScm.Buckets
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
                 static extern bool GetFileSizeEx(SafeFileHandle hFile, out ulong size);
 
-                internal static long? GetFileSize(SafeFileHandle handle)
+                internal static long GetFileSize(SafeFileHandle handle)
                 {
                     if (GetFileSizeEx(handle, out var size))
                         return (long)size;
                     else
-                        return null;
+                        return 0;
                 }
             }
 
