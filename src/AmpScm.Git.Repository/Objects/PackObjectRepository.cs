@@ -589,6 +589,7 @@ namespace AmpScm.Git.Objects
             using (var fs = File.Create(tmpName))
             {
                 await fs.WriteAsync(b).ConfigureAwait(false);
+                await fs.WriteAsync(sha.AsBucket()).ConfigureAwait(false); // Needs fix for SHA256
             }
 
             if (!File.Exists(revName))
