@@ -371,13 +371,13 @@ namespace AmpScm.Git
                 return ToString().Substring(0, 8);
             else if (format == "X")
                 return ToString().Substring(0, 8).ToUpperInvariant();
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
             if (format!.StartsWith("x", StringComparison.Ordinal) && int.TryParse(format.AsSpan(1), out var xLen))
 #else
             if (format!.StartsWith("x", StringComparison.Ordinal) && int.TryParse(format.Substring(1), out var xLen))
 #endif
                 return ToString().Substring(0, xLen);
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
             else if (format.StartsWith("X", StringComparison.Ordinal) && int.TryParse(format.AsSpan(1), out var xlen))
 #else
             else if (format.StartsWith("X", StringComparison.Ordinal) && int.TryParse(format.Substring(1), out var xlen))

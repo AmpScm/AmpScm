@@ -113,7 +113,7 @@ namespace AmpScm.Git.Objects
             if (!Directory.Exists(subDir))
                 return (null, true); // No matches
 
-#if NETCOREAPP
+#if !NETFRAMEWORK
             string[] files = Directory.GetFiles(subDir, string.Concat(idLow.AsSpan(2), "*"));
 #else
             string[] files = Directory.GetFiles(subDir, idLow.Substring(2) + "*");

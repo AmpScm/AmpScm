@@ -368,7 +368,7 @@ namespace AmpScm.Buckets
 
                         _tcs = null;
 
-                        lock (h._waitHandlers)
+                        lock (h!._waitHandlers)
                             h._waitHandlers.Push(this);
 
                         h.Release();
