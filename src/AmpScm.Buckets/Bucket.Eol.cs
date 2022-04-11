@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
@@ -34,6 +35,9 @@ namespace AmpScm.Buckets
 
     partial class Bucket
     {
+#if !NETFRAMEWORK
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+#endif
         public virtual async ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = int.MaxValue)
         {
             if ((acceptableEols & ~BucketEol.EolMask) != 0)
@@ -52,6 +56,9 @@ namespace AmpScm.Buckets
             return (read, found);
         }
 
+#if !NETFRAMEWORK
+        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
+#endif
         private static (int Requested, bool SingleCrRequested) CalculateEolReadLength(BucketEol acceptableEols, int requested, ReadOnlySpan<byte> buffer)
         {
             int cr = (0 != (acceptableEols & (BucketEol.CR | BucketEol.CRLF))) ? buffer.IndexOf((byte)'\r') : -1;
@@ -117,6 +124,7 @@ namespace AmpScm.Buckets
             return (Math.Min(rq, requested), singleCrRequested);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static BucketEol GetEolResult(BucketEol acceptableEols, int requested, bool singleCrRequested, ReadOnlySpan<byte> read)
         {
             BucketEol found;

@@ -26,7 +26,7 @@ namespace AmpScm.Git
 
         public ReadOnlyMemory<byte> Hash
         {
-            get => new ReadOnlyMemory<byte>(_bytes, _offset, HashLength(Type));
+            get => new(_bytes, _offset, HashLength(Type));
         }
 
         /// <summary>
@@ -406,7 +406,7 @@ namespace AmpScm.Git
 
         public static bool operator <(GitId left, GitId right)
         {
-            return (left is null) ? !(right is null) : left.CompareTo(right) < 0;
+            return (left is null) ? right is not null : left.CompareTo(right) < 0;
         }
 
         public static bool operator <=(GitId left, GitId right)
@@ -416,7 +416,7 @@ namespace AmpScm.Git
 
         public static bool operator >(GitId left, GitId right)
         {
-            return !(left is null) && left.CompareTo(right) > 0;
+            return left is not null && left.CompareTo(right) > 0;
         }
 
         public static bool operator >=(GitId left, GitId right)

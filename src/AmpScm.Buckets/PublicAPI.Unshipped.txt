@@ -102,6 +102,7 @@ AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.Brotli = 3 -> AmpScm.Bucke
 AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.Deflate = 0 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
 AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.GZip = 2 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
 AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib = 1 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
+AmpScm.Buckets.Specialized.BucketExtensions
 override AmpScm.Buckets.Client.Http.HttpResponseBucket.ContentLength.get -> long
 override AmpScm.Buckets.Client.Http.HttpResponseBucket.ContentType.get -> string?
 override AmpScm.Buckets.Client.Http.HttpResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!
