@@ -325,7 +325,7 @@ namespace AmpScm.Git.Objects
                                 + NetBitConverter.GetBytes((int)Repository.InternalConfig.IdType).AsBucket()
                                 + mapBytes.AsBucket()
                                 + GitId.Parse(Path.GetFileNameWithoutExtension(_multiPackBitmapPath!).Substring("multi-pack-index-".Length)).Hash.AsBucket())
-                            .SHA1(r => sha = r))
+                            .GitHash(Repository.InternalConfig.IdType,r => sha = r))
             using (var fs = File.Create(tmpName))
             {
                 await fs.WriteAsync(b).ConfigureAwait(false);

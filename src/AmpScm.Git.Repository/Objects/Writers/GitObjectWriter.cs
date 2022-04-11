@@ -40,7 +40,8 @@ namespace AmpScm.Git.Objects
                 }
 
                 byte[]? checksum = null;
-                using (var wb = Type.CreateHeader(r.Value!).Append(bucket).SHA1(cs => checksum = cs).Compress(BucketCompressionAlgorithm.ZLib))
+                using (var wb = Type.CreateHeader(r.Value!).Append(bucket)
+                    .GitHash(repository.InternalConfig.IdType, cs => checksum = cs).Compress(BucketCompressionAlgorithm.ZLib))
                 {
                     await f.WriteAsync(wb).ConfigureAwait(false);
                 }

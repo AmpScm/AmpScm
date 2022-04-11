@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Git
 {
@@ -52,6 +53,19 @@ namespace AmpScm.Git
         public static BucketBytes Slice(this BucketBytes bb, BucketEol untilEol)
         {
             return bb.Slice(0, bb.Length - untilEol.CharCount());
+        }
+
+        public static Bucket GitHash(this Bucket bucket, GitIdType type, Action<byte[]> created)
+        {
+            switch(type)
+            {
+                case GitIdType.Sha1:
+                    return bucket.SHA1(created);
+                case GitIdType.Sha256:
+                    return bucket.SHA256(created);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type));
+            }
         }
     }
 }
