@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Diagnostics;
 using AmpScm.Buckets.Git;
 
 namespace AmpScm.Git
 {
     public sealed class GitSignature : IEquatable<GitSignature>
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string _value;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _email;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         DateTimeOffset _when;
 
         internal GitSignature(GitSignatureRecord signature)

@@ -17,6 +17,7 @@ namespace AmpScm.Git.Sets
     [DebuggerDisplay("{DebuggerDisplay}")]
     public class GitSet
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         protected GitRepository Repository { get; }
 
         internal GitSet(GitRepository repository)

@@ -130,7 +130,7 @@ namespace AmpScm.Git
         public GitReferencesSet References { get; }
         public GitRemotesSet Remotes { get; }
 
-        [DebuggerHidden]
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal GitRevisionSet RevisionSetRoot { get; }
 
         public GitConfiguration Configuration => _gitConfigurationLazy ??= new GitConfiguration(this, GitDir);

@@ -29,17 +29,46 @@ namespace AmpScm.Git
             get => new ReadOnlyMemory<byte>(_bytes, _offset, HashLength(Type));
         }
 
+        /// <summary>
+        /// Creates a new <see cref="GitId"/> of the specified hash with the specified hash
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="hash"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <remarks>The hash is referenced as is, so changing the hash after adding it breaks this <see cref="GitId"/></remarks>
         public GitId(GitIdType type, byte[] hash)
         {
             if (hash is null)
                 throw new ArgumentNullException(nameof(hash));
-            else if (type < GitIdType.None || type > GitIdType.Sha256)
+            else if (type <= GitIdType.None || type > GitIdType.Sha256)
                 throw new ArgumentOutOfRangeException(nameof(type));
-            else if(hash.Length != HashLength(type))
+            else if (hash.Length != HashLength(type))
                 throw new ArgumentOutOfRangeException(nameof(hash));
 
             Type = type;
             _bytes = hash;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="GitId"/> of type <see cref="GitIdType.Sha1"/> when a 40 character string is provided, or
+        /// a new <see cref="GitId"/> of type <see cref="GitIdType.Sha256"/> when a 64 character string is provided.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public GitId(string value)
+            : this(
+                    (value?.Length ?? 0) switch
+                    {
+                        40 => GitIdType.Sha1,
+                        64 => GitIdType.Sha256,
+                        0 => throw new ArgumentNullException(nameof(value)),
+                        _ => throw new ArgumentOutOfRangeException(nameof(value))
+                    },
+                    GitId.TryParse(value!, out var id) ? id._bytes : throw new ArgumentOutOfRangeException(nameof(value)))
+        {
+
         }
 
         /// <summary>
@@ -172,9 +201,9 @@ namespace AmpScm.Git
 
             bytes = new byte[idString.Length / 2];
 
-            for(int i = 0; i < idString.Length; i+= 2)
+            for (int i = 0; i < idString.Length; i += 2)
             {
-                if (TryGetHex(idString[i], idString[i+1], out var b))
+                if (TryGetHex(idString[i], idString[i + 1], out var b))
                 {
                     bytes[i / 2] = b;
                 }
@@ -349,11 +378,11 @@ namespace AmpScm.Git
 #endif
                 return ToString().Substring(0, xLen);
 #if NET5_0_OR_GREATER
-            else if (format.StartsWith("X", StringComparison.Ordinal) && int.TryParse(format.AsSpan(1), out var xxlen))
+            else if (format.StartsWith("X", StringComparison.Ordinal) && int.TryParse(format.AsSpan(1), out var xlen))
 #else
-            else if (format.StartsWith("X", StringComparison.Ordinal) && int.TryParse(format.Substring(1), out var xxlen))
+            else if (format.StartsWith("X", StringComparison.Ordinal) && int.TryParse(format.Substring(1), out var xlen))
 #endif
-                return ToString().Substring(0, xxlen).ToUpperInvariant();
+                return ToString().Substring(0, xlen).ToUpperInvariant();
 
             throw new ArgumentOutOfRangeException(nameof(format));
         }

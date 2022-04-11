@@ -15,16 +15,15 @@ namespace AmpScm.Git.Implementation
             var e = source.GetAsyncEnumerator();
             try
             {
-                bool next;
-                do
+                while (true)
                 {
                     var r = e.MoveNextAsync().AsTask(); // Store as object instead of struct, as we are yield'ing.
-                    next = r.Result;
 
-                    if (next)
-                        yield return e.Current;
+                    if (!r.GetAwaiter().GetResult())
+                        break;
+
+                    yield return e.Current;
                 }
-                while (next);
             }
             finally
             {

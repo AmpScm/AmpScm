@@ -27,7 +27,7 @@ namespace AmpScm.Git.Repository
             GC.SuppressFinalize(this);
         }
 
-        [DebuggerHidden]
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
         {
             get

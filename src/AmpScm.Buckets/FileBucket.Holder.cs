@@ -454,7 +454,8 @@ namespace AmpScm.Buckets
 
                 [DllImport("kernel32.dll", SetLastError = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-                public static extern bool GetOverlappedResult(SafeFileHandle hFile, IntPtr lpOverlapped, out uint lpNumberOfBytesTransferred, bool bWait);
+                [return: MarshalAs(UnmanagedType.Bool)]
+                public static extern bool GetOverlappedResult(SafeFileHandle hFile, IntPtr lpOverlapped, out uint lpNumberOfBytesTransferred, [MarshalAs(UnmanagedType.Bool)] bool bWait);
 
 
                 [DllImport("kernel32.dll", SetLastError = true)]

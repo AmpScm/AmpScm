@@ -12,7 +12,6 @@ using AmpScm.Git.Repository.Implementation;
 
 namespace AmpScm.Git.Repository
 {
-#pragma warning disable CA1308 // Normalize strings to uppercase
     public class GitConfiguration : GitBackendRepository
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -158,7 +157,7 @@ namespace AmpScm.Git.Repository
             if (!_loaded)
                 LoadAsync().AsTask().GetAwaiter().GetResult();
 
-            group = group.ToLowerInvariant();
+            group = group.ToUpperInvariant();
 
             foreach (var v in _config)
             {
@@ -177,7 +176,7 @@ namespace AmpScm.Git.Repository
             if (!_loaded)
                 LoadAsync().AsTask().GetAwaiter().GetResult();
 
-            group = group.ToLowerInvariant();
+            group = group.ToUpperInvariant();
             HashSet<string> subGroups = new HashSet<string>();
 
             foreach (var v in _config)
@@ -239,7 +238,7 @@ namespace AmpScm.Git.Repository
 
             int n = group.IndexOf('.', StringComparison.Ordinal);
             string? subGroup = (n > 0) ? group.Substring(n + 1) : null;
-            group = ((n > 0) ? group.Substring(0, n) : group).ToLowerInvariant();
+            group = ((n > 0) ? group.Substring(0, n) : group).ToUpperInvariant();
 
             if (_config.TryGetValue((group, subGroup, key), out var vResult)
                 && int.TryParse(vResult, out var r))
@@ -264,7 +263,7 @@ namespace AmpScm.Git.Repository
 
             int n = group.IndexOf('.', StringComparison.Ordinal);
             string? subGroup = (n > 0) ? group.Substring(n + 1) : null;
-            group = ((n > 0) ? group.Substring(0, n) : group).ToLowerInvariant();
+            group = ((n > 0) ? group.Substring(0, n) : group).ToUpperInvariant();
 
             if (_config.TryGetValue((group, subGroup, key), out var vResult))
             {
@@ -291,7 +290,7 @@ namespace AmpScm.Git.Repository
 
             int n = group.IndexOf('.', StringComparison.Ordinal);
             string? subGroup = (n > 0) ? group.Substring(n + 1) : null;
-            group = ((n > 0) ? group.Substring(0, n) : group).ToLowerInvariant();
+            group = ((n > 0) ? group.Substring(0, n) : group).ToUpperInvariant();
 
             if (_config.TryGetValue((group, subGroup, key), out var vResult))
             {
@@ -402,7 +401,7 @@ namespace AmpScm.Git.Repository
             public int AutoGCBlobs => _autoGCBlobs.Value;
         }
 
-        [DebuggerHidden]
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal GitLazyConfig Lazy => _lazy.Value;
 
         static string GetGitExePath()

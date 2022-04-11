@@ -159,7 +159,7 @@ namespace AmpScm.Buckets.Git
                         continue;
 
 #pragma warning disable CA1308 // Normalize strings to uppercase
-                    _group = line.Substring(groupStart, groupEnd - groupStart).ToLowerInvariant();
+                    _group = line.Substring(groupStart, groupEnd - groupStart).ToUpperInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
                     if (subGroupEnd > 0)

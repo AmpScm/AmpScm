@@ -19,13 +19,21 @@ namespace AmpScm.Git
     public sealed class GitCommit : GitObject, IGitLazy<GitCommit>
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitCommitReadBucket? _rb;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object? _tree;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object[]? _parent;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         Dictionary<string, string>? _headers;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _message;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _summary;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitSignature? _author;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitSignature? _committer;
 
         internal GitCommit(GitRepository repository, GitObjectBucket objectReader, GitId id)
@@ -266,7 +274,7 @@ namespace AmpScm.Git
 
         public GitRevisionSet Revisions => new GitRevisionSet(Repository).AddCommit(this);
 
-        [DebuggerHidden]
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
         {
             get
