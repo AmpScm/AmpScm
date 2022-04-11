@@ -21,7 +21,7 @@ namespace AmpScm.Git.Repository
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _repositoryFormatVersion;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly Dictionary<(string, string?, string), string> _config = new Dictionary<(string, string?, string), string>();
+        readonly Dictionary<(string Group, string? SubGroup, string Key), string> _config = new ();
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         static readonly Lazy<string> _gitExePath = new Lazy<string>(GetGitExePath, true);
@@ -74,11 +74,11 @@ namespace AmpScm.Git.Repository
             {
                 _config[(item.Group, item.SubGroup, item.Key)] = item.Value ?? "\xFF";
 
-                if (item.Group == "core" || item.Group == "extension")
+                if (item.Group == "CORE" || item.Group == "EXTENSION")
                     ParseCore(item);
-                else if (item.Group == "include")
+                else if (item.Group == "INCLUDE")
                     await ParseInclude(path, item).ConfigureAwait(false);
-                else if (item.Group == "includeif")
+                else if (item.Group == "INCLUDEIF")
                     await ParseIncludeIfAsync(path, item).ConfigureAwait(false);
             }
             _loaded = true;
@@ -145,7 +145,7 @@ namespace AmpScm.Git.Repository
 
         private void ParseCore(GitConfigurationItem item)
         {
-            if (item.Key == "repositoryformatversion" && item.Group == "core")
+            if (item.Key == "repositoryformatversion" && item.Group == "CORE")
             {
                 if (int.TryParse(item.Value, out var version))
                     _repositoryFormatVersion = version;
@@ -217,7 +217,7 @@ namespace AmpScm.Git.Repository
             {
                 var (g, s, k) = v.Key;
 
-                if (g != "remote" || s is null)
+                if (g != "REMOTE" || s is null)
                     continue;
 
                 if (!names.Contains(s))

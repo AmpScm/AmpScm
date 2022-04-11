@@ -11,11 +11,25 @@ using AmpScm.Buckets.Specialized;
 namespace AmpScm.Buckets.Git
 {
     [DebuggerDisplay("{ToString(),nq}")]
-    public sealed record GitConfigurationItem : IComparable<GitConfigurationItem>
+    public sealed record GitConfigurationItem : IComparable<GitConfigurationItem>, IEquatable<GitConfigurationItem>
     {
+        /// <summary>
+        /// Group of configuration item. Normalized to UPPER-CASE using <see cref="String.ToUpperInvariant"/>.
+        /// </summary>
+        /// <remarks>The git internals normalize to lower case, but CA1308 and common sense dictate that if w
+        /// we normalize we should normalize to upper case to avoid localization issues.</remarks>
         public string Group { get; set; } = "";
+
+        /// <summary>
+        /// Sub-Group (case sensitive).
+        /// </summary>
         public string? SubGroup { get; set; }
+
+        /// <summary>
+        /// Key of configuration item (case sensitive)
+        /// </summary>
         public string Key { get; set; } = "";
+
         public string? Value { get; set; } = "";
 
         public int CompareTo(GitConfigurationItem? other)
@@ -198,9 +212,13 @@ namespace AmpScm.Buckets.Git
             }
         }
 
-        public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            throw new NotImplementedException();
+            while(await ReadConfigItem().ConfigureAwait(false) is not null)
+            {
+
+            }
+            return BucketBytes.Eof;
         }
     }
 }
