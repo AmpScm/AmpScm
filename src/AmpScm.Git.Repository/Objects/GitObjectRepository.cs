@@ -8,18 +8,15 @@ using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git.Objects;
+using AmpScm.Git.Repository;
 
 namespace AmpScm.Git.Objects
 {
-    public abstract class GitObjectRepository : IDisposable
+    public abstract class GitObjectRepository : GitBackendRepository
     {
-        private bool disposedValue;
-
-        protected GitRepository Repository { get; }
-
         private protected GitObjectRepository(GitRepository repository, string key)
+            : base(repository)
         {
-            Repository = repository ?? throw new ArgumentNullException(nameof(repository));
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
@@ -97,33 +94,8 @@ namespace AmpScm.Git.Objects
                 return null;
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~GitObjectRepository()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
 
         private protected static GitObjectType GetGitObjectType(Type type)

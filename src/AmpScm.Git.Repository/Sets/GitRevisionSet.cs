@@ -17,7 +17,7 @@ namespace AmpScm.Git.Sets
         {
             _options = new GitRevisionSetOptions();
             Expression = Expression.Call(Expression.Property(Expression.Constant(Repository),
-                                GetProperty<GitRepository>(x => x.NoRevisions)),
+                                GetProperty<GitRepository>(x => x.RevisionSetRoot)),
                                 GetMethod(x => x.SetOptions(null!)),
                                 Expression.Constant(_options));
         }
@@ -27,7 +27,7 @@ namespace AmpScm.Git.Sets
         {
             _options = options ?? new GitRevisionSetOptions();
             Expression = Expression.Call(Expression.Property(Expression.Constant(Repository),
-                                GetProperty<GitRepository>(x => x.NoRevisions)),
+                                GetProperty<GitRepository>(x => x.RevisionSetRoot)),
                                 GetMethod(x => x.SetOptions(null!)),
                                 Expression.Constant(_options));
         }

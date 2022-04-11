@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -12,6 +13,7 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
+    [DebuggerDisplay("{DebuggerDisplay}")]
     public class GitNamedSet<T> : GitSet<T>, ISyncAndAsyncQueryable<T>
         where T : class, IGitNamedObject
     {

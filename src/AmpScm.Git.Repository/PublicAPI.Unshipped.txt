@@ -5,6 +5,7 @@ abstract AmpScm.Git.Objects.GitObjectWriter.Type.get -> AmpScm.Git.GitObjectType
 abstract AmpScm.Git.Objects.GitObjectWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 abstract AmpScm.Git.References.GitReferenceRepository.GetAll() -> System.Collections.Generic.IAsyncEnumerable<AmpScm.Git.GitReference!>!
 abstract AmpScm.Git.References.GitReferenceRepository.GetUnsafeAsync(string! name, bool findSymbolic) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
+abstract AmpScm.Git.Repository.GitBackendRepository.Dispose(bool disposing) -> void
 abstract AmpScm.Git.Sets.GitSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 AmpScm.Git.GitBlob
 AmpScm.Git.GitBlob.AsBucket() -> AmpScm.Buckets.Bucket!
@@ -54,7 +55,7 @@ AmpScm.Git.GitRemote.Url.get -> System.Uri?
 AmpScm.Git.GitRepository
 AmpScm.Git.GitRepository.Blobs.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.GitBlob!>!
 AmpScm.Git.GitRepository.Branches.get -> AmpScm.Git.Sets.GitNamedSet<AmpScm.Git.GitBranch!>!
-AmpScm.Git.GitRepository.Commits.get -> AmpScm.Git.Sets.GitCommitsSet!
+AmpScm.Git.GitRepository.Commits.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.GitCommit!>!
 AmpScm.Git.GitRepository.Configuration.get -> AmpScm.Git.Repository.GitConfiguration!
 AmpScm.Git.GitRepository.Dispose() -> void
 AmpScm.Git.GitRepository.FullPath.get -> string!
@@ -123,7 +124,6 @@ AmpScm.Git.Objects.GitCommitWriter.Parents.set -> void
 AmpScm.Git.Objects.GitCommitWriter.Tree.get -> AmpScm.Git.Objects.GitTreeWriter!
 AmpScm.Git.Objects.GitCommitWriter.Tree.set -> void
 AmpScm.Git.Objects.GitObjectRepository
-AmpScm.Git.Objects.GitObjectRepository.Dispose() -> void
 AmpScm.Git.Objects.GitObjectRepository.FetchGitIdBucketAsync(AmpScm.Git.GitId! id) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitObjectBucket?>
 AmpScm.Git.Objects.GitObjectWriter
 AmpScm.Git.Objects.GitObjectWriter.GitObjectWriter() -> void
@@ -142,11 +142,14 @@ AmpScm.Git.References.GitReferenceRepository
 AmpScm.Git.References.GitReferenceRepository.GetAsync(string! name) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
 AmpScm.Git.References.GitReferenceRepository.GitDir.get -> string!
 AmpScm.Git.References.GitReferenceRepository.GitReferenceRepository(AmpScm.Git.GitRepository! repository, string! gitDir, string! workTreeDir) -> void
-AmpScm.Git.References.GitReferenceRepository.Repository.get -> AmpScm.Git.GitRepository!
 AmpScm.Git.References.GitReferenceRepository.WorkTreeDir.get -> string!
 AmpScm.Git.References.GitSymbolicReference
 AmpScm.Git.References.GitSymbolicReference.Reference.get -> AmpScm.Git.GitReference?
 AmpScm.Git.References.GitSymbolicReference.ReferenceName.get -> string?
+AmpScm.Git.Repository.GitBackendRepository
+AmpScm.Git.Repository.GitBackendRepository.Dispose() -> void
+AmpScm.Git.Repository.GitBackendRepository.GitBackendRepository(AmpScm.Git.GitRepository! repository) -> void
+AmpScm.Git.Repository.GitBackendRepository.Repository.get -> AmpScm.Git.GitRepository!
 AmpScm.Git.Repository.GitConfiguration
 AmpScm.Git.Repository.GitConfiguration.BasicAuthenticationHandler(object? sender, AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs! e) -> void
 AmpScm.Git.Repository.GitConfiguration.GetBool(string! group, string! key) -> bool?
@@ -155,7 +158,6 @@ AmpScm.Git.Repository.GitConfiguration.GetIntAsync(string! group, string! key) -
 AmpScm.Git.Repository.GitConfiguration.GetStringAsync(string! group, string! key) -> System.Threading.Tasks.ValueTask<string?>
 AmpScm.Git.Repository.GitConfiguration.GetSubGroups(string! group) -> System.Collections.Generic.IEnumerable<string!>!
 AmpScm.Git.Repository.GitConfiguration.Identity.get -> AmpScm.Git.GitSignature!
-AmpScm.Git.Sets.GitCommitsSet
 AmpScm.Git.Sets.GitNamedObjectWrapper<TGitObject, TNamedObject>
 AmpScm.Git.Sets.GitNamedSet<T>
 AmpScm.Git.Sets.GitNamedSet<T>.GetAsync(string! name) -> System.Threading.Tasks.ValueTask<T?>
@@ -217,6 +219,7 @@ override AmpScm.Git.Objects.GitCommitWriter.WriteToAsync(AmpScm.Git.GitRepositor
 override AmpScm.Git.Objects.GitTagObjectWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 override AmpScm.Git.Objects.GitTreeWriter.Type.get -> AmpScm.Git.GitObjectType
 override AmpScm.Git.Objects.GitTreeWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
+override AmpScm.Git.References.GitReferenceRepository.Dispose(bool disposing) -> void
 override AmpScm.Git.References.GitSymbolicReference.Commit.get -> AmpScm.Git.GitCommit?
 override AmpScm.Git.References.GitSymbolicReference.GitObject.get -> AmpScm.Git.GitObject?
 override AmpScm.Git.References.GitSymbolicReference.Id.get -> AmpScm.Git.GitId?

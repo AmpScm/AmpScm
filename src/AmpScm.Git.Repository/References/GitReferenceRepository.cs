@@ -4,24 +4,27 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Git.Repository;
 
 namespace AmpScm.Git.References
 {
-    public abstract class GitReferenceRepository
+    public abstract class GitReferenceRepository : GitBackendRepository
     {
         public const string Head = "HEAD";
 
-        protected internal GitRepository Repository { get; }
         protected internal string GitDir { get; }
         protected internal string WorkTreeDir { get; }
 
         protected GitReferenceRepository(GitRepository repository, string gitDir, string workTreeDir)
+            : base(repository)
         {
-            Repository = repository ?? throw new ArgumentNullException(nameof(repository));
             GitDir = gitDir ?? throw new ArgumentNullException(nameof(gitDir));
             WorkTreeDir = workTreeDir ?? throw new ArgumentNullException(nameof(gitDir));
         }
 
+        protected override void Dispose(bool disposing)
+        {
+        }
 
         public abstract IAsyncEnumerable<GitReference> GetAll();
 

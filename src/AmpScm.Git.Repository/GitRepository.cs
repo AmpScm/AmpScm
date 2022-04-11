@@ -18,7 +18,9 @@ namespace AmpScm.Git
     [DebuggerDisplay("GitRepository {GitDir}")]
     public partial class GitRepository : IDisposable, IGitQueryRoot, IServiceProvider
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly ServiceContainer _container;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private bool disposedValue;
         public string FullPath { get; }
         public bool IsBare { get; }
@@ -26,7 +28,8 @@ namespace AmpScm.Git
         public bool IsHeadDetached => Head is GitReference r && r.Resolved == r;
 
         public bool IsShallow => Configuration.Lazy.RepositoryIsShallow;
-        readonly Lazy<GitConfiguration> _gitConfiguration;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        GitConfiguration? _gitConfigurationLazy;
 
         protected internal string GitDir { get; }
         protected internal string WorkTreeDir { get; }
@@ -38,16 +41,15 @@ namespace AmpScm.Git
 
             SetQueryProvider = new GitQueryProvider(this);
             Objects = new GitObjectSet<GitObject>(this, () => this.Objects!);
-            Commits = new GitCommitsSet(this, () => this.Commits!);
+            Commits = new GitObjectSet<GitCommit>(this, () => this.Commits!);
             Blobs = new GitObjectSet<GitBlob>(this, () => this.Blobs!);
             TagObjects = new GitObjectSet<GitTagObject>(this, () => this.TagObjects!);
             Trees = new GitObjectSet<GitTree>(this, () => this.Trees!);
             References = new GitReferencesSet(this, () => this.References!);
             Remotes = new GitRemotesSet(this, () => this.Remotes!);
-            _gitConfiguration = new Lazy<GitConfiguration>(LoadConfig);
-            NoRevisions = new GitRevisionSet(this);
+            RevisionSetRoot = new GitRevisionSet(this);
 
-            Branches = new GitBranchesSet(this, () => this.Branches!);
+            Branches = new GitNamedSet<GitBranch>(this, () => this.Branches!);
             Tags = new GitTagsSet(this, () => this.Tags!);
 
             ObjectRepository = null!;
@@ -116,7 +118,7 @@ namespace AmpScm.Git
         }
 
         public GitObjectSet<GitObject> Objects { get; }
-        public GitCommitsSet Commits { get; }
+        public GitObjectSet<GitCommit> Commits { get; }
         public GitObjectSet<GitTree> Trees { get; }
         public GitObjectSet<GitBlob> Blobs { get; }
         public GitObjectSet<GitTagObject> TagObjects { get; }
@@ -128,10 +130,12 @@ namespace AmpScm.Git
         public GitReferencesSet References { get; }
         public GitRemotesSet Remotes { get; }
 
-        internal GitRevisionSet NoRevisions { get; }
+        [DebuggerHidden]
+        internal GitRevisionSet RevisionSetRoot { get; }
 
-        public GitConfiguration Configuration => _gitConfiguration.Value;
+        public GitConfiguration Configuration => _gitConfigurationLazy ??= new GitConfiguration(this, GitDir);
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal GitQueryProvider SetQueryProvider { get; }
 
         [EditorBrowsable(EditorBrowsableState.Advanced)]

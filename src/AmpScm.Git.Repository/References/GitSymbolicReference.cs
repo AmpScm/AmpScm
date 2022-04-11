@@ -26,7 +26,7 @@ namespace AmpScm.Git.References
                     return;
                 }
 
-                _reference = await ReferenceRepository.ResolveAsync(this);
+                _reference = await ReferenceRepository.ResolveAsync(this).ConfigureAwait(false);
             }
         }
 

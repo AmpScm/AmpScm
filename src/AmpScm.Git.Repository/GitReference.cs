@@ -10,7 +10,7 @@ using AmpScm.Git.Sets;
 
 namespace AmpScm.Git
 {
-    [DebuggerDisplay("{ShortName}: Target={GitObject}, Name={Name}")]
+    [DebuggerDisplay("{ShortName,nq}: Target={GitObject}, Name={Name,nq}")]
     public class GitReference : IGitNamedObject, IEquatable<GitReference>
     {
         protected GitReferenceRepository ReferenceRepository { get; }

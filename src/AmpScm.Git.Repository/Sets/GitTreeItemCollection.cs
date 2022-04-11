@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -11,21 +12,23 @@ namespace AmpScm.Git.Sets
 {
     public class GitTreeItemCollection : IEnumerable<GitTreeItem>, IAsyncEnumerable<GitTreeItem>
     {
-        readonly GitTree gitTree;
-        readonly bool justFiles;
-        //int _count;
+        readonly GitTree _gitTree;
+        readonly bool _justFiles;
 
         internal GitTreeItemCollection(GitTree gitTree, bool justFiles)
         {
-            this.gitTree = gitTree;
-            this.justFiles = justFiles;
+            if (gitTree is null)
+                throw new ArgumentNullException(nameof(gitTree));
+
+            _gitTree = gitTree;
+            _justFiles = justFiles;
         }
 
         public async IAsyncEnumerator<GitTreeItem> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
             Stack<(IAsyncEnumerator<GitTreeEntry>, string)>? inside = null;
 
-            IAsyncEnumerator<GitTreeEntry> cur = gitTree.GetAsyncEnumerator(cancellationToken);
+            IAsyncEnumerator<GitTreeEntry> cur = _gitTree.GetAsyncEnumerator(cancellationToken);
             string path = "";
 
             do
@@ -36,7 +39,7 @@ namespace AmpScm.Git.Sets
 
                     if (c is GitDirectoryTreeEntry dir)
                     {
-                        if (!justFiles)
+                        if (!_justFiles)
                             yield return new GitTreeItem(path + c.Name, c);
 
                         inside ??= new Stack<(IAsyncEnumerator<GitTreeEntry>, string)>();

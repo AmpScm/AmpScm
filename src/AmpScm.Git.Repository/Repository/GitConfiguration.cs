@@ -13,25 +13,38 @@ using AmpScm.Git.Repository.Implementation;
 namespace AmpScm.Git.Repository
 {
 #pragma warning disable CA1308 // Normalize strings to uppercase
-    public class GitConfiguration
+    public class GitConfiguration : GitBackendRepository
     {
-        protected GitRepository Repository { get; }
-
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly string _gitDir;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _loaded;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _repositoryFormatVersion;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly Dictionary<(string, string?, string), string> _config = new Dictionary<(string, string?, string), string>();
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         static readonly Lazy<string> _gitExePath = new Lazy<string>(GetGitExePath, true);
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         static readonly Lazy<string> _homeDir = new Lazy<string>(GetHomeDirectory, true);
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public static string GitProgramPath => _gitExePath.Value;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public static string UserHomeDirectory => _homeDir.Value;
 
-        internal GitConfiguration(GitRepository gitRepository, string gitDir)
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        Lazy<GitLazyConfig> _lazy;
+
+        internal GitConfiguration(GitRepository repository, string gitDir)
+            : base(repository)
         {
-            Repository = gitRepository;
             _gitDir = gitDir;
             _lazy = new Lazy<GitLazyConfig>(() => new GitLazyConfig(this));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
         }
 
         internal async ValueTask LoadAsync()
@@ -321,11 +334,18 @@ namespace AmpScm.Git.Repository
 
         internal class GitLazyConfig
         {
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             GitConfiguration Configuration { get; }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             readonly Lazy<bool> _repositoryIsLazy;
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             readonly Lazy<bool> _repositoryIsShallow;
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             readonly Lazy<bool> _repositoryCommitGraph;
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             readonly Lazy<bool> _repositorySupportsMultiPack;
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             readonly Lazy<int> _autoGCBlobs;
 
             public GitLazyConfig(GitConfiguration config)
@@ -382,8 +402,7 @@ namespace AmpScm.Git.Repository
             public int AutoGCBlobs => _autoGCBlobs.Value;
         }
 
-        readonly Lazy<GitLazyConfig> _lazy;
-
+        [DebuggerHidden]
         internal GitLazyConfig Lazy => _lazy.Value;
 
         static string GetGitExePath()
