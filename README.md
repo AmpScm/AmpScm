@@ -34,7 +34,7 @@ using (var repo = await GitRepository.OpenAsync(Environment.CurrentDirectory))
 Of course you can also use the non async api if needed. This repository layer is built on top of *Amp.Buckets* via *AmpScm.Buckets.Git*, which could
 be used separately if you want to write your own repository layer.
 
-The `IAsyncQueryable<T>` support is supported via the hopefully temporary *AmpScm.Linq.AsyncQueryable*, to avoid usage conflicts between the async and non async implementations that occur when you impelement both. (Let's hope this will be fixed in the BCL)
+The `IAsyncQueryable<T>` support is supported via the hopefully temporary *AmpScm.Linq.AsyncQueryable*, to avoid usage conflicts between the async and non async implementations that occur when you implement both. (Let's hope this will be fixed in the BCL)
   
 ```cs
 // Non-Async
