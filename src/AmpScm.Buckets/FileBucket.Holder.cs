@@ -16,14 +16,14 @@ namespace AmpScm.Buckets
     {
         sealed class FileHolder : IDisposable
         {
-            readonly Stack<FileStream> _keep = new Stack<FileStream>();
+            readonly Stack<FileStream> _keep = new();
             readonly FileStream _primary;
-            SafeFileHandle _handle;
-            int _nRefs;
+            readonly SafeFileHandle _handle;
+            readonly bool _asyncWin;
+            readonly Stack<FileWaitHandler> _waitHandlers;
             long? _length;
-            bool _asyncWin;
-            Stack<FileWaitHandler> _waitHandlers;
             Action _disposers;
+            int _nRefs;
 
             public FileHolder(FileStream primary, string path)
             {
@@ -93,6 +93,7 @@ namespace AmpScm.Buckets
                 }
             }
 
+            // Only called from Release, but called Dispose to aid code analyzers
             public void Dispose()
             {
                 try
@@ -202,9 +203,9 @@ namespace AmpScm.Buckets
                     }
                     else if (Marshal.GetLastWin32Error() == 997 /* Pending IO */)
                     {
-                        // Typical all-data cached in filecache case on Windows 10/11 2022-04
                         if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, false))
                         {
+                            // Typical all-data cached in filecache case on Windows 10/11 2022-04
                             return new ValueTask<int>((int)bytes); // Return succes. Task will release lpOverlapped
                         }
                         else
@@ -298,8 +299,8 @@ namespace AmpScm.Buckets
 
             sealed class Returner : IDisposable
             {
+                readonly FileStream _fs;
                 FileHolder? _fh;
-                FileStream _fs;
 
                 public Returner(FileHolder fh, FileStream fs)
                 {
@@ -319,14 +320,13 @@ namespace AmpScm.Buckets
 #endif
             sealed class FileWaitHandler : IDisposable
             {
+                readonly IntPtr _overlapped;
                 FileHolder? _holder;
                 TaskCompletionSource<int>? _tcs;
-                IntPtr _overlapped;
                 GCHandle _pin;
                 EventWaitHandle _eventWaitHandle;
                 RegisteredWaitHandle? _registeredWaitHandle;
                 int _c;
-
 
                 public FileWaitHandler(IntPtr overlapped)
                 {
@@ -336,9 +336,7 @@ namespace AmpScm.Buckets
 
                 void OnSignal(object? state, bool timedOut)
                 {
-                    Trace.Assert(_holder is not null);
-                    if (_holder is null)
-                        return;
+                    Debug.Assert(_holder is not null);
                     try
                     {
                         if (NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out var t, false))
@@ -359,10 +357,10 @@ namespace AmpScm.Buckets
                     var c = Interlocked.Decrement(ref _c);
                     if (c == 0)
                     {
-                        var h = _holder;
+                        FileHolder h = _holder!;
                         _holder = null;
 
-                        Trace.Assert(h != null);
+                        Debug.Assert(h != null);
 
                         // When both the callback and caller are done, release overlapped struct and mutex for re-use
                         if (_pin.IsAllocated)
@@ -375,8 +373,6 @@ namespace AmpScm.Buckets
 
                         h.Release();
                     }
-                    else
-                        Trace.Assert(c >= 0);
                 }
 
                 public Releaser Alloc(FileHolder holder, TaskCompletionSource<int> tcs, long offset, object toPin, out IntPtr lpOverlapped)
@@ -432,7 +428,7 @@ namespace AmpScm.Buckets
                     public void Dispose()
                     {
                         fileWaitHandler.ReleaseOne();
-                        fileWaitHandler = null;
+                        fileWaitHandler = null!;
                     }
                 }
             }
@@ -478,7 +474,6 @@ namespace AmpScm.Buckets
             {
                 if (string.IsNullOrEmpty(path))
                     throw new ArgumentNullException(nameof(path));
-#pragma warning disable CA2000 // Dispose objects before losing scope
                 SafeFileHandle handle = NativeMethods.CreateFileW(path,
                     access: 0x80000000 /* GENERIC_READ */, // We want to read
                     share: 0x00000004 /* FILE_SHARE_DELETE */ | 0x00000001 /* FILE_SHARE_READ */, // Others can read, delete, rename, but we keep our file open
@@ -486,7 +481,6 @@ namespace AmpScm.Buckets
                     creationDisposition: 3 /* OPEN_EXISTING */,
                     0x80 /* Normal attributes */ | 0x40000000 /* FILE_FLAG_OVERLAPPED */,
                     IntPtr.Zero);
-#pragma warning restore CA2000 // Dispose objects before losing scope
 
                 if (!handle.IsInvalid)
                     return handle;
