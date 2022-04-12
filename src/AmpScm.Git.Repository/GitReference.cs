@@ -147,7 +147,7 @@ namespace AmpScm.Git
 
         public GitReferenceChangeSet ReferenceChanges => new GitReferenceChangeSet(ReferenceRepository.Repository, this);
 
-        internal bool IsBranch => Name.StartsWith("refs/heads/", StringComparison.Ordinal) || Name == "HEAD";
+        internal bool IsBranch => Name.StartsWith("refs/heads/", StringComparison.Ordinal) || AllUpper(Name);
         internal bool IsTag => Name.StartsWith("refs/tags/", StringComparison.Ordinal);
 
         static HashSet<char> InvalidChars = new HashSet<char>(Path.GetInvalidFileNameChars());
@@ -197,7 +197,7 @@ namespace AmpScm.Git
             return this;
         }
 
-        private static bool AllUpper(string name)
+        internal static bool AllUpper(string name)
         {
             for (int i = 0; i < name.Length; i++)
             {

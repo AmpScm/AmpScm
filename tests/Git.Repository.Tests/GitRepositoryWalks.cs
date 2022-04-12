@@ -78,7 +78,10 @@ namespace GitRepositoryTests
             if (!repo.IsShallow)
                 Assert.IsNotNull(repo.Commits.FirstOrDefault(x => x.Parents.Count > 1), "Repository has merges");
 
-            Assert.IsTrue(repo.Branches.Any());
+            Assert.IsTrue(repo.References.Any(), "Repository has references");
+            Assert.IsNotNull(repo.References.Any(x => x.Name == "HEAD"), "Has reference called HEAD-1");
+            Assert.IsNotNull(repo.References["HEAD"], "Has reference called HEAD-2");
+            
         }
 
         [TestMethod]

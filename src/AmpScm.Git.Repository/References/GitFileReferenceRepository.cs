@@ -18,7 +18,7 @@ namespace AmpScm.Git.References
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        public override async IAsyncEnumerable<GitReference> GetAll()
+        public override async IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string baseDir = Path.GetFullPath(GitDir);
@@ -31,6 +31,14 @@ namespace AmpScm.Git.References
 
                     yield return new GitReference(this, name, (GitId?)null);
                 }
+            }
+
+            foreach (string file in Directory.GetFiles(GitDir))
+            {
+                string name = Path.GetFileName(file);
+
+                if (GitReference.AllUpper(name) && !alreadyReturned.Contains(name))
+                    yield return new GitSymbolicReference(this, file.Substring(GitDir.Length + 1));
             }
         }
 

@@ -27,18 +27,15 @@ namespace AmpScm.Git.References
             //yield return new GitShellReferenceRepository(this, GitDir);
         }
 
-
-        public override async IAsyncEnumerable<GitReference> GetAll()
+        public override async IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned)
         {
-            var names = new HashSet<string>();
-
             foreach (var v in Sources)
             {
-                await foreach (var r in v.GetAll())
+                await foreach (var r in v.GetAll(alreadyReturned))
                 {
-                    if (!names.Contains(r.Name))
+                    if (!alreadyReturned.Contains(r.Name))
                     {
-                        names.Add(r.Name);
+                        alreadyReturned.Add(r.Name);
                         yield return r;
                     }
                 }

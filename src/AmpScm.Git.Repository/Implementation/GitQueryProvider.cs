@@ -54,7 +54,7 @@ namespace AmpScm.Git.Implementation
         internal IAsyncEnumerable<T> GetNamedAsyncEnumerable<T>(CancellationToken cancellationToken = default)
         {
             if (typeof(T) == typeof(GitReference))
-                return (IAsyncEnumerable<T>)Repository.ReferenceRepository.GetAll();
+                return (IAsyncEnumerable<T>)Repository.ReferenceRepository.GetAll(new());
             else if (typeof(T) == typeof(GitRemote))
                 return (IAsyncEnumerable<T>)Repository.Configuration.GetAllRemotes();
             else if (typeof(T) == typeof(GitBranch))
@@ -68,7 +68,7 @@ namespace AmpScm.Git.Implementation
         internal IEnumerable<TResult> GetNamedEnumerable<TResult>()
         {
             if (typeof(TResult) == typeof(GitReference))
-                return (IEnumerable<TResult>)Repository.ReferenceRepository.GetAll().AsNonAsyncEnumerable();
+                return (IEnumerable<TResult>)Repository.ReferenceRepository.GetAll(new HashSet<string>()).AsNonAsyncEnumerable();
 
             return GetNamedAsyncEnumerable<TResult>(CancellationToken.None).AsNonAsyncEnumerable();
         }

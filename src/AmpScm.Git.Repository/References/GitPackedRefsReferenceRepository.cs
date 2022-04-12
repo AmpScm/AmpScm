@@ -98,7 +98,7 @@ namespace AmpScm.Git.References
             }
         }
 
-        public override async IAsyncEnumerable<GitReference> GetAll()
+        public override async IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned)
         {
             await Read().ConfigureAwait(false);
 

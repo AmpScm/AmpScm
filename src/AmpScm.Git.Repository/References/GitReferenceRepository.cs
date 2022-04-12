@@ -26,7 +26,7 @@ namespace AmpScm.Git.References
         {
         }
 
-        public abstract IAsyncEnumerable<GitReference> GetAll();
+        public abstract IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned);
 
         public ValueTask<GitReference?> GetAsync(string name)
         {

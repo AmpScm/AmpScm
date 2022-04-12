@@ -261,14 +261,24 @@ namespace GitRepositoryTests
 
             Assert.IsTrue(repo.Head.Resolved.ReferenceChanges.Last().Signature.When >= repo.Head.Commit!.Committer!.When);
 
+            foreach(var t in repo.Tags)
+            {
+                TestContext.WriteLine($"tag: {t.Name}");
+            }
+
+            foreach (var b in repo.Branches)
+            {
+                TestContext.WriteLine($"branch: {b.Name}");
+            }
+
+            foreach (var r in repo.References)
+            {
+                TestContext.WriteLine($"references: {r.Name}");
+            }
+
             Assert.IsTrue(repo.Tags.Count() > 0, "Has tags");
             Assert.IsTrue(repo.Tags.Count() < repo.References.Count(), "Has more references than tags");
             var f = repo.Tags.First();
-
-            foreach (var t in repo.Tags)
-            {
-                TestContext.WriteLine(t.Name);
-            }
 
             Assert.IsNotNull(repo.Head.GitObject, "Has GitObject");
 
