@@ -73,15 +73,11 @@ namespace AmpScm.Git.References
             return base.ResolveByOidAsync(arg);
         }
 
-        public GitSymbolicReference? HeadReference { get; private set; }
-        protected internal override async ValueTask<GitReference?> GetUnsafeAsync(string name, bool findSymbolic)
+        protected internal override async ValueTask<GitReference?> GetUnsafeAsync(string name)
         {
-            if (findSymbolic && name == Head)
-                return HeadReference ??= new GitSymbolicReference(this, Head);
-
             foreach (var v in Sources)
             {
-                var r = await v.GetUnsafeAsync(name, findSymbolic).ConfigureAwait(false);
+                var r = await v.GetUnsafeAsync(name).ConfigureAwait(false);
 
                 if (r is not null)
                     return r;

@@ -147,7 +147,8 @@ namespace AmpScm.Git
 
         public GitReferenceChangeSet ReferenceChanges => new GitReferenceChangeSet(ReferenceRepository.Repository, this);
 
-        internal bool IsBranch => Name.StartsWith("refs/heads/", StringComparison.Ordinal) || AllUpper(Name);
+        // HEAD is only a branch if it is detached
+        internal bool IsBranch => Name.StartsWith("refs/heads/", StringComparison.Ordinal) || (Name == GitReferenceRepository.Head && ((this as GitSymbolicReference)?.Reference == this));
         internal bool IsTag => Name.StartsWith("refs/tags/", StringComparison.Ordinal);
 
         static HashSet<char> InvalidChars = new HashSet<char>(Path.GetInvalidFileNameChars());

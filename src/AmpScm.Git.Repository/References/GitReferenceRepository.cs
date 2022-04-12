@@ -33,10 +33,10 @@ namespace AmpScm.Git.References
             if (!GitReference.ValidName(name, true))
                 throw new ArgumentOutOfRangeException(nameof(name), name, "Invalid Reference name");
 
-            return GetUnsafeAsync(name, true);
+            return GetUnsafeAsync(name);
         }
 
-        protected internal abstract ValueTask<GitReference?> GetUnsafeAsync(string name, bool findSymbolic);
+        protected internal abstract ValueTask<GitReference?> GetUnsafeAsync(string name);
 
         public virtual IAsyncEnumerable<GitReferenceChange>? GetChanges(GitReference reference)
         {

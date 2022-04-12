@@ -39,7 +39,7 @@ namespace AmpScm.Git.References
 
                 if (_reference is string r)
                 {
-                    _reference = ReferenceRepository.Repository.ReferenceRepository.GetUnsafeAsync(r, false).AsTask().Result ?? _reference;
+                    _reference = ReferenceRepository.Repository.ReferenceRepository.GetUnsafeAsync(r).AsTask().Result ?? _reference;
                 }
 
                 return _reference as GitReference;

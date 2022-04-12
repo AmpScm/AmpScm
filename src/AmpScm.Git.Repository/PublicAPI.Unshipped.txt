@@ -4,7 +4,7 @@ abstract AmpScm.Git.GitTreeEntry.ReadAsync() -> System.Threading.Tasks.ValueTask
 abstract AmpScm.Git.Objects.GitObjectWriter.Type.get -> AmpScm.Git.GitObjectType
 abstract AmpScm.Git.Objects.GitObjectWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 abstract AmpScm.Git.References.GitReferenceRepository.GetAll(System.Collections.Generic.HashSet<string!>! alreadyReturned) -> System.Collections.Generic.IAsyncEnumerable<AmpScm.Git.GitReference!>!
-abstract AmpScm.Git.References.GitReferenceRepository.GetUnsafeAsync(string! name, bool findSymbolic) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
+abstract AmpScm.Git.References.GitReferenceRepository.GetUnsafeAsync(string! name) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
 abstract AmpScm.Git.Repository.GitBackendRepository.Dispose(bool disposing) -> void
 abstract AmpScm.Git.Sets.GitSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 AmpScm.Git.GitBlob

@@ -108,7 +108,7 @@ namespace AmpScm.Git.References
             }
         }
 
-        protected internal override async ValueTask<GitReference?> GetUnsafeAsync(string name, bool findSymbolic)
+        protected internal override async ValueTask<GitReference?> GetUnsafeAsync(string name)
         {
             await Read().ConfigureAwait(false);
 

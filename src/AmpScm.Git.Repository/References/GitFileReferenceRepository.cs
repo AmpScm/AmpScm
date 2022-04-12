@@ -43,16 +43,20 @@ namespace AmpScm.Git.References
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        protected internal override async ValueTask<GitReference?> GetUnsafeAsync(string name, bool findSymbolic)
+        protected internal override async ValueTask<GitReference?> GetUnsafeAsync(string name)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            string dir = name.Contains('/', StringComparison.Ordinal) ? GitDir : WorkTreeDir;
+            bool symbolic = !name.Contains('/', StringComparison.Ordinal);
+            string dir = symbolic? WorkTreeDir : GitDir;
             string fileName = Path.Combine(dir, name);
 
             if (!File.Exists(fileName))
                 return null;
 
-            return new GitReference(this, name, new GitAsyncLazy<GitId?>(async () => await LoadIdFromFile(fileName).ConfigureAwait(false)));
+            if (symbolic)
+                return new GitSymbolicReference(this, name);
+            else
+                return new GitReference(this, name, new GitAsyncLazy<GitId?>(async () => await LoadIdFromFile(fileName).ConfigureAwait(false)));
         }
 
         protected internal override async ValueTask<GitReference?> ResolveAsync(GitReference gitReference)
