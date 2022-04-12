@@ -189,6 +189,8 @@ AmpScm.Git.Sets.GitTreeItem.Path.get -> string!
 AmpScm.Git.Sets.GitTreeItemCollection
 AmpScm.Git.Sets.GitTreeItemCollection.GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerator<AmpScm.Git.Sets.GitTreeItem>!
 AmpScm.Git.Sets.GitTreeItemCollection.GetEnumerator() -> System.Collections.Generic.IEnumerator<AmpScm.Git.Sets.GitTreeItem>!
+AmpScm.Git.Sets.GitTreeItemCollection.this[string! path].get -> AmpScm.Git.Sets.GitTreeItem
+AmpScm.Git.Sets.GitTreeItemCollection.TryGet(string! path, out AmpScm.Git.Sets.GitTreeItem? item) -> bool
 AmpScm.Git.Sets.IGitNamedObject
 AmpScm.Git.Sets.IGitNamedObject.Name.get -> string!
 AmpScm.Git.Sets.IGitObject

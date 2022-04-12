@@ -138,6 +138,17 @@ namespace AmpScm.Git.Sets
             return false;
         }
 
+        public GitTreeItem this[string path]
+        {
+            get
+            {
+                if (TryGet(path, out var item))
+                    return item.Value;
+
+                throw new ArgumentOutOfRangeException(nameof(path));
+            }
+        }
+
         public IEnumerator<GitTreeItem> GetEnumerator()
         {
             return this.AsNonAsyncEnumerable().GetEnumerator();
