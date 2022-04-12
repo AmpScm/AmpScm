@@ -463,7 +463,7 @@ namespace BucketTests
 
 
         [TestMethod]
-        public async Task EolNormalizeSpecific()
+        public void EolNormalizeSpecific()
         {
             string Apply(string tst, BucketEol acceptedEols= BucketEol.AnyEol)
             {
