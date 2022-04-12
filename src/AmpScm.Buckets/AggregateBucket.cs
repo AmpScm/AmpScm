@@ -7,7 +7,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets
 {
-    [DebuggerDisplay("{Name}: BucketCount={BucketCount}, Current={CurrentBucket}, Position={Position}")]
+    [DebuggerDisplay("{Name,nq}: BucketCount={BucketCount}, Current={CurrentBucket,nq}, Position={Position}")]
     public class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers
     {
         Bucket?[] _buckets;

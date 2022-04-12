@@ -462,6 +462,91 @@ namespace BucketTests
         }
 
 
+        [TestMethod]
+        public async Task EolNormalizeSpecific()
+        {
+            string Apply(string tst, BucketEol acceptedEols= BucketEol.AnyEol)
+            {
+                var r = MakeBucket(tst).NormalizeEols(acceptedEols);
+                var bb = r.ReadFullAsync(256).AsTask().GetAwaiter().GetResult();
+
+                return bb.ToUTF8String();
+            }
+
+            string Apply2(string[] tst, BucketEol acceptedEols = BucketEol.AnyEol)
+            {
+                var r = MakeBucket(tst).NormalizeEols(acceptedEols);
+                var bb = r.ReadFullAsync(256).AsTask().GetAwaiter().GetResult();
+
+                return bb.ToUTF8String();
+            }
+
+            string tst = "aap\r\r\r\r\r";
+            Assert.AreEqual(Escape(tst.Replace('\r', '\n')), Escape(Apply(tst)));
+
+            tst = "aap\r\\r\n\r\r";
+            Assert.AreEqual(Escape(tst.Replace("\r\n", "\n").Replace('\r', '\n')), Escape(Apply(tst)));
+
+
+
+            tst = "aap\r\r\r\n";
+            var tst2 = new[] {"aap\r\r", "\r\n"};
+            Assert.AreEqual(Escape(tst.Replace("\r\n", "\n")), Escape(Apply2(tst2, BucketEol.CRLF)));
+
+
+            tst = "st\r\r\r\0do";
+            tst2 = new[] { "s", "t", "\r\r\r\0do" };
+            Assert.AreEqual(Escape(tst.Replace("\0", "\n")), Escape(Apply2(tst2, BucketEol.CRLF | BucketEol.Zero)));
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(EolFlags))]
+        public async Task EolNormalize(BucketEol acceptableEols)
+        {
+            var opts = new[] { "\r", "\n", "\r\n", "\0", " " };
+            foreach (var c1 in opts)
+                foreach (var c2 in opts)
+                    foreach (var c3 in opts)
+                        foreach (var c4 in opts)
+                        {
+                            string tst = $"st{c1}{c2}{c3}{c4}do";
+
+                            for (int n1 = 1; n1 < tst.Length - 2; n1++)
+                                for (int n2 = n1 + 1; n2 < tst.Length - 1; n2++)
+                                {
+                                    using var r = MakeBucket(tst.Substring(0, n1), tst.Substring(n1, n2 - n1), tst.Substring(n2)).NormalizeEols(acceptableEols);
+                                    var total = "";
+
+                                    while (true)
+                                    {
+                                        var bb = await r.ReadAsync();
+
+                                        if (bb.IsEof)
+                                            break;
+
+                                        total += bb.ToASCIIString();
+                                    }
+
+                                    var exp = tst;
+
+                                    if ((acceptableEols & BucketEol.CRLF) != 0)
+                                        exp = exp.Replace("\r\n", "\n");
+                                    if ((acceptableEols & BucketEol.CR) != 0)
+                                        exp = exp.Replace("\r", "\n");
+                                    if ((acceptableEols & BucketEol.Zero) != 0)
+                                        exp = exp.Replace("\0", "\n");
+                                    Assert.AreEqual(Escape(exp), Escape(total), $"In case {Escape(c1)}, {Escape(c2)}, {Escape(c3)}, {Escape(c4)}, n1={n1}, n2={n2}");
+
+                                    using (var r2 = MakeBucket(tst.Substring(0, n1)))
+                                    {
+                                        var (bb, eol) = await r.ReadUntilEolAsync(acceptableEols, n2 - n1);
+
+                                        Assert.IsTrue(bb.Length <= (n2 - n1), "Did not read more than requested");
+                                    }
+                                }
+                        }
+        }
+
         private Bucket MakeBucket(params string[] args)
         {
             return new AggregateBucket(args.Select(x => Encoding.ASCII.GetBytes(x).AsBucket()).ToArray());

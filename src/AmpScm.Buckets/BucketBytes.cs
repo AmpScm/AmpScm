@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets
 {
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{DebuggerDisplay,nq}", Name ="Bytes")]
     public partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
     {
         readonly ReadOnlyMemory<byte> _data;
