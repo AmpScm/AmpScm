@@ -25,12 +25,6 @@ namespace AmpScm.Git
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal GitInternalConfigAccess InternalConfig { get; private set;  } = new GitInternalConfigAccess(GitIdType.Sha1);
 
-
-        GitConfiguration LoadConfig()
-        {
-            return new GitConfiguration(this, GitDir);
-        }
-
         internal void SetSHA256() // Called from repository object store on config verify
         {
             InternalConfig = new GitInternalConfigAccess(GitIdType.Sha256);
