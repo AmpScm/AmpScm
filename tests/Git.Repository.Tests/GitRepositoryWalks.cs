@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AmpScm;
+using AmpScm.Buckets.Git.Objects;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.References;
@@ -165,7 +166,7 @@ namespace GitRepositoryTests
 
         [TestMethod]
         [DynamicData(nameof(TestRepositoryArgs))]
-        public async Task WalkTreeItems(string path)
+        public async Task WalkTreeLinkItems(string path)
         {
             using var repo = await GitRepository.OpenAsync(path);
 
@@ -175,8 +176,21 @@ namespace GitRepositoryTests
             bool foundModule = false;
             foreach(var item in tree)
             {
-                if (item.ElementType == AmpScm.Buckets.Git.Objects.GitTreeElementType.GitCommitLink)
-                    foundModule = true;
+                switch (item.ElementType)
+                {
+                    case GitTreeElementType.GitCommitLink:
+                        foundModule = true;
+                        break;
+                    case GitTreeElementType.SymbolicLink:
+
+                        using (var sr = new StreamReader(((GitBlob)item.GitObject).AsStream()))
+                        {
+                            var target = sr.ReadToEnd();
+
+                            Assert.IsTrue(tree.AllItems.TryGet(target, out _), $"Can find {target}");
+                        }
+                        break;
+                }
             }
 
             Assert.AreEqual(hasModules, foundModule);
