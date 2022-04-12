@@ -102,8 +102,9 @@ namespace AmpScm.Git
 
     public class GitDirectoryTreeEntry : GitTreeEntry<GitDirectoryTreeEntry, GitTree>
     {
-        internal GitDirectoryTreeEntry(GitTree tree, string name, GitId item) : base(tree, name, item)
+        internal GitDirectoryTreeEntry(GitTree tree, string name, GitTreeElementType mask, GitId item) : base(tree, name, item)
         {
+            ElementType = mask;
         }
 
         public override string EntryName => Name + "/";
@@ -112,6 +113,6 @@ namespace AmpScm.Git
 
         public new GitTree GitObject => Object;
 
-        public override GitTreeElementType ElementType => GitTreeElementType.Directory;
+        public override GitTreeElementType ElementType { get; }
     }
 }

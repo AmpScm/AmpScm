@@ -143,6 +143,9 @@ namespace AmpScm.Git
             }
         }
 
+        public GitTree? Tree => Commit?.Tree;
+
+
         public GitRevisionSet Revisions => new GitRevisionSet(ReferenceRepository.Repository).AddReference(this);
 
         public GitReferenceChangeSet ReferenceChanges => new GitReferenceChangeSet(ReferenceRepository.Repository, this);

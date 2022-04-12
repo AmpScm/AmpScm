@@ -17,7 +17,7 @@ namespace AmpScm.Git
 {
     public sealed class GitTree : GitObject, IEnumerable<GitTreeEntry>, IAsyncEnumerable<GitTreeEntry>, IGitLazy<GitTree>
     {
-        readonly List<GitTreeEntry> _entries = new ();
+        readonly List<GitTreeEntry> _entries = new();
         private GitBucket? _rdr;
 
         internal GitTree(GitRepository repository, GitId id)
@@ -57,10 +57,10 @@ namespace AmpScm.Git
 
         private GitTreeEntry NewGitTreeEntry(GitTreeElementRecord value)
         {
-            if (value.Type == GitTreeElementType.Directory)
-                return new GitDirectoryTreeEntry(this, value.Name, value.Id);
-            else
+            if (value.Type.IsFile())
                 return new GitFileTreeEntry(this, value.Name, value.Type, value.Id);
+            else
+                return new GitDirectoryTreeEntry(this, value.Name, value.Type, value.Id);
         }
 
         public async IAsyncEnumerator<GitTreeEntry> GetAsyncEnumerator(CancellationToken cancellationToken = default)

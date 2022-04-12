@@ -43,6 +43,7 @@ AmpScm.Git.GitReference.ResolveAsync() -> System.Threading.Tasks.ValueTask<AmpSc
 AmpScm.Git.GitReference.Resolved.get -> AmpScm.Git.GitReference!
 AmpScm.Git.GitReference.Revisions.get -> AmpScm.Git.Sets.GitRevisionSet!
 AmpScm.Git.GitReference.ShortName.get -> string!
+AmpScm.Git.GitReference.Tree.get -> AmpScm.Git.GitTree?
 AmpScm.Git.GitReferenceChange
 AmpScm.Git.GitReferenceChange.OriginalId.get -> AmpScm.Git.GitId!
 AmpScm.Git.GitReferenceChange.Signature.get -> AmpScm.Git.GitSignature!
@@ -273,6 +274,6 @@ virtual AmpScm.Git.Objects.GitObjectRepository.GetAll<TGitObject>(System.Collect
 virtual AmpScm.Git.Objects.GitObjectRepository.GetByIdAsync<TGitObject>(AmpScm.Git.GitId! id) -> System.Threading.Tasks.ValueTask<TGitObject?>
 virtual AmpScm.Git.References.GitReferenceRepository.GetChanges(AmpScm.Git.GitReference! reference) -> System.Collections.Generic.IAsyncEnumerable<AmpScm.Git.GitReferenceChange!>?
 virtual AmpScm.Git.References.GitReferenceRepository.ResolveAsync(AmpScm.Git.GitReference! gitReference) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
-virtual AmpScm.Git.References.GitReferenceRepository.ResolveByOidAsync(AmpScm.Git.GitId! arg) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
+virtual AmpScm.Git.References.GitReferenceRepository.ResolveByOidAsync(AmpScm.Git.GitId! id, System.Collections.Generic.HashSet<string!>! processed) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IEnumerable<AmpScm.Git.GitReference!>!>
 virtual AmpScm.Git.Sets.GitNamedObjectWrapper<TGitObject, TNamedObject>.Name.get -> string!
 virtual AmpScm.Git.Sets.GitObjectWrapper<TGitObject>.ReadAsync() -> System.Threading.Tasks.ValueTask

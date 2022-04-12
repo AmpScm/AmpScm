@@ -2,3 +2,5 @@
 AmpScm.Git.GitId.GitId(string! value) -> void
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Git.GitBucketExtensions.GitHash(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Git.GitBucketExtensions.IsDirectory(this AmpScm.Buckets.Git.Objects.GitTreeElementType elementType) -> bool
+static AmpScm.Git.GitBucketExtensions.IsFile(this AmpScm.Buckets.Git.Objects.GitTreeElementType elementType) -> bool

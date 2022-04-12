@@ -42,6 +42,38 @@ namespace AmpScm.Git.References
             }
         }
 
+        public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
+        {
+            List<GitReference>? refs = null;
+
+            await foreach (var v in GetAll(new()))
+            {
+                if (v.Id == id)
+                {
+                    refs ??= new ();
+                    refs.Add(v);
+                }
+                else if (v.IsTag)
+                {
+                    await v.ReadAsync().ConfigureAwait(false);
+
+                    if (v.GitObject is GitTagObject tagObject)
+                    {
+                        await v.ReadAsync().ConfigureAwait(false);
+
+                        if (v.Commit?.Id == id)
+                        {
+                            refs ??= new();
+                            refs.Add(v);
+                        }
+                    }
+                }
+                processed.Add(v.Name);
+            }
+
+            return refs ?? Enumerable.Empty<GitReference>();
+        }
+
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         protected internal override async ValueTask<GitReference?> GetUnsafeAsync(string name)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously

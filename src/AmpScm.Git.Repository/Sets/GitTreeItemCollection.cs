@@ -2,20 +2,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Git.Objects;
 using AmpScm.Git.Implementation;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitTreeItemCollection : IEnumerable<GitTreeItem>, IAsyncEnumerable<GitTreeItem>
+    public class GitTreeItemCollection : GitSet, IEnumerable<GitTreeItem>, IAsyncEnumerable<GitTreeItem>
     {
         readonly GitTree _gitTree;
         readonly bool _justFiles;
 
         internal GitTreeItemCollection(GitTree gitTree, bool justFiles)
+            : base(gitTree?.Repository ?? throw new ArgumentNullException(nameof(gitTree)))
         {
             if (gitTree is null)
                 throw new ArgumentNullException(nameof(gitTree));
@@ -74,6 +77,65 @@ namespace AmpScm.Git.Sets
                     break;
             }
             while (cur != null);
+        }
+
+        public bool TryGet(string path, [NotNullWhen(true)] out GitTreeItem? item)
+        {
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path));
+
+            GitTree tree = _gitTree;
+
+            int n = -1;
+            do
+            {
+                int start = n + 1;
+                n = path.IndexOf('/', start);
+                if (n < 0)
+                    n = path.Length;
+                else if (n == start)
+                {
+                    item = null;
+                    return false;
+                }
+
+                string sp = path.Substring(start, n - start);
+                bool found = false;
+                foreach(var i in tree)
+                {
+                    if (i.Name == sp)
+                    {
+                        if (n == path.Length && (!_justFiles || i.ElementType.IsFile()))
+                        {
+                            item = new GitTreeItem(path, i);
+                            return true;
+                        }
+
+                        if (i.ElementType == GitTreeElementType.Directory)
+                        {
+                            tree = (GitTree)i.GitObject;
+                        }
+                        else if (i.ElementType == GitTreeElementType.GitCommitLink)
+                        {
+                            tree = ((GitCommit)i.GitObject).Tree;
+                        }
+                        else
+                        {
+                            item = null;
+                            return false;
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                    break;
+            }
+            while (n < path.Length);
+
+            item = null;
+            return false;
         }
 
         public IEnumerator<GitTreeItem> GetEnumerator()

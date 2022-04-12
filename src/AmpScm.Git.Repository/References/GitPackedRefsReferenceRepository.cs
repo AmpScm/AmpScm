@@ -73,6 +73,24 @@ namespace AmpScm.Git.References
             return null;
         }
 
+        public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
+        {
+            await Read().ConfigureAwait(false);
+
+            return Walk();
+
+            // Private function to generate result as IEnumerable
+            IEnumerable<GitReference> Walk()
+            {
+                foreach (var v in _peelRefs!.Values)
+                {
+                    // TODO: Do we know if the packed reference is overridden by a local file?
+                    if (!processed.Contains(v.Name) && (v.Id == id || v.Peeled == id))
+                        yield return new GitReference(this, v.Name, v.Id).SetPeeled(v.Peeled);
+                }
+            }
+        }
+
         private protected void ParseLineToPeel(string line, ref GitRefPeel? last, int idLength)
         {
             if (string.IsNullOrWhiteSpace(line))

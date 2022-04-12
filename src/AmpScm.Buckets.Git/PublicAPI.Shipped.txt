@@ -1,12 +1,12 @@
 ﻿#nullable enable
 abstract AmpScm.Buckets.Git.GitObjectBucket.ReadTypeAsync() -> System.Threading.Tasks.ValueTask
-AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket
-AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket.GitCommitReadBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket.ReadAllParentIdsAsync() -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyCollection<AmpScm.Git.GitId!>!>
-AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket.ReadAuthorAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
-AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket.ReadCommitter() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
-AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket.ReadFirstParentIdAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId?>
-AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket.ReadTreeIdAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
+AmpScm.Buckets.Git.Objects.GitCommitReadBucket
+AmpScm.Buckets.Git.Objects.GitCommitReadBucket.GitCommitReadBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadAllParentIdsAsync() -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyCollection<AmpScm.Git.GitId!>!>
+AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadAuthorAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
+AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadCommitter() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
+AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadFirstParentIdAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId?>
+AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadTreeIdAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 AmpScm.Buckets.Git.GitBitmapHeaderBucket
 AmpScm.Buckets.Git.GitBitmapHeaderBucket.BitmapType.get -> string?
 AmpScm.Buckets.Git.GitBitmapHeaderBucket.Flags.get -> int?
@@ -136,8 +136,8 @@ AmpScm.Git.GitObjectType.Commit = 1 -> AmpScm.Git.GitObjectType
 AmpScm.Git.GitObjectType.None = 0 -> AmpScm.Git.GitObjectType
 AmpScm.Git.GitObjectType.Tag = 4 -> AmpScm.Git.GitObjectType
 AmpScm.Git.GitObjectType.Tree = 2 -> AmpScm.Git.GitObjectType
-override AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Git.Buckets.Objects.GitCommitReadBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.Objects.GitCommitReadBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitBitmapHeaderBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitCommitGenerationValue.Equals(object? obj) -> bool
 override AmpScm.Buckets.Git.GitCommitGenerationValue.GetHashCode() -> int

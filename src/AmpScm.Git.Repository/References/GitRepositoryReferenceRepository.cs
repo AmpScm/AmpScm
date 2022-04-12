@@ -68,9 +68,25 @@ namespace AmpScm.Git.References
             return null;
         }
 
-        public override ValueTask<GitReference?> ResolveByOidAsync(GitId arg)
+        public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
         {
-            return base.ResolveByOidAsync(arg);
+            HashSet<GitReference>? references = null;
+            foreach (var v in Sources)
+            {
+                var rs = await v.ResolveByOidAsync(id, processed).ConfigureAwait(false);
+
+                if (rs != null)
+                {
+
+                    foreach (var r in rs)
+                    {
+                        references ??= new();
+                        references.Add(r);
+                    }
+                }
+            }
+
+            return references ?? Enumerable.Empty<GitReference>();
         }
 
         protected internal override async ValueTask<GitReference?> GetUnsafeAsync(string name)

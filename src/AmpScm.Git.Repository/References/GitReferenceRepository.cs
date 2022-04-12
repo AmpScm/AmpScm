@@ -43,7 +43,7 @@ namespace AmpScm.Git.References
             return default;
         }
 
-        public virtual ValueTask<GitReference?> ResolveByOidAsync(GitId arg)
+        public virtual ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
         {
             return default;
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Git.Objects;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Git
@@ -20,6 +21,33 @@ namespace AmpScm.Git
         {
             return GitId.HashLength(type);
         }
+
+        /// <summary>
+        /// Returns true if the element represents a file on disk, otherwise false
+        /// </summary>
+        /// <param name="elementType"></param>
+        /// <returns></returns>
+        public static bool IsFile(this GitTreeElementType elementType)
+            => elementType switch
+            {
+                GitTreeElementType.File => true,
+                GitTreeElementType.FileExecutable => true,
+                GitTreeElementType.SymbolicLink => true,
+                _ => false,
+            };
+
+        /// <summary>
+        /// Returns true if the element represents a directory on disk, otherwise false
+        /// </summary>
+        /// <param name="elementType"></param>
+        /// <returns></returns>
+        public static bool IsDirectory(this GitTreeElementType elementType)
+            => elementType switch
+            {
+                GitTreeElementType.Directory => true,
+                GitTreeElementType.GitCommitLink => true,
+                _ => false,
+            };
 
         public static Bucket CreateHeader(this GitObjectType type, long length)
         {

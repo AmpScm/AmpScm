@@ -7,7 +7,7 @@ using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 
-namespace AmpScm.Buckets.Git.Buckets.Objects
+namespace AmpScm.Buckets.Git.Objects
 {
     public sealed class GitCommitReadBucket : GitBucket, IBucketPoll
     {

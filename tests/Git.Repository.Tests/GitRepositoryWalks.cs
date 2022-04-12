@@ -164,6 +164,25 @@ namespace GitRepositoryTests
         }
 
         [TestMethod]
+        [DynamicData(nameof(TestRepositoryArgs))]
+        public async Task WalkTreeItems(string path)
+        {
+            using var repo = await GitRepository.OpenAsync(path);
+
+            GitTree tree = repo.Head.Tree!;
+
+            bool hasModules = tree.AllFiles.TryGet(".gitmodules", out _);
+            bool foundModule = false;
+            foreach(var item in tree)
+            {
+                if (item.ElementType == AmpScm.Buckets.Git.Objects.GitTreeElementType.GitCommitLink)
+                    foundModule = true;
+            }
+
+            Assert.AreEqual(hasModules, foundModule);
+        }
+
+        [TestMethod]
         public async Task WalkWorkTreeWorkingCopy()
         {
             var path = TestContext.PerTestDirectory();
