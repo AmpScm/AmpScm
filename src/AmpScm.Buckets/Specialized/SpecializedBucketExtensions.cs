@@ -60,12 +60,20 @@ namespace AmpScm.Buckets.Specialized
             { }
         }
 
-        public static Bucket NormalizeEols(this Bucket bucket, BucketEol acceptedEols, BucketEol producedEol= BucketEol.LF)
+        public static Bucket NormalizeEols(this Bucket bucket, BucketEol acceptedEols, BucketEol producedEol = BucketEol.LF)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
             return new EolNormalizeBucket(bucket, acceptedEols, producedEol);
+        }
+
+        public static Bucket NormalizeText(this Bucket bucket)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new TextNormalizeBucket(bucket);
         }
 
         public static async ValueTask<BucketBytes> ReadFullAsync(this Bucket bucket, int requested)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -387,7 +388,7 @@ namespace BucketTests
                             string tst = $"st{c1}{c2}{c3}{c4}do";
 
                             for (int n1 = 1; n1 < tst.Length - 2; n1++)
-                                for (int n2 = n1 + 1; n2 < tst.Length-1; n2++)
+                                for (int n2 = n1 + 1; n2 < tst.Length - 1; n2++)
                                 {
                                     using var r = MakeBucket(tst.Substring(0, n1), tst.Substring(n1, n2 - n1), tst.Substring(n2));
                                     var state = new BucketEolState();
@@ -400,7 +401,7 @@ namespace BucketTests
                                         if (bb.IsEof)
                                             break;
 
-                                        var s= bb.ToASCIIString();
+                                        var s = bb.ToASCIIString();
                                         total += s;
 
                                         if (s.Length > 2 && 0 != (acceptableEols & BucketEol.LF) && s.LastIndexOf('\n', s.Length - 2) >= 0)
@@ -418,7 +419,38 @@ namespace BucketTests
 
         string Escape(string v)
         {
-            return v.Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\0", "\\0");
+            StringBuilder sb = new StringBuilder(v.Length);
+
+            foreach (char c in v)
+            {
+                switch (c)
+                {
+                    case '\\':
+                        sb.Append("\\\\");
+                        break;
+                    case '\r':
+                        sb.Append("\\r");
+                        break;
+                    case '\n':
+                        sb.Append("\\n");
+                        break;
+                    case '\0':
+                        sb.Append("\\0");
+                        break;
+                    case '\t':
+                        sb.Append("\\t");
+                        break;
+                    default:
+                        if (char.IsControl(c))
+                        {
+                            sb.Append($"\\x{(int)c:x2}");
+                        }
+                        else
+                            sb.Append(c);
+                        break;
+                }
+            }
+            return sb.ToString();
         }
 
         [TestMethod]
@@ -453,7 +485,7 @@ namespace BucketTests
 
                                     using (var r2 = MakeBucket(tst.Substring(0, n1)))
                                     {
-                                        var (bb, eol) = await r.ReadUntilEolAsync(acceptableEols, n2-n1);
+                                        var (bb, eol) = await r.ReadUntilEolAsync(acceptableEols, n2 - n1);
 
                                         Assert.IsTrue(bb.Length <= (n2 - n1), "Did not read more than requested");
                                     }
@@ -465,7 +497,7 @@ namespace BucketTests
         [TestMethod]
         public void EolNormalizeSpecific()
         {
-            string Apply(string tst, BucketEol acceptedEols= BucketEol.AnyEol)
+            string Apply(string tst, BucketEol acceptedEols = BucketEol.AnyEol)
             {
                 var r = MakeBucket(tst).NormalizeEols(acceptedEols);
                 var bb = r.ReadFullAsync(256).AsTask().GetAwaiter().GetResult();
@@ -488,9 +520,8 @@ namespace BucketTests
             Assert.AreEqual(Escape(tst.Replace("\r\n", "\n").Replace('\r', '\n')), Escape(Apply(tst)));
 
 
-
             tst = "aap\r\r\r\n";
-            var tst2 = new[] {"aap\r\r", "\r\n"};
+            var tst2 = new[] { "aap\r\r", "\r\n" };
             Assert.AreEqual(Escape(tst.Replace("\r\n", "\n")), Escape(Apply2(tst2, BucketEol.CRLF)));
 
 
@@ -547,10 +578,41 @@ namespace BucketTests
                         }
         }
 
-        private Bucket MakeBucket(params string[] args)
+        private static Bucket MakeBucket(params string[] args)
         {
             return new AggregateBucket(args.Select(x => Encoding.ASCII.GetBytes(x).AsBucket()).ToArray());
         }
 
+        static Encoding ANSI { get; } = (Encoding.Default is UTF8Encoding) ? Encoding.GetEncoding("ISO-8859-1") : Encoding.Default;
+
+        public static IEnumerable<object[]> EncodingList { get; } = new Encoding[] { new UTF8Encoding(true), new UTF8Encoding(false), ANSI, new UnicodeEncoding(false, true), new UnicodeEncoding(true, true) }.Select(x => new object[] { x });
+        [TestMethod]
+        [DynamicData(nameof(EncodingList), DynamicDataDisplayName = nameof(EncodingDisplayName))]
+        public async Task StreamNormalize(Encoding enc)
+        {
+            var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
+            var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
+            using var b = encodedBytes.AsBucket();
+
+            // This wil test the peaking
+            var bb = await b.NormalizeText().ReadFullAsync(1024);
+            Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
+
+
+            if (enc is UnicodeEncoding)
+                return; // Currently unable to detect unicode if first read is less than 2 bytes
+
+            // This will check the byte reading
+            BucketBytes ec = encodedBytes;
+            bb = await (ec.Slice(0, 1).ToArray().AsBucket() + ec.Slice(1).ToArray().AsBucket()).NormalizeText().ReadFullAsync(1024);
+            Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
+        }
+
+        public static string EncodingDisplayName(MethodInfo mi, object[] args)
+        {
+            var enc = (Encoding)args[0];
+
+            return $"{mi.Name}({enc.EncodingName}{(enc.GetPreamble().Any() ? ", bom: true" : "")})";
+        }
     }
 }
