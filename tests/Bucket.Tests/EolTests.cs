@@ -578,41 +578,42 @@ namespace BucketTests
                         }
         }
 
-        private static Bucket MakeBucket(params string[] args)
-        {
-            return new AggregateBucket(args.Select(x => Encoding.ASCII.GetBytes(x).AsBucket()).ToArray());
-        }
+        public static IEnumerable<object[]> EncodingList { get; } = new Encoding[] { new UTF8Encoding(true), new UTF8Encoding(false), ANSI, new UnicodeEncoding(false, true), new UnicodeEncoding(true, true), new UnicodeEncoding(false, false), new UnicodeEncoding(true, false) }.Select(x => new object[] { x });
 
-        static Encoding ANSI { get; } = (Encoding.Default is UTF8Encoding) ? Encoding.GetEncoding("ISO-8859-1") : Encoding.Default;
-
-        public static IEnumerable<object[]> EncodingList { get; } = new Encoding[] { new UTF8Encoding(true), new UTF8Encoding(false), ANSI, new UnicodeEncoding(false, true), new UnicodeEncoding(true, true) }.Select(x => new object[] { x });
         [TestMethod]
         [DynamicData(nameof(EncodingList), DynamicDataDisplayName = nameof(EncodingDisplayName))]
-        public async Task StreamNormalize(Encoding enc)
+        public async Task NormalizeBucketToUtf8(Encoding enc)
         {
             var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
             var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
             using var b = encodedBytes.AsBucket();
 
             // This wil test the peaking
-            var bb = await b.NormalizeText().ReadFullAsync(1024);
+            var bb = await b.NormalizeToUtf8().ReadFullAsync(1024);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
 
-
-            if (enc is UnicodeEncoding)
-                return; // Currently unable to detect unicode if first read is less than 2 bytes
+            if (enc is UnicodeEncoding u && !u.GetPreamble().Any())
+                return; // Unicode without preamble not detectable without scan via .Peek()
 
             // This will check the byte reading
             BucketBytes ec = encodedBytes;
-            bb = await (ec.Slice(0, 1).ToArray().AsBucket() + ec.Slice(1).ToArray().AsBucket()).NormalizeText().ReadFullAsync(1024);
+            bb = await (ec.Slice(0, 1).ToArray().AsBucket() + ec.Slice(1).ToArray().AsBucket()).NormalizeToUtf8().ReadFullAsync(1024);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
         }
+
+        private static Bucket MakeBucket(params string[] args)
+        {
+            return new AggregateBucket(args.Select(x => Encoding.ASCII.GetBytes(x).AsBucket()).ToArray());
+        }
+
+        static Encoding ANSI => (Encoding.Default is UTF8Encoding) ? Encoding.GetEncoding("ISO-8859-1") : Encoding.Default;
+
 
         public static string EncodingDisplayName(MethodInfo mi, object[] args)
         {
             var enc = (Encoding)args[0];
 
-            return $"{mi.Name}({enc.EncodingName}{(enc.GetPreamble().Any() ? ", bom: true" : "")})";
+            return $"{mi.Name}({enc.EncodingName}, bom: {enc.GetPreamble().Any()})";
         }
     }
 }

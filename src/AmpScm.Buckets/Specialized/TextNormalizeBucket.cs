@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal class TextNormalizeBucket : WrappingBucket
+    internal class TextNormalizeBucket : WrappingBucket, IBucketPoll
     {
         Encoding _default;
         State _state;
@@ -29,13 +30,13 @@ namespace AmpScm.Buckets.Specialized
         {
             _state = State.Init;
             _inner = inner;
-            _default = ANSI;
+            _default = DefaultEncoding;
         }
 
-        public TextNormalizeBucket(Bucket inner, Encoding defaultEncoding)
+        public TextNormalizeBucket(Bucket inner, Encoding fallbackEncoding)
             : this(inner)
         {
-            _default = defaultEncoding ?? ANSI;
+            _default = fallbackEncoding ?? DefaultEncoding;
         }
 
         public override BucketBytes Peek()
@@ -46,7 +47,15 @@ namespace AmpScm.Buckets.Specialized
                 return BucketBytes.Empty;
         }
 
-        static Encoding ANSI { get; } = (Encoding.Default is UTF8Encoding) ? Encoding.GetEncoding("ISO-8859-1") : Encoding.Default;
+        public ValueTask<BucketBytes> PollAsync(int minRequested = 1)
+        {
+            if (_state == State.Done)
+                return _inner.PollAsync(minRequested);
+            else
+                return new ValueTask<BucketBytes>(BucketBytes.Empty);
+        }
+
+        public static Encoding DefaultEncoding { get; } = (Encoding.Default is UTF8Encoding) ? Encoding.GetEncoding("ISO-8859-1") : Encoding.Default;
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
@@ -151,7 +160,7 @@ namespace AmpScm.Buckets.Specialized
                         {
                             _state = State.Done;
                             _inner = new TextEncodingToUtf8Bucket(Inner,
-                                    odd >= (maybeUnicode/2) ? Encoding.Unicode : Encoding.BigEndianUnicode);
+                                    odd >= Math.Max(2, (maybeUnicode/4)) ? Encoding.Unicode : Encoding.BigEndianUnicode);
                             goto case State.Done;
                         }
                         else if (maybeUtf8 < 0)
@@ -277,6 +286,25 @@ namespace AmpScm.Buckets.Specialized
                         _position = bb.Length;
                         return bb;
                     }
+                    else if (bb.Length == 1 && (bb[0] == 0xFF || bb[0] == 0xFE))
+                    {
+                        byte b0 = bb[0];
+                        bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+
+                        if (bb.Length == 1 && (bb[0] == 0xFF || bb[0] == 0xFE) && bb[0] != b0)
+                        {
+                            _inner = new TextEncodingToUtf8Bucket(Inner,
+                                b0 == 0xFF ? Encoding.Unicode : Encoding.BigEndianUnicode);
+                            _state = State.Done;
+                            goto case State.Done;
+                        }
+                        else if (bb.IsEof)
+                            return new[] { b0 };
+                        else
+                        {
+                            bb = new[] { b0, bb[0] };
+                        }
+                    }
                     _inner = Inner;
                     _state = State.HighScan;
                     _position = bb.Length;
@@ -344,5 +372,24 @@ namespace AmpScm.Buckets.Specialized
         }
 
         public override long? Position => _position;
+
+        public override bool CanReset => Inner.CanReset;
+
+        public override async ValueTask ResetAsync()
+        {
+            await base.ResetAsync().ConfigureAwait(false);
+            _state = State.Init;
+            _position = 0;
+            _inner = base.Inner;
+        }
+
+        public override async ValueTask<Bucket> DuplicateAsync(bool reset)
+        {
+            if (!reset)
+                throw new NotSupportedException();
+
+            var b = await Inner.DuplicateAsync(reset).ConfigureAwait(false);
+            return new TextNormalizeBucket(b, _default);
+        }        
     }
 }

@@ -78,11 +78,6 @@ AmpScm.Buckets.Specialized.CombineBucket
 AmpScm.Buckets.Specialized.CombineBucket.CombineBucket(AmpScm.Buckets.Bucket! left, AmpScm.Buckets.Bucket! right) -> void
 AmpScm.Buckets.Specialized.CombineBucket.Left.get -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Specialized.CombineBucket.Right.get -> AmpScm.Buckets.Bucket!
-AmpScm.Buckets.Specialized.CreateHashBucket
-AmpScm.Buckets.Specialized.CreateHashBucket.CreateHashBucket(AmpScm.Buckets.Bucket! inner, System.Security.Cryptography.HashAlgorithm! hasher) -> void
-AmpScm.Buckets.Specialized.CreateHashBucket.CreateHashBucket(AmpScm.Buckets.Bucket! inner, System.Security.Cryptography.HashAlgorithm! hasher, System.Action<byte[]!>? hashCreated) -> void
-AmpScm.Buckets.Specialized.CreateHashBucket.HashResult.get -> byte[]?
-AmpScm.Buckets.Specialized.CreateHashBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Specialized.NetBitConverter
 AmpScm.Buckets.Specialized.ProxyBucket
 AmpScm.Buckets.Specialized.ProxyBucket.ProxyBucket(AmpScm.Buckets.Bucket! inner) -> void
@@ -150,14 +145,6 @@ override AmpScm.Buckets.SocketBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.SocketBucket.Position.get -> long?
 override AmpScm.Buckets.SocketBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.CombineBucket.Dispose(bool disposing) -> void
-override AmpScm.Buckets.Specialized.CreateHashBucket.CanReset.get -> bool
-override AmpScm.Buckets.Specialized.CreateHashBucket.DuplicateAsync(bool reset) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Bucket!>
-override AmpScm.Buckets.Specialized.CreateHashBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Specialized.CreateHashBucket.Position.get -> long?
-override AmpScm.Buckets.Specialized.CreateHashBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Specialized.CreateHashBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
-override AmpScm.Buckets.Specialized.CreateHashBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-override AmpScm.Buckets.Specialized.CreateHashBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Specialized.ProxyBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.DuplicateAsync(bool reset) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Bucket!>

@@ -6,30 +6,40 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public class TextEncodingToUtf8Bucket : WrappingBucket
+    internal class TextEncodingToUtf8Bucket : WrappingBucket
     {
         readonly char[] _charBuffer;
         byte[] _utfBuffer;
         byte[]? _toConvert;
         BucketBytes _remaining;
         Encoding _encoding;
+        Decoder _decoder;
+        Encoder _encoder;
         bool _by2;
+        private int _toEncode;
+        long _position;
 
         public TextEncodingToUtf8Bucket(Bucket inner, Encoding encoding) : base(inner)
         {
-            _encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
+            if (encoding == null)
+                throw new ArgumentNullException(nameof(encoding));
+            _encoding = encoding;
+            _decoder = encoding.GetDecoder();
+            _encoder = Encoding.UTF8.GetEncoder();
             _charBuffer = new char[1024];
             _utfBuffer = new byte[1024];
-            _by2 = _encoding is UnicodeEncoding;
+            _by2 = encoding is UnicodeEncoding;
         }
 
-        static Encoding UTF8 => Encoding.UTF8;
+        public override string Name => "ToUtf8[" + _encoding.WebName + "]>" + Inner.Name;
+
+        public override long? Position => _position;
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
             int rq = _by2 ? (requested + 1) & ~1 : requested;
 
-            while(_remaining.IsEmpty)
+            while (_remaining.IsEmpty)
             {
                 BucketBytes bb;
 
@@ -46,20 +56,32 @@ namespace AmpScm.Buckets.Specialized
                     _toConvert = null;
                 }
 
-                int chars;
 #if !NETFRAMEWORK
-                chars = _encoding.GetCharCount(bb.Span);
-                int converted = _encoding.GetChars(bb.Span, _charBuffer);
+                _decoder.Convert(bb.Span, new Span<char>(_charBuffer, _toEncode, _charBuffer.Length - _toEncode), false, out var bytesUsed, out var charsDecoded, out var completed);
+
 #else
-                var bytes = bb.ToArray();
-                chars = _encoding.GetCharCount(bytes);
-                int converted = _encoding.GetChars(bytes, 0, bb.Length, _charBuffer, 0);
+                _decoder.Convert(bb.ToArray(), 0, bb.Length, _charBuffer, _toEncode, _charBuffer.Length-_toEncode, false, out var bytesUsed, out var charsDecoded, out var completed);
 #endif
+                charsDecoded += _toEncode;
+                _toEncode = 0;
 
-                //if (converted < bb.Length)
-                //    _toConvert = bb.Slice(converted).ToArray();
+                if (bytesUsed < bb.Length)
+                    _toConvert = bb.Slice(bytesUsed).ToArray();
 
-                _remaining = UTF8.GetBytes(_charBuffer, 0, converted);
+                _encoder.Convert(_charBuffer, 0, charsDecoded, _utfBuffer, 0, _utfBuffer.Length, false, out var charsEncoded, out var utfBytesUsed, out var utfCompleted);
+
+                if (charsEncoded < charsDecoded)
+                {
+                    _toEncode = charsDecoded - charsEncoded;
+                    for (int i = 0; i < _toEncode; i++)
+                    {
+                        _charBuffer[i] = _charBuffer[i + charsDecoded];
+                    }
+                }
+                else
+                    _toEncode = 0;
+
+                _remaining = new BucketBytes(_utfBuffer, 0, utfBytesUsed);
             }
 
             if (!_remaining.IsEmpty)
@@ -68,6 +90,7 @@ namespace AmpScm.Buckets.Specialized
 
                 var r = _remaining.Slice(0, requested);
                 _remaining = _remaining.Slice(requested);
+                _position += requested;
                 return r;
             }
             else
@@ -77,6 +100,16 @@ namespace AmpScm.Buckets.Specialized
         public override BucketBytes Peek()
         {
             return _remaining;
+        }
+
+        public override bool CanReset => Inner.CanReset;
+
+        public override async ValueTask ResetAsync()
+        {
+            await Inner.ResetAsync().ConfigureAwait(false);
+
+            _position = 0;
+            _remaining = BucketBytes.Empty;
         }
     }
 }

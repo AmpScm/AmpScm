@@ -151,6 +151,9 @@ static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! buc
 static AmpScm.Buckets.BucketExtensions.WithTlsClientFor<TBucket>(this TBucket! bucket, string! targetHost) -> AmpScm.Buckets.Specialized.TlsBucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend<T>(this T[]! array, T item) -> T[]!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeEols(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptedEols, AmpScm.Buckets.BucketEol producedEol = AmpScm.Buckets.BucketEol.LF) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeToUtf8(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeToUtf8(this AmpScm.Buckets.Bucket! bucket, System.Text.Encoding! fallbackEncoding) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA512(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 virtual AmpScm.Buckets.Client.BucketWebClient.Dispose(bool disposing) -> void
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.get -> string?
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.set -> void

@@ -6,7 +6,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public sealed class CreateHashBucket : WrappingBucket, IBucketPoll
+    internal sealed class CreateHashBucket : WrappingBucket, IBucketPoll
     {
         HashAlgorithm? _hasher;
         byte[]? _result;

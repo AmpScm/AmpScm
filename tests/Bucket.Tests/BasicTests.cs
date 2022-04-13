@@ -85,30 +85,32 @@ namespace BucketTests
 
             await b.ResetAsync();
 
-            var c = new AmpScm.Buckets.Specialized.CreateHashBucket(b, MD5.Create());
+            byte[]? hashResult = null;
+            var c = b.MD5(r => hashResult = r);
 
             r = await c.ReadSkipAsync(1024);
             Assert.AreEqual(49L, r);
 
-            Assert.IsNotNull(c.HashResult);
-            Assert.AreEqual("E358B5530A87E41AF9168B4F45548AFC", TestExtensions.FormatHash(c.HashResult));
+            Assert.IsNotNull(hashResult);
+            Assert.AreEqual("E358B5530A87E41AF9168B4F45548AFC", TestExtensions.FormatHash(hashResult));
 
             await b.ResetAsync();
-            var c2 = new AmpScm.Buckets.Specialized.CreateHashBucket(b, SHA1.Create());
+            hashResult = null;
+            var c2 = b.SHA1(r => hashResult = r);
 
             r = await c2.ReadSkipAsync(1024);
             Assert.AreEqual(49L, r);
 
-            Assert.IsNotNull(c2.HashResult);
-            Assert.AreEqual("D9F7CE90FB58072D8A68F69A0CB30C133F9B08CB", TestExtensions.FormatHash(c2.HashResult));
+            Assert.IsNotNull(hashResult);
+            Assert.AreEqual("D9F7CE90FB58072D8A68F69A0CB30C133F9B08CB", TestExtensions.FormatHash(hashResult));
 
             await c2.ResetAsync();
 
             r = await c2.ReadSkipAsync(1024);
             Assert.AreEqual(49L, r);
 
-            Assert.IsNotNull(c2.HashResult);
-            Assert.AreEqual("D9F7CE90FB58072D8A68F69A0CB30C133F9B08CB", TestExtensions.FormatHash(c2.HashResult));
+            Assert.IsNotNull(hashResult);
+            Assert.AreEqual("D9F7CE90FB58072D8A68F69A0CB30C133F9B08CB", TestExtensions.FormatHash(hashResult));
 
 #if NET5_0_OR_GREATER
             {
