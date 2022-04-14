@@ -80,13 +80,10 @@ namespace AmpScm.Buckets.Specialized
                     {
                         switch ((bb[0], bb[1]))
                         {
-                            case (0xEF, 0xBB) when (bb.Length > 3 && bb[2] == 0xBF):
-                                bb = await Inner.ReadAsync(requested + 3).ConfigureAwait(false);
-                                if (bb.Length <= 3)
-                                    return BucketBytes.Eof;
-                                _state = State.Done;
-                                _position = bb.Length;
-                                return bb.Slice(3);
+                            case (0xEF, 0xBB):
+                                bb = BucketBytes.Empty; // No type scan. Use prefix scan
+                                break;
+
                             case (0xFF, 0xFE):
                             case (0xFE, 0xFF):
                                 _inner = new TextEncodingToUtf8Bucket(Inner,
@@ -117,7 +114,9 @@ namespace AmpScm.Buckets.Specialized
                             if (bb[i] < 0x80)
                                 continue;
 
-                            if (maybeUtf8 >= 0 && bb.Length > i + 1 && (bb[i + 1] & 0xB0) == 0x80)
+                            if ((bb[i] & 0xC0) != 0xC0)
+                                maybeUtf8 = -1;
+                            else if (maybeUtf8 >= 0 && bb.Length > i + 1 && (bb[i + 1] & 0xC0) == 0x80)
                             {
                                 // We most likely have UTF-8. Check a few more cases if possible
                                 byte fcp = bb[i];
@@ -129,9 +128,9 @@ namespace AmpScm.Buckets.Specialized
                                 }
 
                                 bool utf8Valid = true;
-                                for (int j = 1; j <= n && j < bb.Length - i; j++)
+                                for (int j = 1; j < n && j < bb.Length - i; j++)
                                 {
-                                    if ((bb[i + j] & 0xB0) != 0x80)
+                                    if ((bb[i + j] & 0xC0) != 0x80)
                                     {
                                         utf8Valid = false;
                                         break;
@@ -141,12 +140,12 @@ namespace AmpScm.Buckets.Specialized
                                 if (utf8Valid)
                                 {
                                     maybeUtf8++;
-                                    i += n;
+                                    i += n - 1;
                                 }
                                 else
                                     maybeUtf8 = -1;
                             }
-                            else if (bb.Length >= i+1)
+                            else if (bb.Length > i + 1)
                                 maybeUtf8--;
                         }
 
@@ -156,11 +155,11 @@ namespace AmpScm.Buckets.Specialized
                             _inner = Inner;
                             goto case State.Done;
                         }
-                        else if (maybeUnicode > 2 && maybeUnicode > bb.Length /8)
+                        else if (maybeUnicode > 2 && maybeUnicode > bb.Length / 8)
                         {
                             _state = State.Done;
                             _inner = new TextEncodingToUtf8Bucket(Inner,
-                                    odd >= Math.Max(2, (maybeUnicode/4)) ? Encoding.Unicode : Encoding.BigEndianUnicode);
+                                    odd >= Math.Max(2, (maybeUnicode / 4)) ? Encoding.Unicode : Encoding.BigEndianUnicode);
                             goto case State.Done;
                         }
                         else if (maybeUtf8 < 0)
@@ -218,7 +217,7 @@ namespace AmpScm.Buckets.Specialized
                         }
                         else if (bb.Length == 1)
                         {
-                            var bb2 = await Inner.ReadAsync(Math.Max(2, requested-1)).ConfigureAwait(false);
+                            var bb2 = await Inner.ReadAsync(Math.Max(2, requested - 1)).ConfigureAwait(false);
 
                             if (bb2.Length >= 2 && bb2[0] == 0xBB && bb2[1] == 0xBF)
                             {
@@ -323,7 +322,9 @@ namespace AmpScm.Buckets.Specialized
                     if (bb[i] < 0x80)
                         continue;
 
-                    if (bb.Length > i + 1 && (bb[i + 1] & 0xB0) == 0x80)
+                    if ((bb[i] & 0xC0) != 0xC0)
+                        maybeUtf8 = -1;
+                    else if (bb.Length > i + 1 && (bb[i + 1] & 0xC0) == 0x80)
                     {
                         // We most likely have UTF-8. Check a few more if possible
                         byte fcp = bb[i];
@@ -335,9 +336,9 @@ namespace AmpScm.Buckets.Specialized
                         }
 
                         bool utf8Valid = true;
-                        for (int j = 1; j <= n && j < bb.Length - i; j++)
+                        for (int j = 1; j < n && j < bb.Length - i; j++)
                         {
-                            if ((bb[i + j] & 0xB0) != 0x80)
+                            if ((bb[i + j] & 0xC0) != 0x80)
                             {
                                 utf8Valid = false;
                                 break;
@@ -347,12 +348,26 @@ namespace AmpScm.Buckets.Specialized
                         if (utf8Valid)
                         {
                             maybeUtf8++;
+                            i += n - 1;
                         }
                         else
                         {
                             maybeUtf8 = -1;
                             break;
                         }
+                    }
+                    else if (i == bb.Length - 1 && maybeUtf8 == 0)
+                    {
+                        var a = bb.ToArray();
+                        byte? b = await Inner.ReadByteAsync().ConfigureAwait(false);
+
+                        if (b is not null)
+                        {
+                            bb = a.ArrayAppend(b.Value);
+                            i--;
+                        }
+                        else
+                            break;
                     }
                 }
 
@@ -368,7 +383,7 @@ namespace AmpScm.Buckets.Specialized
                     bb = await _inner.ReadAsync(requested).ConfigureAwait(false);
                     _position += bb.Length;
                 }
-            }            
+            }
         }
 
         public override long? Position => _position;
@@ -390,6 +405,6 @@ namespace AmpScm.Buckets.Specialized
 
             var b = await Inner.DuplicateAsync(reset).ConfigureAwait(false);
             return new TextNormalizeBucket(b, _default);
-        }        
+        }
     }
 }

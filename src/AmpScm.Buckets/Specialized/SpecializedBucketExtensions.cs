@@ -366,7 +366,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
-        /// Appends a single byte to the array <paramref name="array"/>, by making a copy of the array.
+        /// Appends a single item to the array <paramref name="array"/>, by making a copy of the array.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="array"></param>
@@ -378,7 +378,25 @@ namespace AmpScm.Buckets.Specialized
             if (array is null)
                 throw new ArgumentNullException(nameof(array));
 
-            T[] nw = new T[array.Length + 1];
+            var nw = new T[array.Length + 1];
+            Array.Copy(array, 0, nw, 0, array.Length);
+            nw[array.Length] = item;
+            return nw;
+        }
+
+        /// <summary>
+        /// Appends a single byte to the array <paramref name="array"/>, by making a copy of the array.
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static byte[] ArrayAppend(this byte[] array, byte item)
+        {
+            if (array is null)
+                throw new ArgumentNullException(nameof(array));
+
+            var nw = new byte[array.Length + 1];
             Array.Copy(array, 0, nw, 0, array.Length);
             nw[array.Length] = item;
             return nw;

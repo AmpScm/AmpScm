@@ -18,6 +18,7 @@ namespace AmpScm.Buckets.Specialized
         bool _by2;
         private int _toEncode;
         long _position;
+        bool _preampbleScanned;
 
         public TextEncodingToUtf8Bucket(Bucket inner, Encoding encoding) : base(inner)
         {
@@ -50,11 +51,34 @@ namespace AmpScm.Buckets.Specialized
                     if (bb.IsEof)
                         return bb;
 
-                    if (_position == 0 && _encoding.GetPreamble() is byte[] preample && preample.Length > 0 && preample.Length <= bb.Length)
+                    if (_position == 0 && !_preampbleScanned && _encoding.GetPreamble() is byte[] preample && preample.Length > 0)
                     {
-                        if (bb.Span.Slice(0, preample.Length).SequenceEqual(preample))
+                        _preampbleScanned = true;
+
+                        int len = Math.Min(preample.Length, bb.Length);
+                        if (bb.Span.Slice(0, len).SequenceEqual(preample.AsSpan().Slice(0, len)))
                         {
-                            bb = bb.Slice(preample.Length);
+                            bool isMatch = true;
+                            while (len < preample.Length && isMatch)
+                            {
+                                byte? b = await Inner.ReadByteAsync().ConfigureAwait(false);
+
+                                if (b is null)
+                                {
+                                    _toConvert = bb.ToArray();
+                                    isMatch = false;
+                                    break;
+                                }
+
+                                bb = bb.ToArray().ArrayAppend(b.Value);
+                                len++;
+
+                                if (!bb.Span.Slice(0, len).SequenceEqual(preample.AsSpan().Slice(0, len)))
+                                    isMatch = false;
+                            }
+
+                            if (isMatch)
+                                bb = bb.Slice(preample.Length);
                         }
 
                         if (bb.Length == 0)

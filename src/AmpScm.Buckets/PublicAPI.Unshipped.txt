@@ -149,6 +149,7 @@ override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.WithTlsClientFor<TBucket>(this TBucket! bucket, string! targetHost) -> AmpScm.Buckets.Specialized.TlsBucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend(this byte[]! array, byte item) -> byte[]!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend<T>(this T[]! array, T item) -> T[]!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ConvertToUtf8(this AmpScm.Buckets.Bucket! bucket, System.Text.Encoding! encoding) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeEols(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptedEols, AmpScm.Buckets.BucketEol producedEol = AmpScm.Buckets.BucketEol.LF) -> AmpScm.Buckets.Bucket!

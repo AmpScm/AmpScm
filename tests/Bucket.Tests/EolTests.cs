@@ -441,7 +441,7 @@ namespace BucketTests
                         sb.Append("\\t");
                         break;
                     default:
-                        if (true || char.IsControl(c))
+                        if (char.IsControl(c) || char.IsWhiteSpace(c) || c >= 0x80)
                         {
                             sb.Append((string)$"\\x{(int)c:x2}");
                         }
@@ -611,6 +611,54 @@ namespace BucketTests
 
             var bb = await b.ConvertToUtf8(enc).ReadFullAsync(1024);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(EncodingList), DynamicDataDisplayName = nameof(EncodingDisplayName))]
+
+        public async Task BomScan(Encoding enc)
+        {
+            var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
+            var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
+
+            for(int i = 1; i < encodedBytes.Length-1;i++)
+            {
+                var encSpan = encodedBytes.AsMemory();
+
+                var b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
+
+                BucketBytes bb = await b.ConvertToUtf8(enc).ReadFullAsync(1024);
+                Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Convert Iteration {i}");
+
+                if (enc is UnicodeEncoding u && !u.GetPreamble().Any())
+                    continue; // Unicode without preamble not detectable without scan via .Peek()
+
+                b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
+                bb = await b.NormalizeToUtf8().ReadFullAsync(1024);
+                Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Normalize Iteration {i}");
+            }
+        }
+
+        [TestMethod]
+        public async Task EncodeScan()
+        {
+            var enc = new UTF8Encoding(false);
+            var data = Enumerable.Range(120, 20).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
+            var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
+
+            for (int i = 1; i < encodedBytes.Length - 1; i++)
+            {
+                var encSpan = encodedBytes.AsMemory();
+
+                var b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
+
+                BucketBytes bb = await b.ConvertToUtf8(enc).ReadFullAsync(1024);
+                Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Convert Iteration {i}");
+
+                b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
+                bb = await b.NormalizeToUtf8().ReadFullAsync(1024);
+                Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Normalize Iteration {i}");
+            }
         }
 
         private static Bucket MakeBucket(params string[] args)
