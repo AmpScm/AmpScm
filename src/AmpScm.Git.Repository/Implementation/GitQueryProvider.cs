@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -109,11 +108,7 @@ namespace AmpScm.Git.Implementation
             return await Repository.ObjectRepository.GetByIdAsync<TResult>(id).ConfigureAwait(false);
         }
 
-        internal static Type? GetElementType(
-#if NET5_0_OR_GREATER
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
-#endif
-            Type type)
+        internal static Type? GetElementType(Type type)
         {
             if (type.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>)) is Type enumerableType)
             {
