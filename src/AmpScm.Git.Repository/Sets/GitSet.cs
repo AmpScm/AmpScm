@@ -50,7 +50,7 @@ namespace AmpScm.Git.Sets
         private string DebuggerDisplay => $"Set of {MakePluralElementName()}";
     }
 
-    public abstract class GitSet<T> : GitSet, IEnumerable<T>, ISyncAndAsyncQueryable, IListSource
+    public abstract class GitSet<T> : GitSet, IEnumerable<T>, IQueryableAndAsyncQueryable, IListSource
         where T : class, IGitObject
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

@@ -13,7 +13,7 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitReferenceChangeSet : GitSet<GitReferenceChange>, ISyncAndAsyncQueryable<GitReferenceChange>, IListSource
+    public class GitReferenceChangeSet : GitSet<GitReferenceChange>, IQueryableAndAsyncQueryable<GitReferenceChange>, IListSource
     {
         readonly GitReference _reference;
 

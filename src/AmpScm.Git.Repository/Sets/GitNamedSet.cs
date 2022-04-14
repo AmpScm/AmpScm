@@ -13,7 +13,7 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitNamedSet<T> : GitSet<T>, ISyncAndAsyncQueryable<T>
+    public class GitNamedSet<T> : GitSet<T>, IQueryableAndAsyncQueryable<T>
         where T : class, IGitNamedObject
     {
         internal GitNamedSet(GitRepository repository, Expression<Func<GitNamedSet<T>>> rootExpression)

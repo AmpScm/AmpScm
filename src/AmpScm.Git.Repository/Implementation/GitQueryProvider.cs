@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -10,7 +11,7 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Implementation
 {
-    internal class GitQueryProvider : SyncAndAsyncQueryProvider, IGitQueryRoot
+    internal class GitQueryProvider : QueryAndAsyncQueryProvider, IGitQueryRoot
     {
         public GitQueryProvider(GitRepository repository)
         {
@@ -19,7 +20,7 @@ namespace AmpScm.Git.Implementation
 
         public GitRepository Repository { get; }
 
-        public override ISyncAndAsyncQueryable CreateQuery(Expression expression)
+        public override IQueryableAndAsyncQueryable CreateQuery(Expression expression)
         {
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression));
@@ -29,10 +30,10 @@ namespace AmpScm.Git.Implementation
             if (type == null)
                 throw new ArgumentOutOfRangeException(nameof(expression));
 
-            return (ISyncAndAsyncQueryable)Activator.CreateInstance(typeof(GitQuery<>).MakeGenericType(type), new object[] { this, expression! })!;
+            return (IQueryableAndAsyncQueryable)Activator.CreateInstance(typeof(GitQuery<>).MakeGenericType(type), new object[] { this, expression! })!;
         }
 
-        public override ISyncAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        public override IQueryableAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             return new GitQuery<TElement>(this, expression);
         }
@@ -108,7 +109,11 @@ namespace AmpScm.Git.Implementation
             return await Repository.ObjectRepository.GetByIdAsync<TResult>(id).ConfigureAwait(false);
         }
 
-        internal static Type? GetElementType(Type type)
+        internal static Type? GetElementType(
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+#endif
+            Type type)
         {
             if (type.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>)) is Type enumerableType)
             {

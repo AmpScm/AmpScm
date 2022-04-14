@@ -14,7 +14,7 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitObjectSet<T> : GitSet<T>, ISyncAndAsyncQueryable<T>
+    public class GitObjectSet<T> : GitSet<T>, IQueryableAndAsyncQueryable<T>
         where T : GitObject
     {
         internal GitObjectSet(GitRepository repository, Expression<Func<GitObjectSet<T>>> rootExpression)

@@ -8,7 +8,7 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitRevisionSet : GitSet<GitRevision>, ISyncAndAsyncQueryable<GitRevision>
+    public class GitRevisionSet : GitSet<GitRevision>, IQueryableAndAsyncQueryable<GitRevision>
     {
         readonly GitRevisionSetOptions _options;
 

@@ -9,16 +9,16 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Linq
 {
-    public abstract class SyncAndAsyncQueryProvider : IQueryProvider, IAsyncQueryProvider, ISyncAndAsyncQueryProvider
+    public abstract class QueryAndAsyncQueryProvider : IQueryProvider, IAsyncQueryProvider, IQueryAndAsyncQueryProvider
     {
-        protected SyncAndAsyncQueryProvider()
+        protected QueryAndAsyncQueryProvider()
         {
 
         }
 
         static MethodInfo? _createQuery;
 
-        public virtual ISyncAndAsyncQueryable CreateQuery(Expression expression)
+        public virtual IQueryableAndAsyncQueryable CreateQuery(Expression expression)
         {
             if (expression is null)
                 throw new ArgumentNullException(nameof(expression));
@@ -28,9 +28,9 @@ namespace AmpScm.Linq
             if (tp is not null)
             {
                 // 99.9% case
-                _createQuery ??= typeof(SyncAndAsyncQueryProvider).GetMethods().First(x => x.Name == nameof(CreateQuery) && x.IsGenericMethod);
+                _createQuery ??= typeof(QueryAndAsyncQueryProvider).GetMethods().First(x => x.Name == nameof(CreateQuery) && x.IsGenericMethod);
 
-                return (ISyncAndAsyncQueryable)_createQuery.MakeGenericMethod(tp.GetGenericArguments()[0]).Invoke(this, new[] { expression })!;
+                return (IQueryableAndAsyncQueryable)_createQuery.MakeGenericMethod(tp.GetGenericArguments()[0]).Invoke(this, new[] { expression })!;
             }
             else
             {
@@ -40,7 +40,7 @@ namespace AmpScm.Linq
 
         IQueryable IQueryProvider.CreateQuery(Expression expression) => CreateQuery(expression);
 
-        public abstract ISyncAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression);
+        public abstract IQueryableAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression);
 
         IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression) => CreateQuery<TElement>(expression);
         IAsyncQueryable<TElement> IAsyncQueryProvider.CreateQuery<TElement>(Expression expression) => CreateQuery<TElement>(expression);

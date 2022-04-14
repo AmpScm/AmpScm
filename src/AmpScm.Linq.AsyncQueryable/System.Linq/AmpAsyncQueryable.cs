@@ -19,18 +19,18 @@ namespace System.Linq
             => ((MethodCallExpression)x.Body).Method.GetGenericMethodDefinition();
 
         /// <summary>
-        /// Converts a generic <see cref="IEnumerable{T}"/> to a generic <see cref="ISyncAndAsyncQueryable{T}"/>
+        /// Converts a generic <see cref="IEnumerable{T}"/> to a generic <see cref="IQueryableAndAsyncQueryable{T}"/>
         /// </summary>
         /// <param name="enumerable"></param>
         /// <returns></returns>
 #if NET5_0_OR_GREATER
         [RequiresUnreferencedCode("Enumerating in-memory collections as IQueryable can require unreferenced code because expressions referencing IQueryable extension methods can get rebound to IEnumerable extension methods. The IEnumerable extension methods could be trimmed causing the application to fail at runtime.")]
 #endif
-        public static ISyncAndAsyncQueryable<T> AsSyncAndAsyncQueryable<T>(this IEnumerable<T> enumerable)
+        public static IQueryableAndAsyncQueryable<T> AsSyncAndAsyncQueryable<T>(this IEnumerable<T> enumerable)
         {
             if (enumerable is null)
                 throw new ArgumentNullException(nameof(enumerable));
-            if (enumerable is ISyncAndAsyncQueryable<T> r)
+            if (enumerable is IQueryableAndAsyncQueryable<T> r)
                 return r;
             else if (enumerable is IQueryable<T> q)
                 return AsSyncAndAsyncQueryable(q);
@@ -39,13 +39,13 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Converts a generic <see cref="IQueryable{T}"/> to a generic <see cref="ISyncAndAsyncQueryable{T}"/>
+        /// Converts a generic <see cref="IQueryable{T}"/> to a generic <see cref="IQueryableAndAsyncQueryable{T}"/>
         /// </summary>
         /// <param name="queryable"></param>
         /// <returns></returns>
-        public static ISyncAndAsyncQueryable<T> AsSyncAndAsyncQueryable<T>(this IQueryable<T> queryable)
+        public static IQueryableAndAsyncQueryable<T> AsSyncAndAsyncQueryable<T>(this IQueryable<T> queryable)
         {
-            if (queryable is ISyncAndAsyncQueryable<T> r)
+            if (queryable is IQueryableAndAsyncQueryable<T> r)
                 return r;
             else
                 return new AsyncQueryableWrapper<T>(queryable);
@@ -53,19 +53,19 @@ namespace System.Linq
 
         static MethodInfo _asAsyncQueryable = GetMethod<IQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
         /// <summary>
-        /// Wraps an <see cref="IQueryable"/> as an <see cref="ISyncAndAsyncQueryable"/>
+        /// Wraps an <see cref="IQueryable"/> as an <see cref="IQueryableAndAsyncQueryable"/>
         /// </summary>
         /// <param name="queryable"></param>
         /// <returns></returns>
-        public static ISyncAndAsyncQueryable AsSyncAndAsyncQueryable(this IQueryable queryable)
+        public static IQueryableAndAsyncQueryable AsSyncAndAsyncQueryable(this IQueryable queryable)
         {
             if (queryable is null)
                 throw new ArgumentNullException(nameof(queryable));
-            else if (queryable is ISyncAndAsyncQueryable r)
+            else if (queryable is IQueryableAndAsyncQueryable r)
                 return r;
             else
             {
-                return (ISyncAndAsyncQueryable)_asAsyncQueryable.MakeGenericMethod(queryable.ElementType).Invoke(null, new[] { queryable })!;
+                return (IQueryableAndAsyncQueryable)_asAsyncQueryable.MakeGenericMethod(queryable.ElementType).Invoke(null, new[] { queryable })!;
             }
         }
     }

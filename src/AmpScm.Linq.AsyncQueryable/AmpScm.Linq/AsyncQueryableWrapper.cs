@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Linq
 {
-    internal sealed class AsyncQueryableWrapper<T> : ISyncAndAsyncQueryable<T>, IOrderedSyncAndAsyncQueryable<T>
+    internal sealed class AsyncQueryableWrapper<T> : IQueryableAndAsyncQueryable<T>, IOrderedSyncAndAsyncQueryable<T>
     {
         AsyncQueryableProviderWrapper AsyncProvider { get; }
         IQueryable<T> InnerQueryable { get; }
@@ -68,7 +68,7 @@ namespace AmpScm.Linq
         }
     }
 
-    internal sealed class AsyncQueryableProviderWrapper : SyncAndAsyncQueryProvider
+    internal sealed class AsyncQueryableProviderWrapper : QueryAndAsyncQueryProvider
     {
         IQueryProvider QueryProvider { get; }
 
@@ -77,7 +77,7 @@ namespace AmpScm.Linq
             QueryProvider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
-        public override ISyncAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        public override IQueryableAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             var q = QueryProvider.CreateQuery<TElement>(expression);
             var p = q.Provider;

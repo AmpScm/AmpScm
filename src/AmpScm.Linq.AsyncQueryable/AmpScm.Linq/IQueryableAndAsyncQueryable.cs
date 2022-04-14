@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 namespace AmpScm.Linq
 {
 #pragma warning disable CA1010 // Generic interface should also be implemented
-    public interface ISyncAndAsyncQueryable : IQueryable, IAsyncQueryable
+    public interface IQueryableAndAsyncQueryable : IQueryable, IAsyncQueryable
 #pragma warning restore CA1010 // Generic interface should also be implemented
     {
     }
 
-    public interface ISyncAndAsyncQueryable<out T> : IQueryable<T>, IAsyncQueryable<T>, ISyncAndAsyncQueryable
+    public interface IQueryableAndAsyncQueryable<out T> : IQueryable<T>, IAsyncQueryable<T>, IQueryableAndAsyncQueryable
     {
 
     }
@@ -26,7 +26,7 @@ namespace AmpScm.Linq
 
     }
 
-    public interface IOrderedSyncAndAsyncQueryable<out T> : ISyncAndAsyncQueryable<T>, IOrderedQueryable<T>, IOrderedAsyncEnumerable<T>, IOrderedSyncAndAsyncQueryable
+    public interface IOrderedSyncAndAsyncQueryable<out T> : IQueryableAndAsyncQueryable<T>, IOrderedQueryable<T>, IOrderedAsyncEnumerable<T>, IOrderedSyncAndAsyncQueryable
     {
 
     }

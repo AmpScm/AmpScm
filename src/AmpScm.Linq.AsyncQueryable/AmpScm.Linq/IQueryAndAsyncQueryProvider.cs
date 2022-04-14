@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Linq
 {
-    public interface ISyncAndAsyncQueryProvider : IQueryProvider, IAsyncQueryProvider
+    public interface IQueryAndAsyncQueryProvider : IQueryProvider, IAsyncQueryProvider
     {
     }
 }
