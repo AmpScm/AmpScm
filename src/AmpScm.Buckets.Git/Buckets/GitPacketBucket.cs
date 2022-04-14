@@ -57,7 +57,6 @@ namespace AmpScm.Buckets.Git
             }
 
             _packetLength = Convert.ToInt32(Encoding.ASCII.GetString(start), 16);
-            start = null;
 
             if (_packetLength <= 4)
                 return BucketBytes.Empty;
@@ -67,19 +66,22 @@ namespace AmpScm.Buckets.Git
             if (bb.IsEof || bb.Length == _packetLength)
                 return bb;
 
-            start = bb.ToArray();
+            byte[] fullPacked = new byte[_packetLength - 4];
+            bb.CopyTo(fullPacked);
+            int c = bb.Length;
 
-            while (start.Length < _packetLength - 4)
+            while (c < _packetLength - 4)
             {
-                bb = await Inner.ReadAsync(_packetLength - start.Length - 4).ConfigureAwait(false);
+                bb = await Inner.ReadAsync(_packetLength - c - 4).ConfigureAwait(false);
 
                 if (bb.IsEof)
-                    throw new GitBucketException($"Unexpected eof in {Name} bucket");
+                    throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
 
-                start = start.Concat(bb.ToArray()).ToArray();
+                bb.CopyTo(fullPacked.AsMemory(c));
+                c += bb.Length;
             }
 
-            return start;
+            return fullPacked;
         }
     }
 }

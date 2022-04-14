@@ -95,7 +95,8 @@ namespace AmpScm.Buckets.Specialized
                 _decoder.Convert(bb.Span, new Span<char>(_charBuffer, _toEncode, _charBuffer.Length - _toEncode), false, out var bytesUsed, out var charsDecoded, out var completed);
 
 #else
-                _decoder.Convert(bb.ToArray(), 0, bb.Length, _charBuffer, _toEncode, _charBuffer.Length-_toEncode, false, out var bytesUsed, out var charsDecoded, out var completed);
+                var (arr, offs) = bb.ExpandToArray();
+                _decoder.Convert(arr, offs, bb.Length, _charBuffer, _toEncode, _charBuffer.Length-_toEncode, false, out var bytesUsed, out var charsDecoded, out var completed);
 #endif
                 charsDecoded += _toEncode;
                 _toEncode = 0;
