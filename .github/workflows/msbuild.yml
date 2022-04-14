@@ -34,10 +34,10 @@ jobs:
         include-prerelease: true
 
     - name: Install NuGet dependencies
-      run: dotnet restore -v:m
+      run: dotnet restore -v:m -p:GitHubCI=yes
       
     - name: Build
-      run: dotnet build -v:m -c Release --no-restore
+      run: dotnet build -v:m -c Release --no-restore -p:GitHubCI=yes
     
     - name: Test
-      run: dotnet test -v:m -c Release --no-build
+      run: dotnet test -v:m -c Release --no-build -p:GitHubCI=yes
