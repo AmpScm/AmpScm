@@ -441,9 +441,9 @@ namespace BucketTests
                         sb.Append("\\t");
                         break;
                     default:
-                        if (char.IsControl(c))
+                        if (true || char.IsControl(c))
                         {
-                            sb.Append($"\\x{(int)c:x2}");
+                            sb.Append((string)$"\\x{(int)c:x2}");
                         }
                         else
                             sb.Append(c);
@@ -601,6 +601,18 @@ namespace BucketTests
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
         }
 
+        [TestMethod]
+        [DynamicData(nameof(EncodingList), DynamicDataDisplayName = nameof(EncodingDisplayName))]
+        public async Task ConvertBucketToUtf8(Encoding enc)
+        {
+            var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
+            var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
+            using var b = encodedBytes.AsBucket();
+
+            var bb = await b.ConvertToUtf8(enc).ReadFullAsync(1024);
+            Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
+        }
+
         private static Bucket MakeBucket(params string[] args)
         {
             return new AggregateBucket(args.Select(x => Encoding.ASCII.GetBytes(x).AsBucket()).ToArray());
@@ -611,7 +623,7 @@ namespace BucketTests
 
         public static string EncodingDisplayName(MethodInfo mi, object[] args)
         {
-            var enc = (Encoding)args[0];
+            var enc = (Encoding)args.Last();
 
             return $"{mi.Name}({enc.EncodingName}, bom: {enc.GetPreamble().Any()})";
         }

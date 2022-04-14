@@ -165,6 +165,23 @@ namespace AmpScm.Buckets.Specialized
             return new TextNormalizeBucket(bucket, fallbackEncoding ?? TextNormalizeBucket.DefaultEncoding);
         }
 
+        /// <summary>
+        /// Converts the bucket from the specified encoding to UTF-8
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static Bucket ConvertToUtf8(this Bucket bucket, Encoding encoding)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (encoding is null)
+                throw new ArgumentNullException(nameof(encoding));
+
+            return new TextEncodingToUtf8Bucket(bucket, encoding);
+        }
+
+
         public static async ValueTask<BucketBytes> ReadFullAsync(this Bucket bucket, int requested)
         {
             if (bucket is null)

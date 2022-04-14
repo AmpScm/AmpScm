@@ -7,4 +7,5 @@
 [Rr]elease/
 /[Pp]ackages/
 *.user
-TestResults/
+/TestResults/
+/src/TestResults/

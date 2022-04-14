@@ -49,6 +49,17 @@ namespace AmpScm.Buckets.Specialized
 
                     if (bb.IsEof)
                         return bb;
+
+                    if (_position == 0 && _encoding.GetPreamble() is byte[] preample && preample.Length > 0 && preample.Length <= bb.Length)
+                    {
+                        if (bb.Span.Slice(0, preample.Length).SequenceEqual(preample))
+                        {
+                            bb = bb.Slice(preample.Length);
+                        }
+
+                        if (bb.Length == 0)
+                            continue;
+                    }
                 }
                 else
                 {
