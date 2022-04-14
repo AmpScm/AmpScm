@@ -379,7 +379,7 @@ namespace AmpScm.Buckets.Specialized
                 throw new ArgumentNullException(nameof(array));
 
             var nw = new T[array.Length + 1];
-            Array.Copy(array, 0, nw, 0, array.Length);
+            Array.Copy(array, nw, array.Length);
             nw[array.Length] = item;
             return nw;
         }
@@ -397,7 +397,7 @@ namespace AmpScm.Buckets.Specialized
                 throw new ArgumentNullException(nameof(array));
 
             var nw = new byte[array.Length + 1];
-            Array.Copy(array, 0, nw, 0, array.Length);
+            Array.Copy(array, nw, array.Length);
             nw[array.Length] = item;
             return nw;
         }

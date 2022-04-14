@@ -32,7 +32,7 @@ namespace AmpScm.BucketTests.Buckets
             if (items != null)
             {
                 T[] shortItems = new T[n];
-                Array.Copy(items, 0, shortItems, 0, n);
+                Array.Copy(items, shortItems, n);
                 yield return shortItems;
             }
         }

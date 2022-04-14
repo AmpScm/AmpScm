@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
+using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets
 {
@@ -40,9 +41,11 @@ namespace AmpScm.Buckets
                     _buckets = new[] { bucket };
                     _n = 0;
                 }
+                else if (_keepOpen || _n == 0)
+                    _buckets = _buckets.ArrayAppend(bucket);
                 else
                 {
-                    int nShrink = _keepOpen ? 0 : _n;
+                    int nShrink = _n;
 
                     var newBuckets = new Bucket[_buckets.Length - nShrink + 1];
                     if (_buckets.Length > nShrink)

@@ -97,7 +97,7 @@ namespace AmpScm.Buckets
 
                     byte[] ret = new byte[bb.Length + copy];
 
-                    Array.Copy(returnData, 0, ret, 0, copy);
+                    Array.Copy(returnData, ret, copy);
                     bb.Span.CopyTo(new Span<byte>(ret, copy, bb.Length));
 
                     return ret;
