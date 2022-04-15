@@ -7,6 +7,9 @@
     <Nullable>enable</Nullable>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <NoWarn>1701;1702;1591</NoWarn>
+    <WarningLevel>5</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
@@ -24,6 +27,12 @@
   <ItemGroup>
     <ProjectReference Include="..\AmpScm.Git.Repository\AmpScm.Git.Repository.csproj" />
     <ProjectReference Include="..\AmpScm.Linq.AsyncQueryable\AmpScm.Linq.AsyncQueryable.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(GitHubCI)' == 'yes' ">
+    <PackageReference Include="GitVersion.MsBuild" Version="5.6.10*">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

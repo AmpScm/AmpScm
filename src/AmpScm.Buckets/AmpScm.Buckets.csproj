@@ -8,7 +8,6 @@
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <IsPackable>true</IsPackable>
     <NoWarn>1701;1702;1591</NoWarn>
     <WarningLevel>5</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
@@ -43,6 +42,12 @@
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(GitHubCI)' == 'yes' ">
+    <PackageReference Include="GitVersion.MsBuild" Version="5.6.10*">
+      <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 

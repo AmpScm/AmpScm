@@ -9,7 +9,6 @@
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <RootNamespace>AmpScm.Buckets.Git</RootNamespace>
-    <IsPackable>true</IsPackable>
     <NoWarn>1701;1702;1591</NoWarn>
     <WarningLevel>5</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
@@ -39,6 +38,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AmpScm.Buckets\AmpScm.Buckets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(GitHubCI)' == 'yes' ">
+    <PackageReference Include="GitVersion.MsBuild" Version="5.6.10*">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

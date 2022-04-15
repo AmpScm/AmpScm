@@ -41,3 +41,12 @@ jobs:
     
     - name: Test
       run: dotnet test -v:m -c Release --no-build -p:GitHubCI=yes
+
+    - name: Pack
+      run: dotnet pack -v:m -c Release --no-build -p:GitHubCI=yes
+
+    - name: Package nupkg files
+      uses: actions/upload-artifact@v2
+      with:
+        name: nupkg-files
+        path: build/nupkg/Release/*nupkg
