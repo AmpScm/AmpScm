@@ -16,8 +16,8 @@ namespace AmpScm.Buckets.Client
 
         public Uri RequestUri { get; private set;}
 
-        public virtual string? Method 
-        { 
+        public virtual string? Method
+        {
             get => null!;
             set => throw new InvalidOperationException();
         }

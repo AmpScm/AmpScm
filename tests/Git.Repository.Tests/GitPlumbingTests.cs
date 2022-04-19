@@ -101,7 +101,7 @@ namespace GitRepositoryTests
                 }
             }
         }
-        
+
 
         public static IEnumerable<object[]> PlumbingCommandArgs => typeof(GitPlumbing).GetMethods().Where(x => x.GetCustomAttribute<GitCommandAttribute>() != null).Select(x => new[] { x });
 

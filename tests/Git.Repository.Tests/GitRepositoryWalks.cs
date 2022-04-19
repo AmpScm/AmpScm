@@ -82,7 +82,7 @@ namespace GitRepositoryTests
             Assert.IsTrue(repo.References.Any(), "Repository has references");
             Assert.IsNotNull(repo.References.Any(x => x.Name == "HEAD"), "Has reference called HEAD-1");
             Assert.IsNotNull(repo.References["HEAD"], "Has reference called HEAD-2");
-            
+
         }
 
         [TestMethod]

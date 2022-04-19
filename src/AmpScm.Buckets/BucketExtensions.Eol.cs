@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
-namespace AmpScm.Buckets.Specialized
+namespace AmpScm.Buckets
 {
     public static partial class BucketExtensions
     {

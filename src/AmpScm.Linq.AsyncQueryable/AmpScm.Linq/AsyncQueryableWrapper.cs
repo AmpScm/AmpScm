@@ -95,7 +95,7 @@ namespace AmpScm.Linq
         {
             return QueryProvider.Execute<TResult>(expression);
         }
-   
+
         public override ValueTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken token)
         {
             return base.ExecuteAsync<TResult>(expression, token);

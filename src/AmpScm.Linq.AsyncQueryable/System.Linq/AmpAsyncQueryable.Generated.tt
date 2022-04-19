@@ -72,7 +72,7 @@ namespace System.Linq
              .Where(x => x.IsGenericMethod && !x.ReturnType.IsValueType)
              .Where(x => typeof(System.Linq.Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static).Any(y=>y.Name == x.Name))
              .Where(x => x.ReturnType.IsGenericType)
-             
+
                         .OrderBy(m => m.Name)
                         .ThenBy(m => m.IsGenericMethod ? m.GetGenericArguments().Length : 0)
                         .ThenBy(m => m.GetParameters().Length)
@@ -93,7 +93,7 @@ namespace System.Linq
                 else { #>, <# }
 
                 string typeName = toQuoted(pi.ParameterType, 0).Replace("Queryable", "SyncAndAsyncQueryable");
-                
+
                 string paramName = pi.Name;
                 #><#=typeName#> <#=paramName#><#
             }

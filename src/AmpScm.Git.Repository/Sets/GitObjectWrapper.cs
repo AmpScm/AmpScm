@@ -31,7 +31,7 @@ namespace AmpScm.Git.Sets
         private protected GitNamedObjectWrapper(TNamedObject named, TGitObject? obj)
             : base(obj!)
         {
-            Named = named; 
+            Named = named;
         }
 
         public virtual string Name => Named.Name;

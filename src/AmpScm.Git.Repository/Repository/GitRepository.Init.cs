@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace AmpScm.Git
 {
     public partial class GitRepository
-    {        
+    {
         public static GitRepository Init(string path)
             => Init(path, false);
 
@@ -25,7 +25,7 @@ namespace AmpScm.Git
             }
 
             const string headBranchName = "master";
-            
+
             Directory.CreateDirectory(Path.Combine(gitDir, "hooks"));
             Directory.CreateDirectory(Path.Combine(gitDir, "info"));
             Directory.CreateDirectory(Path.Combine(gitDir, "objects/info"));

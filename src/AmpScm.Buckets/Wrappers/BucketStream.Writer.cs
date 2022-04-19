@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Wrappers
         public sealed class WithWriter : BucketStream
         {
             IBucketWriter InnerWriter { get; }
-            public WithWriter(Bucket bucket, IBucketWriter writer) 
+            public WithWriter(Bucket bucket, IBucketWriter writer)
                 : base(bucket)
             {
                 InnerWriter = writer ?? throw new ArgumentNullException(nameof(writer));

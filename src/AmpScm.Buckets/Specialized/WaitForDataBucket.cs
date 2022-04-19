@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Specialized
             Debug.Assert(b == Aggregation);
 
             _waiter?.TrySetResult(true);
-        }        
+        }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {

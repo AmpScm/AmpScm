@@ -196,6 +196,10 @@ static AmpScm.Buckets.BucketExtensions.NoClose(this AmpScm.Buckets.Bucket! bucke
 static AmpScm.Buckets.BucketExtensions.PollAsync(this AmpScm.Buckets.Bucket! bucket, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketExtensions.PollReadAsync(this AmpScm.Buckets.Bucket! bucket, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketPollBytes!>
 static AmpScm.Buckets.BucketExtensions.Prepend(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Bucket! newFirst) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.ReadBuffersAsync(this AmpScm.Buckets.Bucket! bucket, int maxRequested = 2147483647) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
+static AmpScm.Buckets.BucketExtensions.ReadCombinedAsync(this AmpScm.Buckets.Bucket! bucket, int bufferSize, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.BucketExtensions.ReadUntilAsync(this AmpScm.Buckets.Bucket! bucket, byte b) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.BucketExtensions.ReadUntilEolFullAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
 static AmpScm.Buckets.BucketExtensions.SeekOnReset(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.Skip(this AmpScm.Buckets.Bucket! bucket, long firstPosition, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.Take(this AmpScm.Buckets.Bucket! bucket, long limit, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
@@ -207,10 +211,6 @@ static AmpScm.Buckets.BucketExtensions.WriteAsync(this System.IO.Stream! stream,
 static AmpScm.Buckets.BucketExtensions.WriteAsync(this System.IO.Stream! stream, AmpScm.Buckets.BucketBytes bucketBytes, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.FileBucket.OpenRead(string! path) -> AmpScm.Buckets.FileBucket!
 static AmpScm.Buckets.FileBucket.OpenRead(string! path, bool forAsync) -> AmpScm.Buckets.FileBucket!
-static AmpScm.Buckets.Specialized.BucketExtensions.ReadBuffersAsync(this AmpScm.Buckets.Bucket! bucket, int maxRequested = 2147483647) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
-static AmpScm.Buckets.Specialized.BucketExtensions.ReadCombinedAsync(this AmpScm.Buckets.Bucket! bucket, int bufferSize, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.Specialized.BucketExtensions.ReadUntilAsync(this AmpScm.Buckets.Bucket! bucket, byte b) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.Specialized.BucketExtensions.ReadUntilEolFullAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
 static AmpScm.Buckets.Specialized.NetBitConverter.FromNetwork(int value) -> int
 static AmpScm.Buckets.Specialized.NetBitConverter.FromNetwork(long value) -> long
 static AmpScm.Buckets.Specialized.NetBitConverter.FromNetwork(short value) -> short

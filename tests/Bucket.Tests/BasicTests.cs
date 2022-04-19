@@ -285,7 +285,7 @@ namespace BucketTests
             Assert.AreEqual("ABCD", lines[0]);
             Assert.AreEqual("EFGHI", lines[1]);
             Assert.AreEqual("JKLMNOPQ", lines[2]);
-        }        
+        }
 
         [TestMethod]
         public async Task EnumFew()

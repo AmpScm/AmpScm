@@ -43,7 +43,7 @@ namespace AmpScm.Buckets
         {
 #if !NET6_0_OR_GREATER
             await Socket.ConnectAsync(host, port).ConfigureAwait(false);
-            
+
 #else
             await Socket.ConnectAsync(host, port, cancellationToken: cancellationToken).ConfigureAwait(false);
 #endif

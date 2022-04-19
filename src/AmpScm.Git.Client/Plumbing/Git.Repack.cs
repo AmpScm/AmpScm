@@ -44,7 +44,7 @@ namespace AmpScm.Git.Client.Plumbing
                 args.Add("--write-bitmap-index");
             if (a.WriteMultiPack)
                 args.Add("--write-midx");
-                
+
 
             var (_, txt) = await c.Repository.RunPlumbingCommandOut("repack", args.ToArray());
         }

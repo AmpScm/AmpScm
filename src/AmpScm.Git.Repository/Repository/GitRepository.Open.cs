@@ -37,7 +37,7 @@ namespace AmpScm.Git
         }
 
         /// <summary>
-        /// Find git repository for <paramref name="path"/>. Start by looking at 'path/.git' (directory/file), then checking 
+        /// Find git repository for <paramref name="path"/>. Start by looking at 'path/.git' (directory/file), then checking
         /// if path is a (bare-)repository itself. Then start looking up for a '.git' in any parent directory. And if that
         /// fails, look for parent directories that are a repository.
         /// </summary>

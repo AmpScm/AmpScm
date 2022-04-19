@@ -19,7 +19,7 @@ namespace AmpScm.Git
             {
                 IdType = type;
             }
-                
+
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

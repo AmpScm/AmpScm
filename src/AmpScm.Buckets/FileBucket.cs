@@ -193,7 +193,7 @@ namespace AmpScm.Buckets
         /// <returns>The number of bytes actually read</returns>
         /// <remarks><para>This function exposes the underlying file and doesn't affect this file as <see cref="Bucket"/> and
         /// as such doesn't change any of the buffering rules as documented on <see cref="Bucket"/></para>
-        /// 
+        ///
         /// <para>Normal users of <see cref="FileBucket"/> shouldn't need this feature, but it might help implementations
         /// that use the same file for streaming <see cref="Bucket"/> IO and as explicit indexes.</para></remarks>
         public ValueTask<int> ReadAtAsync(long fileOffset, byte[] buffer, int requested)
@@ -242,7 +242,7 @@ namespace AmpScm.Buckets
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <remarks>This class has an optimized code path for Windows so async and non-async IO have
-        /// ballpark similar performance even on older .Net version by checking for synchronous success, 
+        /// ballpark similar performance even on older .Net version by checking for synchronous success,
         /// unlike the standard <see cref="FileStream"/>, which goes fully async when you enable this
         /// flag.</remarks>
         public static FileBucket OpenRead(string path, bool forAsync)

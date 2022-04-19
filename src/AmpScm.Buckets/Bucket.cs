@@ -12,7 +12,7 @@ namespace AmpScm.Buckets
     /// </summary>
     /// <remarks>The result of most function calls (especially <see cref="ReadAsync"/>, <see cref="Peek"/> and all variants)
     /// and the data /// references by the return values of these functions is typically valid until the next read operation.
-    /// 
+    ///
     /// <para>While .Net guaranteers that there is still data referenced, the data might have been replaced by the next
     /// call. So in general, once you hand over a bucket to some other user you shouldn't access the bucket until
     /// the other user is done. Most users will call <see cref="Dispose()"/> on buckets that are handed over, so
@@ -73,7 +73,7 @@ namespace AmpScm.Buckets
         /// <summary>
         /// If implemented by the bucket provides a peek into the next data that can be read from the bucket
         /// with the next <see cref="ReadAsync"/> call. The next call will typically return the same data or
-        /// a bit more. Peek is not expected to do any processing or Polling (See: 
+        /// a bit more. Peek is not expected to do any processing or Polling (See:
         /// <see cref="BucketExtensions.PollAsync(Bucket, int)"/>, for explicit peek-like polling)
         /// </summary>
         /// <returns></returns>

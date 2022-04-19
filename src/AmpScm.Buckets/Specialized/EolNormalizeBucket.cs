@@ -21,7 +21,7 @@ namespace AmpScm.Buckets.Specialized
             CRSplit
         }
 
-        public EolNormalizeBucket(Bucket inner, BucketEol acceptedEols, BucketEol producedEol = BucketEol.LF) 
+        public EolNormalizeBucket(Bucket inner, BucketEol acceptedEols, BucketEol producedEol = BucketEol.LF)
             : base(inner)
         {
             if (0 != (acceptedEols & ~BucketEol.EolMask) || acceptedEols == BucketEol.None)

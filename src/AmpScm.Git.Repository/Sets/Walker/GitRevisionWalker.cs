@@ -95,7 +95,7 @@ namespace AmpScm.Git.Sets.Walker
                         c.SetChainInfo(new GitCommitGenerationValue(generation, timestamp, correctedTimestamp-timestamp));
                     }
                 }
-            }            
+            }
         }
 
         GitCommitInfo EnsureCommit(GitId id)

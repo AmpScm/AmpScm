@@ -7,6 +7,7 @@
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <RootNamespace>GitRepositoryTests</RootNamespace>
+    <WarningLevel>6</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>

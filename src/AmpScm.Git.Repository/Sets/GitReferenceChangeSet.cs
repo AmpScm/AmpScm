@@ -17,7 +17,7 @@ namespace AmpScm.Git.Sets
     {
         readonly GitReference _reference;
 
-        internal GitReferenceChangeSet(GitRepository repository, GitReference reference) 
+        internal GitReferenceChangeSet(GitRepository repository, GitReference reference)
             : base(repository)
         {
             _reference = reference;

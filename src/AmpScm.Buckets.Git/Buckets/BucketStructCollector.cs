@@ -12,7 +12,7 @@ namespace AmpScm.Buckets.Git
     [AttributeUsage(AttributeTargets.Field)]
     sealed class NetworkOrderAttribute : Attribute
     {
-        
+
     }
 
     [DebuggerDisplay("Result={Result}")]

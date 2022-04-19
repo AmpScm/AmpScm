@@ -10,7 +10,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <RootNamespace>AmpScm.Buckets.Git</RootNamespace>
     <NoWarn>1701;1702;1591</NoWarn>
-    <WarningLevel>5</WarningLevel>
+    <WarningLevel>6</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

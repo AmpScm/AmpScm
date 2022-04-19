@@ -15,7 +15,7 @@ namespace AmpScm.Buckets.Git
         long _startOffset;
         long? _length;
 
-        public GitObjectFileBucket(Bucket inner) 
+        public GitObjectFileBucket(Bucket inner)
             : base(new ZLibBucket(inner))
         {
         }
@@ -138,7 +138,7 @@ namespace AmpScm.Buckets.Git
         {
             if (_length is null)
                 await ReadRemainingBytesAsync().ConfigureAwait(false);
-            
+
             return await Inner.ReadAsync(requested).ConfigureAwait(false);
         }
 

@@ -12,7 +12,7 @@ namespace AmpScm.Buckets.Specialized
         readonly byte[] _buffer;
         BucketBytes _bbLeft;
         BucketBytes _bbRight;
-        
+
         public BitwiseXorBucket(Bucket left, Bucket right) : base(left, right)
         {
             _buffer = new byte[4096];

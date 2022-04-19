@@ -59,7 +59,7 @@ namespace AmpScm.Git.Implementation
         /// Waits asynchronously for the process to exit.
         /// </summary>
         /// <param name="process">The process to wait for cancellation.</param>
-        /// <param name="cancellationToken">A cancellation token. If invoked, the task will return 
+        /// <param name="cancellationToken">A cancellation token. If invoked, the task will return
         /// immediately as canceled.</param>
         /// <returns>A Task representing waiting for the process to end.</returns>
         public static async Task WaitForExitAsync(this Process process, CancellationToken cancellationToken = default(CancellationToken))

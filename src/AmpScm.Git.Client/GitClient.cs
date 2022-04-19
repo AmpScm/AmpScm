@@ -11,7 +11,7 @@ namespace AmpScm.Git.Client
         public GitClient(string path)
             : base(InternalSetupArgs(path))
         {
-        
+
         }
     }
 }

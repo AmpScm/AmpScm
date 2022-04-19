@@ -124,7 +124,7 @@ namespace AmpScm.Buckets.Wrappers
             else
             {
                 var task = valuetask.AsTask();
-                var tcs = new TaskCompletionSource<int>(state);                
+                var tcs = new TaskCompletionSource<int>(state);
 
                 task.ContinueWith(t =>
                 {

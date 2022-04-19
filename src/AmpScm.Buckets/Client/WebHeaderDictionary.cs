@@ -92,7 +92,7 @@ namespace AmpScm.Buckets.Client
         bool IDictionary<string, string>.TryGetValue(string key, out string value)
         {
             value = base[key]!;
-            return (value != null);            
+            return (value != null);
         }
 
         void ICollection<KeyValuePair<string, string>>.Add(KeyValuePair<string, string> item)
@@ -128,7 +128,7 @@ namespace AmpScm.Buckets.Client
         IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator()
         {
             foreach(string k in this)
-            { 
+            {
                 yield return new KeyValuePair<string, string>(k, base[k]!);
             }
         }

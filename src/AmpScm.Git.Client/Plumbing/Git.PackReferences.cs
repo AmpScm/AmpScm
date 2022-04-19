@@ -13,7 +13,7 @@ namespace AmpScm.Git.Client.Plumbing
 
         public override void Verify()
         {
-            
+
         }
     }
 
@@ -23,8 +23,8 @@ namespace AmpScm.Git.Client.Plumbing
         public static async ValueTask PackReferences(this GitPlumbingClient c, GitPackReferencesArgs a)
         {
             a.Verify();
-            
-            await c.Repository.RunPlumbingCommand("pack-refs", new [] { 
+
+            await c.Repository.RunPlumbingCommand("pack-refs", new [] {
                 a.All ? "--all" : "",
                 a.NoPrune ? "--no-prune" : ""
             }.Where(x=>!string.IsNullOrEmpty(x)).ToArray());

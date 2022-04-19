@@ -10,7 +10,7 @@ namespace AmpScm.Buckets.Wrappers
         readonly byte[] _buffer;
         long? _initialPosition;
         BucketBytes _remaining;
-        
+
 
         public StreamBucket(Stream stream)
         {
@@ -72,7 +72,7 @@ namespace AmpScm.Buckets.Wrappers
                 return r;
             }
             else
-                return BucketBytes.Eof;            
+                return BucketBytes.Eof;
         }
 
         public override long? Position

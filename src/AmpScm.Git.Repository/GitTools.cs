@@ -60,7 +60,7 @@ namespace AmpScm.Git
         {
             if (message == null)
                 return null;
-            
+
             if (message.Contains('\r', StringComparison.Ordinal))
                 message = message.Replace("\r", "", StringComparison.Ordinal);
 
@@ -74,6 +74,6 @@ namespace AmpScm.Git
             }
 
             return  string.Join("\n", lines.Take(st));
-        }        
+        }
     }
 }

@@ -10,7 +10,7 @@ using AmpScm.Git;
 namespace AmpScm.Buckets.Git.Objects
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public enum GitTreeElementType
     {
@@ -53,7 +53,7 @@ namespace AmpScm.Buckets.Git.Objects
             return new AggregateBucket(
                 Encoding.UTF8.GetBytes(pf).AsBucket(),  // "100644 MyFile\0"
                 Id.Hash.AsBucket());                    // Hashcode
-            
+
         }
     }
 
