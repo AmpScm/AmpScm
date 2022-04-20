@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Linq
 {
-    internal sealed class AsyncQueryableWrapper<T> : IQueryableAndAsyncQueryable<T>, IOrderedSyncAndAsyncQueryable<T>
+    internal sealed class AsyncQueryableWrapper<T> : IQueryableAndAsyncQueryable<T>, IOrderedQueryableAndAsyncQueryable<T>
     {
         AsyncQueryableProviderWrapper AsyncProvider { get; }
         IQueryable<T> InnerQueryable { get; }

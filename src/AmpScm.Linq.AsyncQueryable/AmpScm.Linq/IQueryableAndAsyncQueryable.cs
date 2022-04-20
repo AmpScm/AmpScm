@@ -20,13 +20,13 @@ namespace AmpScm.Linq
     }
 
 #pragma warning disable CA1010 // Generic interface should also be implemented
-    public interface IOrderedSyncAndAsyncQueryable : IOrderedQueryable, IOrderedAsyncQueryable
+    public interface IOrderedQueryableAndAsyncQueryable : IOrderedQueryable, IOrderedAsyncQueryable
 #pragma warning restore CA1010 // Generic interface should also be implemented
     {
 
     }
 
-    public interface IOrderedSyncAndAsyncQueryable<out T> : IQueryableAndAsyncQueryable<T>, IOrderedQueryable<T>, IOrderedAsyncEnumerable<T>, IOrderedSyncAndAsyncQueryable
+    public interface IOrderedQueryableAndAsyncQueryable<out T> : IQueryableAndAsyncQueryable<T>, IOrderedQueryable<T>, IOrderedAsyncEnumerable<T>, IOrderedQueryableAndAsyncQueryable
     {
 
     }

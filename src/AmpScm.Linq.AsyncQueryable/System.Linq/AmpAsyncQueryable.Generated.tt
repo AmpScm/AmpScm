@@ -70,7 +70,7 @@ namespace System.Linq
 <#
     foreach(MethodInfo m in typeof(System.Linq.Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static)
              .Where(x => x.IsGenericMethod && !x.ReturnType.IsValueType)
-             .Where(x => typeof(System.Linq.Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static).Any(y=>y.Name == x.Name))
+             .Where(x => typeof(System.Linq.Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static).Any(y => y.Name == x.Name))
              .Where(x => x.ReturnType.IsGenericType)
 
                         .OrderBy(m => m.Name)
@@ -79,7 +79,7 @@ namespace System.Linq
                         .ThenBy(m => string.Join(", ", m.GetParameters().Select((p, i) => toQuoted(p.ParameterType, i) + " " + p.Name))))
     {
         string name = m.Name;
-        string returnType = toQuoted(m.ReturnType, 0).Replace("Queryable", "SyncAndAsyncQueryable");
+        string returnType = toQuoted(m.ReturnType, 0).Replace("Queryable", "QueryableAndAsyncQueryable");
         string typeArgs = "<" + string.Join(", ", m.GetGenericArguments().Select(x=>x.Name)) + ">";
 #>
         /// <inheritdoc cref="Queryable.<#=name#><#=typeArgs.Replace("<", "{").Replace(">", "}")#>(<#=
@@ -92,7 +92,7 @@ namespace System.Linq
                     first = false;
                 else { #>, <# }
 
-                string typeName = toQuoted(pi.ParameterType, 0).Replace("Queryable", "SyncAndAsyncQueryable");
+                string typeName = toQuoted(pi.ParameterType, 0).Replace("Queryable", "QueryableAndAsyncQueryable");
 
                 string paramName = pi.Name;
                 #><#=typeName#> <#=paramName#><#

@@ -11,7 +11,7 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Implementation
 {
-    internal class GitQuery<T> : IOrderedSyncAndAsyncQueryable<T>
+    internal class GitQuery<T> : IOrderedQueryableAndAsyncQueryable<T>
     {
         public GitQuery(GitQueryProvider provider, Expression expression)
         {
