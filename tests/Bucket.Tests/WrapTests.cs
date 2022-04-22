@@ -19,14 +19,14 @@ namespace BucketTests
             =>
             new ValueTuple<string, Func<Bucket, Bucket>, Func<Bucket, Bucket>>[]
             {
-                ("BASE64", b => b.Base64Encode(), b => b.Base64Decode()),
-                ("zlib", b => b.Compress(BucketCompressionAlgorithm.ZLib), b=> b.Decompress(BucketCompressionAlgorithm.ZLib)),
+                ("Base64", b => b.Base64Encode(), b => b.Base64Decode()),
+                ("ZLib", b => b.Compress(BucketCompressionAlgorithm.ZLib), b=> b.Decompress(BucketCompressionAlgorithm.ZLib)),
                 //("deflate", b => b.Compress(BucketCompressionAlgorithm.Deflate), b=> b.Decompress(BucketCompressionAlgorithm.Deflate)),
-                ("gzip", b => b.Compress(BucketCompressionAlgorithm.GZip), b=> b.Decompress(BucketCompressionAlgorithm.GZip)),
+                ("GZip", b => b.Compress(BucketCompressionAlgorithm.GZip), b=> b.Decompress(BucketCompressionAlgorithm.GZip)),
 #if !NETFRAMEWORK
-                ("brotli", b => b.Compress(BucketCompressionAlgorithm.Brotli), b=> b.Decompress(BucketCompressionAlgorithm.Brotli)),
+                ("Brotli", b => b.Compress(BucketCompressionAlgorithm.Brotli), b=> b.Decompress(BucketCompressionAlgorithm.Brotli)),
 #endif
-                //("chunk", b => MakeBucket("AmpScm.Buckets.Client.Http.HttpDechunkBucket", b), b => MakeBucket("AmpScm.Buckets.Client.Http.HttpDechunkBucket", b))
+                ("Chunk", b => MakeBucket("AmpScm.Buckets.Client.Http.HttpChunkBucket", b), b => MakeBucket("AmpScm.Buckets.Client.Http.HttpDechunkBucket", b))
             }.Select(x => new object[] { x.Item1, x.Item2, x.Item3 });
 
         public static string ConvertDisplayName(MethodInfo method, object[] args)
@@ -36,24 +36,39 @@ namespace BucketTests
 
         static Bucket MakeBucket(string name, Bucket over)
         {
-            Type tp = typeof(Bucket).Assembly.GetType(name);
+            Type tp = typeof(Bucket).Assembly.GetType(name)!;
 
-            return (Bucket)Activator.CreateInstance(tp, over);
+            return (Bucket)Activator.CreateInstance(tp, over)!;
         }
 
         [TestMethod]
         [DynamicData(nameof(ConvertBuckets), DynamicDataDisplayName = nameof(ConvertDisplayName))]
         public async Task TestConvert(string name, Func<Bucket, Bucket> encode, Func<Bucket, Bucket> decode)
         {
-            byte[] sourceData = Encoding.UTF8.GetBytes($"This is some test data for the {nameof(TestConvert)} function");
+            {
+                byte[] sourceData = Encoding.UTF8.GetBytes($"This is some test data for the {nameof(TestConvert)} function");
 
-            Bucket src = encode(sourceData.AsBucket());
+                Bucket src = encode(sourceData.AsBucket());
 
-            using var dest = decode(src);
+                using var dest = decode(src);
 
-            byte[] resultData = await dest.ToArrayAsync();
+                byte[] resultData = await dest.ToArrayAsync();
 
-            Assert.IsTrue(resultData.SequenceEqual(sourceData), "Data was properly converted back");
+                Assert.IsTrue(resultData.SequenceEqual(sourceData), "Data was properly converted back");
+            }
+
+            for(int i = 10; i >= 0; i--)
+            {
+                byte[] sourceData = Encoding.UTF8.GetBytes("".PadLeft(i, 'Q'));
+
+                Bucket src = encode(sourceData.AsBucket());
+
+                using var dest = decode(src);
+
+                byte[] resultData = await dest.ToArrayAsync();
+
+                Assert.IsTrue(resultData.SequenceEqual(sourceData), "Data was properly converted back");
+            }
         }
 
         [TestMethod]

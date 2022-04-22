@@ -105,7 +105,14 @@ namespace AmpScm.Buckets.Specialized
                         var bb = await Inner.ReadAsync(left).ConfigureAwait(false);
 
                         if (bb.IsEof)
+                        {
+                            if (_windowBits == -15 && _headerLeft == 10)
+                            {
+                                _eof = true;
+                                return true;
+                            }
                             throw new InvalidOperationException($"Unexpected EOF in GZip header on {Inner.Name}");
+                        }
 
                         int n = bb.Length;
                         if (n > 0)

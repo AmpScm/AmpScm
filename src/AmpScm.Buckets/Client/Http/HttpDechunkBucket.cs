@@ -102,7 +102,11 @@ namespace AmpScm.Buckets.Client.Http
 
                             if (eol == BucketEol.CRLF || eol == BucketEol.LF)
                             {
-                                _chunkLeft = Convert.ToInt32(bb.ToASCIIString(eol), 16);
+                                var s = bb.ToASCIIString(eol);
+                                if (s.Length > 0)
+                                    _chunkLeft = Convert.ToInt32(bb.ToASCIIString(eol), 16);
+                                else
+                                    _chunkLeft = 0;
                                 _state = _chunkLeft > 0 ? DechunkState.Chunk : DechunkState.Fin;
                             }
                             else if (bb.IsEof)
