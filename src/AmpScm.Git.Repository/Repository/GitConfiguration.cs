@@ -114,10 +114,10 @@ namespace AmpScm.Git.Repository
 
                 string dir = ApplyHomeDir(check.Substring(caseInsensitive ? "gitdir/i:".Length : "gitdir:".Length).Trim());
 
-                if (dir.EndsWith('/'))
+                if (dir.EndsWith("/", StringComparison.Ordinal))
                     dir += "**";
 
-                if (!GitGlob.Match(dir, Repository.FullPath, GitGlobFlags.ParentPath | (caseInsensitive ? GitGlobFlags.CaseInsensitive : GitGlobFlags.None)))
+                if (!GitGlob.Match(dir, Repository.GitDir, GitGlobFlags.ParentPath | (caseInsensitive ? GitGlobFlags.CaseInsensitive : GitGlobFlags.None)))
                     return;
             }
             else if (check.StartsWith("onbranch:", StringComparison.Ordinal))

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -29,7 +30,13 @@ namespace AmpScm.Git.Repository.Implementation
                 switch (pattern[i])
                 {
                     case '*' when (i + 1 < pattern.Length && pattern[i + 1] == '*'):
-                        sb.Append(".*");
+                        if (i > 0 && i + 2 == pattern.Length && pattern[i-1] == '/')
+                        {
+                            sb.Insert(sb.Length - "[/\\\\]".Length, "(");
+                            sb.Append(".*)?");
+                        }
+                        else
+                            sb.Append(".*");
                         i++;
                         break;
                     case '*':
@@ -38,8 +45,11 @@ namespace AmpScm.Git.Repository.Implementation
                     case '?':
                         sb.Append("[^/\\\\]");
                         break;
-                    case '/':
                     case '\\':
+                        if (i + 1 < pattern.Length)
+                            sb.Append(Regex.Escape(pattern[++i].ToString()));
+                        break;
+                    case '/':
                         sb.Append("[/\\\\]");
                         break;
                     case '[':
@@ -68,9 +78,11 @@ namespace AmpScm.Git.Repository.Implementation
 
 
             if ((flags & GitGlobFlags.ParentPath) == 0)
+            {
                 sb.Append('$');
+            }
 
-            return Regex.IsMatch(path, sb.ToString(), ro);
+            return Regex.IsMatch(path.Replace(Path.DirectorySeparatorChar, '/'), sb.ToString(), ro);
         }
     }
 }
