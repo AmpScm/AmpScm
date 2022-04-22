@@ -51,6 +51,19 @@ namespace System.Linq
                 return new AsyncQueryableWrapper<T>(queryable);
         }
 
+        /// <summary>
+        /// Converts a generic <see cref="IQueryable{T}"/> to a generic <see cref="IQueryableAndAsyncQueryable{T}"/>
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <returns></returns>
+        public static IQueryableAndAsyncQueryable<T> AsSyncAndAsyncQueryable<T>(this IAsyncQueryable<T> queryable)
+        {
+            if (queryable is IQueryableAndAsyncQueryable<T> r)
+                return r;
+            else
+                return new NonAsyncQueryableWrapper<T>(queryable);
+        }
+
         static MethodInfo _asAsyncQueryable = GetMethod<IQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
         /// <summary>
         /// Wraps an <see cref="IQueryable"/> as an <see cref="IQueryableAndAsyncQueryable"/>
@@ -66,6 +79,24 @@ namespace System.Linq
             else
             {
                 return (IQueryableAndAsyncQueryable)_asAsyncQueryable.MakeGenericMethod(queryable.ElementType).Invoke(null, new[] { queryable })!;
+            }
+        }
+
+        static MethodInfo _asAsyncQueryable2 = GetMethod<IAsyncQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
+        /// <summary>
+        /// Wraps an <see cref="IQueryable"/> as an <see cref="IQueryableAndAsyncQueryable"/>
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <returns></returns>
+        public static IQueryableAndAsyncQueryable AsSyncAndAsyncQueryable(this IAsyncQueryable queryable)
+        {
+            if (queryable is null)
+                throw new ArgumentNullException(nameof(queryable));
+            else if (queryable is IQueryableAndAsyncQueryable r)
+                return r;
+            else
+            {
+                return (IQueryableAndAsyncQueryable)_asAsyncQueryable2.MakeGenericMethod(queryable.ElementType).Invoke(null, new[] { queryable })!;
             }
         }
     }
