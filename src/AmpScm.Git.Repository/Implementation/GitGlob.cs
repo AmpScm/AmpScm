@@ -24,18 +24,16 @@ namespace AmpScm.Git.Repository.Implementation
 
             StringBuilder sb = new StringBuilder("^");
 
-            for(int i = 0; i < pattern.Length; i++)
+            for (int i = 0; i < pattern.Length; i++)
             {
-                switch(pattern[i])
+                switch (pattern[i])
                 {
+                    case '*' when (i + 1 < pattern.Length && pattern[i + 1] == '*'):
+                        sb.Append(".*");
+                        i++;
+                        break;
                     case '*':
-                        if (i + 1 < pattern.Length && pattern[i + 1] == '*')
-                        {
-                            sb.Append(".*");
-                            i++;
-                        }
-                        else
-                            sb.Append("[^/\\\\]*");
+                        sb.Append("[^/\\\\]*");
                         break;
                     case '?':
                         sb.Append("[^/\\\\]");
@@ -43,6 +41,21 @@ namespace AmpScm.Git.Repository.Implementation
                     case '/':
                     case '\\':
                         sb.Append("[/\\\\]");
+                        break;
+                    case '[':
+                        int n = pattern.IndexOf(']', i);
+                        if (n >= 0)
+                        {
+                            sb.Append('[');
+                            while (i < n)
+                            {
+                                sb.Append(Regex.Escape(pattern[i++].ToString()));
+                            }
+                            sb.Append(']');
+                            i = n;
+                        }
+                        else
+                            sb.Append("\\[");
                         break;
                     default:
                         if ("\\[](){}<>^$".Contains(pattern[i], StringComparison.Ordinal))

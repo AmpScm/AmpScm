@@ -21,7 +21,7 @@ namespace AmpScm.Git.Repository
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _repositoryFormatVersion;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly Dictionary<(string Group, string? SubGroup, string Key), string> _config = new ();
+        readonly Dictionary<(string Group, string? SubGroup, string Key), string> _config = new();
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         static readonly Lazy<string> _gitExePath = new Lazy<string>(GetGitExePath, true);
@@ -106,25 +106,36 @@ namespace AmpScm.Git.Repository
             else if (item.Key != "path" || item.Value == null)
                 return; // No other types documented yet
 
-            bool caseInsensitive = false;
-            if (check!.StartsWith("gitdir:", StringComparison.Ordinal))
-            { }
-            else if (check.StartsWith("gitdir/i:", StringComparison.Ordinal))
+
+            if (check!.StartsWith("gitdir:", StringComparison.Ordinal)
+                || check.StartsWith("gitdir/i:", StringComparison.Ordinal))
             {
-                caseInsensitive = true;
-                check = check.Remove(6, 2);
+                bool caseInsensitive = check[6] == '/';
+
+                string dir = ApplyHomeDir(check.Substring(caseInsensitive ? "gitdir/i:".Length : "gitdir:".Length).Trim());
+
+                if (dir.EndsWith('/'))
+                    dir += "**";
+
+                if (!GitGlob.Match(dir, Repository.FullPath, GitGlobFlags.ParentPath | (caseInsensitive ? GitGlobFlags.CaseInsensitive : GitGlobFlags.None)))
+                    return;
             }
-
-            string dir = ApplyHomeDir(check.Substring(7).Trim());
-
-            if (GitGlob.Match(dir, Repository.FullPath, GitGlobFlags.ParentPath | (caseInsensitive ? GitGlobFlags.CaseInsensitive : GitGlobFlags.None)))
+            else if (check.StartsWith("onbranch:", StringComparison.Ordinal))
             {
-                string newPath = Path.Combine(Path.GetDirectoryName(path)!, ApplyHomeDir(item.Value!));
+                return; // Not supported yet
+            }
+            else if (check.StartsWith("hasconfig:", StringComparison.Ordinal))
+            {
+                return; // Not supported yet
+            }
+            else
+                return; // Not supported yet
 
-                if (!string.IsNullOrEmpty(newPath) && File.Exists(newPath))
-                {
-                    await LoadConfigAsync(Path.GetFullPath(newPath)).ConfigureAwait(false);
-                }
+            string newPath = Path.Combine(Path.GetDirectoryName(path)!, ApplyHomeDir(item.Value!));
+
+            if (!string.IsNullOrEmpty(newPath) && File.Exists(newPath))
+            {
+                await LoadConfigAsync(Path.GetFullPath(newPath)).ConfigureAwait(false);
             }
         }
 
