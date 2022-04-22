@@ -24,6 +24,7 @@ namespace AmpScm.Buckets.Specialized
                 (sbyte)(x switch
                 {
                     '\n' => -1,
+                    '\r' => -1,
                     '=' => -1,
                     _ => (map.TryGetValue((byte)x, out var v) ? v : -3)
                 })).ToArray();

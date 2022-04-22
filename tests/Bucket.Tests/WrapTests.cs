@@ -80,7 +80,8 @@ namespace BucketTests
                 "1234",
                 "123",
                 "12",
-                "1"})
+                "1",
+                "".PadRight(1024, 'A')})
             {
                 byte[] sourceData = Encoding.UTF8.GetBytes(src);
 
@@ -91,6 +92,17 @@ namespace BucketTests
                 Assert.AreEqual(expectedData, bb.ToUTF8String(), $"Encode Equal for {src}");
 
                 byte[] decoded = await encoded.AsBucket().Base64Decode().ToArrayAsync();
+                bb = decoded;
+                Assert.AreEqual(src, bb.ToUTF8String(), $"Decode Equal for {src}");
+
+
+                encoded = await sourceData.AsBucket().Base64Encode(true).ToArrayAsync();
+                expectedData = Convert.ToBase64String(sourceData, Base64FormattingOptions.InsertLineBreaks);
+
+                bb = encoded;
+                Assert.AreEqual(expectedData, bb.ToUTF8String(), $"Encode Equal for {src}");
+
+                decoded = await encoded.AsBucket().Base64Decode().ToArrayAsync();
                 bb = decoded;
                 Assert.AreEqual(src, bb.ToUTF8String(), $"Decode Equal for {src}");
             }

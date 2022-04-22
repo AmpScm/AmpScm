@@ -49,7 +49,7 @@
             int i;
             int nb = 0;
 
-            for (i = 0; i < sourceData.Length && nb + 4 < buffer.Length; i++)
+            for (i = 0; i < sourceData.Length && nb + 5 < buffer.Length; i++)
             {
                 byte b = sourceData[i];
 
@@ -68,8 +68,9 @@
                 }
                 nl += 1;
 
-                if (_wrapLines && nl >= 18)
+                if (_wrapLines && nl >= 19)
                 {
+                    buffer[nb++] = (byte)'\r';
                     buffer[nb++] = (byte)'\n';
                     nl = 0;
                 }

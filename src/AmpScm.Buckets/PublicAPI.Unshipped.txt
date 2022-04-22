@@ -157,6 +157,8 @@ static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! buc
 static AmpScm.Buckets.BucketExtensions.WithTlsClientFor<TBucket>(this TBucket! bucket, string! targetHost) -> AmpScm.Buckets.Specialized.TlsBucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend(this byte[]! array, byte item) -> byte[]!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend<T>(this T[]! array, T item) -> T[]!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Base64Decode(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Base64Encode(this AmpScm.Buckets.Bucket! bucket, bool wrapLines = false, bool addPadding = true) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ConvertToUtf8(this AmpScm.Buckets.Bucket! bucket, System.Text.Encoding! encoding) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeEols(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptedEols, AmpScm.Buckets.BucketEol producedEol = AmpScm.Buckets.BucketEol.LF) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeToUtf8(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
