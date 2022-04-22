@@ -112,7 +112,7 @@ namespace AmpScm.Buckets.Git
                 _idLength = bb.IndexOf((byte)' ');
 
                 if (prefix < 0 || _idLength < GitId.HashLength(GitIdType.Sha1) * 2 || _idLength * 2 + 2 > prefix)
-                    throw new GitBucketException($"Unable to determine reference log format in {Inner.Name} bucket");
+                    throw new GitBucketException($"Unable to determine reference log format in {Name} Bucket");
             }
 
             return new GitReferenceLogRecord

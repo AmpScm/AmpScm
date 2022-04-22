@@ -1,5 +1,6 @@
 ﻿#nullable enable
 abstract AmpScm.Buckets.Client.BucketWebRequest.GetResponseAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Client.ResponseBucket!>
+abstract AmpScm.Buckets.Specialized.ConvertBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
 AmpScm.Buckets.BucketBytes.StartsWithASCII(string! value) -> bool
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.get -> string?
@@ -102,6 +103,8 @@ AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.Brotli = 3 -> AmpScm.Bucke
 AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.Deflate = 0 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
 AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.GZip = 2 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
 AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib = 1 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
+AmpScm.Buckets.Specialized.ConvertBucket
+AmpScm.Buckets.Specialized.ConvertBucket.ConvertBucket(AmpScm.Buckets.Bucket! inner) -> void
 override AmpScm.Buckets.Client.Http.HttpResponseBucket.ContentLength.get -> long
 override AmpScm.Buckets.Client.Http.HttpResponseBucket.ContentType.get -> string?
 override AmpScm.Buckets.Client.Http.HttpResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!
@@ -141,6 +144,10 @@ override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadAsync(int requested = 2
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
+override AmpScm.Buckets.Specialized.ConvertBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Specialized.ConvertBucket.Position.get -> long?
+override AmpScm.Buckets.Specialized.ConvertBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.ConvertBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Specialized.TlsBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
@@ -163,3 +170,4 @@ virtual AmpScm.Buckets.Client.ResponseBucket.ContentType.get -> string?
 virtual AmpScm.Buckets.Client.ResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!
 virtual AmpScm.Buckets.Client.ResponseBucket.ReadHeaders() -> System.Threading.Tasks.ValueTask
 virtual AmpScm.Buckets.Client.ResponseBucket.SupportsHeaders.get -> bool
+virtual AmpScm.Buckets.Specialized.ConvertBucket.ConvertRequested(int requested) -> int

@@ -86,7 +86,7 @@ namespace AmpScm.Buckets.Client.Http
                     if (string.Equals(tEnc, "chunked", StringComparison.OrdinalIgnoreCase))
                     {
                         allowNext = chunked = true;
-                        rdr = new HttpDechunkBucket(rdr, true);
+                        rdr = new HttpDechunkBucket(rdr).NoClose();
                     }
                 }
             }

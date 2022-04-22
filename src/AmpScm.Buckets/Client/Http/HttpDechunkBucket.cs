@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Client.Http
 {
-    internal class HttpDechunkBucket : WrappingBucket
+    internal sealed class HttpDechunkBucket : WrappingBucket, IBucketNoClose
     {
         enum DechunkState
         {
@@ -21,11 +22,12 @@ namespace AmpScm.Buckets.Client.Http
         DechunkState _state;
         int _chunkLeft;
         byte[]? _start;
-        BucketEol _eol;
 
-        public HttpDechunkBucket(Bucket inner, bool noDispose)
-            : base(inner, noDispose)
+
+        public HttpDechunkBucket(Bucket inner)
+            : base(inner)
         {
+
         }
 
         public override BucketBytes Peek()
@@ -104,12 +106,11 @@ namespace AmpScm.Buckets.Client.Http
                                 _state = _chunkLeft > 0 ? DechunkState.Chunk : DechunkState.Fin;
                             }
                             else if (bb.IsEof)
-                                throw new HttpBucketException("Unexpected EOF");
+                                throw new HttpBucketException($"Unexpected EOF in {Name} Bucket");
                             else
                             {
                                 _state = DechunkState.Size;
                                 _start = bb.ToArray();
-                                _eol = eol;
                             }
                         }
                         break;
@@ -126,7 +127,9 @@ namespace AmpScm.Buckets.Client.Http
                             else
                             {
                                 _start = _start!.Concat(bb.ToArray()).ToArray();
-                                _eol = eol;
+
+                                if (_start.Length > 16 || _start.Any(x => !IsHexChar(x)))
+                                    throw new HttpBucketException($"Invalid chunk header in {Name} Bucket");
                             }
                         }
                         break;
@@ -136,7 +139,7 @@ namespace AmpScm.Buckets.Client.Http
                             _chunkLeft -= bb.Length;
 
                             if (bb.IsEof)
-                                throw new HttpBucketException("Unexpected EOF");
+                                throw new HttpBucketException($"Unexpected EOF in {Name} Bucket");
 
                             if (_chunkLeft == 0)
                                 _state = DechunkState.Start;
@@ -150,7 +153,7 @@ namespace AmpScm.Buckets.Client.Http
                             else if (bb.Length == 1)
                                 _state = DechunkState.Fin2;
                             else
-                                throw new HttpBucketException("Unexpected EOF");
+                                throw new HttpBucketException($"Unexpected EOF in {Name} Bucket");
                         }
                         break;
                     case DechunkState.Fin2:
@@ -159,7 +162,7 @@ namespace AmpScm.Buckets.Client.Http
                             if (bb.Length == 1)
                                 _state = DechunkState.Eof;
                             else
-                                throw new HttpBucketException("Unexpected EOF");
+                                throw new HttpBucketException($"Unexpected EOF in {Name} Bucket");
                         }
                         break;
                     case DechunkState.Chunk:
@@ -168,6 +171,24 @@ namespace AmpScm.Buckets.Client.Http
 
                 }
             }
+        }
+
+        static bool IsHexChar(byte x)
+        {
+            if (x >= '0' && x <= '9')
+                return true;
+            else if (x >= 'A' && x <= 'F')
+                return true;
+            else if (x >= 'a' && x <= 'f')
+                return true;
+            else
+                return false;
+        }
+
+        Bucket IBucketNoClose.NoClose()
+        {
+            base.NoClose();
+            return this;
         }
     }
 }

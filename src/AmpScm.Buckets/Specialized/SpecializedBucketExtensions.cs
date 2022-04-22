@@ -84,7 +84,38 @@ namespace AmpScm.Buckets.Specialized
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
+
             return new CreateHashBucket(bucket, CreateHashBucket.Crc32.Create(), (v) => created(NetBitConverter.ToInt32(v, 0)));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="wrapLines"></param>
+        /// <param name="addPadding"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Bucket Base64Encode(this Bucket bucket, bool wrapLines = false, bool addPadding = true)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new Bas64EncodeBucket(bucket, wrapLines, addPadding);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Bucket Base64Decode(this Bucket bucket)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new Bas64DecodeBucket(bucket);
         }
 
         /// <summary>

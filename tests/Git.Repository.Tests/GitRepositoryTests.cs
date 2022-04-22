@@ -151,6 +151,8 @@ namespace GitRepositoryTests
         {
             using var repo = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
 
+            //GC.KeepAlive(repo.Configuration.Identity);
+
             await foreach (var c in repo.ObjectRepository.GetAll<GitCommit>(new HashSet<GitId>()))
             {
                 TestContext.WriteLine($"Commit {c.Id} - {GitTools.FirstLine(c.Message)}");
