@@ -101,7 +101,7 @@ namespace AmpScm.Buckets.Specialized
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            return new Bas64EncodeBucket(bucket, wrapLines, addPadding);
+            return new Base64EncodeBucket(bucket, wrapLines, addPadding);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace AmpScm.Buckets.Specialized
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            return new Bas64DecodeBucket(bucket);
+            return new Base64DecodeBucket(bucket);
         }
 
         /// <summary>

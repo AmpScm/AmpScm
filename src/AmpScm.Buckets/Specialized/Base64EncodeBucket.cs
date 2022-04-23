@@ -1,16 +1,16 @@
 ﻿namespace AmpScm.Buckets.Specialized
 {
-    internal sealed class Bas64EncodeBucket : ConvertBucket
+    internal sealed class Base64EncodeBucket : ConvertBucket
     {
         readonly bool _wrapLines;
         readonly bool _addPadding;
         byte[]? buffer;
-        uint state;
-        int n;
+        uint bits;
+        int state;
         int nl;
 
 
-        public Bas64EncodeBucket(Bucket bucket, bool wrapLines, bool addPadding)
+        public Base64EncodeBucket(Bucket bucket, bool wrapLines, bool addPadding)
             : base(bucket)
         {
             _wrapLines = wrapLines;
@@ -53,18 +53,18 @@
             {
                 byte b = sourceData[i];
 
-                state |= (uint)b << (8 * (2 - n));
+                bits |= (uint)b << (8 * (2 - state));
 
-                if (n < 2)
+                if (state < 2)
                 {
-                    n++;
+                    state++;
                     continue;
                 }
-                n = 0;
+                state = 0;
 
                 for (int d = 3; d >= 0; d--)
                 {
-                    buffer[nb++] = base64Map[(state >> 6 * d) & 0x3F];
+                    buffer[nb++] = base64Map[(bits >> 6 * d) & 0x3F];
                 }
                 nl += 1;
 
@@ -74,19 +74,19 @@
                     buffer[nb++] = (byte)'\n';
                     nl = 0;
                 }
-                state = 0;
+                bits = 0;
             }
 
-            if (final && n > 0)
+            if (final && state > 0)
             {
-                for (int d = 3; d >= 0; d--)
+                for (int d = 0; d < 4; d++)
                 {
-                    if (3 - d <= n)
-                        buffer[nb++] = base64Map[(state >> 6 * d) & 0x3F];
+                    if (d <= state)
+                        buffer[nb++] = base64Map[(bits >> 18 - 6 * d) & 0x3F];
                     else if (_addPadding)
                         buffer[nb++] = (byte)'=';
                 }
-                n = 0;
+                state = 0;
             }
 
             if (i > 0) // Pass EOF through unchanged

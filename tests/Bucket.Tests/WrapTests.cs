@@ -110,5 +110,24 @@ namespace BucketTests
 
         }
 
+        //[TestMethod]
+        //public void WriteMap()
+        //{
+        //    var b = Base64DecodeBucket.CalculateReverseBase64Map();
+        //    for (int i = 0; i < b.Length; i++)
+        //    {
+        //        for(int j = 0; j < 4 && i < b.Length; j++, i++)
+        //        {
+        //            TestContext.Write($" /* '{(char.IsControl((char)i) ? "\\x" + i.ToString("x") : (char)(i))}': */".PadRight(15, ' '));
+        //            TestContext.Write($" {b[i]}".PadLeft(3));
+        //            if (i < b.Length - 1)
+        //                TestContext.Write(",");
+        //        }
+        //        TestContext.WriteLine("");
+        //        i--;
+        //    }
+        //
+        //}
+
     }
 }

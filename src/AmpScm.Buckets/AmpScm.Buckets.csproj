@@ -45,8 +45,9 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(GitHubCI)' == 'yes' ">
-    <PackageReference Include="GitVersion.MsBuild" Version="5.6.10*">
+  <ItemGroup>
+    <!--Condition=" '$(GitHubCI)' == 'yes' "-->
+    <PackageReference Include="GitVersion.MsBuild" Version="5.10.0*">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
