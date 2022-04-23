@@ -128,6 +128,8 @@ namespace AmpScm.Buckets.Client.Http
                                 _chunkLeft = Convert.ToInt32(bb.ToASCIIString().Trim(), 16);
                                 _state = _chunkLeft > 0 ? DechunkState.Chunk : DechunkState.Fin;
                             }
+                            else if (bb.IsEof)
+                                throw new HttpBucketException($"Unexpected EOF in {Name} Bucket");
                             else
                             {
                                 _start = _start!.Concat(bb.ToArray()).ToArray();
