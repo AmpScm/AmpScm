@@ -548,11 +548,11 @@ namespace BucketTests
             {
                 if (type.GetCustomAttributes(typeof(DebuggerDisplayAttribute), false)?.FirstOrDefault() is DebuggerDisplayAttribute dd)
                 {
-                    foreach(var q in Regex.Matches(dd.Value, "(?<={)[^}]+(?=})").Cast<Match>().Select(x=>x.Value))
+                    foreach(var q in Regex.Matches(dd.Value, "(?<!\\\\{)(?<={)[^}]+(?=})").Cast<Match>().Select(x=>x.Value))
                     {
                         int n = q.IndexOfAny(new[] { ',', ':', '(' });
 
-                        string name = (n >= 0) ? q.Substring(0, n) : q;
+                        string name = ((n >= 0) ? q.Substring(0, n) : q).Trim();
 
                         var f = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 

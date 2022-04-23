@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Client;
 using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -26,7 +27,7 @@ namespace BucketTests
 #if !NETFRAMEWORK
                 ("Brotli", b => b.Compress(BucketCompressionAlgorithm.Brotli), b=> b.Decompress(BucketCompressionAlgorithm.Brotli)),
 #endif
-                ("Chunk", b => MakeBucket("AmpScm.Buckets.Client.Http.HttpChunkBucket", b), b => MakeBucket("AmpScm.Buckets.Client.Http.HttpDechunkBucket", b))
+                ("Chunk", b => b.HttpChunk(), b => b.HttpDechunk())
             }.Select(x => new object[] { x.Item1, x.Item2, x.Item3 });
 
         public static string ConvertDisplayName(MethodInfo method, object[] args)

@@ -21,7 +21,7 @@ namespace GitRepositoryTests
             {
                 if (type.GetCustomAttributes(typeof(DebuggerDisplayAttribute), false)?.FirstOrDefault() is DebuggerDisplayAttribute dd)
                 {
-                    foreach (var q in Regex.Matches(dd.Value, "(?<={)[^}]+(?=})").Cast<Match>().Select(x => x.Value))
+                    foreach (var q in Regex.Matches(dd.Value, "(?<!\\\\{)(?<={)[^}]+(?=})").Cast<Match>().Select(x => x.Value))
                     {
                         int n = q.IndexOfAny(new[] { ',', ':', '(', '.' });
 
