@@ -47,9 +47,11 @@ jobs:
       run: dotnet test -v:m -c Release --no-build -p:GitHubCI=yes
 
     - name: Pack
+      if: runner.os == 'Windows'
       run: dotnet pack -v:m -c Release --no-build -p:GitHubCI=yes
 
     - name: Package nupkg files
+      if: runner.os == 'Windows'
       uses: actions/upload-artifact@v2
       with:
         name: nupkg-files
