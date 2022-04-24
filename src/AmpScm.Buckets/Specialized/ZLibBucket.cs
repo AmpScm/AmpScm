@@ -6,8 +6,9 @@ using Elskom.Generic.Libs;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public enum ZLibLevel
+    public enum BucketCompressionLevel
     {
+        Default = ZlibConst.ZDEFAULTCOMPRESSION,
         Store = ZlibConst.ZNOCOMPRESSION,
         BestSpeed = ZlibConst.ZBESTSPEED,
         Maximum = ZlibConst.ZBESTCOMPRESSION
@@ -20,71 +21,46 @@ namespace AmpScm.Buckets.Specialized
         BucketBytes write_buffer;
         byte[] write_data;
         long _position;
-        int? _windowBits;
-        ZLibLevel? _level;
-        readonly IBucketPoll? innerPoll;
+        readonly BucketCompressionAlgorithm _algorithm;
+        readonly BucketCompressionLevel? _level;
+        readonly IBucketPoll? _innerPoll;
         int? _headerLeft;
 
-        public ZLibBucket(Bucket inner)
-            : this(inner, 15 /* 15 for zlib. -15 for deflate and 31 for gzip */)
+        internal ZLibBucket(Bucket inner)
+            : this(inner, BucketCompressionAlgorithm.ZLib)
         {
-            innerPoll = inner as IBucketPoll;
         }
 
-        private ZLibBucket(Bucket inner, int windowBits)
-            : base(inner)
-        {
-            _z = new();
-            _z.InflateInit(windowBits);
-            write_data = new byte[8192];
-            _windowBits = windowBits;
-        }
-
-        public ZLibBucket(Bucket inner, ZLibLevel level)
+        public ZLibBucket(Bucket inner, BucketCompressionAlgorithm algorithm = BucketCompressionAlgorithm.ZLib, CompressionMode mode = CompressionMode.Decompress, BucketCompressionLevel level = BucketCompressionLevel.Default)
             : base(inner)
         {
             _z = new ZStream();
-            _z.DeflateInit((int)level);
+            if (mode == CompressionMode.Compress)
+                _level = level;
+            _algorithm = algorithm;
+
+            ZSetup();
             write_data = new byte[8192];
-            _level = level;
+            _innerPoll = inner as IBucketPoll;
         }
 
-        internal ZLibBucket(Bucket inner, BucketCompressionAlgorithm zlibAlgorithm, CompressionMode mode)
-            : base(inner)
+        public override string Name => $"ZLib[{_algorithm}{(_level is null ? "Compress" : "Decompress")}>{Inner.Name}";
+
+        void ZSetup()
         {
-            _z = new ZStream();
-            switch ((zlibAlgorithm, mode))
-            {
-                case (BucketCompressionAlgorithm.ZLib, CompressionMode.Decompress):
-                    _windowBits = 15;
-                    _z.InflateInit(_windowBits.Value);
-                    break;
-                case (BucketCompressionAlgorithm.ZLib, CompressionMode.Compress):
-                    _level = (ZLibLevel)ZlibConst.ZDEFAULTCOMPRESSION;
-                    _windowBits = 15;
-                    _z.DeflateInit(ZlibConst.ZBESTCOMPRESSION, _windowBits.Value);
-                    break;
-                case (BucketCompressionAlgorithm.Deflate, CompressionMode.Decompress):
-                    _windowBits = -15;
-                    _z.InflateInit(_windowBits.Value);
-                    break;
-                case (BucketCompressionAlgorithm.Deflate, CompressionMode.Compress):
-                    _level = (ZLibLevel)ZlibConst.ZDEFAULTCOMPRESSION;
-                    _windowBits = -15;
-                    _z.DeflateInit(ZlibConst.ZBESTCOMPRESSION, _windowBits.Value);
-                    break;
-                case (BucketCompressionAlgorithm.GZip, CompressionMode.Decompress):
-                    _windowBits = -15;
-                    _z.InflateInit(_windowBits.Value);
-                    _headerLeft = 10;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(zlibAlgorithm));
-            }
-            write_data = new byte[8192];
-        }
+            if (!_level.HasValue)
+                _z.InflateInit(_algorithm == BucketCompressionAlgorithm.ZLib ? 15 : -15);
+            else
+                _z.DeflateInit((int)_level.Value, _algorithm == BucketCompressionAlgorithm.ZLib ? 15 : -15);
 
-        public override string Name => "ZLib>" + Inner.Name;
+            if (_algorithm == BucketCompressionAlgorithm.GZip && !_level.HasValue)
+                _headerLeft = 10;
+
+            _eof = _readEof = false;
+            read_buffer = BucketBytes.Empty;
+            write_buffer = BucketBytes.Empty;
+            _position = 0;
+        }
 
         async ValueTask<bool> Refill(bool forPeek, int requested = int.MaxValue)
         {
@@ -106,7 +82,7 @@ namespace AmpScm.Buckets.Specialized
 
                         if (bb.IsEof)
                         {
-                            if (_windowBits == -15 && _headerLeft == 10)
+                            if (_algorithm == BucketCompressionAlgorithm.GZip && _headerLeft == 10)
                             {
                                 _eof = true;
                                 return true;
@@ -134,7 +110,7 @@ namespace AmpScm.Buckets.Specialized
 
                 if (!_readEof && read_buffer.IsEmpty)
                 {
-                    var bb = ((innerPoll is null) ? Inner.Peek() : await innerPoll.PollAsync().ConfigureAwait(false));
+                    var bb = ((_innerPoll is null) ? Inner.Peek() : await _innerPoll.PollAsync().ConfigureAwait(false));
 
                     if (bb.IsEmpty)
                     {
@@ -230,7 +206,7 @@ namespace AmpScm.Buckets.Specialized
                     else
                         _eof = true;
                 }
-                else if (r == ZlibConst.ZBUFERROR && _readEof && _windowBits == -15 && _z.NextOutIndex == 0)
+                else if (r == ZlibConst.ZBUFERROR && _readEof && _algorithm == BucketCompressionAlgorithm.Deflate && _z.NextOutIndex == 0)
                 {
                     // Deflate decompression reports error at EOF. Appears to be fixed in ZLib itself.
                     // Covered by WrapTests.TestConvert() test over Deflate.
@@ -238,7 +214,7 @@ namespace AmpScm.Buckets.Specialized
                 }
                 else if (r != ZlibConst.ZOK)
                 {
-                    throw new System.IO.IOException($"ZLib handler failed {r}: {_z.Msg}");
+                    throw new BucketException($"ZLib handler failed {r}: {_z.Msg} on {Name} Bucket");
                 }
 
                 if (write_buffer.IsEmpty)
@@ -320,21 +296,13 @@ namespace AmpScm.Buckets.Specialized
                     // Reset the world and start reading at the start
                     await Inner.ResetAsync().ConfigureAwait(false);
 
-                    if (_windowBits is int wb)
-                        _z.InflateInit(wb);
-                    else if (_level.HasValue)
-                        _z.DeflateInit((int)_level);
-
-                    _eof = _readEof = false;
-                    read_buffer = BucketBytes.Empty;
-                    write_buffer = BucketBytes.Empty;
-                    _position = 0;
+                    ZSetup();
                 }
             }
 
             if (newPosition > _position)
             {
-                await ReadSkipAsync(newPosition-_position).ConfigureAwait(false);
+                await ReadSkipAsync(newPosition - _position).ConfigureAwait(false);
             }
         }
 
@@ -349,15 +317,7 @@ namespace AmpScm.Buckets.Specialized
 
             await Inner.ResetAsync().ConfigureAwait(false);
 
-            if (_windowBits is int wb)
-                _z.InflateInit(wb);
-            else if (_level.HasValue)
-                _z.DeflateInit((int)_level);
-
-            _eof = _readEof = false;
-            read_buffer = BucketBytes.Empty;
-            write_buffer = BucketBytes.Empty;
-            _position = 0;
+            ZSetup();
         }
 
         protected override void Dispose(bool disposing)
@@ -379,12 +339,7 @@ namespace AmpScm.Buckets.Specialized
 
             var b = await Inner.DuplicateAsync(reset).ConfigureAwait(false);
 
-            if (_windowBits.HasValue)
-                return new ZLibBucket(b, _windowBits.Value);
-            else if (_level.HasValue)
-                return new ZLibBucket(b, _level.Value);
-            else
-                throw new InvalidOperationException();
+            return new ZLibBucket(b, _algorithm, (_level is null) ? CompressionMode.Decompress : CompressionMode.Compress);
         }
     }
 }

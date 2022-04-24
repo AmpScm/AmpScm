@@ -215,7 +215,7 @@ namespace AmpScm.Buckets.Git
 
                     state = frame_state.find_delta;
                     position = 0;
-                    reader = new ZLibBucket(Inner.SeekOnReset().NoClose());
+                    reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
                 }
                 else if (Type == GitObjectType_DeltaOffset)
                 {
@@ -262,7 +262,7 @@ namespace AmpScm.Buckets.Git
                             state = frame_state.find_delta;
                             position = 0;
                             delta_position = frame_position - delta_position;
-                            reader = new ZLibBucket(Inner.SeekOnReset().NoClose());
+                            reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
                         }
                     }
                 }
@@ -270,7 +270,7 @@ namespace AmpScm.Buckets.Git
                 {
                     position = 0; // The real body starts right now
                     state = frame_state.body;
-                    reader = new ZLibBucket(Inner.SeekOnReset().NoClose());
+                    reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
                     DeltaCount = 0;
                     _fetchBucketById = null;
                 }

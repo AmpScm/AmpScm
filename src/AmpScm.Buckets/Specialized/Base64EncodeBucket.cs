@@ -1,6 +1,6 @@
 ﻿namespace AmpScm.Buckets.Specialized
 {
-    internal sealed class Base64EncodeBucket : ConvertBucket
+    internal sealed class Base64EncodeBucket : ConversionBucket
     {
         readonly bool _wrapLines;
         readonly bool _addPadding;

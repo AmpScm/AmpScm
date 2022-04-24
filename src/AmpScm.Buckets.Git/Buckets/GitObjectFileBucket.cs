@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace AmpScm.Buckets.Git
         long? _length;
 
         public GitObjectFileBucket(Bucket inner)
-            : base(new ZLibBucket(inner))
+            : base(new ZLibBucket(inner, BucketCompressionAlgorithm.ZLib))
         {
         }
 

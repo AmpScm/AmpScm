@@ -74,6 +74,16 @@ AmpScm.Buckets.SocketBucket.ConnectAsync(string! host, int port, System.Threadin
 AmpScm.Buckets.SocketBucket.ShutdownAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.SocketBucket.SocketBucket(System.Net.Sockets.Socket! socket, int bufferSize = 16384) -> void
 AmpScm.Buckets.SocketBucket.Write(AmpScm.Buckets.Bucket! bucket) -> void
+AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
+AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.Brotli = 3 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
+AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.Deflate = 0 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
+AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.GZip = 2 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
+AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib = 1 -> AmpScm.Buckets.Specialized.BucketCompressionAlgorithm
+AmpScm.Buckets.Specialized.BucketCompressionLevel
+AmpScm.Buckets.Specialized.BucketCompressionLevel.BestSpeed = 1 -> AmpScm.Buckets.Specialized.BucketCompressionLevel
+AmpScm.Buckets.Specialized.BucketCompressionLevel.Default = -1 -> AmpScm.Buckets.Specialized.BucketCompressionLevel
+AmpScm.Buckets.Specialized.BucketCompressionLevel.Maximum = 9 -> AmpScm.Buckets.Specialized.BucketCompressionLevel
+AmpScm.Buckets.Specialized.BucketCompressionLevel.Store = 0 -> AmpScm.Buckets.Specialized.BucketCompressionLevel
 AmpScm.Buckets.Specialized.CombineBucket
 AmpScm.Buckets.Specialized.CombineBucket.CombineBucket(AmpScm.Buckets.Bucket! left, AmpScm.Buckets.Bucket! right) -> void
 AmpScm.Buckets.Specialized.CombineBucket.Left.get -> AmpScm.Buckets.Bucket!
@@ -96,12 +106,6 @@ AmpScm.Buckets.Specialized.WrappingBucket.NoClose() -> void
 AmpScm.Buckets.Specialized.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Specialized.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! inner, bool noDispose) -> void
 AmpScm.Buckets.Specialized.ZLibBucket
-AmpScm.Buckets.Specialized.ZLibBucket.ZLibBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.Specialized.ZLibBucket.ZLibBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Specialized.ZLibLevel level) -> void
-AmpScm.Buckets.Specialized.ZLibLevel
-AmpScm.Buckets.Specialized.ZLibLevel.BestSpeed = 1 -> AmpScm.Buckets.Specialized.ZLibLevel
-AmpScm.Buckets.Specialized.ZLibLevel.Maximum = 9 -> AmpScm.Buckets.Specialized.ZLibLevel
-AmpScm.Buckets.Specialized.ZLibLevel.Store = 0 -> AmpScm.Buckets.Specialized.ZLibLevel
 AmpScm.Buckets.ValueOrEof
 AmpScm.Buckets.ValueOrEof.Equals(AmpScm.Buckets.ValueOrEof other) -> bool
 AmpScm.Buckets.ValueOrEof.ValueOrEof() -> void

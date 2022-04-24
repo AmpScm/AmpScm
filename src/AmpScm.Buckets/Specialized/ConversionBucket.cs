@@ -7,14 +7,14 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public abstract class ConvertBucket : WrappingBucket//, IBucketPoll
+    public abstract class ConversionBucket : WrappingBucket//, IBucketPoll
     {
         BucketBytes _remaining;
         int _skipFirst;
         BucketBytes _readLeft;
         long _position;
 
-        protected ConvertBucket(Bucket inner) : base(inner)
+        protected ConversionBucket(Bucket inner) : base(inner)
         {
         }
 

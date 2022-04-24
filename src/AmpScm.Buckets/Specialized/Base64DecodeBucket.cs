@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal sealed class Base64DecodeBucket : ConvertBucket
+    internal sealed class Base64DecodeBucket : ConversionBucket
     {
         byte[]? buffer;
         uint bits;
