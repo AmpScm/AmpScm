@@ -230,10 +230,12 @@ namespace AmpScm.Buckets.Specialized
                     else
                         _eof = true;
                 }
-                //else if (r == zlibConst.Z_BUF_ERROR && _readEof && _z.next_out_index == 0)
-                //{
-                //    _eof = true;
-                //}
+                else if (r == ZlibConst.ZBUFERROR && _readEof && _windowBits == -15 && _z.NextOutIndex == 0)
+                {
+                    // Deflate decompression reports error at EOF. Appears to be fixed in ZLib itself.
+                    // Covered by WrapTests.TestConvert() test over Deflate.
+                    _eof = true;
+                }
                 else if (r != ZlibConst.ZOK)
                 {
                     throw new System.IO.IOException($"ZLib handler failed {r}: {_z.Msg}");

@@ -22,7 +22,7 @@ namespace BucketTests
             {
                 ("Base64", b => b.Base64Encode(), b => b.Base64Decode()),
                 ("ZLib", b => b.Compress(BucketCompressionAlgorithm.ZLib), b=> b.Decompress(BucketCompressionAlgorithm.ZLib)),
-                //("deflate", b => b.Compress(BucketCompressionAlgorithm.Deflate), b=> b.Decompress(BucketCompressionAlgorithm.Deflate)),
+                ("deflate", b => b.Compress(BucketCompressionAlgorithm.Deflate), b=> b.Decompress(BucketCompressionAlgorithm.Deflate)),
                 ("GZip", b => b.Compress(BucketCompressionAlgorithm.GZip), b=> b.Decompress(BucketCompressionAlgorithm.GZip)),
 #if !NETFRAMEWORK
                 ("Brotli", b => b.Compress(BucketCompressionAlgorithm.Brotli), b=> b.Decompress(BucketCompressionAlgorithm.Brotli)),

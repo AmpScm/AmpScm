@@ -173,12 +173,8 @@ namespace AmpScm.Buckets
             switch (algorithm)
             {
                 case BucketCompressionAlgorithm.ZLib:
-                    return new ZLibBucket(bucket, algorithm, CompressionMode.Decompress);
                 case BucketCompressionAlgorithm.Deflate:
-                    // Could be optimized like zlib, but currently unneeded
-                    return new ZLibBucket(bucket, algorithm, CompressionMode.Decompress);
                 case BucketCompressionAlgorithm.GZip:
-                    // Could be optimized like zlib, but currently unneeded
                     return new ZLibBucket(bucket, algorithm, CompressionMode.Decompress);
                 case BucketCompressionAlgorithm.Brotli:
 #if !NETFRAMEWORK
