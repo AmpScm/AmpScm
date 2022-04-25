@@ -23,10 +23,19 @@ namespace GitRepositoryTests.Index
         {
             using var repo = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
 
-            using var index = FileBucket.OpenRead(Path.Combine(repo.FullPath, ".git", "index"));
+            using var index = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
 
 
             using var dc = new GitCacheBucket(index, new() { IdType = GitIdType.Sha1 });
+
+            await dc.ReadHeaderAsync();
+
+            TestContext.WriteLine($"Version: {dc.IndexVersion}");
+
+            while (await dc.ReadEntryAsync() is GitCacheEntry entry)
+            {
+                TestContext.WriteLine($"{entry.Name} - {entry}");
+            }
 
             _ = await dc.ReadAsync();
         }
@@ -68,8 +77,44 @@ namespace GitRepositoryTests.Index
             }
 
             _ = await dc.ReadAsync();
+        }
 
+        [TestMethod]
+        public async Task CheckReadSparse()
+        {
+            // This scenario is not really exposed by plain git yet, but this close
+            // creates a new sparse checkout with sparse index for cone layout, where trees are
+            // stored as tree objects directly in the index, instead of cached as trees.
+            var path = TestContext.PerTestDirectory();
+            {
+                using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+                await gc.GetPlumbing().RunRawCommand("clone",
+                    gc.FullPath,
+                    path, "-s",
+                    "-c", "core.sparseCheckout=true",
+                    "-c", "core.sparseCheckoutCone=true",
+                    "-c", "index.sparse=true",
+                    "--sparse"
+                    );
+            }
 
+            using var repo = GitRepository.Open(path);
+            Console.WriteLine(path);
+
+            using var index = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
+
+            using var dc = new GitCacheBucket(index);
+
+            await dc.ReadHeaderAsync();
+
+            TestContext.WriteLine($"Version: {dc.IndexVersion}");
+
+            while (await dc.ReadEntryAsync() is GitCacheEntry entry)
+            {
+                TestContext.WriteLine($"{entry.Name} - {entry}");
+            }
+
+            _ = await dc.ReadAsync();
         }
     }
 }

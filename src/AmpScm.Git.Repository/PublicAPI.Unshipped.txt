@@ -73,6 +73,7 @@ AmpScm.Git.GitRepository.Remotes.get -> AmpScm.Git.Sets.GitRemotesSet!
 AmpScm.Git.GitRepository.TagObjects.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.GitTagObject!>!
 AmpScm.Git.GitRepository.Tags.get -> AmpScm.Git.Sets.GitNamedSet<AmpScm.Git.GitTag!>!
 AmpScm.Git.GitRepository.Trees.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.GitTree!>!
+AmpScm.Git.GitRepository.WorktreePath.get -> string!
 AmpScm.Git.GitRepositoryException
 AmpScm.Git.GitRepositoryException.GitRepositoryException() -> void
 AmpScm.Git.GitRepositoryException.GitRepositoryException(string! message) -> void

@@ -32,7 +32,7 @@ namespace AmpScm.Git
         GitConfiguration? _gitConfigurationLazy;
 
         protected internal string GitDir { get; }
-        protected internal string WorkTreeDir { get; }
+        public string WorktreePath { get; }
 
         // Not directly creatable for now
         private GitRepository()
@@ -55,7 +55,7 @@ namespace AmpScm.Git
             ObjectRepository = null!;
             GitDir = default!;
             FullPath = default!;
-            WorkTreeDir = default!;
+            WorktreePath = default!;
             ReferenceRepository = null!;
         }
 
@@ -89,7 +89,7 @@ namespace AmpScm.Git
             {
                 case GitRootType.Normal:
                 case GitRootType.None:
-                    WorkTreeDir = GitDir = Path.Combine(FullPath, ".git");
+                    WorktreePath = GitDir = Path.Combine(FullPath, ".git");
                     break;
                 case GitRootType.WorkTree:
                     {
@@ -100,21 +100,21 @@ namespace AmpScm.Git
                             && File.Exists(Path.Combine(GitDir, "config")))
                         {
                             GitDir = GitTools.GetNormalizedFullPath(GitDir);
-                            WorkTreeDir = wt;
+                            WorktreePath = wt;
                         }
                         else
                             throw new GitRepositoryException($"Unable to read WorkTree configuration for '{FullPath}");
                         break;
                     }
                 case GitRootType.Bare:
-                    WorkTreeDir = GitDir = FullPath;
+                    WorktreePath = GitDir = FullPath;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(rootType));
             }
 
             ObjectRepository = new Objects.GitRepositoryObjectRepository(this, Path.Combine(GitDir, "objects"));
-            ReferenceRepository = new References.GitRepositoryReferenceRepository(this, GitDir, WorkTreeDir);
+            ReferenceRepository = new References.GitRepositoryReferenceRepository(this, GitDir, WorktreePath);
         }
 
         public GitObjectSet<GitObject> Objects { get; }

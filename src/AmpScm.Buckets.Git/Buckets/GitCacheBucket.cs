@@ -125,12 +125,11 @@ namespace AmpScm.Buckets.Git
             }
             _nRead++;
 
-            int readLen = 42 + _idType.HashLength();
+            int hashLen = _idType.HashLength();
+            int readLen = 40 + 2 + hashLen;
             var bb = await Inner.ReadFullAsync(readLen).ConfigureAwait(false);
 
-            if (bb.IsEof)
-                return null;
-            else if (bb.Length != readLen)
+            if (bb.Length != readLen)
                 throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
 
             GitCacheEntry src = new()
@@ -145,9 +144,20 @@ namespace AmpScm.Buckets.Git
                 UserId = NetBitConverter.ToInt32(bb, 28),
                 GroupId = NetBitConverter.ToInt32(bb, 32),
                 TruncatedSizeOnDisk = NetBitConverter.ToInt32(bb, 36),
-                Flags = NetBitConverter.ToInt16(bb, 40) << 16 | _version,
-                Id = new GitId(_idType, bb.Slice(42).ToArray())
+                Id = new GitId(_idType, bb.Slice(40, hashLen).ToArray()),
+                Flags = NetBitConverter.ToInt16(bb, 40 + hashLen),
             };
+
+            int FullFlags = src.Flags;
+            if ((((uint)src.Flags) & 0x4000) != 0 && _version >= 3) // Must be 0 in version 2
+            {
+                bb = await Inner.ReadFullAsync(2).ConfigureAwait(false);
+
+                if (bb.Length != 2)
+                    throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+
+                FullFlags |= NetBitConverter.ToInt16(bb, 0) << 16;
+            }
 
             if (_version < 4)
             {
@@ -161,7 +171,7 @@ namespace AmpScm.Buckets.Git
                 if (_skip == 8)
                     _skip = 0;
 
-                return src with { Name = name.ToUTF8String(eol) };
+                return src with { Name = name.ToUTF8String(eol), Flags = FullFlags };
             }
             else
             {
@@ -194,7 +204,7 @@ namespace AmpScm.Buckets.Git
                 else
                     _lastName = sName = name.ToUTF8String(eol);
 
-                return src with { Name = sName };
+                return src with { Name = sName, Flags = FullFlags };
             }
         }
 
@@ -266,8 +276,11 @@ namespace AmpScm.Buckets.Git
 
                     int extensionlen = NetBitConverter.ToInt32(bb, 4);
 
-                    if (extensionlen != await reader.ReadSkipAsync(extensionlen).ConfigureAwait(false))
-                        throw new GitBucketException($"Unexpected EOF in '{extensionName}' extension of {Name} bucket");
+                    if (extensionlen > 0)
+                    {
+                        if (extensionlen != await reader.ReadSkipAsync(extensionlen).ConfigureAwait(false))
+                            throw new GitBucketException($"Unexpected EOF in '{extensionName}' extension of {Name} bucket");
+                    }
                 }
                 _processedExtensions = true;
             }
