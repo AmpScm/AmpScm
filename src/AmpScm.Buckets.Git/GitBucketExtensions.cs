@@ -105,22 +105,25 @@ namespace AmpScm.Git
 
             long max_delta_size_len = 1 + (64 + 6) / 7;
 
-            var peeked = await bucket.PollAsync().ConfigureAwait(false);
+            var polled = await bucket.PollAsync().ConfigureAwait(false);
             int rq_len;
 
-            if (!peeked.IsEmpty)
+            if (!polled.IsEmpty)
             {
-                rq_len = 0;
-                for (int i = 0; i <= max_delta_size_len && i < peeked.Length; i++)
+                rq_len = 1;
+                for (int i = 0; i < polled.Length; i++)
                 {
-                    rq_len++;
-                    if (0 == (peeked[i] & 0x80))
+                    if (0 == (polled[i] & 0x80))
                         break;
+                    rq_len++;
                 }
-                rq_len = Math.Min(rq_len, peeked.Length);
+                Debug.Assert(rq_len <= polled.Length + 1);
             }
             else
                 rq_len = 1;
+
+            if (rq_len > max_delta_size_len)
+                throw new GitBucketException($"GitOffset overflows 64 bit integer in {bucket.Name} Bucket");
 
             var read = await bucket.ReadAsync(rq_len).ConfigureAwait(false);
             int position = 0;
@@ -137,7 +140,7 @@ namespace AmpScm.Git
                 position++;
 
                 if (position > max_delta_size_len)
-                    throw new GitBucketException("Git pack delta reference overflows 64 bit integer");
+                    throw new GitBucketException($"GitOffset overflows 64 bit integer in {bucket.Name} Bucket");
 
                 if (0 == (uc & 0x80))
                 {
@@ -146,13 +149,13 @@ namespace AmpScm.Git
                 }
                 else if (i == read.Length -1)
                 {
-                    // Not enough data read yet. Read another byte and continue
+                    // Not enough data read yet. Read another byte and continue :(
                     read = await bucket.ReadAsync(1).ConfigureAwait(false);
                     i = -1;
                 }
             }
 
-            throw new BucketException("Invalid GitOffset");
+            throw new BucketException($"Invalid GitOffset in {bucket.Name} Bucket");
         }
     }
 }
