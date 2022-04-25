@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace AmpScm.Buckets.Git
         public int UserId { get; init; }
         public int GroupId { get; init; }
         public int TruncatedSizeOnDisk { get; init; }
-        public int Flags { get; init; }        
+        public int Flags { get; init; }
     }
 
     /// <summary>
@@ -48,6 +49,8 @@ namespace AmpScm.Buckets.Git
         int _skip;
         int _nRead;
         string? _lastName;
+        long _length;
+        bool _processedExtensions;
 
         public static readonly int LowestSupportedFormat = 2;
         public static readonly int HighestSupportedFormat = 4;
@@ -60,7 +63,7 @@ namespace AmpScm.Buckets.Git
             _lookForEndOfIndex = options?.LookForEndOfIndex ?? false;
         }
 
-        public async ValueTask ReadHeader()
+        public async ValueTask ReadHeaderAsync()
         {
             if (_version > 0)
                 return;
@@ -76,24 +79,33 @@ namespace AmpScm.Buckets.Git
             _indexCount = NetBitConverter.ToInt32(bb, 8);
             _indexStart = 12;
 
-            if (_lookForEndOfIndex && Inner is FileBucket fb)
+            if (Inner is FileBucket fb)
             {
-                var endOfIndex = new byte[4 /* HDR */ + sizeof(uint) /* Size */ + sizeof(uint) /* Offset */ + 20 /* SHA-1 hash */];
-                long pos = fb.Length - _idType.HashLength() - endOfIndex.Length;
-                
-                if (pos > 0 && endOfIndex.Length == await fb.ReadAtAsync(pos, endOfIndex).ConfigureAwait(false)
-                    && (bb = endOfIndex).StartsWithASCII("EOIE")
-                    && NetBitConverter.ToInt32(bb, 4) == endOfIndex.Length-8)
+                _length = fb.Length;
+                if (_lookForEndOfIndex)
                 {
-                    _endOfIndex = NetBitConverter.ToInt32(bb, 8);
+                    var endOfIndex = new byte[4 /* HDR */ + sizeof(uint) /* Size */ + sizeof(uint) /* Offset */ + 20 /* SHA-1 hash */];
+
+                    long pos = _length - _idType.HashLength() - endOfIndex.Length;
+
+                    if (pos > 0 && endOfIndex.Length == await fb.ReadAtAsync(pos, endOfIndex).ConfigureAwait(false)
+                        && (bb = endOfIndex).StartsWithASCII("EOIE")
+                        && NetBitConverter.ToInt32(bb, 4) == endOfIndex.Length - 8)
+                    {
+                        _endOfIndex = NetBitConverter.ToInt32(bb, 8);
+                    }
                 }
+            }
+            else
+            {
+                _length = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false) + Inner.Position ?? -1;
             }
         }
 
         public async ValueTask<GitCacheEntry?> ReadEntryAsync()
         {
             if (_indexStart == 0)
-                await ReadHeader().ConfigureAwait(false);
+                await ReadHeaderAsync().ConfigureAwait(false);
 
             while (_skip > 0)
             {
@@ -105,13 +117,21 @@ namespace AmpScm.Buckets.Git
             }
 
             if (_nRead >= _indexCount)
+            {
+                if (!_endOfIndex.HasValue)
+                    _endOfIndex = Inner.Position;
+
                 return null;
+            }
             _nRead++;
 
-            var bb = await Inner.ReadFullAsync(42 + _idType.HashLength()).ConfigureAwait(false);
+            int readLen = 42 + _idType.HashLength();
+            var bb = await Inner.ReadFullAsync(readLen).ConfigureAwait(false);
 
             if (bb.IsEof)
                 return null;
+            else if (bb.Length != readLen)
+                throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
 
             GitCacheEntry src = new()
             {
@@ -133,6 +153,9 @@ namespace AmpScm.Buckets.Git
             {
                 var (name, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero).ConfigureAwait(false);
 
+                if (eol != BucketEol.Zero)
+                    throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+
                 _skip = 8 - (int)((Inner.Position!.Value - _indexStart) & 0x7);
 
                 if (_skip == 8)
@@ -145,6 +168,9 @@ namespace AmpScm.Buckets.Git
                 int drop = (int)await Inner.ReadGitOffsetAsync().ConfigureAwait(false);
                 var (name, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero).ConfigureAwait(false);
 
+                if (eol != BucketEol.Zero)
+                    throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+
                 string sName;
 
                 int len = (_lastName?.Length - drop) ?? 0;
@@ -154,29 +180,111 @@ namespace AmpScm.Buckets.Git
                     if (!_lastName.AsSpan(0, len).Any(x => x >= 0x80))
                     {
 #if !NETFRAMEWORK
-                        _lastName = sName = string.Concat(_lastName.AsSpan(0,  len), name.ToUTF8String(eol));
+                        _lastName = sName = string.Concat(_lastName.AsSpan(0, len), name.ToUTF8String(eol));
 #else
                         _lastName = sName = string.Concat(_lastName.Substring(0, len), name.ToUTF8String(eol));
 #endif
                     }
                     else
-                    {                        
+                    {
                         name = Encoding.UTF8.GetBytes(_lastName!).Take(len).Concat(name.ToArray()).ToArray();
                         _lastName = sName = name.ToUTF8String(eol);
                     }
                 }
                 else
-                     _lastName = sName = name.ToUTF8String(eol);
+                    _lastName = sName = name.ToUTF8String(eol);
 
                 return src with { Name = sName };
             }
         }
 
+        public async ValueTask ProcessExtensionsAsync()
+        {
+            if (_processedExtensions)
+                return;
+
+            if (_nRead < _indexCount && !_endOfIndex.HasValue)
+            {
+                while (null != await ReadEntryAsync().ConfigureAwait(false))
+                {
+                }
+            }
+
+            if (!_endOfIndex.HasValue)
+                throw new InvalidOperationException();
+
+            Bucket reader;
+            if (_nRead == _indexCount)
+                reader = Inner.NoClose(true);
+            else
+            {
+                reader = await Inner.DuplicateAsync(true).ConfigureAwait(false);
+
+                await reader.SeekAsync(_endOfIndex.Value).ConfigureAwait(false);
+            }
+
+            using (reader)
+            {
+                long bucketEnd = _length - _idType.HashLength();
+
+                while (reader.Position < bucketEnd)
+                {
+                    var bb = await reader.ReadFullAsync(4 + 4).ConfigureAwait(false);
+
+                    if (bb.Length != 4 + 4)
+                        throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+
+                    string extensionName = bb.ToUTF8String(0, 4);
+
+                    switch (extensionName)
+                    {
+                        case "EOIE": // End of Index Entry.
+                            break;
+
+                        case "TREE": // Cache Tree
+                            break;
+
+                        case "REUC": // Resolve undo
+                            break;
+
+                        case "UNTR": // Untracked cache
+                            break;
+
+                        case "FSMN": // File System Monitor cache
+                            break;
+
+                        case "sdir": // Sparse Directory Entries
+                            break; // Sparse directory entries may exist. Fine!
+
+                        default:
+                            if (extensionName[0] < 'A' || extensionName[0] > 'Z')
+                                throw new GitBucketException($"Unknown non optional extension '{extensionName}' in {Name} bucket");
+
+                            Debug.WriteLine($"Ignoring unknown extension '{extensionName}' in {Name} bucket");
+                            break;
+                    }
+
+                    int extensionlen = NetBitConverter.ToInt32(bb, 4);
+
+                    if (extensionlen != await reader.ReadSkipAsync(extensionlen).ConfigureAwait(false))
+                        throw new GitBucketException($"Unexpected EOF in '{extensionName}' extension of {Name} bucket");
+                }
+                _processedExtensions = true;
+            }
+        }
+
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            await ReadHeader().ConfigureAwait(false);
+            await ReadHeaderAsync().ConfigureAwait(false);
 
-            while(0 != await Inner.ReadSkipAsync(int.MaxValue).ConfigureAwait(false))
+            while (null != await ReadEntryAsync().ConfigureAwait(false))
+            {
+
+            }
+
+            await ProcessExtensionsAsync().ConfigureAwait(false);
+
+            while (0 != await Inner.ReadSkipAsync(int.MaxValue).ConfigureAwait(false))
             {
 
             }

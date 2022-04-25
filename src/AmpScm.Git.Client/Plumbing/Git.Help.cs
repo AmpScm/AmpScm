@@ -25,7 +25,14 @@ namespace AmpScm.Git.Client.Plumbing
         public static async ValueTask<string> Help(this GitPlumbingClient c, GitHelpArgs a)
         {
             a.Verify();
-            var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            string[] args;
+
+            if (a.Command == "-a")
+                args = new string[] { "-a" };
+            else
+                args = new string[] { "-i", a.Command! ?? a.Guide! };
+
+            var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", args);
 
             return txt ?? "";
         }

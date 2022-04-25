@@ -32,13 +32,13 @@ namespace GitRepositoryTests.Index
         }
 
 
-        public static IEnumerable<object[]> GetIndexFormats => Enumerable.Range(GitCacheBucket.LowestSupportedFormat, GitCacheBucket.HighestSupportedFormat - GitCacheBucket.LowestSupportedFormat + 1).SelectMany(x => new object[][] { new object[] { x, false }, new object[] { x, true } });
+        public static IEnumerable<object[]> GetIndexFormats => Enumerable.Range(GitCacheBucket.LowestSupportedFormat, GitCacheBucket.HighestSupportedFormat - GitCacheBucket.LowestSupportedFormat + 1).SelectMany(x => Enumerable.Range(0, 4).Select(y => new object[] { x, ((int)y & 1) != 0, ((int)y & 2) != 0 }));
 
         [TestMethod]
         [DynamicData(nameof(GetIndexFormats))]
-        public async Task CheckReadFormatVersion(int version, bool addOptional)
+        public async Task CheckReadFormatVersion(int version, bool addOptional, bool optimize)
         {
-            var path = TestContext.PerTestDirectory((version, addOptional).ToString());
+            var path = TestContext.PerTestDirectory((version, addOptional, optimize).ToString());
             {
                 using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
                 List<string> args = new() { gc.FullPath, path, "-s", "-c", $"index.version={version}" };
@@ -56,9 +56,9 @@ namespace GitRepositoryTests.Index
             using var index = FileBucket.OpenRead(Path.Combine(repo.FullPath, ".git", "index"));
 
 
-            using var dc = new GitCacheBucket(index, new() { IdType = GitIdType.Sha1 });
+            using var dc = new GitCacheBucket(index, new() { IdType = GitIdType.Sha1, LookForEndOfIndex = optimize });
 
-            await dc.ReadHeader();
+            await dc.ReadHeaderAsync();
 
             TestContext.WriteLine($"Version: {dc.IndexVersion}");
 
@@ -69,7 +69,7 @@ namespace GitRepositoryTests.Index
 
             _ = await dc.ReadAsync();
 
-            
+
         }
     }
 }

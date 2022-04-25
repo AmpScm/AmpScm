@@ -2,8 +2,9 @@
 AmpScm.Buckets.Git.GitCacheBucket
 AmpScm.Buckets.Git.GitCacheBucket.GitCacheBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Git.GitCacheOptions? options = null) -> void
 AmpScm.Buckets.Git.GitCacheBucket.IndexVersion.get -> int?
+AmpScm.Buckets.Git.GitCacheBucket.ProcessExtensionsAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Git.GitCacheBucket.ReadEntryAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitCacheEntry?>
-AmpScm.Buckets.Git.GitCacheBucket.ReadHeader() -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Git.GitCacheBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Git.GitCacheEntry
 AmpScm.Buckets.Git.GitCacheEntry.CreationTimeNano.get -> int
 AmpScm.Buckets.Git.GitCacheEntry.CreationTimeNano.init -> void
