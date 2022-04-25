@@ -124,7 +124,7 @@ namespace AmpScm.Buckets.Client.Http
 
                             if (eol != BucketEol.None && eol != BucketEol.CRSplit)
                             {
-                                bb = _start!.Concat(bb.ToArray()).ToArray();
+                                bb = _start!.AppendBytes(bb);
                                 _chunkLeft = Convert.ToInt32(bb.ToASCIIString().Trim(), 16);
                                 _state = _chunkLeft > 0 ? DechunkState.Chunk : DechunkState.Fin;
                             }
@@ -132,7 +132,7 @@ namespace AmpScm.Buckets.Client.Http
                                 throw new HttpBucketException($"Unexpected EOF in {Name} Bucket");
                             else
                             {
-                                _start = _start!.Concat(bb.ToArray()).ToArray();
+                                _start = _start!.AppendBytes(bb);
 
                                 if (_start.Length > 16 || _start.Any(x => !IsHexChar(x)))
                                     throw new HttpBucketException($"Invalid chunk header in {Name} Bucket");

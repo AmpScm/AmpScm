@@ -114,6 +114,7 @@ namespace AmpScm.Buckets
 
 
         public void CopyTo(Memory<byte> destination) => Span.CopyTo(destination.Span);
+        public void CopyTo(byte[] array, int index) => Span.CopyTo(array.AsSpan(index));
 
         public byte this[int index] => _data.Span[index];
 

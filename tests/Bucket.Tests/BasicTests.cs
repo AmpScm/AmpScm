@@ -19,7 +19,6 @@ namespace BucketTests
     [TestClass]
     public class BasicTests
     {
-
         [TestMethod]
         public async Task BasicReadMemory()
         {
@@ -544,11 +543,11 @@ namespace BucketTests
         [TestMethod]
         public void VerifyDebuggerDisplayAttribute()
         {
-            foreach(var type in typeof(Bucket).Assembly.GetTypes())
+            foreach (var type in typeof(Bucket).Assembly.GetTypes())
             {
                 if (type.GetCustomAttributes(typeof(DebuggerDisplayAttribute), false)?.FirstOrDefault() is DebuggerDisplayAttribute dd)
                 {
-                    foreach(var q in Regex.Matches(dd.Value, "(?<!\\\\{)(?<={)[^}]+(?=})").Cast<Match>().Select(x=>x.Value))
+                    foreach (var q in Regex.Matches(dd.Value, "(?<!\\\\{)(?<={)[^}]+(?=})").Cast<Match>().Select(x => x.Value))
                     {
                         int n = q.IndexOfAny(new[] { ',', ':', '(' });
 
@@ -561,6 +560,57 @@ namespace BucketTests
                     }
                 }
             }
+        }
+
+        static ReadOnlySpan<byte> readOnlyBytesNoTable => new byte[] {
+            (byte)'0',
+            (byte)'1',
+            (byte)'2',
+            (byte)'3',
+            (byte)'4',
+            (byte)'5',
+            (byte)'6',
+            (byte)'7',
+            (byte)'8',
+            (byte)'9',
+            (byte)'A',
+            (byte)'B',
+            (byte)'C',
+            (byte)'D',
+            (byte)'E',
+            (byte)'F',
+        };
+
+        static ReadOnlyMemory<byte> readOnlyByteMemNoTable => new byte[] {
+            (byte)'0',
+            (byte)'1',
+            (byte)'2',
+            (byte)'3',
+            (byte)'4',
+            (byte)'5',
+            (byte)'6',
+            (byte)'7',
+            (byte)'8',
+            (byte)'9',
+            (byte)'A',
+            (byte)'B',
+            (byte)'C',
+            (byte)'D',
+            (byte)'E',
+            (byte)'F',
+        };
+
+
+        [TestMethod]
+        public void TestBytesOnly()
+        {
+            Assert.AreEqual((byte)'4', readOnlyBytesNoTable[4]);
+            Assert.AreEqual((byte)'4', readOnlyByteMemNoTable.Span[4]);
+
+            ReadOnlySpan<byte> bbSpan = stackalloc byte[] { 1, 2, 3, 4 };
+
+            bbSpan.ToArray();
+            //ReadOnlyMemory<byte>.
         }
     }
 }

@@ -66,14 +66,14 @@ namespace AmpScm.Buckets
                 else if (rq == 1 && (acceptableEols & BucketEol.CRLF) != 0 && result is byte[] rb && rb.Length == 1 && rb[0] == '\r')
                 {
                     if (bb[0] == '\n')
-                        return (result.Concat(bb.ToArray()).ToArray(), BucketEol.CRLF);
+                        return (result.AppendBytes(bb), BucketEol.CRLF);
                     else if ((acceptableEols & BucketEol.CR) != 0)
                     {
                         eolState!._kept = bb[0];
                         return (new[] { (byte)'\r' }, BucketEol.CR);
                     }
                     else if (eol != BucketEol.None)
-                        return (result.Concat(bb.ToArray()).ToArray(), eol); // '\0' case
+                        return (result.AppendBytes(bb), eol); // '\0' case
                 }
 
                 rq = (requested -= bb.Length);
@@ -82,7 +82,7 @@ namespace AmpScm.Buckets
                     if (result is null)
                         return (bb, eol);
 
-                    return (result.Concat(bb.ToArray()).ToArray(), eol);
+                    return (result.AppendBytes(bb), eol);
                 }
 
                 if (result == null)
@@ -121,7 +121,7 @@ namespace AmpScm.Buckets
                         }
                         else
                         {
-                            result = result.Concat(new byte[] { b }).ToArray();
+                            result = result.Concat(new byte[] { b });
                             continue;
                         }
                     }
@@ -163,7 +163,7 @@ namespace AmpScm.Buckets
                         if (result == null)
                             r = poll.Data.Slice(0, i + 1).ToArray(); // Make copy, as data is transient
                         else
-                            r = result.Concat(poll.Data.Slice(0, i + 1).ToArray()).ToArray();
+                            r = result.AppendBytes(poll.Data.Slice(0, i + 1));
 
                         await poll.Consume(i + 1).ConfigureAwait(false);
                         return r;

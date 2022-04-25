@@ -4,6 +4,7 @@ abstract AmpScm.Buckets.Specialized.ConversionBucket.ConvertData(ref AmpScm.Buck
 AmpScm.Buckets.Bucket.ReadSkipAsync(int requested) -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.BucketBytes.All(System.Func<byte, bool>! predicate) -> bool
 AmpScm.Buckets.BucketBytes.Any(System.Func<byte, bool>! predicate) -> bool
+AmpScm.Buckets.BucketBytes.CopyTo(byte[]! array, int index) -> void
 AmpScm.Buckets.BucketBytes.StartsWithASCII(string! value) -> bool
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.get -> string?

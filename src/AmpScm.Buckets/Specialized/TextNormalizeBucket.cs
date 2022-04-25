@@ -217,7 +217,7 @@ namespace AmpScm.Buckets.Specialized
                                     _inner = Inner;
                                     _position = bb.Length + bb2.Length;
                                     _state = State.Done;
-                                    return bb.ToArray().Concat(bb2.ToArray()).ToArray();
+                                    return new byte[] { 0xEF, 0xBB }.AppendBytes(bb2);
                                 }
                             }
                         }

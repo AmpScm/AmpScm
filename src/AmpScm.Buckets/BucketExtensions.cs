@@ -234,6 +234,60 @@ namespace AmpScm.Buckets
 #pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
+        internal static byte[] AppendBytes(this byte[] array, BucketBytes bytes)
+        {
+            if (array is null)
+                throw new ArgumentNullException(nameof(array));
+
+            byte[] bt = new byte[array.Length + bytes.Length];
+            array.CopyTo(bt, 0);
+
+            bytes.CopyTo(bt, array.Length);
+            return bt;
+        }
+
+        internal static byte[] AppendBytes(this IEnumerable<byte> enumerable, BucketBytes bytes)
+        {
+            if (enumerable is null)
+                throw new ArgumentNullException(nameof(enumerable));
+
+            byte[] bt;
+            if (enumerable is byte[] arr)
+                return AppendBytes(arr, bytes);
+            else if (enumerable is ICollection<byte> c)
+            {
+                bt = new byte[c.Count + bytes.Length];
+                c.CopyTo(bt, 0);
+                bytes.CopyTo(bt, c.Count);
+                return bt;
+            }
+            else if (enumerable is System.Collections.ICollection cc)
+            {
+                bt = new byte[cc.Count + bytes.Length];
+                cc.CopyTo(bt, 0);
+                bytes.CopyTo(bt, cc.Count);
+                return bt;
+            }
+            else if (enumerable is IReadOnlyCollection<byte> ro)
+            {
+                bt = new byte[ro.Count + bytes.Length];
+                int i = 0;
+                foreach(var b in ro)
+                {
+                    bt[i++] = b;
+                }
+                bytes.CopyTo(bt, ro.Count);
+                return bt;
+            }
+            else
+            {
+                List<byte> list = new List<byte>(enumerable);
+                list.AddRange(bytes.ToArray());
+
+                return list.ToArray();
+            }
+        }
+
         public static Stream AsStream(this Bucket bucket)
         {
             return new Wrappers.BucketStream(bucket);
