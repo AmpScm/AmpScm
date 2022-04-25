@@ -135,7 +135,7 @@ AmpScm.Git.GitTreeElementType.File = 33188 -> AmpScm.Git.GitTreeElementType
 AmpScm.Git.GitTreeElementType.FileExecutable = 33261 -> AmpScm.Git.GitTreeElementType
 AmpScm.Git.GitTreeElementType.GitCommitLink = 57344 -> AmpScm.Git.GitTreeElementType
 AmpScm.Git.GitTreeElementType.None = 0 -> AmpScm.Git.GitTreeElementType
-AmpScm.Git.GitTreeElementType.SymbolicLink = 40960 -> AmpScm.Buckets.Git.Objects.GitTreeElementType
+AmpScm.Git.GitTreeElementType.SymbolicLink = 40960 -> AmpScm.Git.GitTreeElementType
 override AmpScm.Buckets.Git.GitBitmapHeaderBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitCommitGenerationValue.Equals(object? obj) -> bool
 override AmpScm.Buckets.Git.GitCommitGenerationValue.GetHashCode() -> int

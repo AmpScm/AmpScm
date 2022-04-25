@@ -10,7 +10,7 @@ namespace AmpScm.Buckets
         public bool IsEof { get; }
     }
 
-    public struct ValueOrEof : IEquatable<ValueOrEof>
+    public readonly struct ValueOrEof : IEquatable<ValueOrEof>
     {
         public static ValueOrEof Eof => default;
 
@@ -41,11 +41,11 @@ namespace AmpScm.Buckets
     }
 
     [DebuggerDisplay("Value={Value}, Eof={IsEof}")]
-    public struct ValueOrEof<T> : IValueOrEof<T>, IEquatable<ValueOrEof<T>>
+    public readonly struct ValueOrEof<T> : IValueOrEof<T>, IEquatable<ValueOrEof<T>>
         where T : struct
     {
-        T _value;
-        bool _isEof;
+        readonly T _value;
+        readonly bool _isEof;
 
         public ValueOrEof(T value)
         {

@@ -6,10 +6,7 @@ AmpScm.Buckets.Git.GitCacheBucket.ProcessExtensionsAsync() -> System.Threading.T
 AmpScm.Buckets.Git.GitCacheBucket.ReadEntryAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitCacheEntry?>
 AmpScm.Buckets.Git.GitCacheBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Git.GitCacheEntry
-AmpScm.Buckets.Git.GitCacheEntry.CreationTimeNano.get -> int
-AmpScm.Buckets.Git.GitCacheEntry.CreationTimeNano.init -> void
-AmpScm.Buckets.Git.GitCacheEntry.CreationTimeSeconds.get -> int
-AmpScm.Buckets.Git.GitCacheEntry.CreationTimeSeconds.init -> void
+AmpScm.Buckets.Git.GitCacheEntry.CreationTime.get -> System.DateTime
 AmpScm.Buckets.Git.GitCacheEntry.DeviceId.get -> int
 AmpScm.Buckets.Git.GitCacheEntry.DeviceId.init -> void
 AmpScm.Buckets.Git.GitCacheEntry.Flags.get -> int
@@ -20,16 +17,21 @@ AmpScm.Buckets.Git.GitCacheEntry.Id.get -> AmpScm.Git.GitId!
 AmpScm.Buckets.Git.GitCacheEntry.Id.init -> void
 AmpScm.Buckets.Git.GitCacheEntry.INodeId.get -> int
 AmpScm.Buckets.Git.GitCacheEntry.INodeId.init -> void
-AmpScm.Buckets.Git.GitCacheEntry.ModificationTimeNano.get -> int
-AmpScm.Buckets.Git.GitCacheEntry.ModificationTimeNano.init -> void
-AmpScm.Buckets.Git.GitCacheEntry.ModificationTimeSeconds.get -> int
-AmpScm.Buckets.Git.GitCacheEntry.ModificationTimeSeconds.init -> void
+AmpScm.Buckets.Git.GitCacheEntry.ModificationTime.get -> System.DateTime
 AmpScm.Buckets.Git.GitCacheEntry.Name.get -> string!
 AmpScm.Buckets.Git.GitCacheEntry.Name.init -> void
-AmpScm.Buckets.Git.GitCacheEntry.TruncatedSizeOnDisk.get -> int
-AmpScm.Buckets.Git.GitCacheEntry.TruncatedSizeOnDisk.init -> void
+AmpScm.Buckets.Git.GitCacheEntry.TruncatedFileSize.get -> uint
+AmpScm.Buckets.Git.GitCacheEntry.TruncatedFileSize.init -> void
 AmpScm.Buckets.Git.GitCacheEntry.Type.get -> AmpScm.Git.GitTreeElementType
 AmpScm.Buckets.Git.GitCacheEntry.Type.init -> void
+AmpScm.Buckets.Git.GitCacheEntry.UnixCreationTime.get -> int
+AmpScm.Buckets.Git.GitCacheEntry.UnixCreationTime.init -> void
+AmpScm.Buckets.Git.GitCacheEntry.UnixCreationTimeNano.get -> int
+AmpScm.Buckets.Git.GitCacheEntry.UnixCreationTimeNano.init -> void
+AmpScm.Buckets.Git.GitCacheEntry.UnixModificationTime.get -> int
+AmpScm.Buckets.Git.GitCacheEntry.UnixModificationTime.init -> void
+AmpScm.Buckets.Git.GitCacheEntry.UnixModificationTimeNano.get -> int
+AmpScm.Buckets.Git.GitCacheEntry.UnixModificationTimeNano.init -> void
 AmpScm.Buckets.Git.GitCacheEntry.UserId.get -> int
 AmpScm.Buckets.Git.GitCacheEntry.UserId.init -> void
 AmpScm.Buckets.Git.GitCacheOptions
@@ -42,8 +44,8 @@ AmpScm.Git.GitId.GitId(string! value) -> void
 override AmpScm.Buckets.Git.GitCacheBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Git.GitBucketExtensions.GitHash(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
-static AmpScm.Git.GitBucketExtensions.IsDirectory(this AmpScm.Buckets.Git.Objects.GitTreeElementType elementType) -> bool
-static AmpScm.Git.GitBucketExtensions.IsFile(this AmpScm.Buckets.Git.Objects.GitTreeElementType elementType) -> bool
+static AmpScm.Git.GitBucketExtensions.IsDirectory(this AmpScm.Git.GitTreeElementType elementType) -> bool
+static AmpScm.Git.GitBucketExtensions.IsFile(this AmpScm.Git.GitTreeElementType elementType) -> bool
 static AmpScm.Git.GitBucketExtensions.ReadGitOffsetAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static readonly AmpScm.Buckets.Git.GitCacheBucket.HighestSupportedFormat -> int
 static readonly AmpScm.Buckets.Git.GitCacheBucket.LowestSupportedFormat -> int

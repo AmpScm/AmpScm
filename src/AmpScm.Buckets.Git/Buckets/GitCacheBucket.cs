@@ -21,18 +21,23 @@ namespace AmpScm.Buckets.Git
         public string Name { get; init; } = default!;
         public GitTreeElementType Type { get; init; }
         public GitId Id { get; init; } = default!;
+        public int Flags { get; init; }
 
-        public int CreationTimeSeconds { get; init; }
-        public int CreationTimeNano { get; init; }
-        public int ModificationTimeSeconds { get; init; }
-        public int ModificationTimeNano { get; init; }
+        public DateTime CreationTime => (DateTimeOffset.FromUnixTimeSeconds(UnixCreationTime) + new TimeSpan(UnixCreationTimeNano / 100)).DateTime;
+        public DateTime ModificationTime => (DateTimeOffset.FromUnixTimeSeconds(UnixModificationTime) + new TimeSpan(UnixModificationTimeNano / 100)).DateTime;
+
         public int DeviceId { get; init; }
         public int INodeId { get; init; }
 
         public int UserId { get; init; }
         public int GroupId { get; init; }
-        public int TruncatedSizeOnDisk { get; init; }
-        public int Flags { get; init; }
+        [CLSCompliant(false)]
+        public uint TruncatedFileSize { get; init; }
+
+        public int UnixCreationTime { get; init; }
+        public int UnixCreationTimeNano { get; init; }
+        public int UnixModificationTime { get; init; }
+        public int UnixModificationTimeNano { get; init; }
     }
 
     /// <summary>
@@ -134,22 +139,22 @@ namespace AmpScm.Buckets.Git
 
             GitCacheEntry src = new()
             {
-                CreationTimeSeconds = NetBitConverter.ToInt32(bb, 0),
-                CreationTimeNano = NetBitConverter.ToInt32(bb, 4),
-                ModificationTimeSeconds = NetBitConverter.ToInt32(bb, 8),
-                ModificationTimeNano = NetBitConverter.ToInt32(bb, 12),
+                UnixCreationTime = NetBitConverter.ToInt32(bb, 0),
+                UnixCreationTimeNano = NetBitConverter.ToInt32(bb, 4),
+                UnixModificationTime = NetBitConverter.ToInt32(bb, 8),
+                UnixModificationTimeNano = NetBitConverter.ToInt32(bb, 12),
                 DeviceId = NetBitConverter.ToInt32(bb, 16),
                 INodeId = NetBitConverter.ToInt32(bb, 20),
                 Type = (GitTreeElementType)NetBitConverter.ToInt32(bb, 24),
                 UserId = NetBitConverter.ToInt32(bb, 28),
                 GroupId = NetBitConverter.ToInt32(bb, 32),
-                TruncatedSizeOnDisk = NetBitConverter.ToInt32(bb, 36),
+                TruncatedFileSize = NetBitConverter.ToUInt32(bb, 36),
                 Id = new GitId(_idType, bb.Slice(40, hashLen).ToArray()),
                 Flags = NetBitConverter.ToInt16(bb, 40 + hashLen),
             };
 
             int FullFlags = src.Flags;
-            if ((((uint)src.Flags) & 0x4000) != 0 && _version >= 3) // Must be 0 in version 2
+            if ((src.Flags & 0x4000) != 0 && _version >= 3) // Must be 0 in version 2
             {
                 bb = await Inner.ReadFullAsync(2).ConfigureAwait(false);
 
@@ -192,7 +197,7 @@ namespace AmpScm.Buckets.Git
 #if !NETFRAMEWORK
                         _lastName = sName = string.Concat(_lastName.AsSpan(0, len), name.ToUTF8String(eol));
 #else
-                        _lastName = sName = string.Concat(_lastName.Substring(0, len), name.ToUTF8String(eol));
+                        _lastName = sName = string.Concat(_lastName!.Substring(0, len), name.ToUTF8String(eol));
 #endif
                     }
                     else
@@ -264,7 +269,7 @@ namespace AmpScm.Buckets.Git
                             break;
 
                         case "sdir": // Sparse Directory Entries
-                            break; // Sparse directory entries may exist. Fine!
+                            break; // Sparse directory entries may exist. Fine. We already assumed that!
 
                         default:
                             if (extensionName[0] < 'A' || extensionName[0] > 'Z')
@@ -288,18 +293,10 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            await ReadHeaderAsync().ConfigureAwait(false);
-
-            while (null != await ReadEntryAsync().ConfigureAwait(false))
-            {
-
-            }
-
             await ProcessExtensionsAsync().ConfigureAwait(false);
 
             while (0 != await Inner.ReadSkipAsync(int.MaxValue).ConfigureAwait(false))
             {
-
             }
 
             return BucketBytes.Eof;

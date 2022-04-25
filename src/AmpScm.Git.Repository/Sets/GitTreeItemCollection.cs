@@ -160,7 +160,7 @@ namespace AmpScm.Git.Sets
         }
     }
 
-    public struct GitTreeItem : IEquatable<GitTreeItem>
+    public readonly struct GitTreeItem : IEquatable<GitTreeItem>
     {
         public GitTreeItem(string path, GitTreeEntry entry) : this()
         {
