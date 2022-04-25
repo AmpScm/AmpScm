@@ -220,51 +220,15 @@ namespace AmpScm.Buckets.Git
                 else if (Type == GitObjectType_DeltaOffset)
                 {
                     // Body starts with negative offset of the delta base.
-                    long max_delta_size_len = 1 + (64 + 6) / 7;
+                    delta_position = await Inner.ReadGitOffsetAsync().ConfigureAwait(false);
 
-                    var peeked = Inner.Peek();
-                    int rq_len;
+                    if (delta_position > frame_position)
+                        throw new GitBucketException("Delta position must point to earlier object in file");
 
-                    if (!peeked.IsEmpty)
-                    {
-                        rq_len = 0;
-                        for (int i = 0; i <= max_delta_size_len && i < peeked.Length; i++)
-                        {
-                            rq_len++;
-                            if (0 == (peeked[i] & 0x80))
-                                break;
-                        }
-                        rq_len = Math.Min(rq_len, peeked.Length);
-                    }
-                    else
-                        rq_len = 1;
-
-                    var read = await Inner.ReadAsync(rq_len).ConfigureAwait(false);
-
-                    for (int i = 0; i < read.Length; i++)
-                    {
-                        byte uc = read[i];
-
-                        if (position > 0)
-                            delta_position = (delta_position + 1) << 7;
-
-                        delta_position |= (long)(uc & 0x7F);
-                        position++;
-
-                        if (0 == (uc & 0x80))
-                        {
-                            if (position > max_delta_size_len)
-                                throw new GitBucketException("Git pack delta reference overflows 64 bit integer");
-                            else if (delta_position > frame_position)
-                                throw new GitBucketException("Delta position must point to earlier object in file");
-
-                            Debug.Assert(i == read.Length - 1);
-                            state = frame_state.find_delta;
-                            position = 0;
-                            delta_position = frame_position - delta_position;
-                            reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
-                        }
-                    }
+                    state = frame_state.find_delta;
+                    position = 0;
+                    delta_position = frame_position - delta_position;
+                    reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
                 }
                 else
                 {

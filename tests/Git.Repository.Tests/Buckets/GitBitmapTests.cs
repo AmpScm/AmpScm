@@ -110,7 +110,7 @@ namespace GitRepositoryTests
             Assert.AreEqual(106u, count);
 
             List<GitEwahBitmapBucket> buckets = new List<GitEwahBitmapBucket>();
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 buckets.Add(new GitEwahBitmapBucket(await fb.DuplicateAsync(false)));
 

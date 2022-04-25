@@ -282,5 +282,31 @@ namespace AmpScm.Buckets
                 _ => 1,
             };
         }
+
+        public static bool All<T>(this ReadOnlySpan<T> span, Func<T, bool> predicate)
+        {
+            if (predicate is null)
+                throw new ArgumentNullException(nameof(predicate));
+
+            foreach(var i in span)
+            {
+                if (!predicate(i))
+                    return false;
+            }
+            return true;
+        }
+
+        public static bool Any<T>(this ReadOnlySpan<T> span, Func<T, bool> predicate)
+        {
+            if (predicate is null)
+                throw new ArgumentNullException(nameof(predicate));
+
+            foreach (var i in span)
+            {
+                if (predicate(i))
+                    return true;
+            }
+            return false;
+        }
     }
 }

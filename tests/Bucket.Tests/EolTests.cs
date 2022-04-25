@@ -666,8 +666,13 @@ namespace BucketTests
             return new AggregateBucket(args.Select(x => Encoding.ASCII.GetBytes(x).AsBucket()).ToArray());
         }
 
-        static Encoding ANSI => (Encoding.Default is UTF8Encoding) ? Encoding.GetEncoding("ISO-8859-1") : Encoding.Default;
-
+        static Encoding ANSI => (Encoding.Default is UTF8Encoding)
+#if NET5_0_OR_GREATER
+            ? Encoding.Latin1
+#else
+            ? Encoding.GetEncoding("ISO-8859-1")
+#endif
+            : Encoding.Default;
 
         public static string EncodingDisplayName(MethodInfo mi, object[] args)
         {

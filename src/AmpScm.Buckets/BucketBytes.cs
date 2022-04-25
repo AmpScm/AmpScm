@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 namespace AmpScm.Buckets
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}", Name ="Bytes")]
-    public partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
+    public readonly partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
     {
         readonly ReadOnlyMemory<byte> _data;
         readonly bool _eof;
@@ -141,6 +142,36 @@ namespace AmpScm.Buckets
                 return s + startOffset;
             else
                 return s; // -1
+        }
+
+        /// <inheritdoc cref="System.Linq.Enumerable.All{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+        public bool All(Func<byte, bool> predicate)
+        {
+            if (predicate is null)
+                throw new ArgumentNullException(nameof(predicate));
+
+            foreach (var b in Span)
+            {
+                if (!predicate(b))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc cref="System.Linq.Enumerable.Any{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/>
+        public bool Any(Func<byte, bool> predicate)
+        {
+            if (predicate is null)
+                throw new ArgumentNullException(nameof(predicate));
+
+            foreach (var b in Span)
+            {
+                if (predicate(b))
+                    return true;
+            }
+
+            return false;
         }
 
 

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Git.Objects;
 using AmpScm.Buckets.Specialized;
 
@@ -94,6 +96,63 @@ namespace AmpScm.Git
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type));
             }
+        }
+
+        public static async ValueTask<long> ReadGitOffsetAsync(this Bucket bucket)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            long max_delta_size_len = 1 + (64 + 6) / 7;
+
+            var peeked = await bucket.PollAsync().ConfigureAwait(false);
+            int rq_len;
+
+            if (!peeked.IsEmpty)
+            {
+                rq_len = 0;
+                for (int i = 0; i <= max_delta_size_len && i < peeked.Length; i++)
+                {
+                    rq_len++;
+                    if (0 == (peeked[i] & 0x80))
+                        break;
+                }
+                rq_len = Math.Min(rq_len, peeked.Length);
+            }
+            else
+                rq_len = 1;
+
+            var read = await bucket.ReadAsync(rq_len).ConfigureAwait(false);
+            int position = 0;
+            long delta_position = 0;
+
+            for (int i = 0; i < read.Length; i++)
+            {
+                byte uc = read[i];
+
+                if (position > 0)
+                    delta_position = (delta_position + 1) << 7;
+
+                delta_position |= (long)(uc & 0x7F);
+                position++;
+
+                if (position > max_delta_size_len)
+                    throw new GitBucketException("Git pack delta reference overflows 64 bit integer");
+
+                if (0 == (uc & 0x80))
+                {
+                    Debug.Assert(i == read.Length - 1);
+                    return delta_position;
+                }
+                else if (i == read.Length -1)
+                {
+                    // Not enough data read yet. Read another byte and continue
+                    read = await bucket.ReadAsync(1).ConfigureAwait(false);
+                    i = -1;
+                }
+            }
+
+            throw new BucketException("Invalid GitOffset");
         }
     }
 }

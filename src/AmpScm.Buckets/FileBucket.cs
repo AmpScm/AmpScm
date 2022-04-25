@@ -53,6 +53,11 @@ namespace AmpScm.Buckets
 
         public override long? Position => _filePos;
 
+        /// <summary>
+        /// Gets the total file length
+        /// </summary>
+        public long Length => _holder.Length;
+
         public override BucketBytes Peek()
         {
             if (_pos < _size)

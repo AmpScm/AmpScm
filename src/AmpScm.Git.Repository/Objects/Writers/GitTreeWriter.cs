@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Git.Objects;
 
 namespace AmpScm.Git.Objects

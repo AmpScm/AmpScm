@@ -46,7 +46,7 @@ namespace AmpScm.Buckets.Git
                     pb = await Inner.ReadAsync(4 - start.Length).ConfigureAwait(false);
 
                     if (pb.IsEof)
-                        throw new GitBucketException($"Invalid packet header in {Name} bucket");
+                        throw new GitBucketException($"Unexpected EOF in packet header of {Name} bucket");
 
                     start = start.Concat(pb.ToArray()).ToArray();
                 }
@@ -63,8 +63,10 @@ namespace AmpScm.Buckets.Git
 
             BucketBytes bb = await Inner.ReadAsync(_packetLength - 4).ConfigureAwait(false);
 
-            if (bb.IsEof || bb.Length == _packetLength)
+            if (bb.Length == _packetLength)
                 return bb;
+            else if (bb.IsEof)
+                throw new GitBucketException($"Unexpected EOF in packed in {Name} bucket");
 
             byte[] fullPacked = new byte[_packetLength - 4];
             bb.CopyTo(fullPacked);

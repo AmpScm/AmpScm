@@ -95,6 +95,14 @@ namespace AmpScm.Buckets
             return SkipByReading(requested);
         }
 
+        /// <summary>Wrapper around <see cref="ReadSkipAsync(long)"/></summary>
+        /// <param name="requested"></param>
+        /// <returns></returns>
+        public async ValueTask<int> ReadSkipAsync(int requested)
+        {
+            return (int)await ReadSkipAsync((long)requested).ConfigureAwait(false);
+        }
+
         internal async ValueTask<long> SkipByReading(long requested)
         {
             long skipped = 0;

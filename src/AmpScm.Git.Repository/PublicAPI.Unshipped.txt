@@ -198,9 +198,9 @@ AmpScm.Git.Sets.IGitObject.ReadAsync() -> System.Threading.Tasks.ValueTask
 const AmpScm.Git.References.GitReferenceRepository.Head = "HEAD" -> string!
 override AmpScm.Git.GitBlob.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.GitCommit.ReadAsync() -> System.Threading.Tasks.ValueTask
-override AmpScm.Git.GitDirectoryTreeEntry.ElementType.get -> AmpScm.Buckets.Git.Objects.GitTreeElementType
+override AmpScm.Git.GitDirectoryTreeEntry.ElementType.get -> AmpScm.Git.GitTreeElementType
 override AmpScm.Git.GitDirectoryTreeEntry.EntryName.get -> string!
-override AmpScm.Git.GitFileTreeEntry.ElementType.get -> AmpScm.Buckets.Git.Objects.GitTreeElementType
+override AmpScm.Git.GitFileTreeEntry.ElementType.get -> AmpScm.Git.GitTreeElementType
 override AmpScm.Git.GitObject.Equals(object? obj) -> bool
 override AmpScm.Git.GitObject.GetHashCode() -> int
 override AmpScm.Git.GitReference.Equals(object? obj) -> bool
@@ -270,7 +270,7 @@ virtual AmpScm.Git.GitReference.Commit.get -> AmpScm.Git.GitCommit?
 virtual AmpScm.Git.GitReference.GitObject.get -> AmpScm.Git.GitObject?
 virtual AmpScm.Git.GitReference.Id.get -> AmpScm.Git.GitId?
 virtual AmpScm.Git.GitReference.ReadAsync() -> System.Threading.Tasks.ValueTask
-virtual AmpScm.Git.GitTreeEntry.ElementType.get -> AmpScm.Buckets.Git.Objects.GitTreeElementType
+virtual AmpScm.Git.GitTreeEntry.ElementType.get -> AmpScm.Git.GitTreeElementType
 virtual AmpScm.Git.GitTreeEntry.EntryName.get -> string!
 virtual AmpScm.Git.Objects.GitObjectRepository.GetAll<TGitObject>(System.Collections.Generic.HashSet<AmpScm.Git.GitId!>! alreadyReturned) -> System.Collections.Generic.IAsyncEnumerable<TGitObject!>!
 virtual AmpScm.Git.Objects.GitObjectRepository.GetByIdAsync<TGitObject>(AmpScm.Git.GitId! id) -> System.Threading.Tasks.ValueTask<TGitObject?>

@@ -261,7 +261,7 @@ namespace AmpScm.Buckets.Specialized
 
         /// <summary>
         /// Tries to seek <paramref name="bucket"/> to position <paramref name="newPosition"/>, using
-        /// operations like <see cref="Bucket.ResetAsync"/> and/or <see cref="Bucket.ReadSkipAsync"/>
+        /// operations like <see cref="Bucket.ResetAsync"/> and/or <see cref="Bucket.ReadSkipAsync(long)"/>
         /// </summary>
         /// <param name="bucket"></param>
         /// <param name="newPosition"></param>

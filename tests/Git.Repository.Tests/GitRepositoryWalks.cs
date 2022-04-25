@@ -203,7 +203,7 @@ namespace GitRepositoryTests
             var path2 = TestContext.PerTestDirectory("2");
             {
                 using GitRepository gc = GitRepository.Open(typeof(GitRepositoryWalks).Assembly.Location);
-                await gc.GetPlumbing().RunRawCommand("clone", new[] { gc.FullPath, path2 });
+                await gc.GetPlumbing().RunRawCommand("clone", new[] { "-s", gc.FullPath, path2 });
             }
             {
                 using GitRepository gc = GitRepository.Open(path2);

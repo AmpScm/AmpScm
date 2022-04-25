@@ -55,7 +55,13 @@ namespace AmpScm.Buckets.Specialized
                 return new ValueTask<BucketBytes>(BucketBytes.Empty);
         }
 
-        public static Encoding DefaultEncoding { get; } = (Encoding.Default is UTF8Encoding) ? Encoding.GetEncoding("ISO-8859-1") : Encoding.Default;
+        public static Encoding DefaultEncoding { get; } = (Encoding.Default is UTF8Encoding)
+#if NET5_0_OR_GREATER
+            ? Encoding.Latin1
+#else
+            ? Encoding.GetEncoding("ISO-8859-1")
+#endif
+            : Encoding.Default;
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
