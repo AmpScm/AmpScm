@@ -18,7 +18,7 @@ namespace AmpScm.Git.Implementation
             return (callExpression.Body as MethodCallExpression)?.Method ?? throw new ArgumentOutOfRangeException(nameof(callExpression));
         }
 
-        // Fold all root references to exxactly the same value
+        // Fold all root references to exactly the same value
         protected override Expression VisitConstant(ConstantExpression node)
         {
             if (typeof(IGitQueryRoot).IsAssignableFrom(node.Type))

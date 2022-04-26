@@ -625,5 +625,121 @@ namespace BucketTests
             bbSpan.ToArray();
             //ReadOnlyMemory<byte>.
         }
+
+        [TestMethod]
+        public void ByteCollectorTests()
+        {
+            ByteCollector bc = new();
+            Assert.IsTrue(bc.IsEmpty);
+
+            bc.Append(12);
+            Assert.IsTrue(bc.SequenceEqual(new[] { (byte)12 }));
+            Assert.IsFalse(bc.IsEmpty);
+            var bb = bc.AsBytes();
+            Assert.AreEqual(1, bb.Length);
+
+            {
+                bc = new(4);
+                bc.Append(51);
+
+                Assert.AreEqual("3", bc.AsBytes().ToASCIIString());
+            }
+
+
+            {
+                bc = new(4);
+                bc.Append(51);
+
+                Assert.AreEqual("36", bc.AsBytes(54).ToASCIIString());
+            }
+
+
+            {
+                bc = new(4);
+                bc.Append(51);
+
+                Assert.AreEqual("3456", bc.AsBytes(new byte[] { 52, 53, 54 }).ToASCIIString());
+            }
+
+            {
+                bc = new(4);
+                bc.Append(51);
+
+                Assert.AreEqual("3456", bc.AsBytes(new BucketBytes(new byte[] { 52, 53, 54 })).ToASCIIString());
+            }
+
+            //
+
+            {
+                bc = new(4);
+                bc.Append(51);
+                bc.Append(new byte[] { 65, 66, 67, 68 });
+
+                Assert.AreEqual("3ABCD", bc.AsBytes().ToASCIIString());
+            }
+
+
+            {
+                bc = new(4);
+                bc.Append(51);
+                bc.Append(new byte[] { 65, 66, 67, 68 });
+
+                Assert.AreEqual("3ABCD6", bc.AsBytes(54).ToASCIIString());
+            }
+
+
+            {
+                bc = new(4);
+                bc.Append(51);
+                bc.Append(new byte[] { 65, 66, 67, 68 });
+
+                Assert.AreEqual("3ABCD456", bc.AsBytes(new byte[] { 52, 53, 54 }).ToASCIIString());
+            }
+
+            {
+                bc = new(4);
+                bc.Append(51);
+                bc.Append(new byte[] { 65, 66, 67, 68 });
+
+                Assert.AreEqual("3ABCD456", bc.AsBytes(new BucketBytes(new byte[] { 52, 53, 54 })).ToASCIIString());
+            }
+
+
+
+            {
+                bc = new(4);
+                bc.Append(51);
+                bc.Append(new byte[] { 65, 66 });
+
+                Assert.AreEqual("3AB", bc.AsBytes().ToASCIIString());
+            }
+
+
+            {
+                bc = new(4);
+                bc.Append(51);
+                bc.Append(new byte[] { 65, 66 });
+
+                Assert.AreEqual("3AB6", bc.AsBytes(54).ToASCIIString());
+            }
+
+
+            {
+                bc = new(4);
+                bc.Append(51);
+                bc.Append(new byte[] { 65, 66});
+
+                Assert.AreEqual("3AB456", bc.AsBytes(new byte[] { 52, 53, 54 }).ToASCIIString());
+            }
+
+            {
+                bc = new(4);
+                bc.Append(51);
+                bc.Append(new byte[] { 65, 66 });
+
+                Assert.AreEqual("3AB456", bc.AsBytes(new BucketBytes(new byte[] { 52, 53, 54 })).ToASCIIString());
+            }
+
+        }
     }
 }

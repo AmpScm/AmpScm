@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets
 {
-    [DebuggerDisplay("{DebuggerDisplay,nq}", Name ="Bytes")]
+    [DebuggerDisplay("{DebuggerDisplay,nq}", Name = "Bytes")]
     public readonly partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
     {
         readonly ReadOnlyMemory<byte> _data;
@@ -27,14 +27,6 @@ namespace AmpScm.Buckets
                 throw new ArgumentNullException(nameof(array));
 
             _data = new ReadOnlyMemory<byte>(array, start, length);
-        }
-
-        private BucketBytes(bool eof)
-        {
-            if (eof)
-                _data = BucketBytes.Eof._data;
-            else
-                _data = BucketBytes.Empty._data;
         }
 
         public override bool Equals(object? obj)
@@ -108,12 +100,15 @@ namespace AmpScm.Buckets
             return new ValueTask<BucketBytes>(v);
         }
 
-        public static readonly BucketBytes Empty = new BucketBytes(false);
-        public static readonly BucketBytes Eof = new BucketBytes(new ReadOnlyMemory<byte>((byte[])new byte[] {(byte)'E', (byte)'O', (byte)'F'}.Clone(), 3, 0));
+        public static readonly BucketBytes Empty = new BucketBytes(new ReadOnlyMemory<byte>());
+        // Clone to make sure data is not shared
+        public static readonly BucketBytes Eof = new BucketBytes(new ReadOnlyMemory<byte>((byte[])new byte[] { (byte)'e', (byte)'O', (byte)'f' }.Clone(), 3, 0));
 
 
         public void CopyTo(Memory<byte> destination) => Span.CopyTo(destination.Span);
+        public void CopyTo(Span<byte> destination) => Span.CopyTo(destination);
         public void CopyTo(byte[] array, int index) => Span.CopyTo(array.AsSpan(index));
+        public void CopyTo(byte[] array) => Span.CopyTo(array.AsSpan());
 
         public byte this[int index] => _data.Span[index];
 
@@ -131,9 +126,28 @@ namespace AmpScm.Buckets
         ReadOnlyMemory<byte> IValueOrEof<ReadOnlyMemory<byte>>.Value => _data;
 
 
+        /// <inheritdoc cref="MemoryExtensions.IndexOf{T}(ReadOnlySpan{T}, T)"/>
         public int IndexOf(byte value)
         {
             return _data.Span.IndexOf(value);
+        }
+
+        /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, T, T)"/>
+        public int IndexOfAny(byte value0, byte value1)
+        {
+            return _data.Span.IndexOfAny(value0, value1);
+        }
+
+        /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, ReadOnlySpan{T})
+        public int IndexOfAny(ReadOnlySpan<byte> values)
+        {
+            return _data.Span.IndexOfAny(values);
+        }
+
+        /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, ReadOnlySpan{T})
+        public int IndexOfAny(params byte[] values)
+        {
+            return _data.Span.IndexOfAny(values);
         }
 
         public int IndexOf(byte value, int startOffset)
@@ -188,11 +202,11 @@ namespace AmpScm.Buckets
                     StringBuilder sb = new StringBuilder();
                     sb.AppendFormat(CultureInfo.InvariantCulture, "Length={0}, Data=\"", Length);
 
-                    foreach(var b in Span)
+                    foreach (var b in Span)
                     {
                         if (b > 0 && b < 128 && !char.IsControl((char)b))
                             sb.Append((char)b);
-                        else switch(b)
+                        else switch (b)
                             {
                                 case 0:
                                     sb.Append("\\0");

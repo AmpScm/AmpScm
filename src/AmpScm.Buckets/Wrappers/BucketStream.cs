@@ -97,7 +97,7 @@ namespace AmpScm.Buckets.Wrappers
             if (r.IsEof)
                 return 0;
 
-            r.CopyTo(buffer);
+            r.CopyTo(buffer.Span);
             return r.Length;
         }
 

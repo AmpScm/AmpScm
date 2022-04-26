@@ -27,7 +27,7 @@ namespace AmpScm
                 else
                     bb = r.GetAwaiter().GetResult();
 
-                bb.CopyTo(new Memory<byte>(array, pos, bb.Length));
+                bb.CopyTo(array, pos);
                 pos += bb.Length;
                 if (bb.IsEof)
                     throw new InvalidOperationException();
@@ -67,14 +67,15 @@ namespace AmpScm
 
         public static async ValueTask<byte[]> ReadToEnd(this Bucket self)
         {
-            List<byte> bytes = new List<byte>();
+            ByteCollector bc = new ByteCollector();
+
             BucketBytes bb;
             while (!(bb = await self.ReadAsync()).IsEof)
             {
-                bytes.AddRange(bb.ToArray());
+                bc.Append(bb);
             }
 
-            return bytes.ToArray();
+            return bc.ToArray();
         }
 
         public static async ValueTask BucketsEqual(this Assert self, Bucket left, Bucket right)

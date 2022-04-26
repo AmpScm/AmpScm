@@ -19,7 +19,7 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            IEnumerable<byte>? result = null;
+            ByteCollector result = new();
 
             int rq = requested;
             if (eolState?._kept.HasValue ?? false)
@@ -39,7 +39,7 @@ namespace AmpScm.Buckets
                         rq = 1;
                         goto default;
                     default:
-                        result = new[] { kept };
+                        result.Append(kept);
                         break;
                 }
             }
@@ -55,41 +55,40 @@ namespace AmpScm.Buckets
 
                 (bb, eol) = await bucket.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
 
-                if (eol != BucketEol.None && eol != BucketEol.CRSplit && result is null)
+                if (eol != BucketEol.None && eol != BucketEol.CRSplit && result.IsEmpty)
                     return (bb, eol);
                 else if (bb.IsEmpty)
                 {
                     if (bb.IsEof)
-                        return ((result != null) ? result.ToArray() : bb, eol);
+                        return (result.ToResultOrEof(), eol);
                     else
                         throw new InvalidOperationException();
                 }
-                else if (rq == 1 && (acceptableEols & BucketEol.CRLF) != 0 && result is byte[] rb && rb.Length == 1 && rb[0] == '\r')
+                else if (rq == 1 && (acceptableEols & BucketEol.CRLF) != 0 && result.SequenceEqual(new[] { (byte)'\r' }))
                 {
                     if (bb[0] == '\n')
-                        return (result.AppendBytes(bb), BucketEol.CRLF);
+                    {
+                        return (result.AsBytes(bb), BucketEol.CRLF);
+                    }
                     else if ((acceptableEols & BucketEol.CR) != 0)
                     {
                         eolState!._kept = bb[0];
                         return (new[] { (byte)'\r' }, BucketEol.CR);
                     }
                     else if (eol != BucketEol.None)
-                        return (result.AppendBytes(bb), eol); // '\0' case
+                    {
+
+                        return (result.AsBytes(bb), eol); // '\0' case
+                    }
                 }
 
                 rq = (requested -= bb.Length);
                 if (requested == 0)
                 {
-                    if (result is null)
-                        return (bb, eol);
-
-                    return (result.AppendBytes(bb), eol);
+                    return (result.AsBytes(bb), eol);
                 }
 
-                if (result == null)
-                    result = bb.ToArray();
-                else
-                    result = result.Concat(bb.ToArray());
+                result.Append(bb);
 
                 if (eol == BucketEol.CRSplit)
                 {
@@ -100,29 +99,27 @@ namespace AmpScm.Buckets
                     if (!poll.Data.IsEmpty)
                     {
                         var b = poll[0];
-                        await poll.Consume(1).ConfigureAwait(false);
+                        bb = await poll.ReadAsync(1).ConfigureAwait(false);
 
                         if (b == '\n')
                         {
                             // Phew, we were lucky. We got a \r\n
-                            result = result.Concat(new byte[] { poll[0] });
-                            return (result.ToArray(), BucketEol.CRLF);
+                            return (result.AsBytes(bb), BucketEol.CRLF);
                         }
                         else if (0 != (acceptableEols & BucketEol.CR))
                         {
                             // We return the part ending with '\r'
                             eolState!._kept = b; // And keep the next byte
-                            return (result.ToArray(), BucketEol.CR);
+                            return (result.AsBytes(), BucketEol.CR);
                         }
                         else if (b == '\0' && 0 != (acceptableEols & BucketEol.Zero))
                         {
                             // Another edge case :(
-                            result = result.Concat(new byte[] { poll[0] });
-                            return (result.ToArray(), BucketEol.Zero);
+                            return (result.AsBytes(bb), BucketEol.Zero);
                         }
                         else
                         {
-                            result = result.Concat(new byte[] { b });
+                            result.Append(b);
                             continue;
                         }
                     }
@@ -131,14 +128,14 @@ namespace AmpScm.Buckets
                         // We are at eof, so no issues with future reads
                         eol = (0 != (acceptableEols & BucketEol.CR) ? BucketEol.CR : BucketEol.None);
 
-                        return (result.ToArray(), eol);
+                        return (result.AsBytes(), eol);
                     }
                 }
                 else if (eol == BucketEol.None)
                     continue;
                 else
                 {
-                    return ((result as byte[]) ?? result.ToArray(), eol);
+                    return (result.AsBytes(), eol);
                 }
             }
         }
@@ -147,35 +144,30 @@ namespace AmpScm.Buckets
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            IEnumerable<byte>? result = null;
+            ByteCollector result = new();
 
             while (true)
             {
                 using var poll = await bucket.PollReadAsync().ConfigureAwait(false);
 
                 if (poll.Data.IsEof)
-                    return (result != null) ? new BucketBytes(result.ToArray()) : poll.Data;
+                    return result.ToResultOrEof();
 
-                for (int i = 0; i < poll.Data.Length; i++)
+                int i = poll.Data.IndexOf(b);
+
+                if (i >= 0)
                 {
-                    if (poll[i] == b)
-                    {
-                        BucketBytes r;
-                        if (result == null)
-                            r = poll.Data.Slice(0, i + 1).ToArray(); // Make copy, as data is transient
-                        else
-                            r = result.AppendBytes(poll.Data.Slice(0, i + 1));
+                    BucketBytes r;
+                    if (result.IsEmpty)
+                        r = poll.Data.Slice(0, i + 1).ToArray(); // Make copy, as data is transient
+                    else
+                        r = result.AsBytes(poll.Data.Slice(0, i + 1));
 
-                        await poll.Consume(i + 1).ConfigureAwait(false);
-                        return r;
-                    }
+                    await poll.Consume(i + 1).ConfigureAwait(false);
+                    return r;
                 }
 
-                var extra = poll.Data.ToArray();
-                if (result == null)
-                    result = extra;
-                else
-                    result = result.Concat(extra);
+                result.Append(poll.Data);
 
                 await poll.Consume(poll.Length).ConfigureAwait(false);
             }

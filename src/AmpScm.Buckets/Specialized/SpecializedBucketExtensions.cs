@@ -218,43 +218,22 @@ namespace AmpScm.Buckets.Specialized
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            byte[]? resultBuffer = null;
-            int collected = 0;
+            ByteCollector result = new(requested);
             while (true)
             {
                 var bb = await bucket.ReadAsync(requested).ConfigureAwait(false);
 
-                if (collected == 0)
+                if (result.IsEmpty)
                 {
                     if (bb.Length == requested || bb.IsEof)
                         return bb;
-
-                    resultBuffer = bb.ToArray();
-                    collected = bb.Length;
                 }
-                else if (collected == resultBuffer!.Length)
-                {
-                    if (bb.IsEof)
-                        return resultBuffer;
+                else if (bb.IsEof)
+                    return result.AsBytes();
+                else if (bb.Length == requested)
+                    return result.AsBytes(bb);
 
-                    var newBuffer = new byte[requested + collected];
-                    Array.Copy(resultBuffer, newBuffer, collected);
-                    bb.CopyTo(new Memory<byte>(newBuffer, collected, bb.Length));
-
-                    resultBuffer = newBuffer;
-                    collected += bb.Length;
-                }
-                else
-                {
-                    if (bb.IsEof)
-                        return new BucketBytes(resultBuffer, 0, collected);
-
-                    bb.CopyTo(new Memory<byte>(resultBuffer, collected, bb.Length));
-                    collected += bb.Length;
-                }
-                if (requested == bb.Length)
-                    return resultBuffer;
-
+                result.Append(bb);
                 requested -= bb.Length;
             }
         }

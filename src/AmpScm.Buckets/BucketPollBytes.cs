@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,7 +62,9 @@ namespace AmpScm.Buckets
                         throw new InvalidOperationException();
 
                     AlreadyRead = 0;
-                    return Data.Slice(0, readBytes);
+                    var r = Data.Slice(0, readBytes);
+                    Data = Data.Slice(readBytes);
+                    return r;
                 }
                 else if (readBytes > Data.Length)
                 {
@@ -134,6 +137,9 @@ namespace AmpScm.Buckets
 #pragma warning restore CA1065 // Do not raise exceptions in unexpected locations
         }
 
+        public ReadOnlySpan<byte> Span => Data.Span;
+
+
         public byte this[int index] => Data[index];
 
         public bool IsEmpty => Data.IsEmpty;
@@ -146,8 +152,43 @@ namespace AmpScm.Buckets
                 if (IsEof)
                     return "<EOF>";
                 else
-                    return $"Length={Length}-{AlreadyRead}, Data='{Data.ToASCIIString(0, Math.Min(Length, 100))}'";
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendFormat(CultureInfo.InvariantCulture, "Length={0}-{1}, Data=\"", Length, AlreadyRead);
+
+                    foreach (var b in Span)
+                    {
+                        if (b > 0 && b < 128 && !char.IsControl((char)b))
+                            sb.Append((char)b);
+                        else switch (b)
+                            {
+                                case 0:
+                                    sb.Append("\\0");
+                                    break;
+                                case (byte)'\n':
+                                    sb.Append("\\n");
+                                    break;
+                                case (byte)'\t':
+                                    sb.Append("\\t");
+                                    break;
+                                case (byte)'\r':
+                                    sb.Append("\\r");
+                                    break;
+                                default:
+                                    sb.AppendFormat(CultureInfo.InvariantCulture, "\\x{0:X2}", b);
+                                    break;
+                            }
+
+                        if (sb.Length > 120)
+                        {
+                            sb.Append("...");
+                            return sb.ToString();
+                        }
+                    }
+                    sb.Append('\"');
+                    return sb.ToString();
+                }
             }
         }
-    }
+    }    
 }

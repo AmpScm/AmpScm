@@ -62,7 +62,7 @@ namespace AmpScm.Buckets
                 if ((alreadyRead == 1 && arr[offset - 1] == byte0)
                     || arr.Skip(offset - alreadyRead).Take(alreadyRead).SequenceEqual(dataBytes!))
                 {
-                    // The very lucky, but common case. The peek buffer starts with what we read
+                    // The very lucky, but common case. The peek buffer starts with what we already read
 
                     return new BucketPollBytes(bucket, new BucketBytes(arr, offset - alreadyRead, data.Length + alreadyRead), alreadyRead);
                 }
@@ -71,17 +71,14 @@ namespace AmpScm.Buckets
             if (data.Length > 0)
             {
                 // We have original data and peeked data. Let's copy some data to help our caller
-                byte[] result = new byte[alreadyRead + Math.Min(data.Length, 256)];
+                byte[] result = new byte[alreadyRead + data.Length];
 
                 if (alreadyRead == 1)
                     result[0] = byte0;
                 else
-                    Array.Copy(dataBytes!, result, alreadyRead);
+                    dataBytes!.CopyTo(result, 0);
 
-                for (int i = alreadyRead; i < result.Length; i++)
-                {
-                    result[i] = data[i - alreadyRead];
-                }
+                data.CopyTo(result, alreadyRead);
                 dataBytes = result;
             }
             else if (dataBytes == null)

@@ -13,7 +13,7 @@ namespace GitRepositoryTests
 {
     public static class TestExtensions
     {
-        public static async ValueTask<string> CreateCloneAsync(this TestContext self, string? repos = null)
+        public static async ValueTask<string> CreateCloneAsync(this TestContext self, string? repos = null, bool shareOdb=true)
         {
             repos ??= Path.GetDirectoryName(typeof(TestExtensions).Assembly.Location) ?? throw new ArgumentNullException(nameof(repos));
 
@@ -21,7 +21,11 @@ namespace GitRepositoryTests
 
             var dir = self.PerTestDirectory("repo");
 
-            await r.GetPlumbing().RunRawCommand("clone", new[] { r.FullPath, dir });
+            List<string> args = new List<string>() { r.FullPath, dir };
+            if (shareOdb)
+                args.Add("-s");
+
+            await r.GetPlumbing().RunRawCommand("clone", args.ToArray());
 
             return dir;
         }

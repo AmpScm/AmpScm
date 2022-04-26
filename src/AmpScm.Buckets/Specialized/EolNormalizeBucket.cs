@@ -208,14 +208,13 @@ namespace AmpScm.Buckets.Specialized
             bool checkCR = (_acceptedEols & (BucketEol.CR | BucketEol.CRLF)) != 0;
             bool checkZero = (_acceptedEols & BucketEol.Zero) != 0;
 
-            var span = bb.Span;
             var stop = (checkLF, checkCR, checkZero) switch
             {
-                (true, false, false) => span.IndexOf((byte)'\n'),
-                (false, true, false) => span.IndexOf((byte)'\r'),
-                (false, false, true) => span.IndexOf((byte)'\0'),
-                (true, true, false) => span.IndexOfAny((byte)'\r', (byte)'\n'),
-                _ => span.IndexOfAny((byte)'\n', (byte)'\r', (byte)'\0')
+                (true, false, false) => bb.IndexOf((byte)'\n'),
+                (false, true, false) => bb.IndexOf((byte)'\r'),
+                (false, false, true) => bb.IndexOf((byte)'\0'),
+                (true, true, false) => bb.IndexOfAny((byte)'\r', (byte)'\n'),
+                _ => bb.IndexOfAny((byte)'\n', (byte)'\r', (byte)'\0')
             };
 
             if (stop > 0)

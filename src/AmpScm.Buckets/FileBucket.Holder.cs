@@ -486,7 +486,7 @@ namespace AmpScm.Buckets
                 if (!handle.IsInvalid)
                     return handle;
                 else
-                    throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new FileNotFoundException($"Couldn't open {path}");
+                    throw new FileNotFoundException($"Couldn't open {path}", Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()));
             }
         }
     }
