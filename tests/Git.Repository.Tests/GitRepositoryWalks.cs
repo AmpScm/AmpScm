@@ -134,7 +134,7 @@ namespace GitRepositoryTests
         }
 
 
-        public static IEnumerable<object[]> TestRepositoryArgsBitmapAndRev => TestRepositoryArgs.Where(x => x[0] is string s && Directory.GetFiles(Path.Combine(s, ".git", "objects", "pack"), "*.bitmap").Any()).Concat(new[] { "1", "2", "3", "4" }.Select(x => new[] { ">" + x }));
+        public static IEnumerable<object[]> TestRepositoryArgsBitmapAndRev => TestRepositoryArgs.Where(x => x[0] is string s && Directory.GetFiles(Path.Combine(s, ".git", "objects", "pack"), "*.bitmap").Any()).Concat(new[] { "0", "1", "2", "3" }.Select(x => new[] { ">" + x }));
         [TestMethod]
         [DynamicData(nameof(TestRepositoryArgsBitmapAndRev))]
         public async Task WalkObjectsViaBitmap(string path)

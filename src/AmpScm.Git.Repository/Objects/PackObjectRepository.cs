@@ -296,7 +296,7 @@ namespace AmpScm.Git.Objects
             await OpenPackIfNecessary().ConfigureAwait(false);
 
             var rdr = await _packBucket!.DuplicateAsync(true).ConfigureAwait(false);
-            await rdr.ReadSkipAsync(offset).ConfigureAwait(false);
+            await rdr.SeekAsync(offset).ConfigureAwait(false);
 
             GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
 
@@ -368,7 +368,7 @@ namespace AmpScm.Git.Objects
         }
 
 
-        private async Task OpenPackIfNecessary()
+        private async ValueTask OpenPackIfNecessary()
         {
             if (_packBucket == null)
             {
@@ -502,7 +502,7 @@ namespace AmpScm.Git.Objects
                         {
                             if (bit + n < (bitLength ??= await ewahBitmap.ReadBitLengthAsync().ConfigureAwait(false)))
                             {
-                                yield return await GetOneViaPackOffset<TGitObject>(bit + n, gitObjectType).ConfigureAwait(false);
+                                yield return await GetOneViaPackIndex<TGitObject>(bit + n, gitObjectType).ConfigureAwait(false);
                             }
                         }
                     }
@@ -511,9 +511,11 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        private async ValueTask<TGitObject> GetOneViaPackOffset<TGitObject>(int v, GitObjectType gitObjectType)
+        internal async ValueTask<TGitObject> GetOneViaPackIndex<TGitObject>(int v, GitObjectType gitObjectType)
             where TGitObject : class
         {
+            await OpenPackIfNecessary().ConfigureAwait(false);
+
             if (!File.Exists(Path.ChangeExtension(_packFile, ".rev")))
             {
                 await CreateReverseIndex().ConfigureAwait(false);
@@ -656,5 +658,16 @@ namespace AmpScm.Git.Objects
         }
 
         internal override bool ProvidesCommitInfo => false;
+
+        public override long ObjectCount
+        {
+            get
+            {
+                if (_fanOut is null)
+                    InitAsync().AsTask().GetAwaiter().GetResult();
+
+                return (int)(_fanOut?[255] ?? 0);
+            }
+        }
     }
 }

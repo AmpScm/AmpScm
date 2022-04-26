@@ -6,13 +6,6 @@ using Elskom.Generic.Libs;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public enum BucketCompressionLevel
-    {
-        Default = ZlibConst.ZDEFAULTCOMPRESSION,
-        Store = ZlibConst.ZNOCOMPRESSION,
-        BestSpeed = ZlibConst.ZBESTSPEED,
-        Maximum = ZlibConst.ZBESTCOMPRESSION
-    }
     public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
     {
         readonly ZStream _z;

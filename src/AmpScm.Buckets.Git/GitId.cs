@@ -17,7 +17,7 @@ namespace AmpScm.Git
         Sha256 = 2,
     }
 
-    [DebuggerDisplay("{ToString(),nq} ({Type}")]
+    [DebuggerDisplay("{ToString(),nq} ({Type})")]
     public sealed class GitId : IEquatable<GitId>, IComparable<GitId>, IFormattable
     {
         byte[] _bytes;

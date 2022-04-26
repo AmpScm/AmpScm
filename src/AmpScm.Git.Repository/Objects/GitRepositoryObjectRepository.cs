@@ -35,7 +35,7 @@ namespace AmpScm.Git.Objects
                 {
                     if (_repositories.IsValueCreated)
                     {
-                        foreach(var v in Sources)
+                        foreach (var v in Sources)
                         {
                             v.Dispose();
                         }
@@ -276,6 +276,8 @@ namespace AmpScm.Git.Objects
             }
             return false;
         }
+
+        public override long ObjectCount => Sources.Sum(x => x.ObjectCount);
 
         protected GitObjectRepository[] Sources => _repositories.Value;
     }

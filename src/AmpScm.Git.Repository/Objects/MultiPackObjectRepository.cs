@@ -45,6 +45,7 @@ namespace AmpScm.Git.Objects
             }
             finally
             {
+                _packs = null;
                 base.Dispose(disposing);
             }
         }
@@ -63,6 +64,8 @@ namespace AmpScm.Git.Objects
             _multiPackBitmapPath = Path.Combine(_dir, $"multi-pack-index-{id}.bitmap");
             return File.Exists(_multiPackBitmapPath);
         }
+
+        public override long ObjectCount => FanOut is not null ? FanOut[255] : 0;
 
         public override async ValueTask<TGitObject?> GetByIdAsync<TGitObject>(GitId id)
             where TGitObject : class
@@ -245,7 +248,7 @@ namespace AmpScm.Git.Objects
                         {
                             if (bit + n < (bitLength ??= await ewahBitmap.ReadBitLengthAsync().ConfigureAwait(false)))
                             {
-                                yield return await GetOneViaMultiPackOffset<TGitObject>(bit + n).ConfigureAwait(false);
+                                yield return await GetOneViaMultiPackOffset<TGitObject>(bit + n, gitObjectType).ConfigureAwait(false);
                             }
                         }
                     }
@@ -254,24 +257,38 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        private async ValueTask<TGitObject> GetOneViaMultiPackOffset<TGitObject>(int v)
+        private async ValueTask<TGitObject> GetOneViaMultiPackOffset<TGitObject>(int v, GitObjectType gitObjectType)
             where TGitObject : GitObject
         {
-            if (_revIdxBucket is null && !File.Exists(Path.ChangeExtension(_multiPackBitmapPath, ".rev")))
+            if (base.GetChunkLength("RIDX") > 0)
             {
-                await CreateReverseIndex().ConfigureAwait(false);
+                byte[] indexBuffer = new byte[sizeof(uint)];
+                if (await base.ReadFromChunkAsync("RIDX", v * sizeof(uint), indexBuffer).ConfigureAwait(false) == sizeof(uint))
+                {
+                    var idx = NetBitConverter.ToUInt32(indexBuffer, 0);
+
+                    GitId oid = await GetGitIdByIndexAsync(idx).ConfigureAwait(false);
+                    return await GetByIndexAsync<TGitObject>(idx, oid).ConfigureAwait(false) ?? throw new GitException($"Expected {oid} to be {gitObjectType} via multipack index {v}");
+                }
+
+                throw new GitException($"Multipack reverse index {v} out of range");
             }
+            else
+            {
+                if (_revIdxBucket is null && !File.Exists(Path.ChangeExtension(_multiPackBitmapPath, ".rev")))
+                {
+                    await CreateReverseIndex().ConfigureAwait(false);
+                }
 
-            _revIdxBucket ??= FileBucket.OpenRead(Path.ChangeExtension(_multiPackBitmapPath!, ".rev"));
-            await _revIdxBucket.ResetAsync().ConfigureAwait(false);
-            await _revIdxBucket.ReadSkipAsync(12 + sizeof(uint) * v).ConfigureAwait(false);
-            var index = await _revIdxBucket.ReadNetworkUInt32Async().ConfigureAwait(false);
+                _revIdxBucket ??= FileBucket.OpenRead(Path.ChangeExtension(_multiPackBitmapPath!, ".rev"));
+                await _revIdxBucket.ResetAsync().ConfigureAwait(false);
+                await _revIdxBucket.ReadSkipAsync(12 + sizeof(uint) * v).ConfigureAwait(false);
 
-            GitId id = await GetGitIdByIndexAsync(index).ConfigureAwait(false);
+                var index = await _revIdxBucket.ReadNetworkUInt32Async().ConfigureAwait(false);
+                GitId id = await GetGitIdByIndexAsync(index).ConfigureAwait(false);
 
-            var ob = await GetByIndexAsync<TGitObject>(index, id).ConfigureAwait(false);
-
-            return ob!;
+                return await GetByIndexAsync<TGitObject>(index, id).ConfigureAwait(false) ?? throw new GitException("");
+            }
         }
 
         private async ValueTask CreateReverseIndex()
@@ -325,7 +342,7 @@ namespace AmpScm.Git.Objects
                                 + NetBitConverter.GetBytes((int)Repository.InternalConfig.IdType).AsBucket()
                                 + mapBytes.AsBucket()
                                 + GitId.Parse(Path.GetFileNameWithoutExtension(_multiPackBitmapPath!).Substring("multi-pack-index-".Length)).Hash.AsBucket())
-                            .GitHash(Repository.InternalConfig.IdType,r => sha = r))
+                            .GitHash(Repository.InternalConfig.IdType, r => sha = r))
             using (var fs = File.Create(tmpName))
             {
                 await fs.WriteAsync(b).ConfigureAwait(false);

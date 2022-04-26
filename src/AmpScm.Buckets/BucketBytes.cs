@@ -138,18 +138,19 @@ namespace AmpScm.Buckets
             return _data.Span.IndexOfAny(value0, value1);
         }
 
-        /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, ReadOnlySpan{T})
+        /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, ReadOnlySpan{T})"/>
         public int IndexOfAny(ReadOnlySpan<byte> values)
         {
             return _data.Span.IndexOfAny(values);
         }
 
-        /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, ReadOnlySpan{T})
+        /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, ReadOnlySpan{T})"/>
         public int IndexOfAny(params byte[] values)
         {
             return _data.Span.IndexOfAny(values);
         }
 
+        /// <inheritdoc cref="MemoryExtensions.IndexOf{T}(ReadOnlySpan{T}, T)"/>
         public int IndexOf(byte value, int startOffset)
         {
             var s = Span.Slice(startOffset).IndexOf(value);

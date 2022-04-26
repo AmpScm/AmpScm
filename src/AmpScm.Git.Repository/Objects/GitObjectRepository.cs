@@ -55,6 +55,12 @@ namespace AmpScm.Git.Objects
             return Repository.ObjectRepository.ResolveById(id);
         }
 
+        /// <summary>
+        /// Gets a rough estimate on how many objects there are in the repository
+        /// </summary>
+        /// <remarks>The actual providers may produce more or less details, but the number should be good enough for guessing a usable id length</remarks>
+        public virtual long ObjectCount => 0;
+
         internal async ValueTask<TGitObject?> ResolveIdString<TGitObject>(string idString)
             where TGitObject : GitObject
         {
