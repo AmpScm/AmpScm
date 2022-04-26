@@ -189,32 +189,17 @@ namespace AmpScm.Buckets.Git
             {
                 if (Type == GitObjectType_DeltaReference)
                 {
-                    if (_deltaId == null)
-                    {
-                        _deltaId = new byte[(_idType == GitIdType.Sha1) ? 20 : 32];
-                        position = 0;
-                    }
+                    position = 0;
 
                     int hashLen = _idType.HashLength();
-                    while (position < hashLen)
-                    {
-                        var read = await Inner.ReadAsync(hashLen - (int)position).ConfigureAwait(false);
+                    var read = await Inner.ReadFullAsync(hashLen).ConfigureAwait(false);
 
-                        if (read.IsEof)
-                            return false;
+                    if (read.IsEof || read.Length != hashLen)
+                        throw new GitBucketException($"Unexpected EOF in {Name} bucket");
 
-                        if (read.Length == hashLen)
-                            _deltaId = read.ToArray();
-                        else
-                        {
-                            _deltaId ??= new byte[hashLen];
-                            for (int i = 0; i < read.Length; i++)
-                                _deltaId[position++] = read[i];
-                        }
-                    }
+                    _deltaId = read.ToArray();
 
                     state = frame_state.find_delta;
-                    position = 0;
                     reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
                 }
                 else if (Type == GitObjectType_DeltaOffset)

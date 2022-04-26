@@ -573,28 +573,9 @@ namespace GitRepositoryTests
         {
             get
             {
-                var dir = Path.GetDirectoryName(typeof(GitTests).Assembly.Location);
-                string? gitDir = null;
+                var repo = GitRepository.Open(typeof(GitTests).Assembly.Location);
 
-                while (gitDir == null && dir != null)
-                {
-                    if (Directory.Exists(Path.Combine(dir, ".git")))
-                        gitDir = Path.Combine(dir, ".git");
-                    else
-                    {
-                        var parentDir = Path.GetDirectoryName(dir);
-
-                        if (parentDir == dir)
-                            yield break;
-
-                        dir = parentDir;
-                    }
-                }
-
-                if (gitDir == null)
-                    yield break;
-
-                foreach (var file in Directory.GetFiles(Path.Combine(gitDir, "objects/pack"), "*.pack"))
+                foreach (var file in Directory.GetFiles(Path.Combine(repo.FullPath, ".git", "objects", "pack"), "*.pack"))
                 {
                     yield return new[] { file };
                 }
@@ -710,7 +691,7 @@ namespace GitRepositoryTests
             TestContext.WriteLine($"Resolving {id}");
             GitRepository repo = await GitRepository.OpenAsync(Path.GetDirectoryName(packFile)!);
 
-            return (await repo.ObjectRepository.FetchGitIdBucketAsync(id))!;
+            return (await repo.ObjectRepository.FetchGitIdBucketAsync(id)) ?? throw new InvalidOperationException($"Can't obtain object {id} from {packFile}");
         }
 
         [TestMethod]
