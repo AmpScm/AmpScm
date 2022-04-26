@@ -281,10 +281,7 @@ namespace AmpScm.Buckets
             }
             else
             {
-                List<byte> list = new List<byte>(enumerable);
-                list.AddRange(bytes.ToArray());
-
-                return list.ToArray();
+                return enumerable.Concat(bytes.ToArray()).ToArray();
             }
         }
 

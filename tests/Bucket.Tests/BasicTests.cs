@@ -562,6 +562,19 @@ namespace BucketTests
             }
         }
 
+        [TestMethod]
+        public void BytesEmptyEof()
+        {
+            Assert.IsTrue(BucketBytes.Eof.IsEof, "BucketBytes.Eof.IsEof = true");
+            Assert.IsFalse(BucketBytes.Empty.IsEof, "BucketBytes.Eof.IsEof = false");
+            Assert.IsFalse(BucketBytes.Eof.Equals(BucketBytes.Empty), "BucketBytes.Eof != BucketBytes.Empty");
+            //Assert.IsFalse(BucketBytes.Empty.IsEof, "BucketBytes.Eof.IsEof = false");
+
+            BucketBytes bEmpty = Array.Empty<byte>();
+            Assert.IsTrue(bEmpty.IsEmpty, "Empty");
+            Assert.IsFalse(bEmpty.IsEof, "Not EOF");
+        }
+
         static ReadOnlySpan<byte> readOnlyBytesNoTable => new byte[] {
             (byte)'0',
             (byte)'1',

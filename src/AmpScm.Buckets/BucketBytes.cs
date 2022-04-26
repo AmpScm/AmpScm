@@ -15,12 +15,10 @@ namespace AmpScm.Buckets
     public readonly partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
     {
         readonly ReadOnlyMemory<byte> _data;
-        readonly bool _eof;
 
         public BucketBytes(ReadOnlyMemory<byte> data)
         {
             _data = data;
-            _eof = false;
         }
 
         public BucketBytes(byte[] array, int start, int length)
@@ -29,13 +27,14 @@ namespace AmpScm.Buckets
                 throw new ArgumentNullException(nameof(array));
 
             _data = new ReadOnlyMemory<byte>(array, start, length);
-            _eof = false;
         }
 
         private BucketBytes(bool eof)
         {
-            _data = ReadOnlyMemory<byte>.Empty;
-            _eof = eof;
+            if (eof)
+                _data = BucketBytes.Eof._data;
+            else
+                _data = BucketBytes.Empty._data;
         }
 
         public override bool Equals(object? obj)
@@ -48,7 +47,7 @@ namespace AmpScm.Buckets
 
         public bool Equals(BucketBytes other)
         {
-            return _data.Equals(other._data) && _eof == other._eof;
+            return _data.Equals(other._data);
         }
 
         public override int GetHashCode()
@@ -57,7 +56,7 @@ namespace AmpScm.Buckets
         }
 
         public int Length => _data.Length;
-        public bool IsEof => _eof;
+        public bool IsEof => Length == 0 && _data.Equals(Eof._data);
         public bool IsEmpty => _data.IsEmpty;
 
         public ReadOnlySpan<byte> Span => _data.Span;
@@ -110,7 +109,7 @@ namespace AmpScm.Buckets
         }
 
         public static readonly BucketBytes Empty = new BucketBytes(false);
-        public static readonly BucketBytes Eof = new BucketBytes(true);
+        public static readonly BucketBytes Eof = new BucketBytes(new ReadOnlyMemory<byte>((byte[])new byte[] {(byte)'E', (byte)'O', (byte)'F'}.Clone(), 3, 0));
 
 
         public void CopyTo(Memory<byte> destination) => Span.CopyTo(destination.Span);
