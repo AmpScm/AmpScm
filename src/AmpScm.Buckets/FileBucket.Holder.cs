@@ -121,7 +121,7 @@ namespace AmpScm.Buckets
             public ValueTask<int> ReadAtAsync(long fileOffset, byte[] buffer, int requested)
             {
                 if (requested <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(requested));
+                    throw new ArgumentOutOfRangeException(nameof(requested), requested, "Requested bytes must be at least 1");
                 else if (fileOffset > 0 && fileOffset >= Length)
                     return new ValueTask<int>(0);
 
