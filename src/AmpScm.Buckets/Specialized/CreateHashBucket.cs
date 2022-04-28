@@ -71,7 +71,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override bool CanReset => Inner.CanReset && (_hasher?.CanReuseTransform ?? false);
 
-        public override ValueTask<Bucket> DuplicateAsync(bool reset) => Inner.DuplicateAsync(reset);
+        public override ValueTask<Bucket> DuplicateAsync(bool reset = false) => Inner.DuplicateAsync(reset);
 
         public override async ValueTask ResetAsync()
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,14 +10,15 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    public class GitCacheOptions
+    public class GitDirectoryOptions
     {
         public GitIdType IdType { get; set; }
 
         public bool LookForEndOfIndex { get; set; }
+        public bool PreLoadExtensions { get; set; }
     }
 
-    public record GitCacheEntry
+    public record GitDirectoryEntry
     {
         public string Name { get; init; } = default!;
         public GitTreeElementType Type { get; init; }
@@ -43,7 +45,7 @@ namespace AmpScm.Buckets.Git
     /// <summary>
     /// Git Directory Cache (aka "INDEX") bucket
     /// </summary>
-    public class GitCacheBucket : GitBucket
+    public class GitDirectoryBucket : GitBucket
     {
         readonly GitIdType _idType;
         readonly bool _lookForEndOfIndex;
@@ -56,16 +58,66 @@ namespace AmpScm.Buckets.Git
         string? _lastName;
         long _length;
         bool _processedExtensions;
-
+        bool _preLoadExtensions;
         public static readonly int LowestSupportedFormat = 2;
         public static readonly int HighestSupportedFormat = 4;
+        string? _directory;
+        GitEwahBitmapBucket? _deleted;
+        GitEwahBitmapBucket? _replaced;
+        GitDirectoryBucket? _shared;
 
         public int? IndexVersion => _version > 0 ? _version : null;
 
-        public GitCacheBucket(Bucket inner, GitCacheOptions? options = null) : base(inner)
+        public GitDirectoryBucket(Bucket inner, GitDirectoryOptions? options) : base(inner)
         {
             _idType = options?.IdType ?? GitIdType.Sha1;
             _lookForEndOfIndex = options?.LookForEndOfIndex ?? false;
+            _preLoadExtensions = options?.PreLoadExtensions ?? false;
+        }
+
+        public GitDirectoryBucket(Bucket inner)
+            : this(inner, options: null)
+        {
+        }
+
+        public GitDirectoryBucket(string gitDirectory, GitDirectoryOptions? options)
+            : this(FileBucket.OpenRead(Path.Combine(
+                string.IsNullOrEmpty(gitDirectory) ? throw new ArgumentNullException(nameof(gitDirectory)) : gitDirectory, "index")), options)
+        {
+            _directory = gitDirectory;
+
+            if (Directory.EnumerateFiles(gitDirectory, "sharedindex.*").Any())
+            {
+                _lookForEndOfIndex = true;
+                _preLoadExtensions = true;
+            }
+        }
+
+        public GitDirectoryBucket(string gitDirectory)
+            : this(gitDirectory, options: null)
+        {
+
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if (disposing)
+                {
+                    _deleted?.Dispose();
+                    _replaced?.Dispose();
+                    _shared?.Dispose();
+                }
+            }
+            finally
+            {
+                _deleted = null;
+                _replaced = null;
+                _shared = null;
+
+                base.Dispose(disposing);
+            }
         }
 
         public async ValueTask ReadHeaderAsync()
@@ -105,9 +157,23 @@ namespace AmpScm.Buckets.Git
             {
                 _length = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false) + Inner.Position ?? -1;
             }
+
+            if (_preLoadExtensions)
+            {
+                await ProcessExtensionsAsync().ConfigureAwait(false);
+                await Inner.SeekAsync(_indexStart).ConfigureAwait(false);
+            }
         }
 
-        public async ValueTask<GitCacheEntry?> ReadEntryAsync()
+        public ValueTask<GitDirectoryEntry?> ReadEntryAsync()
+        {
+            if (_shared is null)
+                return ReadEntryDirectAsync();
+            else
+                return ReadEntryLinkAsync();
+        }
+
+        async ValueTask<GitDirectoryEntry?> ReadEntryDirectAsync()
         {
             if (_indexStart == 0)
                 await ReadHeaderAsync().ConfigureAwait(false);
@@ -126,6 +192,8 @@ namespace AmpScm.Buckets.Git
                 if (!_endOfIndex.HasValue)
                     _endOfIndex = Inner.Position;
 
+                await ProcessExtensionsAsync().ConfigureAwait(false);
+
                 return null;
             }
             _nRead++;
@@ -137,7 +205,7 @@ namespace AmpScm.Buckets.Git
             if (bb.Length != readLen)
                 throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
 
-            GitCacheEntry src = new()
+            GitDirectoryEntry src = new()
             {
                 UnixCreationTime = NetBitConverter.ToInt32(bb, 0),
                 UnixCreationTimeNano = NetBitConverter.ToInt32(bb, 4),
@@ -209,8 +277,57 @@ namespace AmpScm.Buckets.Git
                 else
                     _lastName = sName = name.ToUTF8String(eol);
 
+                //Debug.Assert(sName.Length > 0);
+
                 return src with { Name = sName, Flags = FullFlags };
             }
+        }
+
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        IAsyncEnumerator<bool>? _deletedWalk;
+        IAsyncEnumerator<bool>? _replacedWalk;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        async ValueTask<GitDirectoryEntry?> ReadEntryLinkAsync()
+        {
+            while (true)
+            {
+                var shared = await _shared!.ReadEntryAsync().ConfigureAwait(false);
+                if (shared is null)
+                    break;
+
+                if (_deletedWalk is null || _replacedWalk is null)
+                {
+                    _deletedWalk = _deleted!.AllBits.GetAsyncEnumerator();
+                    _replacedWalk = _replaced!.AllBits.GetAsyncEnumerator();
+                }
+
+                bool deleted = (await _deletedWalk.MoveNextAsync().ConfigureAwait(false) && _deletedWalk.Current);
+                bool replaced = (await _replacedWalk!.MoveNextAsync().ConfigureAwait(false) && _deletedWalk.Current);
+
+                if (deleted)
+                    continue;
+                else if (replaced)
+                {
+                    var me = await ReadEntryDirectAsync().ConfigureAwait(false);
+
+                    return me! with { Name = shared.Name };
+                }
+                else
+                    return shared;
+            }
+
+            if (_deletedWalk is not null)
+            {
+                await _deletedWalk.DisposeAsync().ConfigureAwait(false);
+                _deletedWalk = null;
+            }
+            if (_replacedWalk is not null)
+            {
+                await _replacedWalk.DisposeAsync().ConfigureAwait(false);
+                _deletedWalk = null;
+            }
+
+            return await ReadEntryDirectAsync().ConfigureAwait(false);
         }
 
         public async ValueTask ProcessExtensionsAsync()
@@ -220,7 +337,7 @@ namespace AmpScm.Buckets.Git
 
             if (_nRead < _indexCount && !_endOfIndex.HasValue)
             {
-                while (null != await ReadEntryAsync().ConfigureAwait(false))
+                while (null != await ReadEntryDirectAsync().ConfigureAwait(false))
                 {
                 }
             }
@@ -251,10 +368,21 @@ namespace AmpScm.Buckets.Git
 
                     string extensionName = bb.ToUTF8String(0, 4);
 
+                    int extensionlen = NetBitConverter.ToInt32(bb, 4);
+
+
                     switch (extensionName)
                     {
                         case "EOIE": // End of Index Entry.
                             break;
+
+                        case "link":
+                            if (!_preLoadExtensions)
+                                throw new GitBucketException("Can't load split index when PreLoadExtensions is not set");
+
+                            await LoadLinkAsync(reader, extensionlen);
+
+                            continue;
 
                         case "TREE": // Cache Tree
                             break;
@@ -279,8 +407,6 @@ namespace AmpScm.Buckets.Git
                             break;
                     }
 
-                    int extensionlen = NetBitConverter.ToInt32(bb, 4);
-
                     if (extensionlen > 0)
                     {
                         if (extensionlen != await reader.ReadSkipAsync(extensionlen).ConfigureAwait(false))
@@ -289,6 +415,30 @@ namespace AmpScm.Buckets.Git
                 }
                 _processedExtensions = true;
             }
+        }
+
+        private async ValueTask LoadLinkAsync(Bucket reader, int extensionLength)
+        {
+            long endPos = reader.Position!.Value + extensionLength;
+
+            GitId shared = await reader.ReadGitIdAsync(_idType).ConfigureAwait(false);
+
+            _deleted = new GitEwahBitmapBucket(await reader.DuplicateAsync().ConfigureAwait(false));
+            int delLength = await _deleted.ReadLengthAsync().ConfigureAwait(false);
+
+            if (await reader.ReadSkipAsync(delLength).ConfigureAwait(false) != delLength)
+                throw new GitBucketException($"Unexpected EOF on {Name} Bucket");
+
+            _replaced = new GitEwahBitmapBucket(await reader.DuplicateAsync().ConfigureAwait(false));
+#if DEBUG
+            int replaceLength = await _replaced.ReadLengthAsync().ConfigureAwait(false);
+
+            Debug.Assert(delLength + replaceLength + _idType.HashLength() == extensionLength);
+#endif
+            await reader.SeekAsync(endPos).ConfigureAwait(false);
+
+            if (!shared.IsAllZero)
+                _shared = new GitDirectoryBucket(FileBucket.OpenRead(Path.Combine(_directory!, $"sharedindex.{shared}")), new GitDirectoryOptions() { IdType = _idType, LookForEndOfIndex = _lookForEndOfIndex });
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)

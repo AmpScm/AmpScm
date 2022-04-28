@@ -28,6 +28,7 @@ namespace AmpScm.Git
         {
             get => new(_bytes, _offset, HashLength(Type));
         }
+        public bool IsAllZero => !_bytes.Take(HashLength(Type)).Any(x => x != 0);
 
         /// <summary>
         /// Creates a new <see cref="GitId"/> of the specified hash with the specified hash

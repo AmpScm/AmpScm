@@ -70,7 +70,7 @@ namespace AmpScm.Git.Objects
                 return default;
         }
 
-        public override ValueTask<Bucket> DuplicateAsync(bool reset)
+        public override ValueTask<Bucket> DuplicateAsync(bool reset = false)
         {
             if (_inner != null)
                 return _inner.DuplicateAsync(reset);

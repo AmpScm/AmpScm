@@ -499,24 +499,10 @@ namespace AmpScm.Git.Objects
                 throw new InvalidOperationException();
 
             GitObjectType gitObjectType = GetGitObjectType(typeof(TGitObject));
-            int bit = 0;
-            int? bitLength = null;
-            while (await ewahBitmap.ReadByteAsync().ConfigureAwait(false) is byte b)
+
+            await foreach (int index in ewahBitmap.SetIndexes)
             {
-                if (b != 0)
-                {
-                    for (int n = 0; n < 8; n++)
-                    {
-                        if ((b & (1 << n)) != 0)
-                        {
-                            if (bit + n < (bitLength ??= await ewahBitmap.ReadBitLengthAsync().ConfigureAwait(false)))
-                            {
-                                yield return await GetOneViaPackIndex<TGitObject>(bit + n, gitObjectType).ConfigureAwait(false);
-                            }
-                        }
-                    }
-                }
-                bit += 8;
+                yield return await GetOneViaPackIndex<TGitObject>(index, gitObjectType).ConfigureAwait(false);
             }
         }
 

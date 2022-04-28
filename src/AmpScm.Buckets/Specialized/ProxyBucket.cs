@@ -45,7 +45,7 @@ namespace AmpScm.Buckets.Specialized
             return Inner.ResetAsync();
         }
 
-        public override async ValueTask<Bucket> DuplicateAsync(bool reset)
+        public override async ValueTask<Bucket> DuplicateAsync(bool reset = false)
         {
             var r = await Inner.DuplicateAsync(reset).ConfigureAwait(false);
             return WrapDuplicate(r, reset) ?? r;

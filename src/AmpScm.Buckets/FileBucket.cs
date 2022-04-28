@@ -113,7 +113,7 @@ namespace AmpScm.Buckets
             return default;
         }
 
-        public override ValueTask<Bucket> DuplicateAsync(bool reset)
+        public override ValueTask<Bucket> DuplicateAsync(bool reset = false)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             FileBucket fbNew = new FileBucket(_holder, _buffer.Length, _chunkSizeMinus1 + 1);

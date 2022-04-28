@@ -229,7 +229,7 @@ namespace AmpScm.Buckets
             get => _position;
         }
 
-        public override async ValueTask<Bucket> DuplicateAsync(bool reset)
+        public override async ValueTask<Bucket> DuplicateAsync(bool reset = false)
         {
             if (!_keepOpen)
                 throw new NotSupportedException();

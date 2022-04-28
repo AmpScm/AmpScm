@@ -404,7 +404,7 @@ namespace AmpScm.Buckets.Specialized
             _inner = base.Inner;
         }
 
-        public override async ValueTask<Bucket> DuplicateAsync(bool reset)
+        public override async ValueTask<Bucket> DuplicateAsync(bool reset = false)
         {
             if (!reset)
                 throw new NotSupportedException();

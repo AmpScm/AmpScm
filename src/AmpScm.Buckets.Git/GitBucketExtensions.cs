@@ -87,7 +87,9 @@ namespace AmpScm.Git
 
         public static Bucket GitHash(this Bucket bucket, GitIdType type, Action<byte[]> created)
         {
-            switch(type)
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            switch (type)
             {
                 case GitIdType.Sha1:
                     return bucket.SHA1(created);
@@ -96,6 +98,20 @@ namespace AmpScm.Git
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type));
             }
+        }
+
+        public static async ValueTask<GitId> ReadGitIdAsync(this Bucket bucket, GitIdType type)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            int hl = type.HashLength();
+            var bb = await bucket.ReadFullAsync(hl).ConfigureAwait(false);
+
+            if (bb.Length == hl)
+                return new GitId(type, bb.ToArray());
+            else
+                throw new GitBucketException($"Unexpected EOF while reading GitId from {bucket.Name} Bucket");
         }
 
         public static async ValueTask<long> ReadGitOffsetAsync(this Bucket bucket)

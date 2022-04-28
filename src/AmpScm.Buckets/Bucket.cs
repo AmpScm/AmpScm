@@ -146,7 +146,7 @@ namespace AmpScm.Buckets
         /// <exception cref="InvalidOperationException">Reset is not supported on bucket</exception>
         /// <exception cref="NotSupportedException">Duplicating this bucket is not supported</exception>
         /// <remarks>Caller should take care of calling <see cref="Dispose()"/> on the returned bucket</remarks>
-        public virtual ValueTask<Bucket> DuplicateAsync(bool reset)
+        public virtual ValueTask<Bucket> DuplicateAsync(bool reset = false)
         {
             if (reset && !CanReset)
                 throw new InvalidOperationException($"Reset not supported on {Name} bucket");

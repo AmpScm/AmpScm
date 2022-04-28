@@ -26,13 +26,13 @@ namespace GitRepositoryTests.Index
             using var index = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
 
 
-            using var dc = new GitCacheBucket(index, new() { IdType = GitIdType.Sha1 });
+            using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1 });
 
             await dc.ReadHeaderAsync();
 
             TestContext.WriteLine($"Version: {dc.IndexVersion}");
 
-            while (await dc.ReadEntryAsync() is GitCacheEntry entry)
+            while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
             {
                 TestContext.WriteLine($"{entry.Name} - {entry}");
             }
@@ -41,7 +41,7 @@ namespace GitRepositoryTests.Index
         }
 
 
-        public static IEnumerable<object[]> GetIndexFormats => Enumerable.Range(GitCacheBucket.LowestSupportedFormat, GitCacheBucket.HighestSupportedFormat - GitCacheBucket.LowestSupportedFormat + 1).SelectMany(x => Enumerable.Range(0, 4).Select(y => new object[] { x, ((int)y & 1) != 0, ((int)y & 2) != 0 }));
+        public static IEnumerable<object[]> GetIndexFormats => Enumerable.Range(GitDirectoryBucket.LowestSupportedFormat, GitDirectoryBucket.HighestSupportedFormat - GitDirectoryBucket.LowestSupportedFormat + 1).SelectMany(x => Enumerable.Range(0, 4).Select(y => new object[] { x, ((int)y & 1) != 0, ((int)y & 2) != 0 }));
 
         [TestMethod]
         [DynamicData(nameof(GetIndexFormats))]
@@ -65,13 +65,13 @@ namespace GitRepositoryTests.Index
             using var index = FileBucket.OpenRead(Path.Combine(repo.FullPath, ".git", "index"));
 
 
-            using var dc = new GitCacheBucket(index, new() { IdType = GitIdType.Sha1, LookForEndOfIndex = optimize });
+            using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1, LookForEndOfIndex = optimize });
 
             await dc.ReadHeaderAsync();
 
             TestContext.WriteLine($"Version: {dc.IndexVersion}");
 
-            while (await dc.ReadEntryAsync() is GitCacheEntry entry)
+            while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
             {
                 TestContext.WriteLine($"{entry.Name} - {entry}");
             }
@@ -101,20 +101,98 @@ namespace GitRepositoryTests.Index
             using var repo = GitRepository.Open(path);
             Console.WriteLine(path);
 
-            using var index = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
-
-            using var dc = new GitCacheBucket(index);
+            using var dc = new GitDirectoryBucket(repo.WorktreePath);
 
             await dc.ReadHeaderAsync();
 
             TestContext.WriteLine($"Version: {dc.IndexVersion}");
 
-            while (await dc.ReadEntryAsync() is GitCacheEntry entry)
+            while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
             {
                 TestContext.WriteLine($"{entry.Name} - {entry}");
             }
 
             _ = await dc.ReadAsync();
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task CheckReadSplit(bool optimize)
+        {
+            var path = TestContext.PerTestDirectory($"{optimize}");
+            {
+                using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+                await gc.GetPlumbing().RunRawCommand("clone",
+                    gc.FullPath,
+                    path, "-s",
+                    "-c", $"core.splitIndex=true",
+                    //"-c", $"splitIndex.maxPercentChange=0",
+                    "-c", $"index.recordEndOfIndexEntries={optimize}",
+                    "-c", $"index.version=4"
+                    );
+
+                //TestContext.WriteLine(File.ReadAllText(Path.Combine(path, ".git", "config")));
+            }
+
+            using var repo = GitRepository.Open(path);
+
+            await repo.GetPlumbing().RunRawCommand("update-index", "--split-index");
+            Console.WriteLine(path);
+
+            using var dc = new GitDirectoryBucket(repo.WorktreePath);
+
+            await dc.ReadHeaderAsync();
+
+            TestContext.WriteLine($"Version: {dc.IndexVersion}");
+
+            while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
+            {
+                TestContext.WriteLine($"{entry.Name} - {entry}");
+            }
+
+            _ = await dc.ReadAsync();
+        }
+
+
+
+        [TestMethod]
+        public async Task CheckNoReadSplit()
+        {
+            var path = TestContext.PerTestDirectory();
+            {
+                using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+                await gc.GetPlumbing().RunRawCommand("clone",
+                    gc.FullPath,
+                    path, "-s",
+                    "-c", $"core.splitIndex=true",
+                    "-c", $"index.version=4"
+                    );
+
+                //TestContext.WriteLine(File.ReadAllText(Path.Combine(path, ".git", "config")));
+            }
+
+            using var repo = GitRepository.Open(path);
+
+            await repo.GetPlumbing().RunRawCommand("update-index", "--split-index");
+            Console.WriteLine(path);
+
+            try
+            {
+                using var idx = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
+
+                using var dc = new GitDirectoryBucket(idx);
+
+                await dc.ReadHeaderAsync();
+
+                await dc.ReadSkipAsync(long.MaxValue);
+
+                Assert.Fail("Expected exception");
+            }
+            catch (GitBucketException x) when (x.Message.Contains("split index"))
+            {
+                return;
+            }
         }
     }
 }

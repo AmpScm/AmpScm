@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Git
 {
-    public class GitEwahBitmapBucket : GitBucket
+    public sealed class GitEwahBitmapBucket : GitBucket
     {
         enum ewah_state
         {
@@ -78,6 +80,16 @@ namespace AmpScm.Buckets.Git
             }
 
             return (int)_lengthBits!.Value;
+        }
+
+        public async ValueTask<int> ReadLengthAsync()
+        {
+            if (_lengthBits is null)
+            {
+                await RefillAsync(true).ConfigureAwait(false);
+            }
+
+            return _compressedSize * sizeof(ulong) + (/* HEADER: */ 4 + 4) + (/* Trailer: */ 4);
         }
 
         private async ValueTask<bool> RefillAsync(bool allowWait)
@@ -154,7 +166,7 @@ namespace AmpScm.Buckets.Git
                         _left--;
                         _rawCount--;
 
-                        for (int i = bb.Length-1; i >= 0; i--)
+                        for (int i = bb.Length - 1; i >= 0; i--)
                         {
                             _buffer[_wpos++] = bb[i];
                         }
@@ -198,5 +210,58 @@ namespace AmpScm.Buckets.Git
         }
 
         public override long? Position => _position;
+
+
+        public IAsyncEnumerable<bool> AllBits => new EwahWalker(this);
+
+        public IAsyncEnumerable<int> SetIndexes => new EwahWalker(this);
+
+
+        sealed class EwahWalker : IAsyncEnumerable<bool>, IAsyncEnumerable<int>
+        {
+            private GitEwahBitmapBucket _bucket;
+
+            public EwahWalker(GitEwahBitmapBucket bucket)
+            {
+                _bucket = bucket;
+            }
+
+            async IAsyncEnumerator<bool> IAsyncEnumerable<bool>.GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            {
+                int bitLength = await _bucket.ReadBitLengthAsync().ConfigureAwait(false);
+                int bit = 0;
+
+                while (await _bucket.ReadByteAsync().ConfigureAwait(false) is byte b)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    for (int n = 0; n < 8; n++)
+                    {
+                        yield return (bit + n < bitLength) && ((b & (1 << n)) != 0);
+                    }
+                    bit += 8;
+                }
+            }
+
+            async IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            {
+                int bitLength = await _bucket.ReadBitLengthAsync().ConfigureAwait(false);
+                int bit = 0;
+
+                while (await _bucket.ReadByteAsync().ConfigureAwait(false) is byte b)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    for (int n = 0; n < 8; n++)
+                    {
+                        if ((bit + n < bitLength) && ((b & (1 << n)) != 0))
+                        {
+                            yield return bit + n;
+                        }
+                    }
+                    bit += 8;
+                }
+            }
+        }
     }
 }

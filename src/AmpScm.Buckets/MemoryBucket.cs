@@ -47,7 +47,7 @@ namespace AmpScm.Buckets
             return new ValueTask<long?>(_data.Length - _offset);
         }
 
-        public override ValueTask<Bucket> DuplicateAsync(bool reset)
+        public override ValueTask<Bucket> DuplicateAsync(bool reset = false)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var mb = new MemoryBucket(_data.Memory);
