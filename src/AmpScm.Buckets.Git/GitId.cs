@@ -20,15 +20,18 @@ namespace AmpScm.Git
     [DebuggerDisplay("{ToString(),nq} ({Type})")]
     public sealed class GitId : IEquatable<GitId>, IComparable<GitId>, IFormattable
     {
-        byte[] _bytes;
-        int _offset;
+        readonly byte[] _bytes;
+        readonly int _offset;
         public GitIdType Type { get; }
 
         public ReadOnlyMemory<byte> Hash
         {
             get => new(_bytes, _offset, HashLength(Type));
         }
-        public bool IsAllZero => !_bytes.Take(HashLength(Type)).Any(x => x != 0);
+        /// <summary>
+        /// Gets a boolean indicating whether this id specifies the 'magic' all zeros Id.
+        /// </summary>
+        public bool IsZero => Hash.Span.All(x => x == 0);
 
         /// <summary>
         /// Creates a new <see cref="GitId"/> of the specified hash with the specified hash

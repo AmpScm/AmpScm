@@ -290,14 +290,39 @@ namespace AmpScm.Git.Repository
             key = key.ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
-            if (_config.TryGetValue((group, subGroup, key), out var vResult)
-                && int.TryParse(vResult, out var r))
+            if (_config.TryGetValue((group, subGroup, key), out var vResult))
             {
-                return r;
+                if (int.TryParse(vResult, out var r))
+                {
+                    return r;
+                }
+
+                vResult = vResult.TrimEnd();
+
+                if ((vResult.EndsWith("k", StringComparison.OrdinalIgnoreCase) || vResult.EndsWith("m",StringComparison.OrdinalIgnoreCase) || vResult.EndsWith("g",StringComparison.OrdinalIgnoreCase))
+#if !NETFRAMEWORK
+                    && int.TryParse(vResult.AsSpan(0, vResult.Length - 1), out r))
+#else
+                    && int.TryParse(vResult.Substring(0, vResult.Length-1), out r))
+#endif
+                {
+                    return r * SuffixFactor(vResult[vResult.Length - 1]);
+                }
+                else
+                    return null;
             }
             else
                 return null;
         }
+
+        static int SuffixFactor(char v)
+            => v switch
+            {
+                'k' or 'K' => 1024,
+                'm' or 'M' => 1024 * 1024,
+                'g' or 'G' => 1024 * 1024 * 1024,
+                _ => throw new ArgumentOutOfRangeException(nameof(v))
+            };
 
         internal int? GetInt(string group, string key)
         {

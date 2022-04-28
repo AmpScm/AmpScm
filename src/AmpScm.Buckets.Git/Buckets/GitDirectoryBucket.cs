@@ -309,8 +309,6 @@ namespace AmpScm.Buckets.Git
                 else
                     _lastName = sName = name.ToUTF8String(eol);
 
-                //Debug.Assert(sName.Length > 0);
-
                 return src with { Name = sName, Flags = FullFlags };
             }
         }
@@ -358,6 +356,10 @@ namespace AmpScm.Buckets.Git
                 await _replacedWalk.DisposeAsync().ConfigureAwait(false);
                 _deletedWalk = null;
             }
+
+
+            // The remaining items are returned out-of-order, and it would be quite expensive to fix
+            // as we would have to walk the remaining items together with the other two lists
 
             return await ReadEntryDirectAsync().ConfigureAwait(false);
         }
@@ -469,7 +471,7 @@ namespace AmpScm.Buckets.Git
 #endif
             await reader.SeekAsync(endPos).ConfigureAwait(false);
 
-            if (!shared.IsAllZero)
+            if (!shared.IsZero)
                 _shared = new GitDirectoryBucket(FileBucket.OpenRead(Path.Combine(_directory!, $"sharedindex.{shared}")), new GitDirectoryOptions() { IdType = _idType, LookForEndOfIndex = _lookForEndOfIndex });
         }
 

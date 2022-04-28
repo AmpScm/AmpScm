@@ -114,8 +114,10 @@ AmpScm.Git.GitId
 AmpScm.Git.GitId.CompareTo(AmpScm.Git.GitId? other) -> int
 AmpScm.Git.GitId.Equals(AmpScm.Git.GitId? other) -> bool
 AmpScm.Git.GitId.GitId(AmpScm.Git.GitIdType type, byte[]! hash) -> void
+AmpScm.Git.GitId.GitId(string! value) -> void
 AmpScm.Git.GitId.Hash.get -> System.ReadOnlyMemory<byte>
 AmpScm.Git.GitId.HashCompare(AmpScm.Git.GitId! other) -> int
+AmpScm.Git.GitId.IsZero.get -> bool
 AmpScm.Git.GitId.this[int index].get -> byte
 AmpScm.Git.GitId.ToString(string? format) -> string!
 AmpScm.Git.GitId.Type.get -> AmpScm.Git.GitIdType

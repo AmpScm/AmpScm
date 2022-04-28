@@ -50,8 +50,6 @@ AmpScm.Buckets.Git.GitDirectoryOptions.PreLoadExtensions.set -> void
 AmpScm.Buckets.Git.GitEwahBitmapBucket.AllBits.get -> System.Collections.Generic.IAsyncEnumerable<bool>!
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitEwahBitmapBucket.SetIndexes.get -> System.Collections.Generic.IAsyncEnumerable<int>!
-AmpScm.Git.GitId.GitId(string! value) -> void
-AmpScm.Git.GitId.IsAllZero.get -> bool
 override AmpScm.Buckets.Git.GitDirectoryBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
