@@ -50,6 +50,12 @@ AmpScm.Buckets.Client.BucketClientException.BucketClientException(string! messag
 AmpScm.Buckets.Client.BucketClientException.BucketClientException(string! message, System.Exception! innerException) -> void
 AmpScm.Buckets.Client.BucketClientException.BucketClientException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.Client.BucketHttpClientExtensions
+AmpScm.Buckets.Client.Buckets.HttpResponseBucket
+AmpScm.Buckets.Client.Buckets.HttpResponseBucket.HttpMessage.get -> string?
+AmpScm.Buckets.Client.Buckets.HttpResponseBucket.HttpStatus.get -> int?
+AmpScm.Buckets.Client.Buckets.HttpResponseBucket.HttpVersion.get -> string?
+AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ReadStatusAsync() -> System.Threading.Tasks.ValueTask<int>
+AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Request.get -> AmpScm.Buckets.Client.HttpBucketWebRequest!
 AmpScm.Buckets.Client.BucketWebClient
 AmpScm.Buckets.Client.BucketWebClient.BasicAuthentication -> System.EventHandler<AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs!>?
 AmpScm.Buckets.Client.BucketWebClient.BucketWebClient() -> void
@@ -70,13 +76,7 @@ AmpScm.Buckets.Client.BucketWebRequest.Headers.get -> AmpScm.Buckets.Client.WebH
 AmpScm.Buckets.Client.BucketWebRequest.PreAuthenticate.get -> bool
 AmpScm.Buckets.Client.BucketWebRequest.PreAuthenticate.set -> void
 AmpScm.Buckets.Client.BucketWebRequest.RequestUri.get -> System.Uri!
-AmpScm.Buckets.Client.Http.HttpResponseBucket
-AmpScm.Buckets.Client.Http.HttpResponseBucket.HttpMessage.get -> string?
-AmpScm.Buckets.Client.Http.HttpResponseBucket.HttpStatus.get -> int?
-AmpScm.Buckets.Client.Http.HttpResponseBucket.HttpVersion.get -> string?
-AmpScm.Buckets.Client.Http.HttpResponseBucket.ReadStatusAsync() -> System.Threading.Tasks.ValueTask<int>
-AmpScm.Buckets.Client.Http.HttpResponseBucket.Request.get -> AmpScm.Buckets.Client.Protocols.HttpBucketRequest!
-AmpScm.Buckets.Client.Protocols.HttpBucketRequest
+AmpScm.Buckets.Client.HttpBucketWebRequest
 AmpScm.Buckets.Client.ResponseBucket
 AmpScm.Buckets.Client.ResponseBucket.Request.get -> AmpScm.Buckets.Client.BucketWebRequest!
 AmpScm.Buckets.Client.ResponseBucket.ResponseBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Client.BucketWebRequest! request) -> void
@@ -132,16 +132,16 @@ AmpScm.Buckets.Specialized.ConversionBucket.ConversionBucket(AmpScm.Buckets.Buck
 AmpScm.Buckets.Specialized.ZLibBucket.ZLibBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm = AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib, System.IO.Compression.CompressionMode mode = System.IO.Compression.CompressionMode.Decompress, AmpScm.Buckets.Specialized.BucketCompressionLevel level = AmpScm.Buckets.Specialized.BucketCompressionLevel.Default) -> void
 override AmpScm.Buckets.ByteCollector.Equals(object? obj) -> bool
 override AmpScm.Buckets.ByteCollector.GetHashCode() -> int
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.ContentLength.get -> long
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.ContentType.get -> string?
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.Position.get -> long?
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.ReadHeaders() -> System.Threading.Tasks.ValueTask
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
-override AmpScm.Buckets.Client.Http.HttpResponseBucket.SupportsHeaders.get -> bool
-override AmpScm.Buckets.Client.Protocols.HttpBucketRequest.GetResponseAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Client.ResponseBucket!>
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentLength.get -> long
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentType.get -> string?
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Position.get -> long?
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ReadHeaders() -> System.Threading.Tasks.ValueTask
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.SupportsHeaders.get -> bool
+override AmpScm.Buckets.Client.HttpBucketWebRequest.GetResponseAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Client.ResponseBucket!>
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.Peek() -> AmpScm.Buckets.BucketBytes

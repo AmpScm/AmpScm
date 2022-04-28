@@ -5,7 +5,7 @@ using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AmpScm;
-using AmpScm.Buckets.Client.Http;
+using AmpScm.Buckets.Client.Buckets;
 
 namespace BucketTests
 {

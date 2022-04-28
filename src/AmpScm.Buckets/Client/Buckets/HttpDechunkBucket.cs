@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Client.Http
+namespace AmpScm.Buckets.Client.Buckets
 {
     internal sealed class HttpDechunkBucket : WrappingBucket, IBucketNoClose
     {

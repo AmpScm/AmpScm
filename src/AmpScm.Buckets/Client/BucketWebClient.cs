@@ -17,9 +17,9 @@ namespace AmpScm.Buckets.Client
             switch (requestUri.Scheme.ToUpperInvariant())
             {
                 case "HTTP":
-                    return new HttpBucketRequest(this, requestUri);
+                    return new HttpBucketWebRequest(this, requestUri);
                 case "HTTPS":
-                    return new HttpsBucketRequest(this, requestUri);
+                    return new HttpsBucketWebRequest(this, requestUri);
                 default:
                     throw new NotSupportedException();
             }
@@ -53,9 +53,9 @@ namespace AmpScm.Buckets.Client
             }
         }
 
-        Dictionary<string, BucketChannel> _channels = new Dictionary<string, BucketChannel>();
+        Dictionary<string, BucketClientChannel> _channels = new Dictionary<string, BucketClientChannel>();
 
-        internal void Release(BucketChannel bucketChannel)
+        internal void Release(BucketClientChannel bucketChannel)
         {
             lock (_channels)
             {
@@ -63,7 +63,7 @@ namespace AmpScm.Buckets.Client
             }
         }
 
-        internal bool TryGetChannel(Uri uri, out BucketChannel? channel)
+        internal bool TryGetChannel(Uri uri, out BucketClientChannel? channel)
         {
             lock (_channels)
             {

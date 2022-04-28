@@ -5,23 +5,22 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Client;
-using AmpScm.Buckets.Client.Http;
+using AmpScm.Buckets.Client.Buckets;
 using AmpScm.Buckets.Interfaces;
 
-namespace AmpScm.Buckets.Client.Protocols
+namespace AmpScm.Buckets.Client
 {
-    public class HttpBucketRequest : BucketWebRequest
+    public class HttpBucketWebRequest : BucketWebRequest
     {
-        internal BucketChannel? Channel { get; set; }
+        internal BucketClientChannel? Channel { get; set; }
         internal int MaxRedirects { get; set; } = 10;
         HttpResponseBucket? _redirectResponse;
 
-        internal HttpBucketRequest(Client.BucketWebClient client, Uri uri) : base(client, uri)
+        internal HttpBucketWebRequest(BucketWebClient client, Uri uri) : base(client, uri)
         {
         }
 
-        private protected HttpBucketRequest(Client.BucketWebClient client, Uri uri, bool forHttps) : base(client, uri)
+        private protected HttpBucketWebRequest(BucketWebClient client, Uri uri, bool forHttps) : base(client, uri)
         {
 
         }
@@ -54,7 +53,7 @@ namespace AmpScm.Buckets.Client.Protocols
 
         Encoding RequestEncoding { get; set; } = Encoding.UTF8;
 
-        private protected async ValueTask<BucketChannel> SetupChannel()
+        private protected async ValueTask<BucketClientChannel> SetupChannel()
         {
             if (Client.TryGetChannel(RequestUri, out var channel))
             {
@@ -99,9 +98,9 @@ namespace AmpScm.Buckets.Client.Protocols
             }
         }
 
-        private protected virtual BucketChannel CreateChannel(Bucket reader, IBucketWriter writer)
+        private protected virtual BucketClientChannel CreateChannel(Bucket reader, IBucketWriter writer)
         {
-            return new BucketChannel(Client, RequestUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped), reader, writer);
+            return new BucketClientChannel(Client, RequestUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped), reader, writer);
         }
 
         internal virtual Bucket CreateRequest()
@@ -148,13 +147,13 @@ namespace AmpScm.Buckets.Client.Protocols
 
             var c = Client.CreateRequest(newUri);
 
-            (c as HttpBucketRequest)?.CopyFrom(this);
+            (c as HttpBucketWebRequest)?.CopyFrom(this);
 
             ReleaseChannel();
             _redirectResponse = (HttpResponseBucket)await c.GetResponseAsync().ConfigureAwait(false);
         }
 
-        private void CopyFrom(HttpBucketRequest from)
+        private void CopyFrom(HttpBucketWebRequest from)
         {
             foreach (var k in from.Headers)
             {

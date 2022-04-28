@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Client.Http
+namespace AmpScm.Buckets.Client.Buckets
 {
     internal sealed class HttpChunkBucket : WrappingBucket
     {

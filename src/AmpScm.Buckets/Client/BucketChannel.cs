@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
-namespace AmpScm.Buckets.Client.Protocols
+namespace AmpScm.Buckets.Client
 {
-    internal class BucketChannel : IDisposable
+    internal sealed class BucketClientChannel : IDisposable
     {
         private bool disposedValue;
 
-        internal BucketChannel(BucketWebClient client, string key, Bucket reader, IBucketWriter writer)
+        internal BucketClientChannel(BucketWebClient client, string key, Bucket reader, IBucketWriter writer)
         {
             Client = client;
             Key = key;
@@ -29,7 +29,7 @@ namespace AmpScm.Buckets.Client.Protocols
             Client.Release(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

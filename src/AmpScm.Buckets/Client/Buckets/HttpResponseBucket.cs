@@ -9,7 +9,7 @@ using AmpScm.Buckets.Client.Protocols;
 using AmpScm.Buckets.Specialized;
 using BasicHandler = System.EventHandler<AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs>;
 
-namespace AmpScm.Buckets.Client.Http
+namespace AmpScm.Buckets.Client.Buckets
 {
     public class HttpResponseBucket : ResponseBucket
     {
@@ -27,13 +27,13 @@ namespace AmpScm.Buckets.Client.Http
         public int? HttpStatus { get; private set; }
         public string? HttpMessage { get; private set; }
 
-        internal HttpResponseBucket(Bucket inner, HttpBucketRequest request)
+        internal HttpResponseBucket(Bucket inner, HttpBucketWebRequest request)
             : base(inner, request)
         {
             _nRedirects = request.MaxRedirects;
         }
 
-        public new HttpBucketRequest Request => (HttpBucketRequest)base.Request;
+        public new HttpBucketWebRequest Request => (HttpBucketWebRequest)base.Request;
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
@@ -348,7 +348,7 @@ namespace AmpScm.Buckets.Client.Http
             return true; // Read next result
         }
 
-        internal void HandlePreAuthenticate(HttpBucketRequest bucketHttpRequest)
+        internal void HandlePreAuthenticate(HttpBucketWebRequest bucketHttpRequest)
         {
             if (_authState != null)
                 throw new InvalidOperationException();

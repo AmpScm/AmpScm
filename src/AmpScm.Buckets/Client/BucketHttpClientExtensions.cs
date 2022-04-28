@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Client.Http;
+using AmpScm.Buckets.Client.Buckets;
 
 namespace AmpScm.Buckets.Client
 {

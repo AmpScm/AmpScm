@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AmpScm.Buckets.Client.Http;
+using AmpScm.Buckets.Client.Buckets;
 using AmpScm.Git;
 using AmpScm.Buckets.Git;
 using BucketTests;
