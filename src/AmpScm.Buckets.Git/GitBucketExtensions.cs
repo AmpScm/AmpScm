@@ -85,16 +85,16 @@ namespace AmpScm.Git
             return bb.Slice(0, bb.Length - untilEol.CharCount());
         }
 
-        public static Bucket GitHash(this Bucket bucket, GitIdType type, Action<byte[]> created)
+        public static Bucket GitHash(this Bucket bucket, GitIdType type, Action<GitId> created)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
             switch (type)
             {
                 case GitIdType.Sha1:
-                    return bucket.SHA1(created);
+                    return bucket.SHA1(x => created(new GitId(type, x)));
                 case GitIdType.Sha256:
-                    return bucket.SHA256(created);
+                    return bucket.SHA256(x=>created(new GitId(type, x)));
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type));
             }

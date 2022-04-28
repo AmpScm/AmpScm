@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Git
     public sealed record GitConfigurationItem : IComparable<GitConfigurationItem>, IEquatable<GitConfigurationItem>
     {
         /// <summary>
-        /// Group of configuration item. Normalized to UPPER-CASE using <see cref="String.ToUpperInvariant"/>.
+        /// Group of configuration item. Normalized to UPPER-CASE using <see cref="String.ToLowerInvariant"/>.
         /// </summary>
         /// <remarks>The git internals normalize to lower case, but CA1308 and common sense dictate that if w
         /// we normalize we should normalize to upper case to avoid localization issues.</remarks>
@@ -26,7 +26,7 @@ namespace AmpScm.Buckets.Git
         public string? SubGroup { get; set; }
 
         /// <summary>
-        /// Key of configuration item (case sensitive)
+        /// Key of configuration item (case insensitive). Normalized to lower-case using <see cref="String.ToLowerInvariant"/>.
         /// </summary>
         public string Key { get; set; } = "";
 
@@ -173,7 +173,7 @@ namespace AmpScm.Buckets.Git
                         continue;
 
 #pragma warning disable CA1308 // Normalize strings to uppercase
-                    _group = line.Substring(groupStart, groupEnd - groupStart).ToUpperInvariant();
+                    _group = line.Substring(groupStart, groupEnd - groupStart).ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
                     if (subGroupEnd > 0)
@@ -206,7 +206,9 @@ namespace AmpScm.Buckets.Git
                         value = null;
 
                     if (keyEnd > 0)
-                        return new GitConfigurationItem { Group = _group, SubGroup = _subGroup!, Key = line.Substring(0, keyEnd), Value = value };
+#pragma warning disable CA1308 // Normalize strings to uppercase
+                        return new GitConfigurationItem { Group = _group, SubGroup = _subGroup!, Key = line.Substring(0, keyEnd).ToLowerInvariant(), Value = value };
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
                 }
             }

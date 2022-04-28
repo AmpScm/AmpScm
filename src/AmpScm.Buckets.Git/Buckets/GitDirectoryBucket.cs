@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Git
         public bool PreLoadExtensions { get; set; }
     }
 
-    public sealed record GitDirectoryEntry
+    public sealed record GitDirectoryEntry : IComparable<GitDirectoryEntry>
     {
         public string Name { get; init; } = default!;
         public GitTreeElementType Type { get; init; }
@@ -27,6 +27,8 @@ namespace AmpScm.Buckets.Git
 
         public DateTime CreationTime => (DateTimeOffset.FromUnixTimeSeconds(UnixCreationTime) + new TimeSpan(UnixCreationTimeNano / 100)).DateTime;
         public DateTime ModificationTime => (DateTimeOffset.FromUnixTimeSeconds(UnixModificationTime) + new TimeSpan(UnixModificationTimeNano / 100)).DateTime;
+
+        public int Stage => (Flags & 0x3000) >> 12;
 
         public int DeviceId { get; init; }
         public int INodeId { get; init; }
@@ -40,6 +42,36 @@ namespace AmpScm.Buckets.Git
         public int UnixCreationTimeNano { get; init; }
         public int UnixModificationTime { get; init; }
         public int UnixModificationTimeNano { get; init; }
+
+        public int CompareTo(GitDirectoryEntry? other)
+        {
+            int n = string.CompareOrdinal(Name, other?.Name);
+
+            if (n == 0)
+                return Stage - (other?.Stage ?? 0);
+            else
+                return n;
+        }
+
+        public static bool operator <(GitDirectoryEntry left, GitDirectoryEntry right)
+        {
+            return ReferenceEquals(left, null) ? !ReferenceEquals(right, null) : left.CompareTo(right) < 0;
+        }
+
+        public static bool operator <=(GitDirectoryEntry left, GitDirectoryEntry right)
+        {
+            return ReferenceEquals(left, null) || left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >(GitDirectoryEntry left, GitDirectoryEntry right)
+        {
+            return !ReferenceEquals(left, null) && left.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(GitDirectoryEntry left, GitDirectoryEntry right)
+        {
+            return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;
+        }
     }
 
     /// <summary>

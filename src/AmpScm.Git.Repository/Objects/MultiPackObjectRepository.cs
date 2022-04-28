@@ -322,7 +322,7 @@ namespace AmpScm.Git.Objects
                 }
             }
 
-            byte[]? sha = null;
+            GitId? sha = null;
             using (Bucket b = (Encoding.ASCII.GetBytes("RIDX").AsBucket()
                                 + NetBitConverter.GetBytes((int)1 /* Version 1 */).AsBucket()
                                 + NetBitConverter.GetBytes((int)Repository.InternalConfig.IdType).AsBucket()
@@ -332,7 +332,7 @@ namespace AmpScm.Git.Objects
             using (var fs = File.Create(tmpName))
             {
                 await fs.WriteAsync(b).ConfigureAwait(false);
-                await fs.WriteAsync(sha!.AsBucket()).ConfigureAwait(false); // Needs fix for SHA256
+                await fs.WriteAsync(sha!.Hash.AsBucket()).ConfigureAwait(false); // Needs fix for SHA256
             }
 
             if (!File.Exists(revName))

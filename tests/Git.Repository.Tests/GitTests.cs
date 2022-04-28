@@ -604,7 +604,7 @@ namespace GitRepositoryTests
             //Assert.AreEqual(70, gh.ObjectCount);
             TestContext.WriteLine("sha1 type body-length entry-length offset [delta-count]");
 
-            var hashes = new SortedList<byte[], (long, int)>(new MyComparer<byte[]>((x, y) => x!.Zip(y!, (v1, v2) => v1 - v2).FirstOrDefault(x => x != 0)));
+            var hashes = new SortedList<GitId, (long, int)>();
             for (int i = 0; i < gh.ObjectCount; i++)
             {
                 long? offset = b.Position;
@@ -618,17 +618,17 @@ namespace GitRepositoryTests
 
                 Assert.AreEqual(0L, pf.Position);
 
-                byte[]? checksum = null;
+                GitId? checksum = null;
 
                 var hdr = pf.Type.CreateHeader(len.Value);
                 var hdrLen = await hdr.ReadRemainingBytesAsync();
 
-                var csum = hdr.Append(pf).SHA1(s => checksum = s);
+                var csum = hdr.Append(pf).GitHash(GitIdType.Sha1, s => checksum = s);
 
                 var data = await csum.ReadToEnd();
 
 
-                TestContext.Write(FormatHash(checksum!));
+                TestContext.Write(checksum?.ToString());
 
                 TestContext.Write($" {pf.Type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {b.Position - offset} {offset}");
                 if (pf.DeltaCount > 0)
@@ -667,7 +667,7 @@ namespace GitRepositoryTests
             // Fanout table
             index += fanOut.SelectMany(x => NetBitConverter.GetBytes(x)).ToArray().AsBucket();
             // Hashes
-            index += new AggregateBucket(hashes.Keys.SelectMany(x => x).ToArray().AsBucket());
+            index += new AggregateBucket(hashes.Keys.SelectMany(x => x.Hash.ToArray()).ToArray().AsBucket());
 
             TestContext.WriteLine($"CRCs start at {await index.ReadRemainingBytesAsync()}");
             // CRC32 values of packed data
@@ -737,21 +737,6 @@ namespace GitRepositoryTests
                 var r = await w;
             }
         }
-
-        static Bucket GitHeader(GitObjectType type, long length)
-        {
-            return type.CreateHeader(length);
-        }
-
-        private string FormatHash(byte[] hashResult)
-        {
-            var sb = new StringBuilder();
-            foreach (var b in hashResult)
-                sb.Append(b.ToString("x2"));
-
-            return sb.ToString();
-        }
-
     }
 
     sealed class MyComparer<T> : IComparer<T>

@@ -23,7 +23,7 @@ namespace AmpScm.Git.Objects
             string tmpFile = Guid.NewGuid().ToString() + ".tmp";
             var di = Directory.CreateDirectory(Path.Combine(repository.GitDir, "objects", "tmp"));
             var tmpFilePath = Path.Combine(di.FullName, tmpFile);
-            GitId id;
+            GitId? id = null;
             {
                 using var f = File.Create(tmpFilePath);
 
@@ -39,18 +39,15 @@ namespace AmpScm.Git.Objects
                     bucket = FileBucket.OpenRead(innerTmp);
                 }
 
-                byte[]? checksum = null;
                 using (var wb = Type.CreateHeader(r.Value!).Append(bucket)
-                    .GitHash(repository.InternalConfig.IdType, cs => checksum = cs)
+                    .GitHash(repository.InternalConfig.IdType, cs => id = cs)
                     .Compress(BucketCompressionAlgorithm.ZLib))
                 {
                     await f.WriteAsync(wb).ConfigureAwait(false);
                 }
-
-                id = new GitId(repository.InternalConfig.IdType, checksum!);
             }
 
-            string idName = id.ToString();
+            string idName = id!.ToString();
 
             var dir = Path.Combine(repository.GitDir, "objects", idName.Substring(0, 2));
             Directory.CreateDirectory(dir);

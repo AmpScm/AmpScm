@@ -58,6 +58,36 @@ namespace AmpScm.Git.Repository
             try
             {
                 await LoadConfigAsync(Path.Combine(_gitDir, "config")).ConfigureAwait(false);
+
+                var v = Environment.GetEnvironmentVariable("GIT_CONFIG_COUNT");
+
+                if (!string.IsNullOrEmpty(v) && int.TryParse(v, out var nVars) && nVars > 0)
+                {
+                    for(int i = 0; i < nVars; i++)
+                    {
+                        string? key = Environment.GetEnvironmentVariable($"GIT_CONFIG_KEY_{i}");
+                        string? value = Environment.GetEnvironmentVariable($"GIT_CONFIG_VALUE_{i}");
+
+                        if (!string.IsNullOrEmpty(key))
+                        {
+                            int ns = key.LastIndexOf('.');
+
+                            if (ns > 0)
+                            {
+                                string group = key.Substring(0, ns);
+                                key = key.Substring(ns + 1);
+
+                                int n = group.IndexOf('.', StringComparison.Ordinal);
+                                string? subGroup = (n > 0) ? group.Substring(n + 1) : null;
+                                group = ((n > 0) ? group.Substring(0, n) : group);
+
+#pragma warning disable CA1308 // Normalize strings to uppercase
+                                _config[(group.ToLowerInvariant(), subGroup, key.ToLowerInvariant())] = value ?? "\xFF";
+#pragma warning restore CA1308 // Normalize strings to uppercase
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -74,11 +104,11 @@ namespace AmpScm.Git.Repository
             {
                 _config[(item.Group, item.SubGroup, item.Key)] = item.Value ?? "\xFF";
 
-                if (item.Group == "CORE" || item.Group == "EXTENSION")
+                if (item.Group == "core" || item.Group == "extension")
                     ParseCore(item);
-                else if (item.Group == "INCLUDE")
+                else if (item.Group == "include")
                     await ParseInclude(path, item).ConfigureAwait(false);
-                else if (item.Group == "INCLUDEIF")
+                else if (item.Group == "includeif")
                     await ParseIncludeIfAsync(path, item).ConfigureAwait(false);
             }
             _loaded = true;
@@ -156,7 +186,7 @@ namespace AmpScm.Git.Repository
 
         private void ParseCore(GitConfigurationItem item)
         {
-            if (item.Key == "repositoryformatversion" && item.Group == "CORE")
+            if (item.Key == "repositoryformatversion" && item.Group == "core")
             {
                 if (int.TryParse(item.Value, out var version))
                     _repositoryFormatVersion = version;
@@ -168,7 +198,9 @@ namespace AmpScm.Git.Repository
             if (!_loaded)
                 LoadAsync().AsTask().GetAwaiter().GetResult();
 
-            group = group.ToUpperInvariant();
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            group = group.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
             foreach (var v in _config)
             {
@@ -187,7 +219,9 @@ namespace AmpScm.Git.Repository
             if (!_loaded)
                 LoadAsync().AsTask().GetAwaiter().GetResult();
 
-            group = group.ToUpperInvariant();
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            group = group.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
             HashSet<string> subGroups = new HashSet<string>();
 
             foreach (var v in _config)
@@ -228,7 +262,7 @@ namespace AmpScm.Git.Repository
             {
                 var (g, s, k) = v.Key;
 
-                if (g != "REMOTE" || s is null)
+                if (g != "remote" || s is null)
                     continue;
 
                 if (!names.Contains(s))
@@ -244,12 +278,17 @@ namespace AmpScm.Git.Repository
         {
             if (string.IsNullOrEmpty(group))
                 throw new ArgumentNullException(nameof(group));
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
 
             await LoadAsync().ConfigureAwait(false);
 
             int n = group.IndexOf('.', StringComparison.Ordinal);
             string? subGroup = (n > 0) ? group.Substring(n + 1) : null;
-            group = ((n > 0) ? group.Substring(0, n) : group).ToUpperInvariant();
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            group = ((n > 0) ? group.Substring(0, n) : group).ToLowerInvariant();
+            key = key.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
             if (_config.TryGetValue((group, subGroup, key), out var vResult)
                 && int.TryParse(vResult, out var r))
@@ -269,12 +308,17 @@ namespace AmpScm.Git.Repository
         {
             if (string.IsNullOrEmpty(group))
                 throw new ArgumentNullException(nameof(group));
+            else if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
 
             await LoadAsync().ConfigureAwait(false);
 
             int n = group.IndexOf('.', StringComparison.Ordinal);
             string? subGroup = (n > 0) ? group.Substring(n + 1) : null;
-            group = ((n > 0) ? group.Substring(0, n) : group).ToUpperInvariant();
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            group = ((n > 0) ? group.Substring(0, n) : group).ToLowerInvariant();
+            key = key.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
             if (_config.TryGetValue((group, subGroup, key), out var vResult))
             {
@@ -296,12 +340,17 @@ namespace AmpScm.Git.Repository
         {
             if (string.IsNullOrEmpty(group))
                 throw new ArgumentNullException(nameof(group));
+            else if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
 
             await LoadAsync().ConfigureAwait(false);
 
             int n = group.IndexOf('.', StringComparison.Ordinal);
             string? subGroup = (n > 0) ? group.Substring(n + 1) : null;
-            group = ((n > 0) ? group.Substring(0, n) : group).ToUpperInvariant();
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            group = ((n > 0) ? group.Substring(0, n) : group).ToLowerInvariant();
+            key = key.ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 
             if (_config.TryGetValue((group, subGroup, key), out var vResult))
             {

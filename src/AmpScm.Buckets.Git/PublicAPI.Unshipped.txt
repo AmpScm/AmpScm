@@ -9,6 +9,7 @@ AmpScm.Buckets.Git.GitDirectoryBucket.ProcessExtensionsAsync() -> System.Threadi
 AmpScm.Buckets.Git.GitDirectoryBucket.ReadEntryAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitDirectoryEntry?>
 AmpScm.Buckets.Git.GitDirectoryBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Git.GitDirectoryEntry
+AmpScm.Buckets.Git.GitDirectoryEntry.CompareTo(AmpScm.Buckets.Git.GitDirectoryEntry? other) -> int
 AmpScm.Buckets.Git.GitDirectoryEntry.CreationTime.get -> System.DateTime
 AmpScm.Buckets.Git.GitDirectoryEntry.DeviceId.get -> int
 AmpScm.Buckets.Git.GitDirectoryEntry.DeviceId.init -> void
@@ -23,6 +24,7 @@ AmpScm.Buckets.Git.GitDirectoryEntry.INodeId.init -> void
 AmpScm.Buckets.Git.GitDirectoryEntry.ModificationTime.get -> System.DateTime
 AmpScm.Buckets.Git.GitDirectoryEntry.Name.get -> string!
 AmpScm.Buckets.Git.GitDirectoryEntry.Name.init -> void
+AmpScm.Buckets.Git.GitDirectoryEntry.Stage.get -> int
 AmpScm.Buckets.Git.GitDirectoryEntry.TruncatedFileSize.get -> uint
 AmpScm.Buckets.Git.GitDirectoryEntry.TruncatedFileSize.init -> void
 AmpScm.Buckets.Git.GitDirectoryEntry.Type.get -> AmpScm.Git.GitTreeElementType
@@ -52,7 +54,11 @@ AmpScm.Git.GitId.GitId(string! value) -> void
 AmpScm.Git.GitId.IsAllZero.get -> bool
 override AmpScm.Buckets.Git.GitDirectoryBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
-static AmpScm.Git.GitBucketExtensions.GitHash(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
+static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
+static AmpScm.Buckets.Git.GitDirectoryEntry.operator >(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
+static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
+static AmpScm.Git.GitBucketExtensions.GitHash(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type, System.Action<AmpScm.Git.GitId!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Git.GitBucketExtensions.IsDirectory(this AmpScm.Git.GitTreeElementType elementType) -> bool
 static AmpScm.Git.GitBucketExtensions.IsFile(this AmpScm.Git.GitTreeElementType elementType) -> bool
 static AmpScm.Git.GitBucketExtensions.ReadGitIdAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
