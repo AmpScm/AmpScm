@@ -10,7 +10,7 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    public class GitDirectoryOptions
+    public sealed class GitDirectoryOptions
     {
         public GitIdType IdType { get; set; }
 
@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Git
         public bool PreLoadExtensions { get; set; }
     }
 
-    public record GitDirectoryEntry
+    public sealed record GitDirectoryEntry
     {
         public string Name { get; init; } = default!;
         public GitTreeElementType Type { get; init; }
@@ -45,7 +45,7 @@ namespace AmpScm.Buckets.Git
     /// <summary>
     /// Git Directory Cache (aka "INDEX") bucket
     /// </summary>
-    public class GitDirectoryBucket : GitBucket
+    public sealed class GitDirectoryBucket : GitBucket
     {
         readonly GitIdType _idType;
         readonly bool _lookForEndOfIndex;
@@ -380,7 +380,7 @@ namespace AmpScm.Buckets.Git
                             if (!_preLoadExtensions)
                                 throw new GitBucketException("Can't load split index when PreLoadExtensions is not set");
 
-                            await LoadLinkAsync(reader, extensionlen);
+                            await LoadLinkAsync(reader, extensionlen).ConfigureAwait(false);
 
                             continue;
 

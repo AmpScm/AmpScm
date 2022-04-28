@@ -226,7 +226,7 @@ namespace AmpScm.Buckets.Git
                 _bucket = bucket;
             }
 
-            async IAsyncEnumerator<bool> IAsyncEnumerable<bool>.GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            async IAsyncEnumerator<bool> IAsyncEnumerable<bool>.GetAsyncEnumerator(CancellationToken cancellationToken)
             {
                 int bitLength = await _bucket.ReadBitLengthAsync().ConfigureAwait(false);
                 int bit = 0;
@@ -243,7 +243,7 @@ namespace AmpScm.Buckets.Git
                 }
             }
 
-            async IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            async IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken cancellationToken)
             {
                 int bitLength = await _bucket.ReadBitLengthAsync().ConfigureAwait(false);
                 int bit = 0;

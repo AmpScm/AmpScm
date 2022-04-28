@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <TargetFrameworks>net6.0;net48;netcoreapp3.1</TargetFrameworks>
     <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes' ">$(TargetFrameworks);net5.0;net7.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Unix' ">$(TargetFrameworks);net47</TargetFrameworks>
