@@ -67,8 +67,8 @@ intended for testing the lower layers, but probly useful for more users. May bec
 ## Git On Disk Format Support
 |Feature                        | GIT           | LibGit2   | JGit    | AmpScm        |
 | ----------------------------- | ------------- | --------- | ------- | ------------- |
-| File Blobs                    | Yes           | Yes       | Yes     | Yes           |
-| Packfiles                     | Yes           | Yes       | Yes     | Yes           |
+| Loose Objects                 | Yes           | Yes       | Yes     | Yes           |
+| Packed Object Files           | Yes           | Yes       | Yes     | Yes           |
 | Loose References              | Yes           | Yes       | Yes     | Yes           |
 | Packed References             | Yes           | Yes       | Yes     | Yes           |
 | Reference Table format        | Expected Soon | No        | No      | Expected Soon |
