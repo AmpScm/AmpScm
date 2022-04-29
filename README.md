@@ -60,3 +60,20 @@ Currently this library is mostly read-only, but writing simple database entities
   
 Built on top of the git repository is an early release quick and dirty Git client layer, which forwards operations to the git plumbing code. Mostly
 intended for testing the lower layers, but probly useful for more users. May become a more advanced client later on.
+
+
+## Git On Disk Format Support
+|Feature                        | GIT        | LibGit2   | JGit    | AmpScm   |
+| ----------------------------- | ---------- | --------- | ------- | -------- |
+| File Blobs                    | Yes        | Yes       | Yes     | Yes      |
+| Packfiles                     | Yes        | Yes       | Yes     | Yes      |
+| Multipack index               | Yes        | Yes       | No      | Yes      |
+| CommitGraph                   | Yes        | Yes       | No      | Yes      |
+| Bitmap index Packfiles        | Yes        | No        | Yes     | Yes      |
+| Bitmap index Multipack Index  | Yes        | No        | No      | Yes      |
+| Reverse index Packfiles       | Yes        | No        | No      | Yes      |
+| Reverse index Multipack Index | Yes        | No        | No      | Yes      |
+| Directory Index format 2,3    | Yes        | Yes       | Yes     | Yes      |
+| Directory Index format 4      | Yes        | Yes       | Yes     | Yes      |
+| Split Directory Index format  | Yes        | No        | No      | Yes      |
+| Sparse Cone Index support     | Yes        | No        | No      | Yes      |
