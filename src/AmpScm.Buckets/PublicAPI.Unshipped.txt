@@ -11,6 +11,11 @@ AmpScm.Buckets.BucketBytes.IndexOfAny(byte value0, byte value1) -> int
 AmpScm.Buckets.BucketBytes.IndexOfAny(params byte[]! values) -> int
 AmpScm.Buckets.BucketBytes.IndexOfAny(System.ReadOnlySpan<byte> values) -> int
 AmpScm.Buckets.BucketBytes.StartsWithASCII(string! value) -> bool
+AmpScm.Buckets.BucketEofException
+AmpScm.Buckets.BucketEofException.BucketEofException() -> void
+AmpScm.Buckets.BucketEofException.BucketEofException(string? message) -> void
+AmpScm.Buckets.BucketEofException.BucketEofException(string? message, System.Exception? innerException) -> void
+AmpScm.Buckets.BucketEofException.BucketEofException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.BucketPollBytes.Span.get -> System.ReadOnlySpan<byte>
 AmpScm.Buckets.ByteCollector
 AmpScm.Buckets.ByteCollector.Append(AmpScm.Buckets.BucketBytes bytes) -> void
@@ -180,6 +185,7 @@ override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.BucketEofException.Throw(AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.BucketEofException!
 static AmpScm.Buckets.BucketExtensions.All<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> bool
 static AmpScm.Buckets.BucketExtensions.Any<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> bool
 static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! bucket) -> AmpScm.Buckets.Bucket!

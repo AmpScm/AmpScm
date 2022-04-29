@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Git
         long delta_position;
         readonly GitIdType _idType;
         Func<GitId, ValueTask<GitObjectBucket?>>? _fetchBucketById;
-        byte[]? _deltaId;
+        GitId? _deltaId;
 
         enum frame_state
         {
@@ -26,6 +26,7 @@ namespace AmpScm.Buckets.Git
             size_done,
             type_done,
             find_delta,
+            open_body,
             body
         }
 
@@ -43,6 +44,19 @@ namespace AmpScm.Buckets.Git
         {
             _idType = idType;
             _fetchBucketById = fetchBucketById;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                reader?.Dispose();
+            }
+            finally
+            {
+                reader = null;
+                base.Dispose(disposing);
+            }
         }
 
         public override BucketBytes Peek()
@@ -194,13 +208,12 @@ namespace AmpScm.Buckets.Git
                     int hashLen = _idType.HashLength();
                     var read = await Inner.ReadFullAsync(hashLen).ConfigureAwait(false);
 
-                    if (read.IsEof || read.Length != hashLen)
-                        throw new GitBucketException($"Unexpected EOF in {Name} bucket");
+                    if (read.Length != hashLen)
+                        throw new GitBucketEofException($"Unexpected EOF in {Name} bucket");
 
-                    _deltaId = read.ToArray();
+                    _deltaId = new GitId(_idType, read.ToArray());
 
                     state = frame_state.find_delta;
-                    reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
                 }
                 else if (Type == GitObjectType_DeltaOffset)
                 {
@@ -213,19 +226,17 @@ namespace AmpScm.Buckets.Git
                     state = frame_state.find_delta;
                     position = 0;
                     delta_position = frame_position - delta_position;
-                    reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
                 }
                 else
                 {
                     position = 0; // The real body starts right now
-                    state = frame_state.body;
-                    reader = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
+                    state = frame_state.open_body;
                     DeltaCount = 0;
                     _fetchBucketById = null;
                 }
             }
 
-            while (state == frame_state.find_delta)
+            if (state == frame_state.find_delta)
             {
                 GitObjectBucket base_reader;
 
@@ -235,45 +246,47 @@ namespace AmpScm.Buckets.Git
 
                     // The source needs support for this. Our file and memory buckets have this support
                     Bucket deltaSource = await Inner.DuplicateAsync(true).ConfigureAwait(false);
-                    long to_skip = delta_position;
-
-                    while (to_skip > 0)
-                    {
-                        var skipped = await deltaSource.ReadSkipAsync(to_skip).ConfigureAwait(false);
-
-                        if (skipped == 0)
-                            return false; // EOF
-
-                        to_skip -= skipped;
-                    }
+                    await deltaSource.SeekAsync(delta_position).ConfigureAwait(false);
 
                     base_reader = new GitPackFrameBucket(deltaSource, _idType, _fetchBucketById);
                 }
                 else
                 {
-                    var deltaId = new GitId(_idType, _deltaId!);
-
                     if (_fetchBucketById == null)
-                        throw new GitBucketException($"Found delta against {deltaId}, but don't have a resolver to obtain that object");
+                        throw new GitBucketException($"Found delta against {_deltaId!}, but don't have a resolver to obtain that object in {Name} Bucket");
 
-                    base_reader = (await _fetchBucketById(deltaId).ConfigureAwait(false))!;
+                    base_reader = (await _fetchBucketById(_deltaId!).ConfigureAwait(false))!;
 
                     if (base_reader == null)
-                        throw new GitBucketException($"Can't obtain delta-base bucket for {deltaId}");
+                        throw new GitBucketException($"Can't obtain delta-base bucket for {_deltaId!} in {Name} Bucket");
                     _deltaId = null; // Not used any more
                 }
 
                 await base_reader.ReadTypeAsync().ConfigureAwait(false);
                 Type = base_reader.Type;
-                state = frame_state.body;
 
                 if (base_reader is GitPackFrameBucket fb)
                     DeltaCount = fb.DeltaCount + 1;
                 else
                     DeltaCount = 1;
 
-                reader = new GitDeltaBucket(reader!, base_reader);
+                reader = base_reader;
                 _fetchBucketById = null;
+                state = frame_state.open_body;
+            }
+
+            if (want_state == frame_state.type_done && state >= frame_state.type_done)
+                return true;
+
+            if (state == frame_state.open_body)
+            {
+                var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
+                if (DeltaCount != 0)
+                    reader = new GitDeltaBucket(inner, reader!);
+                else
+                    reader = inner;
+
+                state = frame_state.body;
             }
 
             return true;

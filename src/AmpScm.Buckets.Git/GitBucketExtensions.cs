@@ -111,7 +111,7 @@ namespace AmpScm.Git
             if (bb.Length == hl)
                 return new GitId(type, bb.ToArray());
             else
-                throw new GitBucketException($"Unexpected EOF while reading GitId from {bucket.Name} Bucket");
+                throw new GitBucketEofException($"Unexpected EOF while reading GitId from {bucket.Name} Bucket");
         }
 
         public static async ValueTask<long> ReadGitOffsetAsync(this Bucket bucket)

@@ -223,7 +223,7 @@ namespace AmpScm.Buckets.Git
                 int n = await Inner.ReadSkipAsync(_skip).ConfigureAwait(false);
 
                 if (n == 0)
-                    throw new GitBucketException($"Unexpected EOF in {Name}");
+                    throw new GitBucketEofException($"Unexpected EOF in {Name}");
                 _skip -= n;
             }
 
@@ -249,7 +249,7 @@ namespace AmpScm.Buckets.Git
             var bb = await Inner.ReadFullAsync(readLen).ConfigureAwait(false);
 
             if (bb.Length != readLen)
-                throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+                throw new GitBucketEofException($"Unexpected EOF in {Name} Bucket");
 
             GitDirectoryEntry src = new()
             {
@@ -281,7 +281,7 @@ namespace AmpScm.Buckets.Git
                 bb = await Inner.ReadFullAsync(2).ConfigureAwait(false);
 
                 if (bb.Length != 2)
-                    throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+                    throw new GitBucketEofException($"Unexpected EOF in {Name} Bucket");
 
                 FullFlags |= NetBitConverter.ToInt16(bb, 0) << 16;
             }
@@ -291,7 +291,7 @@ namespace AmpScm.Buckets.Git
                 var (name, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
-                    throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+                    throw new GitBucketEofException($"Unexpected EOF in {Name} Bucket");
 
                 _skip = 8 - (int)((Inner.Position!.Value - _indexStart) & 0x7);
 
@@ -316,7 +316,7 @@ namespace AmpScm.Buckets.Git
                 var (name, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
-                    throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+                    throw new GitBucketEofException($"Unexpected EOF in {Name} Bucket");
 
                 string sName;
 
@@ -518,7 +518,7 @@ namespace AmpScm.Buckets.Git
                     var bb = await reader.ReadFullAsync(4 + 4).ConfigureAwait(false);
 
                     if (bb.Length != 4 + 4)
-                        throw new GitBucketException($"Unexpected EOF in {Name} Bucket");
+                        throw new GitBucketEofException($"Unexpected EOF in {Name} Bucket");
 
                     string extensionName = bb.ToUTF8String(0, 4);
 
@@ -564,7 +564,7 @@ namespace AmpScm.Buckets.Git
                     if (extensionlen > 0)
                     {
                         if (extensionlen != await reader.ReadSkipAsync(extensionlen).ConfigureAwait(false))
-                            throw new GitBucketException($"Unexpected EOF in '{extensionName}' extension of {Name} bucket");
+                            throw new GitBucketEofException($"Unexpected EOF in '{extensionName}' extension of {Name} bucket");
                     }
                 }
             }
@@ -580,7 +580,7 @@ namespace AmpScm.Buckets.Git
             int delLength = await _deleted.ReadLengthAsync().ConfigureAwait(false);
 
             if (await reader.ReadSkipAsync(delLength).ConfigureAwait(false) != delLength)
-                throw new GitBucketException($"Unexpected EOF on {Name} Bucket");
+                throw new GitBucketEofException($"Unexpected EOF on {Name} Bucket");
 
             _replaced = new GitEwahBitmapBucket(await reader.DuplicateAsync().ConfigureAwait(false));
 #if DEBUG

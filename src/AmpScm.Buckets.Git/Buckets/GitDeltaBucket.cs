@@ -82,7 +82,7 @@ namespace AmpScm.Buckets.Git
                     var data = await Inner.ReadAsync(1).ConfigureAwait(false);
 
                     if (data.IsEof)
-                        throw new GitBucketException($"Unexpected EOF on Source {Inner.Name} Bucket");
+                        throw new GitBucketEofException($"Unexpected EOF on Source {Inner.Name} Bucket");
 
                     byte uc = data[0];
 
@@ -106,7 +106,7 @@ namespace AmpScm.Buckets.Git
                     var data = await Inner.ReadAsync(1).ConfigureAwait(false);
 
                     if (data.IsEof)
-                        throw new GitBucketException($"Unexpected EOF on Source {Inner.Name} Bucket");
+                        throw new GitBucketEofException($"Unexpected EOF on Source {Inner.Name} Bucket");
 
                     byte uc = data[0];
 
@@ -160,7 +160,7 @@ namespace AmpScm.Buckets.Git
                     data = await Inner.ReadAsync(want).ConfigureAwait(false);
 
                     if (data.IsEof)
-                        throw new GitBucketException($"Unexpected EOF on Source {Inner.Name}");
+                        throw new GitBucketEofException($"Unexpected EOF on Source {Inner.Name}");
 
                     if (!peeked)
                         want = NeedBytes(data[0]);
@@ -237,7 +237,7 @@ namespace AmpScm.Buckets.Git
                 var data = await BaseBucket.ReadAsync(Math.Min(requested, copy_size)).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new GitBucketException($"Unexpected EOF on Base {BaseBucket.Name} Bucket");
+                    throw new GitBucketEofException($"Unexpected EOF on Base {BaseBucket.Name} Bucket");
 
                 position += data.Length;
                 copy_size -= data.Length;
@@ -256,7 +256,7 @@ namespace AmpScm.Buckets.Git
                 var data = await Inner.ReadAsync(Math.Min(requested, copy_size)).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new GitBucketException($"Unexpected EOF on Source {Inner.Name} Bucket");
+                    throw new GitBucketEofException($"Unexpected EOF on Source {Inner.Name} Bucket");
 
                 position += data.Length;
                 copy_size -= data.Length;

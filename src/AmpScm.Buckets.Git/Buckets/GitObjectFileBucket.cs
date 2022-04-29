@@ -69,7 +69,7 @@ namespace AmpScm.Buckets.Git
                     return;
                 }
                 else
-                    throw new GitBucketException($"Unexpected EOF in header of '{Name}' bucket");
+                    throw new GitBucketEofException($"Unexpected EOF in header of '{Name}' bucket");
             }
         }
 

@@ -623,7 +623,7 @@ namespace GitRepositoryTests
                 var hdr = pf.Type.CreateHeader(len.Value);
                 var hdrLen = await hdr.ReadRemainingBytesAsync();
 
-                var csum = hdr.Append(pf).GitHash(GitIdType.Sha1, s => checksum = s);
+                var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
 
                 var data = await csum.ReadToEnd();
 
@@ -637,7 +637,7 @@ namespace GitRepositoryTests
                 Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
                 Assert.AreEqual(len.Value, pf.Position, "Expected end position");
 
-
+                pf.Dispose();
                 TestContext.WriteLine();
 
                 hashes.Add(checksum!, (offset!.Value, crc));
