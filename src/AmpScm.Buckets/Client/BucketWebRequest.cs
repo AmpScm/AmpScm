@@ -22,7 +22,7 @@ namespace AmpScm.Buckets.Client
             set => throw new InvalidOperationException();
         }
 
-        public Client.WebHeaderDictionary Headers { get; } = new Client.WebHeaderDictionary();
+        public WebHeaderDictionary Headers { get; } = new WebHeaderDictionary();
 
         public string? ContentType
         {

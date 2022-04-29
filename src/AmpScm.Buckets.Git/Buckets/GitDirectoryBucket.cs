@@ -12,7 +12,7 @@ namespace AmpScm.Buckets.Git
 {
     public sealed class GitDirectoryOptions
     {
-        public GitIdType IdType { get; set; }
+        public GitIdType IdType { get; set; } = GitIdType.Sha1;
 
         public bool LookForEndOfIndex { get; set; }
         public bool PreLoadExtensions { get; set; }
@@ -94,6 +94,8 @@ namespace AmpScm.Buckets.Git
         public static readonly int LowestSupportedFormat = 2;
         public static readonly int HighestSupportedFormat = 4;
         string? _directory;
+        long? _firstReal;
+        int _firstRealIdx;
         GitEwahBitmapBucket? _deleted;
         GitEwahBitmapBucket? _replaced;
         GitDirectoryBucket? _shared;
@@ -140,6 +142,7 @@ namespace AmpScm.Buckets.Git
                     _deleted?.Dispose();
                     _replaced?.Dispose();
                     _shared?.Dispose();
+                    _remaining?.Dispose();
                 }
             }
             finally
@@ -147,6 +150,7 @@ namespace AmpScm.Buckets.Git
                 _deleted = null;
                 _replaced = null;
                 _shared = null;
+                _remaining = null;
 
                 base.Dispose(disposing);
             }
@@ -194,6 +198,8 @@ namespace AmpScm.Buckets.Git
             {
                 await ProcessExtensionsAsync().ConfigureAwait(false);
                 await Inner.SeekAsync(_indexStart).ConfigureAwait(false);
+                _nRead = 0;
+                _lastName = null;
             }
         }
 
@@ -201,11 +207,13 @@ namespace AmpScm.Buckets.Git
         {
             if (_shared is null)
                 return ReadEntryDirectAsync();
+            else if (_firstRealIdx < _indexCount)
+                return ReadMixedAsync();
             else
                 return ReadEntryLinkAsync();
         }
 
-        async ValueTask<GitDirectoryEntry?> ReadEntryDirectAsync()
+        async ValueTask<GitDirectoryEntry?> ReadEntryDirectAsync(bool allowSplit = false)
         {
             if (_indexStart == 0)
                 await ReadHeaderAsync().ConfigureAwait(false);
@@ -223,6 +231,12 @@ namespace AmpScm.Buckets.Git
             {
                 if (!_endOfIndex.HasValue)
                     _endOfIndex = Inner.Position;
+
+                if (!_firstReal.HasValue)
+                {
+                    _firstReal = Inner.Position;
+                    _firstRealIdx = _indexCount;
+                }
 
                 await ProcessExtensionsAsync().ConfigureAwait(false);
 
@@ -253,6 +267,14 @@ namespace AmpScm.Buckets.Git
                 Flags = NetBitConverter.ToInt16(bb, 40 + hashLen),
             };
 
+            int nameLen = (src.Flags & 0xFFF);
+
+            if (nameLen != 0 && !_firstReal.HasValue)
+            {
+                _firstReal = Inner.Position - bb.Length;
+                _firstRealIdx = _nRead - 1;
+            }
+
             int FullFlags = src.Flags;
             if ((src.Flags & 0x4000) != 0 && _version >= 3) // Must be 0 in version 2
             {
@@ -275,6 +297,16 @@ namespace AmpScm.Buckets.Git
 
                 if (_skip == 8)
                     _skip = 0;
+
+                if (nameLen == 0 && !_firstReal.HasValue)
+                {
+                    if (_directory is null)
+                        throw new GitBucketException("Can't load split index when path is not passed");
+                    else if (_firstReal.HasValue)
+                        throw new GitBucketException("Can't read split entry after normal entries");
+
+                    return await ReadAsSplitAsync().ConfigureAwait(false);
+                }
 
                 return src with { Name = name.ToUTF8String(eol), Flags = FullFlags };
             }
@@ -309,8 +341,44 @@ namespace AmpScm.Buckets.Git
                 else
                     _lastName = sName = name.ToUTF8String(eol);
 
+                if (nameLen == 0 && !_firstReal.HasValue && !allowSplit)
+                {
+                    if (_directory is null)
+                        throw new GitBucketException("Can't load split index when path is not passed");
+
+                    return await ReadAsSplitAsync().ConfigureAwait(false);
+                }
+
                 return src with { Name = sName, Flags = FullFlags };
             }
+        }
+
+        private async ValueTask<GitDirectoryEntry?> ReadAsSplitAsync()
+        {
+            if (!_processedExtensions || !_firstReal.HasValue)
+            {
+                // Extensions were not pre-processed, so we need to process them now
+                await ProcessExtensionsAsync().ConfigureAwait(false);
+                //while (null != await ReadEntryDirectAsync(true).ConfigureAwait(false))
+                //{
+                //
+                //}
+
+                if (!_firstReal.HasValue)
+                {
+                    _firstReal = _endOfIndex;
+                    _firstRealIdx = _indexCount;
+                }
+
+                if (_deleted is null)
+                    throw new GitBucketException("Couldn't load shared index needed for loading split index");
+            }
+
+            _nRead = 0;
+            _lastName = null;
+            await Inner.SeekAsync(_indexStart).ConfigureAwait(false);
+
+            return await ReadEntryAsync().ConfigureAwait(false);
         }
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
@@ -327,18 +395,21 @@ namespace AmpScm.Buckets.Git
 
                 if (_deletedWalk is null || _replacedWalk is null)
                 {
+                    if (_firstRealIdx == 0)
+                        _firstRealIdx = await _replaced!.ReadBitLengthAsync().ConfigureAwait(false);
+
                     _deletedWalk = _deleted!.AllBits.GetAsyncEnumerator();
                     _replacedWalk = _replaced!.AllBits.GetAsyncEnumerator();
                 }
 
                 bool deleted = (await _deletedWalk.MoveNextAsync().ConfigureAwait(false) && _deletedWalk.Current);
-                bool replaced = (await _replacedWalk!.MoveNextAsync().ConfigureAwait(false) && _deletedWalk.Current);
+                bool replaced = (await _replacedWalk!.MoveNextAsync().ConfigureAwait(false) && _replacedWalk.Current);
 
                 if (deleted)
                     continue;
                 else if (replaced)
                 {
-                    var me = await ReadEntryDirectAsync().ConfigureAwait(false);
+                    var me = await ReadEntryDirectAsync(true).ConfigureAwait(false);
 
                     return me! with { Name = shared.Name };
                 }
@@ -357,11 +428,58 @@ namespace AmpScm.Buckets.Git
                 _deletedWalk = null;
             }
 
+            return null;
+        }
 
-            // The remaining items are returned out-of-order, and it would be quite expensive to fix
-            // as we would have to walk the remaining items together with the other two lists
+        GitDirectoryBucket? _remaining;
+        GitDirectoryEntry? _linkEntry;
+        GitDirectoryEntry? _remainingEntry;
+        async ValueTask<GitDirectoryEntry?> ReadMixedAsync()
+        {
+            if (_remaining is null && _firstReal.HasValue)
+            {
+                Bucket b = await Inner.DuplicateAsync().ConfigureAwait(false)!;
+                await b.SeekAsync(_firstReal.Value).ConfigureAwait(false);
 
-            return await ReadEntryDirectAsync().ConfigureAwait(false);
+                _remaining = new GitDirectoryBucket(b);
+                _remaining._nRead = _firstRealIdx;
+                _remaining._lastName = null;
+                _remaining._processedExtensions = true;
+                _remaining._indexCount = _indexCount;
+                _remaining._version = _version;
+            }
+
+            _linkEntry ??= await ReadEntryLinkAsync().ConfigureAwait(false);
+            if (_remaining is not null)
+                _remainingEntry ??= await _remaining.ReadEntryAsync().ConfigureAwait(false);
+
+            if (_linkEntry is not null && _remainingEntry is not null)
+            {
+                if (0 >= _linkEntry.CompareTo(_remainingEntry))
+                {
+                    var r = _linkEntry;
+                    _linkEntry = null;
+                    return r;
+                }
+                else
+                {
+                    var r = _remainingEntry;
+                    _remainingEntry = null;
+                    return r;
+                }
+            }
+            else if (_linkEntry is not null)
+            {
+                var r = _linkEntry;
+                _linkEntry = null;
+                return r;
+            }
+            else
+            {
+                var r = _remainingEntry;
+                _remainingEntry = null;
+                return r;
+            }
         }
 
         public async ValueTask ProcessExtensionsAsync()
@@ -371,13 +489,15 @@ namespace AmpScm.Buckets.Git
 
             if (_nRead < _indexCount && !_endOfIndex.HasValue)
             {
-                while (null != await ReadEntryDirectAsync().ConfigureAwait(false))
+                while (null != await ReadEntryDirectAsync(true).ConfigureAwait(false))
                 {
                 }
             }
 
             if (!_endOfIndex.HasValue)
                 throw new InvalidOperationException();
+
+            _processedExtensions = true;
 
             Bucket reader;
             if (_nRead == _indexCount)
@@ -447,7 +567,6 @@ namespace AmpScm.Buckets.Git
                             throw new GitBucketException($"Unexpected EOF in '{extensionName}' extension of {Name} bucket");
                     }
                 }
-                _processedExtensions = true;
             }
         }
 
@@ -473,6 +592,18 @@ namespace AmpScm.Buckets.Git
 
             if (!shared.IsZero)
                 _shared = new GitDirectoryBucket(FileBucket.OpenRead(Path.Combine(_directory!, $"sharedindex.{shared}")), new GitDirectoryOptions() { IdType = _idType, LookForEndOfIndex = _lookForEndOfIndex });
+
+
+            if (!_firstReal.HasValue)
+            {
+                while (await ReadEntryDirectAsync(true).ConfigureAwait(false) is GitDirectoryEntry entry)
+                {
+                    if (!string.IsNullOrEmpty(entry.Name))
+                        break;
+                }
+
+                Debug.Assert(_firstReal.HasValue);
+            }
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)

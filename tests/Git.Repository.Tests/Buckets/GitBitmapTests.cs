@@ -141,7 +141,7 @@ namespace GitRepositoryTests
         {
             string dir = Path.GetDirectoryName(typeof(GitTests).Assembly.Location)!;
 
-            var f = Directory.GetFiles(Path.Combine(dir, "cases"), pattern).FirstOrDefault();
+            var f = Directory.EnumerateFiles(Path.Combine(dir, "cases"), pattern).FirstOrDefault();
 
             return f;
         }

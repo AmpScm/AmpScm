@@ -75,11 +75,11 @@ namespace AmpScm.Git.Objects
 
         public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
         {
-            foreach (string dir in Directory.GetDirectories(_objectsDir, "??"))
+            foreach (string dir in Directory.EnumerateDirectories(_objectsDir, "??"))
             {
                 string prefix = Path.GetFileName(dir);
 
-                foreach (var file in Directory.GetFiles(dir))
+                foreach (var file in Directory.EnumerateFiles(dir))
                 {
                     string idString = prefix + Path.GetFileName(file);
 

@@ -14,7 +14,7 @@ namespace AmpScm.Git
 
         public static GitRepository Init(string path, bool isBare)
         {
-            if (Directory.Exists(path) && (Directory.GetFiles(path).Any() || Directory.GetDirectories(path).Any()))
+            if (Directory.Exists(path) && Directory.EnumerateFileSystemEntries(path).Any())
                 throw new GitRepositoryException($"{path} already exists");
 
             // Quick and dirty setup minimal git repository

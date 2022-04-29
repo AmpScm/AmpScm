@@ -16,6 +16,7 @@ namespace AmpScm.Buckets
         long _filePos;
         long _bufStart;
         readonly int _chunkSizeMinus1;
+        bool _disposed;
 
         private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 4096)
         {
@@ -42,6 +43,22 @@ namespace AmpScm.Buckets
         public FileBucket(string path, int bufferSize = 8192, int chunkSize = 4096)
             : this(OpenHolder(path, true), bufferSize, chunkSize)
         {
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if(disposing && !_disposed)
+                {
+                    _disposed = true;
+                    _holder.Release();
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
         }
 
         public override ValueTask<long?> ReadRemainingBytesAsync()

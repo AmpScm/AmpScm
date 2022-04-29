@@ -120,7 +120,7 @@ namespace AmpScm.Git.Objects
                     mp.Dispose();
             }
 
-            foreach (var pack in Directory.GetFiles(Path.Combine(ObjectsDir, "pack"), "pack-*.pack"))
+            foreach (var pack in Directory.EnumerateFiles(Path.Combine(ObjectsDir, "pack"), "pack-*.pack"))
             {
                 // TODO: Check if length matches hashtype?
                 if (!multiPack?.ContainsPack(pack) ?? true)

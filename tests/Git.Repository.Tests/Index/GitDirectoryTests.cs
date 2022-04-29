@@ -110,11 +110,13 @@ namespace GitRepositoryTests.Index
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task CheckReadSplit(bool optimize)
+        [DataRow(false, true)]
+        [DataRow(false, false)]
+        [DataRow(true, true)]
+        [DataRow(true, false)]
+        public async Task CheckReadSplit(bool optimize, bool lookFor)
         {
-            var path = TestContext.PerTestDirectory($"{optimize}");
+            var path = TestContext.PerTestDirectory($"{optimize}{lookFor}");
             {
                 using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
                 await gc.GetPlumbing().RunRawCommand("clone",
@@ -128,20 +130,49 @@ namespace GitRepositoryTests.Index
             }
 
             using var repo = GitRepository.Open(path);
+            List<GitDirectoryEntry> entries = new List<GitDirectoryEntry>();
+            using (var dc2 = new GitDirectoryBucket(repo.WorktreePath, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
+            {
+                while (await dc2.ReadEntryAsync() is GitDirectoryEntry q)
+                {
+                    entries.Add(q);
+                }
+            }
 
             await repo.GetPlumbing().RunRawCommand("update-index", "--split-index");
-            Console.WriteLine(path);
 
-            using var dc = new GitDirectoryBucket(repo.WorktreePath);
+            File.WriteAllText(Path.Combine(path, "iota"), "QQQ");
+            File.WriteAllText(Path.Combine(path, "src", "Mu"), "QQQ");
+
+            File.AppendAllText(Path.Combine(path, "README.md"), " ");
+
+            await repo.GetPlumbing().RunRawCommand("add", "iota", "src/Mu", "README.md");
+
+
+
+            using var dc = new GitDirectoryBucket(repo.WorktreePath, new GitDirectoryOptions
+            {
+                LookForEndOfIndex = lookFor
+            });
 
             await dc.ReadHeaderAsync();
 
             TestContext.WriteLine($"Version: {dc.IndexVersion}");
 
+            int n = 0;
+            string? ln = null;
             while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
             {
-                //TestContext.WriteLine($"{entry.Name} - {entry}");
+                TestContext.WriteLine($"{entry.Name} - {entry}");
+                if (ln is not null)
+                {
+                    Assert.IsTrue(string.CompareOrdinal(entry.Name, ln) >= 0);
+                }
+                ln = entry.Name;
+                n++;
             }
+
+            Assert.AreEqual(entries.Count + 2, n);
 
             _ = await dc.ReadAsync();
         }

@@ -23,7 +23,7 @@ namespace AmpScm.Git.References
         {
             string baseDir = Path.GetFullPath(GitDir);
 
-            foreach (string file in Directory.GetFiles(Path.Combine(baseDir, "refs"), "*", SearchOption.AllDirectories))
+            foreach (string file in Directory.EnumerateFiles(Path.Combine(baseDir, "refs"), "*", SearchOption.AllDirectories))
             {
                 if (file.Length > baseDir.Length + 1 && file[baseDir.Length] == Path.DirectorySeparatorChar)
                 {
@@ -33,7 +33,7 @@ namespace AmpScm.Git.References
                 }
             }
 
-            foreach (string file in Directory.GetFiles(GitDir))
+            foreach (string file in Directory.EnumerateFiles(GitDir))
             {
                 string name = Path.GetFileName(file);
 

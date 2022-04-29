@@ -19,6 +19,8 @@ namespace BucketTests
     [TestClass]
     public class BasicTests
     {
+        public TestContext TestContext { get; set; } = default!;
+
         [TestMethod]
         public async Task BasicReadMemory()
         {
@@ -739,7 +741,37 @@ namespace BucketTests
 
                 Assert.AreEqual("3AB456", bc.AsBytes(new BucketBytes(new byte[] { 52, 53, 54 })).ToASCIIString());
             }
+        }
 
+
+        [TestMethod]
+        public async Task FileBucketCleanup()
+        {
+            string p = Path.Combine(TestContext.TestResultsDirectory, Guid.NewGuid().ToString());
+
+            File.WriteAllText(p, "blub");
+
+            using(FileBucket fb = new FileBucket(p))
+            {
+                Assert.AreEqual(4, await fb.ReadAtAsync(0, new byte[25]));
+            }
+
+            File.Delete(p);
+
+
+            File.WriteAllText(p, "blub2");
+
+            using (FileBucket fb = new FileBucket(p))
+            {
+                Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
+
+                using(var fb2 = await fb.DuplicateAsync(true))
+                {
+                    Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
+                }
+            }
+
+            File.Delete(p);
         }
     }
 }

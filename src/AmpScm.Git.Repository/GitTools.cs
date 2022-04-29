@@ -20,11 +20,11 @@ namespace AmpScm.Git
 
             if (File.Exists(path))
             {
-                path = Directory.GetFiles(dir, Path.GetFileName(path)).Single();
+                path = Directory.EnumerateFiles(dir, Path.GetFileName(path)).Single();
             }
             else if (Directory.Exists(path))
             {
-                path = Directory.GetDirectories(dir, Path.GetFileName(path)).Single();
+                path = Directory.EnumerateDirectories(dir, Path.GetFileName(path)).Single();
             }
 
             for(string parent = Path.GetDirectoryName(dir)!; parent != null && parent != dir; parent = Path.GetDirectoryName(parent)!)

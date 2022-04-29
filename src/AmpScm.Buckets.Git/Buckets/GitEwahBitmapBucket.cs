@@ -33,7 +33,7 @@ namespace AmpScm.Buckets.Git
             : base(inner)
         {
             _state = ewah_state.init;
-            _buffer = new byte[4096];
+            _buffer = new byte[512];
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
@@ -229,37 +229,43 @@ namespace AmpScm.Buckets.Git
             async IAsyncEnumerator<bool> IAsyncEnumerable<bool>.GetAsyncEnumerator(CancellationToken cancellationToken)
             {
                 int bitLength = await _bucket.ReadBitLengthAsync().ConfigureAwait(false);
-                int bit = 0;
+                byte b = 0;
 
-                while (await _bucket.ReadByteAsync().ConfigureAwait(false) is byte b)
+                for (int i = 0; i < bitLength; i++)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    for (int n = 0; n < 8; n++)
+                    if ((i & 7) == 0)
                     {
-                        yield return (bit + n < bitLength) && ((b & (1 << n)) != 0);
+                        b = (await _bucket.ReadByteAsync().ConfigureAwait(false)).Value;
                     }
-                    bit += 8;
+
+                    int n = i & 7;
+
+                    yield return ((b & (1 << n)) != 0);
                 }
             }
 
             async IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken cancellationToken)
             {
                 int bitLength = await _bucket.ReadBitLengthAsync().ConfigureAwait(false);
-                int bit = 0;
+                byte b = 0;
 
-                while (await _bucket.ReadByteAsync().ConfigureAwait(false) is byte b)
+                for (int i = 0; i < bitLength; i++)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    for (int n = 0; n < 8; n++)
+                    if ((i & 7) == 0)
                     {
-                        if ((bit + n < bitLength) && ((b & (1 << n)) != 0))
+                        b = (await _bucket.ReadByteAsync().ConfigureAwait(false)).Value;
+
+                        if (b == 0)
                         {
-                            yield return bit + n;
+                            i += 7;
+                            continue;
                         }
                     }
-                    bit += 8;
+
+                    int n = i & 7;
+
+                    if ((b & (1 << n)) != 0)
+                        yield return i;
                 }
             }
         }
