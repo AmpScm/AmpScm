@@ -1,12 +1,14 @@
 # AmpScm - Amplifying your Git Source Code Management
 [![CI](https://github.com/AmpScm/AmpScm/actions/workflows/msbuild.yml/badge.svg)](https://github.com/AmpScm/AmpScm/actions/workflows/msbuild.yml)
 
-This project provides a few layers of tools that allow accessing your repository from .Net without external dependencies. Unlike the libGit2 apis the code is completely managed, 100% Apache 2 Licensed, and uses many optional modern Git optimizations (E.g. commit chains, bitmap indexes, etc.) to improve performance over just scanning the repository.
+This project provides a few layers of tools that allow accessing your repository from .Net without external dependencies. Unlike the libGit2 apis the code is completely managed, 100% *Apache 2 Licensed*, and uses many optional modern Git optimizations (E.g. commit chains, bitmap indexes, etc.) to improve performance over just scanning the repository.
+
+To allow easy embedding everything is implemented *streamy* instead of  memory mapped files, to allow working in memory restrained circumstances (like 32 bit code), or as plugin in an existing application.
 
 ## AmpScm.Buckets
 [![latest version](https://img.shields.io/nuget/v/AmpScm.Buckets)](https://www.nuget.org/packages/AmpScm.Buckets)
 
-This library provides zero-copy stream layering over different datasources, modeled like the *Apache Serf* buckets, but then completely .Net based and async enabled. When you read a bit of data the least amount of work necessary is done up the tree, and only if the highest upper layer reports a delay the task is waiting.
+This library provides zero-copy stream layering over different datasources, modeled like the *Apache Serf* buckets, but then completely .Net based and fully `Async` enabled. When you read a bit of data the least amount of work necessary is done up the tree, and only if the highest upper layer reports a delay the task is waiting.
 
 ## AmpScm.Git.Repository
 [![latest version](https://img.shields.io/nuget/v/AmpScm.Git.Repository)](https://www.nuget.org/packages/AmpScm.Git.Repository)
@@ -63,21 +65,21 @@ intended for testing the lower layers, but probly useful for more users. May bec
 
 
 ## Git On Disk Format Support
-|Feature                        | GIT        | LibGit2   | JGit    | AmpScm   |
-| ----------------------------- | ---------- | --------- | ------- | -------- |
-| File Blobs                    | Yes        | Yes       | Yes     | Yes      |
-| Packfiles                     | Yes        | Yes       | Yes     | Yes      |
-| Loose References              | Yes        | Yes       | Yes     | Yes      |
-| Packed References             | Yes        | Yes       | Yes     | Yes      |
-| Reference Table format        | No         | Yes       | No      | No       |
-| Reference Log                 | Yes        | Yes       | Yes     | Yes      |
-| Multipack index               | Yes        | Yes       | No      | Yes      |
-| CommitGraph                   | Yes        | Yes       | No      | Yes      |
-| Bitmap index Packfiles        | Yes        | No        | Yes     | Yes      |
-| Bitmap index Multipack Index  | Yes        | No        | No      | Yes      |
-| Reverse index Packfiles       | Yes        | No        | No      | Yes      |
-| Reverse index Multipack Index | Yes        | No        | No      | Yes      |
-| Directory Index format 2,3    | Yes        | Yes       | Yes     | Yes      |
-| Directory Index format 4      | Yes        | Yes       | Yes     | Yes      |
-| Split Directory Index format  | Yes        | No        | No      | Yes      |
-| Sparse Index (Cone) support   | Yes        | No        | No      | Yes      |
+|Feature                        | GIT           | LibGit2   | JGit    | AmpScm        |
+| ----------------------------- | ------------- | --------- | ------- | ------------- |
+| File Blobs                    | Yes           | Yes       | Yes     | Yes           |
+| Packfiles                     | Yes           | Yes       | Yes     | Yes           |
+| Loose References              | Yes           | Yes       | Yes     | Yes           |
+| Packed References             | Yes           | Yes       | Yes     | Yes           |
+| Reference Table format        | Expected Soon | Yes       | No      | Expected Soon |
+| Reference Log                 | Yes           | Yes       | Yes     | Yes           |
+| Multipack index               | Yes           | Yes       | No      | Yes           |
+| CommitGraph                   | Yes           | Yes       | No      | Yes           |
+| Bitmap index Packfiles        | Yes           | No        | Yes     | Yes           |
+| Bitmap index Multipack Index  | Yes           | No        | No      | Yes           |
+| Reverse index Packfiles       | Yes           | No        | No      | Yes           |
+| Reverse index Multipack Index | Yes           | No        | No      | Yes           |
+| Directory Index format 2,3    | Yes           | Yes       | Yes     | Yes           |
+| Directory Index format 4      | Yes           | Yes       | Yes     | Yes           |
+| Split Directory Index format  | Yes           | No        | No      | Yes           |
+| Sparse Index (Cone) support   | Yes           | No        | No      | Yes           |
