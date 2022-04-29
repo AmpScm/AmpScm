@@ -67,6 +67,10 @@ intended for testing the lower layers, but probly useful for more users. May bec
 | ----------------------------- | ---------- | --------- | ------- | -------- |
 | File Blobs                    | Yes        | Yes       | Yes     | Yes      |
 | Packfiles                     | Yes        | Yes       | Yes     | Yes      |
+| Loose References              | Yes        | Yes       | Yes     | Yes      |
+| Packed References             | Yes        | Yes       | Yes     | Yes      |
+| Reference Table format        | No         | Yes       | No      | No       |
+| Reference Log                 | Yes        | Yes       | Yes     | Yes      |
 | Multipack index               | Yes        | Yes       | No      | Yes      |
 | CommitGraph                   | Yes        | Yes       | No      | Yes      |
 | Bitmap index Packfiles        | Yes        | No        | Yes     | Yes      |
