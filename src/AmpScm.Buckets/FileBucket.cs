@@ -9,14 +9,13 @@ namespace AmpScm.Buckets
 {
     public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek
     {
-        readonly FileHolder _holder;
+        FileHolder _holder;
         readonly byte[] _buffer;
         int _size;
         int _pos;
         long _filePos;
         long _bufStart;
         readonly int _chunkSizeMinus1;
-        bool _disposed;
 
         private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 4096)
         {
@@ -49,14 +48,11 @@ namespace AmpScm.Buckets
         {
             try
             {
-                if(disposing && !_disposed)
-                {
-                    _disposed = true;
-                    _holder.Release();
-                }
+                _holder?.Release();
             }
             finally
             {
+                _holder = null!;
                 base.Dispose(disposing);
             }
         }
