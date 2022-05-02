@@ -9,6 +9,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>BucketTests</RootNamespace>
     <WarningLevel>6</WarningLevel>
+    <VSTestResultsDirectory Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)TestResults</VSTestResultsDirectory>
   </PropertyGroup>
 
   <ItemGroup>

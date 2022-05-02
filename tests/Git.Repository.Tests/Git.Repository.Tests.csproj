@@ -9,6 +9,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>GitRepositoryTests</RootNamespace>
     <WarningLevel>6</WarningLevel>
+    <VSTestResultsDirectory Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)TestResults</VSTestResultsDirectory>
   </PropertyGroup>
 
   <ItemGroup>
