@@ -73,12 +73,11 @@ namespace AmpScm.Buckets.Git
 
         async ValueTask<bool> AdvanceAsync()
         {
-            while (state == delta_state.start)
+            if (state == delta_state.start)
             {
+                long base_len = 0;
                 while (p0 >= 0)
                 {
-                    // This initial loop re-uses length to collect the base size, as we don't have that
-                    // value at this point anyway
                     var data = await Inner.ReadAsync(1).ConfigureAwait(false);
 
                     if (data.IsEof)
@@ -87,20 +86,21 @@ namespace AmpScm.Buckets.Git
                     byte uc = data[0];
 
                     int shift = (p0 * 7);
-                    length |= (long)(uc & 0x7F) << shift;
+                    base_len |= (long)(uc & 0x7F) << shift;
                     p0++;
 
                     if (0 == (data[0] & 0x80))
                     {
                         long? base_size = await BaseBucket.ReadRemainingBytesAsync().ConfigureAwait(false);
 
-                        if (base_size != length)
+                        if (base_size != base_len)
                             throw new GitBucketException($"Expected delta base size {length} doesn't match source size ({base_size}) on {BaseBucket.Name} Bucket");
 
                         length = 0;
                         p0 = -1;
                     }
                 }
+
                 while (p0 < 0)
                 {
                     var data = await Inner.ReadAsync(1).ConfigureAwait(false);

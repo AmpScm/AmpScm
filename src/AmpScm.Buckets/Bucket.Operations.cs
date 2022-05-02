@@ -7,12 +7,12 @@ namespace AmpScm.Buckets
     {
         internal async ValueTask<byte?> ReadByteAsync()
         {
-            var r = await ReadAsync(1).ConfigureAwait(false);
+            var bb = await ReadAsync(1).ConfigureAwait(false);
 
-            if (r.Length != 1)
+            if (bb.Length != 1)
                 return null;
             else
-                return r[0];
+                return bb[0];
         }
     }
 }
