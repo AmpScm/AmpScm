@@ -201,7 +201,7 @@ namespace AmpScm.Buckets.Git
             if (want_state == frame_state.type_done && state == frame_state.type_done)
                 return true;
 
-            while (state <= frame_state.size_done)
+            if (state <= frame_state.size_done)
             {
                 if (Type == GitObjectType_DeltaReference)
                 {
