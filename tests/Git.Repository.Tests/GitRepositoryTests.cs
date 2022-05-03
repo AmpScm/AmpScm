@@ -355,7 +355,7 @@ namespace GitRepositoryTests
             {
                 try
                 {
-                    ae.AnyAsync().AsTask().GetAwaiter().GetResult();
+                    ae.AnyAsync().AsTask().Wait();
                 }
                 catch (Exception e)
                 {
@@ -376,7 +376,7 @@ namespace GitRepositoryTests
 
                 try
                 {
-                    aq.AnyAsync().AsTask().GetAwaiter().GetResult();
+                    aq.AnyAsync().AsTask().Wait();
                 }
                 catch (Exception e)
                 {

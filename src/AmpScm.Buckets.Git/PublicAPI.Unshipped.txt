@@ -1,10 +1,4 @@
 ﻿#nullable enable
-AmpScm.Buckets.Git.GitBucketEofException
-AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException() -> void
-AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string! message) -> void
-AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string! message, System.Exception! innerException) -> void
-AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
-AmpScm.Buckets.Git.GitDeltaBucket.GitDeltaBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Git.GitObjectBucket! baseBucket) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Git.GitDirectoryOptions? options) -> void
@@ -56,18 +50,12 @@ AmpScm.Buckets.Git.GitDirectoryOptions.PreLoadExtensions.set -> void
 AmpScm.Buckets.Git.GitEwahBitmapBucket.AllBits.get -> System.Collections.Generic.IAsyncEnumerable<bool>!
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitEwahBitmapBucket.SetIndexes.get -> System.Collections.Generic.IAsyncEnumerable<int>!
-override AmpScm.Buckets.Git.GitDeltaBucket.ReadTypeAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitObjectType>
+AmpScm.Buckets.Git.GitPackFrameBucket.ReadDeltaCountAsync() -> System.Threading.Tasks.ValueTask<int>
 override AmpScm.Buckets.Git.GitDirectoryBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.Git.GitBucketEofException.Throw(AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Git.GitBucketEofException!
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
-static AmpScm.Git.GitBucketExtensions.GitHash(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type, System.Action<AmpScm.Git.GitId!>! created) -> AmpScm.Buckets.Bucket!
-static AmpScm.Git.GitBucketExtensions.IsDirectory(this AmpScm.Git.GitTreeElementType elementType) -> bool
-static AmpScm.Git.GitBucketExtensions.IsFile(this AmpScm.Git.GitTreeElementType elementType) -> bool
-static AmpScm.Git.GitBucketExtensions.ReadGitIdAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
-static AmpScm.Git.GitBucketExtensions.ReadGitOffsetAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.HighestSupportedFormat -> int
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.LowestSupportedFormat -> int

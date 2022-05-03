@@ -19,7 +19,7 @@ namespace AmpScm.Git.Implementation
                 {
                     var r = e.MoveNextAsync().AsTask(); // Store as object instead of struct, as we are yield'ing.
 
-                    if (!r.GetAwaiter().GetResult())
+                    if (!r.Result)
                         break;
 
                     yield return e.Current;

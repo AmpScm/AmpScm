@@ -25,7 +25,7 @@ namespace AmpScm
                 if (r.IsCompleted)
                     bb = r.Result;
                 else
-                    bb = r.GetAwaiter().GetResult();
+                    bb = r.AsTask().Result;
 
                 bb.CopyTo(array, pos);
                 pos += bb.Length;

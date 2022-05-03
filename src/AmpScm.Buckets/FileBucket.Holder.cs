@@ -16,7 +16,7 @@ namespace AmpScm.Buckets
     {
         sealed class FileHolder : IDisposable
         {
-            readonly Stack<FileStream> _keep = new();
+            readonly Stack<FileStream> _keep;
             readonly FileStream _primary;
             readonly SafeFileHandle _handle;
             readonly bool _asyncWin;
@@ -29,6 +29,7 @@ namespace AmpScm.Buckets
             {
                 _primary = primary ?? throw new ArgumentNullException(nameof(primary));
                 Path = path ?? throw new ArgumentNullException(nameof(path));
+                _keep = new();
 
                 if (primary.IsAsync)
                     _keep.Push(primary);
@@ -56,6 +57,7 @@ namespace AmpScm.Buckets
                 Path = path ?? throw new ArgumentNullException(nameof(path));
                 _asyncWin = true;
                 _waitHandlers = new Stack<FileWaitHandler>();
+                _keep = default!;
 
                 _disposers = _handle.Dispose;
                 _handle = handle;
@@ -98,7 +100,7 @@ namespace AmpScm.Buckets
             {
                 try
                 {
-                    while (_keep.Count > 0)
+                    while (_keep?.Count > 0)
                     {
                         var r = _keep.Pop();
 #if NET6_0_OR_GREATER

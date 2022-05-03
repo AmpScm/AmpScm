@@ -73,7 +73,7 @@ namespace AmpScm.Git
             get
             {
                 if (!_loaded)
-                    ReadAsync().AsTask().GetAwaiter().GetResult();
+                    ReadAsync().AsTask().Wait();
 
                 return _object!;
             }

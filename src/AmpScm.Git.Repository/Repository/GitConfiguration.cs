@@ -196,7 +196,7 @@ namespace AmpScm.Git.Repository
         internal IEnumerable<(string, string)> GetGroup(string group, string? subGroup)
         {
             if (!_loaded)
-                LoadAsync().AsTask().GetAwaiter().GetResult();
+                LoadAsync().AsTask().Wait();
 
 #pragma warning disable CA1308 // Normalize strings to uppercase
             group = group.ToLowerInvariant();
@@ -217,7 +217,7 @@ namespace AmpScm.Git.Repository
                 throw new ArgumentNullException(nameof(group));
 
             if (!_loaded)
-                LoadAsync().AsTask().GetAwaiter().GetResult();
+                LoadAsync().AsTask().Wait();
 
 #pragma warning disable CA1308 // Normalize strings to uppercase
             group = group.ToLowerInvariant();

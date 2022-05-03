@@ -105,7 +105,7 @@ namespace AmpScm.Git
 
         private void Read()
         {
-            ReadAsync().AsTask().GetAwaiter().GetResult();
+            ReadAsync().AsTask().Wait();
         }
 
         public override async ValueTask ReadAsync()

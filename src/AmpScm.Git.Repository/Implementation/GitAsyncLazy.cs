@@ -9,7 +9,7 @@ namespace AmpScm.Git.Repository.Implementation
     internal sealed class GitAsyncLazy<T> : Lazy<T>
     {
         public GitAsyncLazy(Func<ValueTask<T>> task) :
-            base(() => task().AsTask().GetAwaiter().GetResult())
+            base(() => task().AsTask().Result)
         { }
 
         public GitAsyncLazy(T value)

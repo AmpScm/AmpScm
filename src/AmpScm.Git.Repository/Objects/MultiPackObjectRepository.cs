@@ -164,9 +164,9 @@ namespace AmpScm.Git.Objects
                 return false; // Not really loaded yet
 
             if (FanOut == null)
-                InitAsync().AsTask().GetAwaiter().GetResult();
+                InitAsync().AsTask().Wait();
 
-            return TryFindIdAsync(id).AsTask().GetAwaiter().GetResult().Success;
+            return TryFindIdAsync(id).AsTask().Result.Success;
         }
 
         public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
@@ -381,7 +381,7 @@ namespace AmpScm.Git.Objects
 
         internal bool CanLoad()
         {
-            InitAsync().AsTask().GetAwaiter().GetResult();
+            InitAsync().AsTask().Wait();
 
             return (ChunkReader != null);
         }
@@ -394,7 +394,7 @@ namespace AmpScm.Git.Objects
             if (_packNames is null && GetChunkLength("PNAM") is long len)
             {
                 byte[] names = new byte[(int)len];
-                if (ReadFromChunkAsync("PNAM", 0, names).AsTask().GetAwaiter().GetResult() != names.Length)
+                if (ReadFromChunkAsync("PNAM", 0, names).AsTask().Result != names.Length)
                     return false;
 
                 var packNames = new List<string>();

@@ -67,7 +67,7 @@ namespace AmpScm.Buckets.Git
             if (_readable.IsEmpty)
                 return _readable;
 
-            RefillAsync(false).AsTask().GetAwaiter().GetResult();
+            RefillAsync(false).AsTask().Wait();
 
             return _readable;
         }

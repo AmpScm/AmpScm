@@ -8,6 +8,11 @@ AmpScm.Buckets.Git.GitBitmapHeaderBucket.ObjectCount.get -> int?
 AmpScm.Buckets.Git.GitBitmapHeaderBucket.Version.get -> int?
 AmpScm.Buckets.Git.GitBucket
 AmpScm.Buckets.Git.GitBucket.GitBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.GitBucketEofException
+AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException() -> void
+AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string! message) -> void
+AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string! message, System.Exception! innerException) -> void
+AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.Git.GitBucketException
 AmpScm.Buckets.Git.GitBucketException.GitBucketException() -> void
 AmpScm.Buckets.Git.GitBucketException.GitBucketException(string! message) -> void
@@ -59,9 +64,7 @@ AmpScm.Buckets.Git.GitPacketBucket.GitPacketBucket(AmpScm.Buckets.Bucket! inner)
 AmpScm.Buckets.Git.GitPacketBucket.ReadFullPacket() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Git.GitPackFrameBucket
 AmpScm.Buckets.Git.GitPackFrameBucket.BodySize.get -> long?
-AmpScm.Buckets.Git.GitPackFrameBucket.DeltaCount.get -> int?
 AmpScm.Buckets.Git.GitPackFrameBucket.GitPackFrameBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Git.GitIdType idType, System.Func<AmpScm.Git.GitId!, System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitObjectBucket?>>? fetchBucketById = null) -> void
-AmpScm.Buckets.Git.GitPackFrameBucket.ReadInfoAsync() -> System.Threading.Tasks.ValueTask<bool>
 AmpScm.Buckets.Git.GitPackHeaderBucket
 AmpScm.Buckets.Git.GitPackHeaderBucket.GitPackHeaderBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitPackHeaderBucket.GitType.get -> string?
@@ -150,6 +153,7 @@ override AmpScm.Buckets.Git.GitDeltaBucket.Position.get -> long?
 override AmpScm.Buckets.Git.GitDeltaBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitDeltaBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Git.GitDeltaBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
+override AmpScm.Buckets.Git.GitDeltaBucket.ReadTypeAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitObjectType>
 override AmpScm.Buckets.Git.GitDeltaBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Git.GitEwahBitmapBucket.CanReset.get -> bool
 override AmpScm.Buckets.Git.GitEwahBitmapBucket.Peek() -> AmpScm.Buckets.BucketBytes
@@ -172,7 +176,7 @@ override AmpScm.Buckets.Git.GitPackFrameBucket.Position.get -> long?
 override AmpScm.Buckets.Git.GitPackFrameBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitPackFrameBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Git.GitPackFrameBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-override AmpScm.Buckets.Git.GitPackFrameBucket.ReadTypeAsync() -> System.Threading.Tasks.ValueTask
+override AmpScm.Buckets.Git.GitPackFrameBucket.ReadTypeAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitObjectType>
 override AmpScm.Buckets.Git.GitPackFrameBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Git.GitPackHeaderBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitReferenceLogBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
@@ -183,6 +187,7 @@ override AmpScm.Buckets.Git.Objects.GitTreeReadBucket.ReadAsync(int requested = 
 override AmpScm.Git.GitId.Equals(object? obj) -> bool
 override AmpScm.Git.GitId.GetHashCode() -> int
 override AmpScm.Git.GitId.ToString() -> string!
+static AmpScm.Buckets.Git.GitBucketEofException.Throw(AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Git.GitBucketEofException!
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitCommitGenerationValue.operator !=(AmpScm.Buckets.Git.GitCommitGenerationValue left, AmpScm.Buckets.Git.GitCommitGenerationValue right) -> bool
 static AmpScm.Buckets.Git.GitCommitGenerationValue.operator ==(AmpScm.Buckets.Git.GitCommitGenerationValue left, AmpScm.Buckets.Git.GitCommitGenerationValue right) -> bool
@@ -192,7 +197,12 @@ static AmpScm.Buckets.Git.GitConfigurationItem.operator >(AmpScm.Buckets.Git.Git
 static AmpScm.Buckets.Git.GitConfigurationItem.operator >=(AmpScm.Buckets.Git.GitConfigurationItem! left, AmpScm.Buckets.Git.GitConfigurationItem! right) -> bool
 static AmpScm.Buckets.Git.GitSignatureRecord.TryReadFromBucket(AmpScm.Buckets.BucketBytes bucketBytes, out AmpScm.Buckets.Git.GitSignatureRecord? record) -> bool
 static AmpScm.Git.GitBucketExtensions.CreateHeader(this AmpScm.Git.GitObjectType type, long length) -> AmpScm.Buckets.Bucket!
+static AmpScm.Git.GitBucketExtensions.GitHash(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type, System.Action<AmpScm.Git.GitId!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Git.GitBucketExtensions.HashLength(this AmpScm.Git.GitIdType type) -> int
+static AmpScm.Git.GitBucketExtensions.IsDirectory(this AmpScm.Git.GitTreeElementType elementType) -> bool
+static AmpScm.Git.GitBucketExtensions.IsFile(this AmpScm.Git.GitTreeElementType elementType) -> bool
+static AmpScm.Git.GitBucketExtensions.ReadGitIdAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
+static AmpScm.Git.GitBucketExtensions.ReadGitOffsetAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static AmpScm.Git.GitBucketExtensions.Slice(this AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol untilEol) -> AmpScm.Buckets.BucketBytes
 static AmpScm.Git.GitBucketExtensions.Slice(this AmpScm.Buckets.BucketBytes bb, int start, AmpScm.Buckets.BucketEol untilEol) -> AmpScm.Buckets.BucketBytes
 static AmpScm.Git.GitId.FromByteArrayOffset(AmpScm.Git.GitIdType type, byte[]! hash, int offset) -> AmpScm.Git.GitId!

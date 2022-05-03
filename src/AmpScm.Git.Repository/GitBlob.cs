@@ -25,7 +25,7 @@ namespace AmpScm.Git
 
         internal Bucket GetBucket()
         {
-            return Repository.ObjectRepository.ResolveById(Id).AsTask().GetAwaiter().GetResult()!;
+            return Repository.ObjectRepository.ResolveById(Id).AsTask().Result!;
         }
 
         ValueTask<GitId> IGitLazy<GitBlob>.WriteToAsync(GitRepository repository)
@@ -41,7 +41,7 @@ namespace AmpScm.Git
             get
             {
                 if (!_length.HasValue)
-                    ReadAsync().AsTask().GetAwaiter().GetResult();
+                    ReadAsync().AsTask().Wait();
 
                 return _length ?? 0;
             }

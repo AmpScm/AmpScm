@@ -126,7 +126,7 @@ namespace GitRepositoryTests
 
             var allXor = new BitwiseXorBucket(new BitwiseXorBucket(buckets[0], buckets[1]), new BitwiseXorBucket(buckets[2], buckets[3]));
 
-            int maxBits = buckets.Max(x => x.ReadBitLengthAsync().AsTask().GetAwaiter().GetResult());
+            int maxBits = buckets.Max(x => x.ReadBitLengthAsync().AsTask().Result);
 
             Assert.AreEqual(2369, maxBits);
             var bb = await allXor.ReadFullAsync((maxBits + 7) / 8);

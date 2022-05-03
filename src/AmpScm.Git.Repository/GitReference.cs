@@ -77,7 +77,7 @@ namespace AmpScm.Git
             get
             {
                 if (_object is not Git.GitObject)
-                    ReadAsync().AsTask().GetAwaiter().GetResult();
+                    ReadAsync().AsTask().Wait();
 
                 return _object as GitObject;
             }
@@ -88,7 +88,7 @@ namespace AmpScm.Git
             get
             {
                 if (_object == null)
-                    ReadAsync().AsTask().GetAwaiter().GetResult();
+                    ReadAsync().AsTask().Wait();
 
                 if (_object is GitId oid)
                     return oid;

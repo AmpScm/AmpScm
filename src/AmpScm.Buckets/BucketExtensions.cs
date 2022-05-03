@@ -229,9 +229,7 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-#pragma warning disable CA2012 // Use ValueTasks correctly
-            return ToArrayAsync(bucket).ConfigureAwait(true).GetAwaiter().GetResult();
-#pragma warning restore CA2012 // Use ValueTasks correctly
+            return ToArrayAsync(bucket).AsTask().Result;
         }
 
         internal static byte[] AppendBytes(this byte[] array, BucketBytes bytes)

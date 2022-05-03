@@ -284,7 +284,7 @@ namespace AmpScm.Git.Objects
 
         internal override bool ContainsId(GitId id)
         {
-            InitAsync().AsTask().GetAwaiter().GetResult();
+            InitAsync().AsTask().Wait();
 
             if (_fanOut is null)
                 return false;
@@ -294,7 +294,7 @@ namespace AmpScm.Git.Objects
             uint start = (byte0 == 0) ? 0 : _fanOut![byte0 - 1];
             uint count = _fanOut![byte0] - start;
 
-            byte[] oids = GetOidArrayAsync(start, count).AsTask().GetAwaiter().GetResult();
+            byte[] oids = GetOidArrayAsync(start, count).AsTask().Result;
 
             return TryFindId(oids, id, out var _);
         }
@@ -409,7 +409,7 @@ namespace AmpScm.Git.Objects
             where TGitObject : class
         {
 #pragma warning disable CA1849 // Call async methods when in an async method
-            InitAsync().AsTask().GetAwaiter().GetResult();
+            InitAsync().AsTask().Wait();
 #pragma warning restore CA1849 // Call async methods when in an async method
 
             if (typeof(TGitObject) != typeof(GitObject) && _hasBitmap)
@@ -662,7 +662,7 @@ namespace AmpScm.Git.Objects
             get
             {
                 if (_fanOut is null)
-                    InitAsync().AsTask().GetAwaiter().GetResult();
+                    InitAsync().AsTask().Wait();
 
                 return (int)(_fanOut?[255] ?? 0);
             }

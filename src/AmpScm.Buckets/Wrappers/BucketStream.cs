@@ -10,7 +10,6 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Wrappers
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2012:Use ValueTasks correctly", Justification = "<Pending>")]
     internal partial class BucketStream : Stream
     {
         bool _gotLength;
@@ -63,7 +62,7 @@ namespace AmpScm.Buckets.Wrappers
                     if (!p.HasValue)
                         return -1L;
 
-                    var r = Bucket.ReadRemainingBytesAsync().Result; // BAD async
+                    var r = Bucket.ReadRemainingBytesAsync().AsTask().Result; // BAD async
 
                     if (r.HasValue)
                         _length = r.Value + p.Value;

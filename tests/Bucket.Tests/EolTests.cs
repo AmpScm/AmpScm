@@ -500,7 +500,7 @@ namespace BucketTests
             string Apply(string tst, BucketEol acceptedEols = BucketEol.AnyEol)
             {
                 var r = MakeBucket(tst).NormalizeEols(acceptedEols);
-                var bb = r.ReadFullAsync(256).AsTask().GetAwaiter().GetResult();
+                var bb = r.ReadFullAsync(256).AsTask().Result;
 
                 return bb.ToUTF8String();
             }
@@ -508,7 +508,7 @@ namespace BucketTests
             string Apply2(string[] tst, BucketEol acceptedEols = BucketEol.AnyEol)
             {
                 var r = MakeBucket(tst).NormalizeEols(acceptedEols);
-                var bb = r.ReadFullAsync(256).AsTask().GetAwaiter().GetResult();
+                var bb = r.ReadFullAsync(256).AsTask().Result;
 
                 return bb.ToUTF8String();
             }

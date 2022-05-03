@@ -62,14 +62,14 @@ namespace AmpScm.Linq
             var r = _queryable.GetAsyncEnumerator();
             try
             {
-                while (r.MoveNextAsync().AsTask().GetAwaiter().GetResult())
+                while (r.MoveNextAsync().AsTask().Result)
                 {
                     yield return r.Current;
                 }
             }
             finally
             {
-                r.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                r.DisposeAsync().AsTask().Wait();
             }
         }
 
@@ -78,14 +78,14 @@ namespace AmpScm.Linq
             var r = _queryable.GetAsyncEnumerator();
             try
             {
-                while (r.MoveNextAsync().AsTask().GetAwaiter().GetResult())
+                while (r.MoveNextAsync().AsTask().Result)
                 {
                     yield return r.Current;
                 }
             }
             finally
             {
-                r.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                r.DisposeAsync().AsTask().Wait();
             }
         }
     }
@@ -110,12 +110,12 @@ namespace AmpScm.Linq
 
         public override object? Execute(Expression expression)
         {
-            return QueryProvider.ExecuteAsync<object>(expression, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+            return QueryProvider.ExecuteAsync<object>(expression, CancellationToken.None).AsTask().Result;
         }
 
         public override TResult Execute<TResult>(Expression expression)
         {
-            return QueryProvider.ExecuteAsync<TResult>(expression, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+            return QueryProvider.ExecuteAsync<TResult>(expression, CancellationToken.None).AsTask().Result;
         }
 
         public override ValueTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken token)

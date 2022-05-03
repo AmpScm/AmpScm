@@ -54,7 +54,7 @@ namespace AmpScm.Git
                     return tree.Id;
                 else
                 {
-                    id = _rb!.ReadTreeIdAsync().AsTask().GetAwaiter().GetResult();
+                    id = _rb!.ReadTreeIdAsync().AsTask().Result;
                     _tree = id;
                     return id;
                 }
@@ -188,7 +188,7 @@ namespace AmpScm.Git
         {
             if (!all && _committer is not null)
                 return;
-            ReadAsync(all).AsTask().GetAwaiter().GetResult();
+            ReadAsync(all).AsTask().Wait();
         }
 
         public override ValueTask ReadAsync()
