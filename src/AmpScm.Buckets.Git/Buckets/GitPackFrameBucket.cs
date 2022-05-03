@@ -12,7 +12,6 @@ namespace AmpScm.Buckets.Git
     {
         Bucket? reader;
         frame_state state;
-        long frame_position;
         long delta_position;
         readonly GitIdType _idType;
         Func<GitId, ValueTask<GitObjectBucket?>>? _fetchBucketById;
@@ -140,7 +139,7 @@ namespace AmpScm.Buckets.Git
 
             if (state == frame_state.start)
             {
-                frame_position = Inner.Position!.Value;
+                delta_position = Inner.Position ?? 0;
                 (Type, BodySize) = await ReadTypeAndSize().ConfigureAwait(false);
             }
 
@@ -159,13 +158,13 @@ namespace AmpScm.Buckets.Git
                 else if (Type == GitObjectType_DeltaOffset)
                 {
                     // Body starts with negative offset of the delta base.
-                    delta_position = await Inner.ReadGitOffsetAsync().ConfigureAwait(false);
+                    var dp = await Inner.ReadGitOffsetAsync().ConfigureAwait(false);
 
-                    if (delta_position > frame_position)
-                        throw new GitBucketException("Delta position must point to earlier object in file");
+                    if (dp > delta_position)
+                        throw new GitBucketException($"Delta position must point to earlier object in {Name} Bucket");
 
                     state = frame_state.find_delta;
-                    delta_position = frame_position - delta_position;
+                    delta_position -= dp;
                     _deltaCount = -1;
                 }
                 else
