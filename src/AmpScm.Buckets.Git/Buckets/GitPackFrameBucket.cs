@@ -18,6 +18,7 @@ namespace AmpScm.Buckets.Git
         readonly GitIdType _idType;
         Func<GitId, ValueTask<GitObjectBucket?>>? _fetchBucketById;
         GitId? _deltaId;
+        int? _deltaCount;
 
         enum frame_state
         {
@@ -29,7 +30,6 @@ namespace AmpScm.Buckets.Git
             body
         }
 
-        public int? DeltaCount { get; private set; }
         public long? BodySize { get; private set; }
 
         public override string Name => (reader != null) ? $"GitPackFrame[{reader.Name}]>{Inner.Name}" : base.Name;
@@ -122,8 +122,7 @@ namespace AmpScm.Buckets.Git
             if ((Type == GitObjectType.None || Type > GitObjectType.Tag)
                 && reader is GitObjectBucket gob)
             {
-                await gob.ReadTypeAsync().ConfigureAwait(false);
-                Type = gob.Type;
+                return Type = await gob.ReadTypeAsync().ConfigureAwait(false);
             }
 
             Debug.Assert(Type >= GitObjectType.Commit && Type <= GitObjectType.Tag, "Bad Git Type");
@@ -222,7 +221,7 @@ namespace AmpScm.Buckets.Git
                     _deltaId = new GitId(_idType, read.ToArray());
 
                     state = frame_state.find_delta;
-                    DeltaCount = -1;
+                    _deltaCount = -1;
                 }
                 else if (Type == GitObjectType_DeltaOffset)
                 {
@@ -234,12 +233,12 @@ namespace AmpScm.Buckets.Git
 
                     state = frame_state.find_delta;
                     delta_position = frame_position - delta_position;
-                    DeltaCount = -1;
+                    _deltaCount = -1;
                 }
                 else
                 {
                     state = frame_state.open_body;
-                    DeltaCount = 0;
+                    _deltaCount = 0;
                     _fetchBucketById = null;
                 }
             }
@@ -268,11 +267,6 @@ namespace AmpScm.Buckets.Git
                     _deltaId = null; // Not used any more
                 }
 
-                if (base_reader is GitPackFrameBucket fb)
-                    DeltaCount = fb.DeltaCount + 1;
-                else
-                    DeltaCount = 1;
-
                 reader = base_reader;
                 _fetchBucketById = null;
                 state = frame_state.open_body;
@@ -284,7 +278,7 @@ namespace AmpScm.Buckets.Git
             if (state == frame_state.open_body)
             {
                 var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
-                if (DeltaCount != 0)
+                if (_deltaCount != 0)
                     reader = new GitDeltaBucket(inner, (GitObjectBucket)reader!);
                 else
                     reader = inner;
@@ -307,10 +301,28 @@ namespace AmpScm.Buckets.Git
                     return null;
             }
 
-            if (DeltaCount != 0)
+            if (_deltaCount != 0)
                 return await reader!.ReadRemainingBytesAsync().ConfigureAwait(false);
             else
                 return body_size - reader!.Position;
+        }
+
+        public async ValueTask<int> ReadDeltaCountAsync()
+        {
+            await ReadInfoAsync().ConfigureAwait(false);
+
+            if (_deltaCount >= 0)
+                return _deltaCount.Value;
+
+            if (reader is GitDeltaBucket gdb && gdb.BaseBucket is GitPackFrameBucket fb)
+            {
+                var count = await fb.ReadDeltaCountAsync().ConfigureAwait(false) + 1;
+                _deltaCount = count;
+                return count;
+            }
+
+            _deltaCount = 0;
+            return 0;
         }
 
         public override async ValueTask ResetAsync()

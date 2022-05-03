@@ -42,7 +42,7 @@ AmpScm.Buckets.Git.GitConfigurationReaderBucket
 AmpScm.Buckets.Git.GitConfigurationReaderBucket.GitConfigurationReaderBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitConfigurationReaderBucket.ReadConfigItem() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitConfigurationItem?>
 AmpScm.Buckets.Git.GitDeltaBucket
-AmpScm.Buckets.Git.GitDeltaBucket.GitDeltaBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Bucket! baseBucket) -> void
+AmpScm.Buckets.Git.GitDeltaBucket.GitDeltaBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Git.GitObjectBucket! baseBucket) -> void
 AmpScm.Buckets.Git.GitDeltaBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Git.GitEwahBitmapBucket
 AmpScm.Buckets.Git.GitEwahBitmapBucket.GitEwahBitmapBucket(AmpScm.Buckets.Bucket! inner) -> void

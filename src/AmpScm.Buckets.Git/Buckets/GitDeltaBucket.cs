@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Git
 {
     public sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
     {
-        GitObjectBucket BaseBucket { get; }
+        internal GitObjectBucket BaseBucket { get; }
         long length;
         long position;
         readonly byte[] buffer = new byte[8];

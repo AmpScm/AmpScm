@@ -4,6 +4,7 @@ AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException() -> void
 AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string! message) -> void
 AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string! message, System.Exception! innerException) -> void
 AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+AmpScm.Buckets.Git.GitDeltaBucket.GitDeltaBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Git.GitObjectBucket! baseBucket) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Git.GitDirectoryOptions? options) -> void

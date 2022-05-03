@@ -41,8 +41,9 @@ namespace GitRepositoryTests
                 await pf.ReadTypeAsync();
 
                 TestContext.Write($"Object {i}: type={pf.Type}, offset={offset}");
-                if (pf.DeltaCount > 0)
-                    TestContext.Write($", deltas={pf.DeltaCount}");
+                int? deltaCount = await pf.ReadDeltaCountAsync();
+                if (deltaCount != 0)
+                    TestContext.Write($", deltas={deltaCount}");
 
                 var len = await pf.ReadRemainingBytesAsync();
                 TestContext.Write($", length={len}");
@@ -631,8 +632,9 @@ namespace GitRepositoryTests
                 TestContext.Write(checksum?.ToString());
 
                 TestContext.Write($" {pf.Type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {b.Position - offset} {offset}");
-                if (pf.DeltaCount > 0)
-                    TestContext.Write($" {pf.DeltaCount} delta (body={len})");
+                int deltaCount = await pf.ReadDeltaCountAsync();
+                if (deltaCount > 0)
+                    TestContext.Write($" {deltaCount} delta (body={len})");
 
                 Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
                 Assert.AreEqual(len.Value, pf.Position, "Expected end position");
