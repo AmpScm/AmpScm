@@ -12,7 +12,6 @@ namespace AmpScm.Buckets.Git
     {
         Bucket? reader;
         frame_state state;
-        long body_size;
         long frame_position;
         long delta_position;
         readonly GitIdType _idType;
@@ -139,71 +138,8 @@ namespace AmpScm.Buckets.Git
             if (state >= frame_state.body)
                 return true;
 
-            {
-                const long max_size_len = 1 + (64 - 4 + 6) / 7;
-                int position = 0;
-
-                while (state == frame_state.start)
-                {
-                    // In the initial state we use position to keep track of our
-                    // location withing the compressed length
-
-                    var peeked = await Inner.PollAsync().ConfigureAwait(false);
-
-                    int rq_len;
-
-                    if (!peeked.IsEmpty)
-                    {
-                        rq_len = 0;
-                        for (int i = 0; i <= max_size_len && i < peeked.Length; i++)
-                        {
-                            rq_len++;
-                            if (0 == (peeked[i] & 0x80))
-                                break;
-                        }
-                        rq_len = Math.Min(rq_len, peeked.Length);
-                    }
-                    else
-                        rq_len = 1;
-
-                    var read = await Inner.ReadAsync(rq_len).ConfigureAwait(false);
-
-                    for (int i = 0; i < read.Length; i++)
-                    {
-                        byte uc = read[i];
-
-                        if (position == 0)
-                        {
-                            Type = (GitObjectType)((uc >> 4) & 0x7);
-                            body_size = uc & 0xF;
-
-                            long my_offs = Inner.Position!.Value;
-                            if (my_offs >= 0)
-                                frame_position = my_offs - read.Length;
-                        }
-                        else
-                            body_size |= (long)(uc & 0x7F) << (4 + 7 * ((int)position - 1));
-
-                        if (0 == (uc & 0x80))
-                        {
-                            if (position > max_size_len)
-                                throw new GitBucketException("Git pack framesize overflows int64");
-
-                            if (Type == GitObjectType.None)
-                                throw new GitBucketException("Git pack frame 0 is invalid");
-                            else if ((int)Type == 5)
-                                throw new GitBucketException("Git pack frame 5 is unsupported");
-
-                            Debug.Assert(i == read.Length - 1);
-                            state = frame_state.size_done;
-                            BodySize = body_size;
-                            break;
-                        }
-                        else
-                            position++;
-                    }
-                }
-            }
+            if (state == frame_state.start)
+                (Type, BodySize) = await ReadTypeAndSize().ConfigureAwait(false);
 
             if (want_state == frame_state.type_done && state == frame_state.type_done)
                 return true;
@@ -212,13 +148,7 @@ namespace AmpScm.Buckets.Git
             {
                 if (Type == GitObjectType_DeltaReference)
                 {
-                    int hashLen = _idType.HashLength();
-                    var read = await Inner.ReadFullAsync(hashLen).ConfigureAwait(false);
-
-                    if (read.Length != hashLen)
-                        throw new GitBucketEofException($"Unexpected EOF in {Name} bucket");
-
-                    _deltaId = new GitId(_idType, read.ToArray());
+                    _deltaId = await Inner.ReadGitIdAsync(_idType).ConfigureAwait(false);
 
                     state = frame_state.find_delta;
                     _deltaCount = -1;
@@ -289,6 +219,74 @@ namespace AmpScm.Buckets.Git
             return true;
         }
 
+        private async ValueTask<(GitObjectType Type, long BodySize)> ReadTypeAndSize()
+        {
+            const long max_size_len = 1 + (64 - 4 + 6) / 7;
+            int position = 0;
+            long body_size = 0;
+            GitObjectType type = GitObjectType.None;
+
+            while (true)
+            {
+                // In the initial state we use position to keep track of our
+                // location withing the compressed length
+
+                var peeked = await Inner.PollAsync().ConfigureAwait(false);
+
+                int rq_len;
+
+                if (!peeked.IsEmpty)
+                {
+                    rq_len = 0;
+                    for (int i = 0; i <= max_size_len && i < peeked.Length; i++)
+                    {
+                        rq_len++;
+                        if (0 == (peeked[i] & 0x80))
+                            break;
+                    }
+                    rq_len = Math.Min(rq_len, peeked.Length);
+                }
+                else
+                    rq_len = 1;
+
+                var read = await Inner.ReadAsync(rq_len).ConfigureAwait(false);
+
+                for (int i = 0; i < read.Length; i++)
+                {
+                    byte uc = read[i];
+
+                    if (position == 0)
+                    {
+                        type = (GitObjectType)((uc >> 4) & 0x7);
+                        body_size = uc & 0xF;
+
+                        long my_offs = Inner.Position!.Value;
+                        if (my_offs >= 0)
+                            frame_position = my_offs - read.Length;
+                    }
+                    else
+                        body_size |= (long)(uc & 0x7F) << (4 + 7 * (position - 1));
+
+                    if (0 == (uc & 0x80))
+                    {
+                        if (position > max_size_len)
+                            throw new GitBucketException("Git pack framesize overflows int64");
+
+                        if (type == GitObjectType.None)
+                            throw new GitBucketException("Git pack frame 0 is invalid");
+                        else if ((int)type == 5)
+                            throw new GitBucketException("Git pack frame 5 is unsupported");
+
+                        Debug.Assert(i == read.Length - 1);
+                        state = frame_state.size_done;
+                        return (type, body_size);
+                    }
+                    else
+                        position++;
+                }
+            }
+        }
+
         public override long? Position => (state == frame_state.body) ? reader!.Position : 0;
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
@@ -304,7 +302,7 @@ namespace AmpScm.Buckets.Git
             if (_deltaCount != 0)
                 return await reader!.ReadRemainingBytesAsync().ConfigureAwait(false);
             else
-                return body_size - reader!.Position;
+                return BodySize - reader!.Position;
         }
 
         public async ValueTask<int> ReadDeltaCountAsync()

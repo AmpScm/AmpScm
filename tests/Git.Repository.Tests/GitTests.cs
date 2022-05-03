@@ -635,7 +635,8 @@ namespace GitRepositoryTests
                 int deltaCount = await pf.ReadDeltaCountAsync();
                 if (deltaCount > 0)
                     TestContext.Write($" {deltaCount} delta (body={len})");
-
+                else
+                    Assert.AreEqual(pf.BodySize, len);
                 Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
                 Assert.AreEqual(len.Value, pf.Position, "Expected end position");
 
