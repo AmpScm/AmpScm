@@ -38,7 +38,7 @@ namespace GitRepositoryTests
                 long? offset = b.Position;
                 using var pf = new GitPackFrameBucket(b.NoClose(), GitIdType.Sha1, null);
 
-                await pf.ReadInfoAsync();
+                await pf.ReadTypeAsync();
 
                 TestContext.Write($"Object {i}: type={pf.Type}, offset={offset}");
                 if (pf.DeltaCount > 0)
@@ -612,7 +612,7 @@ namespace GitRepositoryTests
                 using var crcr = b.NoClose().Crc32(c => crc = c);
                 using var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id));
 
-                await pf.ReadInfoAsync();
+                await pf.ReadTypeAsync();
 
                 var len = await pf.ReadRemainingBytesAsync();
 

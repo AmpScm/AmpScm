@@ -21,7 +21,7 @@ namespace AmpScm.Buckets.Git
         {
         }
 
-        public override async ValueTask ReadTypeAsync()
+        public override async ValueTask<GitObjectType> ReadTypeAsync()
         {
             int so = 0;
             while (Type == GitObjectType.None && _startOffset < 2)
@@ -49,7 +49,7 @@ namespace AmpScm.Buckets.Git
                         default:
                             throw new GitBucketException($"Unexpected object type in '{Name}' bucket");
                     }
-                    return; // We know enough
+                    return Type; // We know enough
                 }
                 else if (bb.Length == 1)
                 {
@@ -66,11 +66,13 @@ namespace AmpScm.Buckets.Git
                         default:
                             throw new GitBucketException($"Unexpected object type in '{Name}' bucket");
                     }
-                    return;
+                    return Type;
                 }
                 else
                     throw new GitBucketEofException($"Unexpected EOF in header of '{Name}' bucket");
             }
+
+            return Type;
         }
 
         public override long? Position

@@ -33,16 +33,15 @@ namespace AmpScm.Git.Objects
             return bb;
         }
 
-        public override async ValueTask ReadTypeAsync()
+        public override async ValueTask<GitObjectType> ReadTypeAsync()
         {
             if (Type != GitObjectType.None)
-                return;
+                return Type;
 
             if (_inner == null)
                 _inner = await Repository.ObjectRepository.ResolveById(Id).ConfigureAwait(false) ?? throw new InvalidOperationException($"Can't fetch {Id}");
 
-            await _inner.ReadTypeAsync().ConfigureAwait(false);
-            Type = _inner.Type;
+            return Type = await _inner.ReadTypeAsync().ConfigureAwait(false);
         }
 
         public override BucketBytes Peek()

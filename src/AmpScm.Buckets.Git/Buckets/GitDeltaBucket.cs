@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
+using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    public sealed class GitDeltaBucket : GitBucket, IBucketPoll, IBucketSeek
+    public sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
     {
-        Bucket BaseBucket { get; }
+        GitObjectBucket BaseBucket { get; }
         long length;
         long position;
         readonly byte[] buffer = new byte[8];
@@ -29,7 +30,7 @@ namespace AmpScm.Buckets.Git
             eof
         }
 
-        public GitDeltaBucket(Bucket source, Bucket baseBucket)
+        public GitDeltaBucket(Bucket source, GitObjectBucket baseBucket)
             : base(source)
         {
             BaseBucket = baseBucket ?? throw new ArgumentNullException(nameof(baseBucket));
@@ -436,6 +437,11 @@ namespace AmpScm.Buckets.Git
             copy_offset = 0;
             copy_size = 0;
             p0 = 0;
+        }
+
+        public override ValueTask<GitObjectType> ReadTypeAsync()
+        {
+            return BaseBucket.ReadTypeAsync();
         }
     }
 }

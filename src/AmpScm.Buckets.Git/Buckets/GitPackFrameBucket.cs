@@ -115,14 +115,22 @@ namespace AmpScm.Buckets.Git
             return await reader!.ReadSkipAsync(requested).ConfigureAwait(false);
         }
 
-        public override async ValueTask ReadTypeAsync()
+        public override async ValueTask<GitObjectType> ReadTypeAsync()
         {
             await PrepareState(frame_state.type_done).ConfigureAwait(false);
 
-            Debug.Assert(Type >= GitObjectType.Commit && Type <= GitObjectType.Tag);
+            if ((Type == GitObjectType.None || Type > GitObjectType.Tag)
+                && reader is GitObjectBucket gob)
+            {
+                await gob.ReadTypeAsync().ConfigureAwait(false);
+                Type = gob.Type;
+            }
+
+            Debug.Assert(Type >= GitObjectType.Commit && Type <= GitObjectType.Tag, "Bad Git Type");
+            return Type;
         }
 
-        public ValueTask<bool> ReadInfoAsync()
+        internal ValueTask<bool> ReadInfoAsync()
         {
             return PrepareState(frame_state.body);
         }
@@ -214,6 +222,7 @@ namespace AmpScm.Buckets.Git
                     _deltaId = new GitId(_idType, read.ToArray());
 
                     state = frame_state.find_delta;
+                    DeltaCount = -1;
                 }
                 else if (Type == GitObjectType_DeltaOffset)
                 {
@@ -225,6 +234,7 @@ namespace AmpScm.Buckets.Git
 
                     state = frame_state.find_delta;
                     delta_position = frame_position - delta_position;
+                    DeltaCount = -1;
                 }
                 else
                 {
@@ -258,9 +268,6 @@ namespace AmpScm.Buckets.Git
                     _deltaId = null; // Not used any more
                 }
 
-                await base_reader.ReadTypeAsync().ConfigureAwait(false);
-                Type = base_reader.Type;
-
                 if (base_reader is GitPackFrameBucket fb)
                     DeltaCount = fb.DeltaCount + 1;
                 else
@@ -278,7 +285,7 @@ namespace AmpScm.Buckets.Git
             {
                 var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
                 if (DeltaCount != 0)
-                    reader = new GitDeltaBucket(inner, reader!);
+                    reader = new GitDeltaBucket(inner, (GitObjectBucket)reader!);
                 else
                     reader = inner;
 
@@ -300,7 +307,7 @@ namespace AmpScm.Buckets.Git
                     return null;
             }
 
-            if (DeltaCount > 0)
+            if (DeltaCount != 0)
                 return await reader!.ReadRemainingBytesAsync().ConfigureAwait(false);
             else
                 return body_size - reader!.Position;
