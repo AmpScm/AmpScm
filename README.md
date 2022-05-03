@@ -1,7 +1,7 @@
 # AmpScm - Amplifying your Git Source Code Management
 [![CI](https://github.com/AmpScm/AmpScm/actions/workflows/msbuild.yml/badge.svg)](https://github.com/AmpScm/AmpScm/actions/workflows/msbuild.yml)
 
-This project provides a few layers of tools that allow accessing your repository from .Net without external dependencies. Unlike the libGit2 apis the code is completely managed, 100% *Apache 2 Licensed*, and uses many optional modern Git optimizations (E.g. commit chains, bitmap indexes, etc.) to improve performance over just scanning the repository.
+This project provides a few layers of tools that allow accessing your repository from .Net without external dependencies. Unlike the libGit2 apis the code is completely managed, 100% *Apache 2 Licensed*, and uses many optional modern Git optimizations (E.g. commit chains, bitmap indexes, etc.) to improve performance over just scanning the repository. So all of this is available for Windows, Linux, Mac OS and even mobile platforms with .Net support (Android, iOS).
 
 To allow easy embedding everything is implemented *streamy* instead of  memory mapped files, to allow working in memory restrained circumstances (like 32 bit code), or as plugin in an existing application.
 
