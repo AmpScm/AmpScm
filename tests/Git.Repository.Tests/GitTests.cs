@@ -637,6 +637,7 @@ namespace GitRepositoryTests
                     TestContext.Write($" {deltaCount} delta (body={len})");
                 else
                     Assert.AreEqual(pf.BodySize, len);
+
                 Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
                 Assert.AreEqual(len.Value, pf.Position, "Expected end position");
 
