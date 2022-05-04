@@ -59,9 +59,11 @@ namespace AmpScm.Buckets.Specialized
                 if (buffer == null)
                     buffer = new byte[4096];
 
-#pragma warning disable CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
+#if !NETFRAMEWORK
+                int nRead = await Processed.ReadAsync(buffer).ConfigureAwait(false);
+#else
                 int nRead = await Processed.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-#pragma warning restore CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
+#endif
 
                 if (nRead > 0)
                 {

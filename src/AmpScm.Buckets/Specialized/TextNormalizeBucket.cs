@@ -365,11 +365,10 @@ namespace AmpScm.Buckets.Specialized
                     else if (i == bb.Length - 1 && maybeUtf8 == 0)
                     {
                         var a = bb.ToArray();
-                        byte? b = await Inner.ReadByteAsync().ConfigureAwait(false);
 
-                        if (b is not null)
+                        if (await Inner.ReadByteAsync().ConfigureAwait(false) is byte b)
                         {
-                            bb = a.ArrayAppend(b.Value);
+                            bb = a.ArrayAppend(b);
                             i--;
                         }
                         else

@@ -31,8 +31,8 @@ namespace AmpScm.Buckets
 
         public Bucket Append(Bucket bucket)
         {
-            if (bucket is null)
-                throw new ArgumentNullException(nameof(bucket));
+            if (bucket is null || bucket is EmptyBucket)
+                return this;
 
             lock (LockOn)
             {
@@ -61,8 +61,8 @@ namespace AmpScm.Buckets
 
         public Bucket Prepend(Bucket bucket)
         {
-            if (bucket is null)
-                throw new ArgumentNullException(nameof(bucket));
+            if (bucket is null || bucket is EmptyBucket)
+                return this;
 
             if (!_keepOpen && _n > 0)
                 _buckets[--_n] = bucket;

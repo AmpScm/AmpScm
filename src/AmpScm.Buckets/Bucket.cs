@@ -183,7 +183,7 @@ namespace AmpScm.Buckets
             return default;
         }
 
-        sealed class EmptyBucket : Bucket
+        private protected sealed class EmptyBucket : Bucket
         {
             public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
             {
