@@ -111,7 +111,7 @@ namespace AmpScm.Buckets.Specialized
                 return sb;
             }
             else
-                throw new InvalidOperationException();
+                throw new ArgumentException("Passed bucket must support position", nameof(bucket));
         }
 
         protected override PositionBucket NewPositionBucket(Bucket duplicatedInner)

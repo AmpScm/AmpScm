@@ -114,6 +114,32 @@ namespace AmpScm.Buckets.Wrappers
         }
 #endif
 
+        public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+        {
+            if (destination is null)
+                throw new ArgumentNullException(nameof(destination));
+
+            while(true)
+            {
+                var bb = await Bucket.ReadAsync().ConfigureAwait(false);
+
+                if (bb.IsEof)
+                    return;
+
+                await destination.WriteAsync(bb, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+#if !NETFRAMEWORK
+        public override void CopyTo(Stream destination, int bufferSize)
+#else
+        public new void CopyTo(Stream destination, int bufferSize)
+#endif
+
+        {
+            CopyToAsync(destination, bufferSize).Wait();
+        }
+
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
         {
             var valuetask = DoReadAsync(new Memory<byte>(buffer, offset, count));

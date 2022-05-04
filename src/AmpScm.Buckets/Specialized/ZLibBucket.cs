@@ -37,7 +37,7 @@ namespace AmpScm.Buckets.Specialized
             _innerPoll = inner as IBucketPoll;
         }
 
-        public override string Name => $"ZLib[{_algorithm}{(_level is null ? "Compress" : "Decompress")}>{Inner.Name}";
+        public override string Name => $"ZLib[{_algorithm}{(_level is null ? "Compress" : "Decompress")}]>{Inner.Name}";
 
         void ZSetup()
         {

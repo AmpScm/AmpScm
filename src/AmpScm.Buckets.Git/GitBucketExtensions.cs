@@ -119,59 +119,56 @@ namespace AmpScm.Git
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            long max_delta_size_len = 1 + (64 + 6) / 7;
-
-            var polled = await bucket.PollAsync().ConfigureAwait(false);
-            int rq_len;
-
-            if (!polled.IsEmpty)
-            {
-                rq_len = 1;
-                for (int i = 0; i < polled.Length; i++)
-                {
-                    if (0 == (polled[i] & 0x80))
-                        break;
-                    rq_len++;
-                }
-                Debug.Assert(rq_len <= polled.Length + 1);
-            }
-            else
-                rq_len = 1;
-
-            if (rq_len > max_delta_size_len)
-                throw new GitBucketException($"GitOffset overflows 64 bit integer in {bucket.Name} Bucket");
-
-            var read = await bucket.ReadAsync(rq_len).ConfigureAwait(false);
-            int position = 0;
+            long max_offset_len = 1 + 64 / 7;
             long delta_position = 0;
 
-            for (int i = 0; i < read.Length; i++)
+            for (int i = 0; i <= max_offset_len; i++)
             {
-                byte uc = read[i];
+                var data = await bucket.ReadAsync(1).ConfigureAwait(false);
 
-                if (position > 0)
+                if (data.IsEof)
+                    throw new GitBucketEofException($"Unexpected EOF on {bucket.Name} Bucket");
+
+                byte uc = data[0];
+
+                if (i > 0)
                     delta_position = (delta_position + 1) << 7;
 
                 delta_position |= (long)(uc & 0x7F);
-                position++;
-
-                if (position > max_delta_size_len)
-                    throw new GitBucketException($"GitOffset overflows 64 bit integer in {bucket.Name} Bucket");
 
                 if (0 == (uc & 0x80))
                 {
-                    Debug.Assert(i == read.Length - 1);
                     return delta_position;
-                }
-                else if (i == read.Length -1)
-                {
-                    // Not enough data read yet. Read another byte and continue :(
-                    read = await bucket.ReadAsync(1).ConfigureAwait(false);
-                    i = -1;
                 }
             }
 
-            throw new BucketException($"Invalid GitOffset in {bucket.Name} Bucket");
+            throw new GitBucketException($"Git Offset overflows 64 bit integer in {bucket.Name} Bucket");
+        }
+
+        public static async ValueTask<long> ReadGitDeltaSize(this Bucket bucket)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            long max_delta_size_len = 1 + 64 / 7;
+            long size = 0;
+            for (int i = 0; i < max_delta_size_len; i++)
+            {
+                var data = await bucket.ReadAsync(1).ConfigureAwait(false);
+
+                if (data.IsEof)
+                    throw new GitBucketEofException($"Unexpected EOF on {bucket.Name} Bucket");
+
+                byte uc = data[0];
+
+                int shift = (i * 7);
+                size |= (long)(uc & 0x7F) << shift;
+
+                if (0 == (data[0] & 0x80))
+                    return size;
+            }
+
+            throw new GitBucketException($"Git Delta Size overflows 64 bit integer in {bucket.Name} Bucket");
         }
     }
 }
