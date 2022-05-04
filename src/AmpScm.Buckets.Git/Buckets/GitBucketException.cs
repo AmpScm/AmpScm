@@ -15,7 +15,7 @@ namespace AmpScm.Buckets.Git
         {
         }
 
-        public GitBucketException(string message)
+        public GitBucketException(string? message)
             : base(message)
         {
 

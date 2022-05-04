@@ -42,7 +42,7 @@ namespace AmpScm.Buckets
                 var r = await Bucket.ReadAsync(readBytes).ConfigureAwait(false);
 
                 if (r.IsEmpty)
-                    throw new BucketException("EOF during poll consume");
+                    throw new BucketEofException($"EOF during poll consume of {Bucket.Name}");
 
                 readBytes -= r.Length;
             }

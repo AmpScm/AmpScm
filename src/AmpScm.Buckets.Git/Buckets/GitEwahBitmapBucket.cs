@@ -160,7 +160,7 @@ namespace AmpScm.Buckets.Git
                         var bb = await Inner.ReadFullAsync(sizeof(ulong)).ConfigureAwait(false);
 
                         if (bb.Length != sizeof(ulong))
-                            throw new GitBucketEofException($"Unexpected EOF in {Name} Bucket");
+                            throw new GitBucketEofException(Inner);
 
                         peekLength--;
                         _left--;

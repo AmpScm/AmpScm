@@ -291,7 +291,7 @@ namespace AmpScm.Buckets.Specialized
             var bb = await bucket.ReadFullAsync(sizeof(int)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(uint))
-                throw new BucketException($"Unexpected EOF while reading from {bucket.Name} bucket");
+                throw new BucketEofException(bucket);
 
             return NetBitConverter.ToInt32(bb, 0);
         }
@@ -331,7 +331,7 @@ namespace AmpScm.Buckets.Specialized
             var bb = await bucket.ReadFullAsync(sizeof(uint)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(uint))
-                throw new BucketException($"Unexpected EOF while reading from {bucket.Name} bucket");
+                throw new BucketEofException(bucket);
 
             return NetBitConverter.ToUInt32(bb, 0);
         }
@@ -350,7 +350,7 @@ namespace AmpScm.Buckets.Specialized
             var bb = await bucket.ReadFullAsync(sizeof(long)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(ulong))
-                throw new BucketException($"Unexpected EOF while reading from {bucket.Name} bucket");
+                throw new BucketEofException(bucket);
 
             return NetBitConverter.ToInt64(bb, 0);
         }
@@ -370,7 +370,7 @@ namespace AmpScm.Buckets.Specialized
             var bb = await bucket.ReadFullAsync(sizeof(ulong)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(ulong))
-                throw new BucketException($"Unexpected EOF while reading from {bucket.Name} bucket");
+                throw new BucketEofException(bucket);
 
             return NetBitConverter.ToUInt64(bb, 0);
         }

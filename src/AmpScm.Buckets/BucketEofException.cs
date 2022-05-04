@@ -26,12 +26,9 @@ namespace AmpScm.Buckets
         {
         }
 
-        public static BucketEofException Throw(Bucket bucket)
+        internal BucketEofException(Bucket bucket)
+            : this($"Unexpected EOF in {bucket?.Name ?? "NULL"} Bucket")
         {
-            if (bucket == null)
-                throw new BucketEofException("Unexpected EOF in Bucket");
-            else
-                throw new BucketEofException($"Unexpected EOF in {bucket.Name} Bucket");
         }
     }
 }

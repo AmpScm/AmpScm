@@ -185,7 +185,6 @@ override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.BucketEofException.Throw(AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.BucketEofException!
 static AmpScm.Buckets.BucketExtensions.All<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> bool
 static AmpScm.Buckets.BucketExtensions.Any<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> bool
 static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! bucket) -> AmpScm.Buckets.Bucket!

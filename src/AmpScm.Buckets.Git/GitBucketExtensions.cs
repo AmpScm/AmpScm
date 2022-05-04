@@ -111,7 +111,7 @@ namespace AmpScm.Git
             if (bb.Length == hl)
                 return new GitId(type, bb.ToArray());
             else
-                throw new GitBucketEofException($"Unexpected EOF while reading GitId from {bucket.Name} Bucket");
+                throw new GitBucketEofException(bucket);
         }
 
         public static async ValueTask<long> ReadGitOffsetAsync(this Bucket bucket)
@@ -127,7 +127,7 @@ namespace AmpScm.Git
                 var data = await bucket.ReadAsync(1).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new GitBucketEofException($"Unexpected EOF on {bucket.Name} Bucket");
+                    throw new GitBucketEofException(bucket);
 
                 byte uc = data[0];
 
@@ -157,7 +157,7 @@ namespace AmpScm.Git
                 var data = await bucket.ReadAsync(1).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new GitBucketEofException($"Unexpected EOF on {bucket.Name} Bucket");
+                    throw new GitBucketEofException(bucket);
 
                 byte uc = data[0];
 

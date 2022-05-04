@@ -86,7 +86,7 @@ namespace AmpScm.Buckets.Git
                 data = await Inner.ReadAsync(1).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new GitBucketEofException();
+                    throw new GitBucketEofException(Inner);
 
                 uc = data[0];
 
@@ -107,6 +107,9 @@ namespace AmpScm.Buckets.Git
                     if (want > 0)
                     {
                         data = await Inner.ReadFullAsync(want).ConfigureAwait(false);
+
+                        if (data.Length < want)
+                            throw new GitBucketEofException(Inner);
 
                         int i = 0;
 

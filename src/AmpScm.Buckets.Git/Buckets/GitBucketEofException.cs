@@ -10,15 +10,15 @@ namespace AmpScm.Buckets.Git
     [Serializable]
     public class GitBucketEofException : BucketEofException
     {
-        public GitBucketEofException(string message) : base(message)
-        {
-        }
-
         public GitBucketEofException()
         {
         }
 
-        public GitBucketEofException(string message, Exception innerException) : base(message, innerException)
+        public GitBucketEofException(string? message) : base(message)
+        {
+        }
+
+        public GitBucketEofException(string? message, Exception innerException) : base(message, innerException)
         {
         }
 
@@ -26,12 +26,9 @@ namespace AmpScm.Buckets.Git
         {
         }
 
-        public static new GitBucketEofException Throw(Bucket bucket)
+        internal GitBucketEofException(Bucket bucket)
+            : this($"Unexpected EOF in {bucket?.Name ?? "NULL"} Bucket")
         {
-            if (bucket == null)
-                throw new GitBucketEofException("Unexpected EOF in Bucket");
-            else
-                throw new GitBucketEofException($"Unexpected EOF in {bucket.Name} Bucket");
         }
     }
 }

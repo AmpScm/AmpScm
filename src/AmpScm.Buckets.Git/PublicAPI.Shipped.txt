@@ -10,12 +10,12 @@ AmpScm.Buckets.Git.GitBucket
 AmpScm.Buckets.Git.GitBucket.GitBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitBucketEofException
 AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException() -> void
-AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string! message) -> void
-AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string! message, System.Exception! innerException) -> void
+AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string? message) -> void
+AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(string? message, System.Exception! innerException) -> void
 AmpScm.Buckets.Git.GitBucketEofException.GitBucketEofException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.Git.GitBucketException
 AmpScm.Buckets.Git.GitBucketException.GitBucketException() -> void
-AmpScm.Buckets.Git.GitBucketException.GitBucketException(string! message) -> void
+AmpScm.Buckets.Git.GitBucketException.GitBucketException(string? message) -> void
 AmpScm.Buckets.Git.GitBucketException.GitBucketException(string? message, System.Exception? innerException) -> void
 AmpScm.Buckets.Git.GitBucketException.GitBucketException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.Git.GitCommitGenerationValue
@@ -110,7 +110,7 @@ AmpScm.Buckets.Git.Objects.GitTreeReadBucket.ReadTreeElementRecord() -> System.T
 AmpScm.Git.GitBucketExtensions
 AmpScm.Git.GitException
 AmpScm.Git.GitException.GitException() -> void
-AmpScm.Git.GitException.GitException(string! message) -> void
+AmpScm.Git.GitException.GitException(string? message) -> void
 AmpScm.Git.GitException.GitException(string? message, System.Exception? innerException) -> void
 AmpScm.Git.GitException.GitException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Git.GitId
@@ -187,7 +187,6 @@ override AmpScm.Buckets.Git.Objects.GitTreeReadBucket.ReadAsync(int requested = 
 override AmpScm.Git.GitId.Equals(object? obj) -> bool
 override AmpScm.Git.GitId.GetHashCode() -> int
 override AmpScm.Git.GitId.ToString() -> string!
-static AmpScm.Buckets.Git.GitBucketEofException.Throw(AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Git.GitBucketEofException!
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitCommitGenerationValue.operator !=(AmpScm.Buckets.Git.GitCommitGenerationValue left, AmpScm.Buckets.Git.GitCommitGenerationValue right) -> bool
 static AmpScm.Buckets.Git.GitCommitGenerationValue.operator ==(AmpScm.Buckets.Git.GitCommitGenerationValue left, AmpScm.Buckets.Git.GitCommitGenerationValue right) -> bool

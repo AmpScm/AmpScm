@@ -97,7 +97,7 @@ namespace AmpScm.Buckets.Specialized
 
                                 bb = await Inner.ReadAsync(2).ConfigureAwait(false);
                                 if (bb.Length != 2)
-                                    throw new BucketException($"Unexpected EOF in {Name}");
+                                    throw new BucketEofException(Inner);
                                 _state = State.Done;
 
                                 bb = await _inner.ReadAsync(requested).ConfigureAwait(false);

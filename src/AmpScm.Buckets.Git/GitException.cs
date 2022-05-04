@@ -14,7 +14,7 @@ namespace AmpScm.Git
         {
         }
 
-        public GitException(string message)
+        public GitException(string? message)
             : base(message)
         {
 

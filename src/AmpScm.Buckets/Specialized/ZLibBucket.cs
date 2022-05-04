@@ -222,7 +222,7 @@ namespace AmpScm.Buckets.Specialized
 
                     var now_read = await Inner.ReadAsync(to_read).ConfigureAwait(false);
                     if (now_read.Length != to_read)
-                        throw new BucketException($"Read on {Inner.Name} did not complete as promissed by peek");
+                        throw new BucketException($"Read on {Inner.Name} did not complete as promised by peek");
                 }
                 else
                     read_buffer = read_buffer.Slice(_z.NextInIndex - rb_offs);

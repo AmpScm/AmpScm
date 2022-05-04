@@ -229,7 +229,7 @@ namespace AmpScm.Buckets.Git
 
             for (int i = 0; i <= max_size_len; i++)
             {
-                byte uc = await Inner.ReadByteAsync().ConfigureAwait(false) ?? throw new GitBucketEofException($"Unexpected EOF in {Name} Bucket");
+                byte uc = await Inner.ReadByteAsync().ConfigureAwait(false) ?? throw new GitBucketEofException(Inner);
 
                 if (i == 0)
                 {
