@@ -39,7 +39,7 @@ namespace AmpScm.Buckets.Git
             if (bb.IsEof)
                 return bb;
             else if (bb.Length < 4)
-                throw new GitBucketEofException(this);
+                throw new BucketEofException(this);
 
             _packetLength = Convert.ToInt32(bb.ToASCIIString(), 16);
 
@@ -51,7 +51,7 @@ namespace AmpScm.Buckets.Git
             if (bb.Length == _packetLength-4)
                 return bb;
             else
-                throw new GitBucketEofException(Inner);
+                throw new BucketEofException(Inner);
         }
     }
 }

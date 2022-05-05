@@ -158,7 +158,7 @@ namespace AmpScm.Buckets.Git
                 else if (Type == GitObjectType_DeltaOffset)
                 {
                     // Body starts with negative offset of the delta base.
-                    var dp = await Inner.ReadGitOffsetAsync().ConfigureAwait(false);
+                    var dp = await Inner.ReadGitDeltaOffsetAsync().ConfigureAwait(false);
 
                     if (dp > delta_position)
                         throw new GitBucketException($"Delta position must point to earlier object in {Name} Bucket");
@@ -229,7 +229,7 @@ namespace AmpScm.Buckets.Git
 
             for (int i = 0; i <= max_size_len; i++)
             {
-                byte uc = await Inner.ReadByteAsync().ConfigureAwait(false) ?? throw new GitBucketEofException(Inner);
+                byte uc = await Inner.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Inner);
 
                 if (i == 0)
                 {

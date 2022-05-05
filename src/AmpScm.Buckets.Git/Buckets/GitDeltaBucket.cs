@@ -86,7 +86,7 @@ namespace AmpScm.Buckets.Git
                 data = await Inner.ReadAsync(1).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new GitBucketEofException(Inner);
+                    throw new BucketEofException(Inner);
 
                 uc = data[0];
 
@@ -109,7 +109,7 @@ namespace AmpScm.Buckets.Git
                         data = await Inner.ReadFullAsync(want).ConfigureAwait(false);
 
                         if (data.Length < want)
-                            throw new GitBucketEofException(Inner);
+                            throw new BucketEofException(Inner);
 
                         int i = 0;
 
@@ -160,7 +160,7 @@ namespace AmpScm.Buckets.Git
                 var data = await BaseBucket.ReadAsync(Math.Min(requested, _copySize)).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new GitBucketEofException($"Unexpected EOF on Base {BaseBucket.Name} Bucket");
+                    throw new BucketEofException($"Unexpected EOF on Base {BaseBucket.Name} Bucket");
 
                 _position += data.Length;
                 _copySize -= data.Length;
@@ -179,7 +179,7 @@ namespace AmpScm.Buckets.Git
                 var data = await Inner.ReadAsync(Math.Min(requested, _copySize)).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new GitBucketEofException($"Unexpected EOF on Source {Inner.Name} Bucket");
+                    throw new BucketEofException($"Unexpected EOF on Source {Inner.Name} Bucket");
 
                 _position += data.Length;
                 _copySize -= data.Length;

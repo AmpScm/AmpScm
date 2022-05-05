@@ -69,7 +69,7 @@ namespace AmpScm.Buckets.Git
                     return Type;
                 }
                 else
-                    throw new GitBucketEofException(Inner);
+                    throw new BucketEofException(Inner);
             }
 
             return Type;

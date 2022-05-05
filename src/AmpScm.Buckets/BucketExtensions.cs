@@ -270,7 +270,7 @@ namespace AmpScm.Buckets
             {
                 bt = new byte[ro.Count + bytes.Length];
                 int i = 0;
-                foreach(var b in ro)
+                foreach (var b in ro)
                 {
                     bt[i++] = b;
                 }
@@ -332,12 +332,29 @@ namespace AmpScm.Buckets
             };
         }
 
+        //public static async ValueTask<BucketBytes> ReadUntilAsync(this Bucket bucket, Func<byte, bool> predicate, int pollSize = 1, int maxRequested = int.MaxValue)
+        //{
+        //    if (bucket is null)
+        //        throw new ArgumentNullException(nameof(bucket));
+        //
+        //    var bb = await bucket.PollAsync(pollSize).ConfigureAwait(false);
+        //
+        //    if (bb.IsEof)
+        //        return bb;
+        //
+        //    int n = bb.Span.IndexOf(predicate);
+        //
+        //    return await bucket.ReadAsync(n >= 0 ? n + 1 : bb.Length + 1).ConfigureAwait(false);
+        //}
+
+
         public static bool All<T>(this ReadOnlySpan<T> span, Func<T, bool> predicate)
+            where T : struct
         {
             if (predicate is null)
                 throw new ArgumentNullException(nameof(predicate));
 
-            foreach(var i in span)
+            foreach (var i in span)
             {
                 if (!predicate(i))
                     return false;
@@ -346,6 +363,7 @@ namespace AmpScm.Buckets
         }
 
         public static bool Any<T>(this ReadOnlySpan<T> span, Func<T, bool> predicate)
+            where T : struct
         {
             if (predicate is null)
                 throw new ArgumentNullException(nameof(predicate));
@@ -356,6 +374,20 @@ namespace AmpScm.Buckets
                     return true;
             }
             return false;
+        }
+
+        public static int IndexOf<T>(this ReadOnlySpan<T> span, Func<T, bool> predicate)
+            where T : struct
+        {
+            if (predicate is null)
+                throw new ArgumentNullException(nameof(predicate));
+
+            for (int i = 0; i < span.Length; i++)
+            {
+                if (predicate(span[i]))
+                    return i;
+            }
+            return -1;
         }
     }
 }

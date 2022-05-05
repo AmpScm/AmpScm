@@ -26,7 +26,11 @@ namespace AmpScm.Buckets
         {
         }
 
-        internal BucketEofException(Bucket bucket)
+        /// <summary>
+        /// Constructs a <see cref="BucketEofException"/> for an EOF on the <paramref name="bucket"/> Bucket.
+        /// </summary>
+        /// <param name="bucket"></param>
+        public BucketEofException(Bucket bucket)
             : this($"Unexpected EOF in {bucket?.Name ?? "NULL"} Bucket")
         {
         }

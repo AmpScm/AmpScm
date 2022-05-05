@@ -94,81 +94,10 @@ namespace AmpScm.Git
                 case GitIdType.Sha1:
                     return bucket.SHA1(x => created(new GitId(type, x)));
                 case GitIdType.Sha256:
-                    return bucket.SHA256(x=>created(new GitId(type, x)));
+                    return bucket.SHA256(x => created(new GitId(type, x)));
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type));
             }
-        }
-
-        public static async ValueTask<GitId> ReadGitIdAsync(this Bucket bucket, GitIdType type)
-        {
-            if (bucket is null)
-                throw new ArgumentNullException(nameof(bucket));
-
-            int hl = type.HashLength();
-            var bb = await bucket.ReadFullAsync(hl).ConfigureAwait(false);
-
-            if (bb.Length == hl)
-                return new GitId(type, bb.ToArray());
-            else
-                throw new GitBucketEofException(bucket);
-        }
-
-        public static async ValueTask<long> ReadGitOffsetAsync(this Bucket bucket)
-        {
-            if (bucket is null)
-                throw new ArgumentNullException(nameof(bucket));
-
-            long max_offset_len = 1 + 64 / 7;
-            long delta_position = 0;
-
-            for (int i = 0; i <= max_offset_len; i++)
-            {
-                var data = await bucket.ReadAsync(1).ConfigureAwait(false);
-
-                if (data.IsEof)
-                    throw new GitBucketEofException(bucket);
-
-                byte uc = data[0];
-
-                if (i > 0)
-                    delta_position = (delta_position + 1) << 7;
-
-                delta_position |= (long)(uc & 0x7F);
-
-                if (0 == (uc & 0x80))
-                {
-                    return delta_position;
-                }
-            }
-
-            throw new GitBucketException($"Git Offset overflows 64 bit integer in {bucket.Name} Bucket");
-        }
-
-        public static async ValueTask<long> ReadGitDeltaSize(this Bucket bucket)
-        {
-            if (bucket is null)
-                throw new ArgumentNullException(nameof(bucket));
-
-            long max_delta_size_len = 1 + 64 / 7;
-            long size = 0;
-            for (int i = 0; i < max_delta_size_len; i++)
-            {
-                var data = await bucket.ReadAsync(1).ConfigureAwait(false);
-
-                if (data.IsEof)
-                    throw new GitBucketEofException(bucket);
-
-                byte uc = data[0];
-
-                int shift = (i * 7);
-                size |= (long)(uc & 0x7F) << shift;
-
-                if (0 == (data[0] & 0x80))
-                    return size;
-            }
-
-            throw new GitBucketException($"Git Delta Size overflows 64 bit integer in {bucket.Name} Bucket");
         }
     }
 }
