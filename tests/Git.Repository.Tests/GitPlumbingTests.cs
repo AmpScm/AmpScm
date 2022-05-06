@@ -71,6 +71,8 @@ namespace GitRepositoryTests
                                 parts[i] = "variable";
                             else if (parts[i] == "fsck")
                                 parts[i] = "ConsistencyCheck";
+                            else if (parts[i] == "gc")
+                                parts[i] = "GC";
                         }
 
                         string name = string.Join("", parts.Select(x => x.Substring(0, 1).ToUpperInvariant() + x.Substring(1)));
