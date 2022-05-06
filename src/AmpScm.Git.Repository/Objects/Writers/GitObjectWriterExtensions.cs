@@ -67,7 +67,7 @@ namespace AmpScm.Git.Objects
             if (tag is null)
                 throw new ArgumentNullException(nameof(tag));
 
-            var tw = GitTagObjectWriter.Create(tag.GitObject);
+            var tw = GitTagObjectWriter.Create((IGitLazy<GitObject>)tag.GitObject, tag.Name!);
 
             tw.PutId(tag.Id);
             return tw;

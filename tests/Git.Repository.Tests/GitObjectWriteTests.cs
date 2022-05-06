@@ -43,12 +43,6 @@ namespace GitRepositoryTests
             Assert.AreEqual($"dangling tree {treeId}", fsckOutput);
         }
 
-        class RepoItem
-        {
-            public string Name { get; set; } = default!;
-            public string? Content { get; set; }
-        }
-
         [TestMethod]
         public async Task CreateSvnTree()
         {
@@ -196,6 +190,15 @@ namespace GitRepositoryTests
             await repo.GetPlumbing().UpdateReference(
                 new GitUpdateReference { Name = refName!, Target = cs.Id },
                 new GitUpdateReferenceArgs { Message = "Testing" });
+
+            var ct = GitTagObjectWriter.Create(cs, "v0.1");
+            ct.TagMessage = "Tag second Commit";
+
+            var tag = await ct.WriteAndFetchAsync(repo);
+
+            await repo.GetPlumbing().UpdateReference(
+                new GitUpdateReference { Name = $"refs/tags/{tag.Name}", Target = ct.Id },
+                new GitUpdateReferenceArgs { Message = "Apply tag" });
 
             fsckOutput = await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
             Assert.AreEqual($"", fsckOutput);

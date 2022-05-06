@@ -17,7 +17,7 @@ namespace GitRepositoryTests
     {
         public TestContext TestContext { get; set; } = null!;
 
-        static List<string> TestRepositories { get; } = GetTestRepositories().ToList();
+        static List<string> TestRepositories { get; } = GetTestRepositories().Concat(GitTestEnvironment.TestDirectories.Select(x=> $">{x}")).ToList();
 
         static IEnumerable<string> GetTestRepositories()
         {
@@ -45,6 +45,9 @@ namespace GitRepositoryTests
         [DynamicData(nameof(TestRepositoryArgs))]
         public async Task CanOpenRepository(string path)
         {
+            if (path.Contains('>'))
+                path = GitTestEnvironment.GetRepository((GitTestDir)Enum.Parse(typeof(GitTestDir), path.Substring(1)));
+
             using var repo = GitRepository.Open(path);
             TestContext.WriteLine($"Looking at {repo}");
             TestContext.Write($" from {repo.Remotes["origin"]?.Url}");
@@ -89,6 +92,13 @@ namespace GitRepositoryTests
         [DynamicData(nameof(TestRepositoryArgs))]
         public async Task WalkHistory(string path)
         {
+            //bool small = false;
+            if (path.Contains('>'))
+            {
+                path = GitTestEnvironment.GetRepository((GitTestDir)Enum.Parse(typeof(GitTestDir), path.Substring(1)));
+                return;
+            }
+
             using var repo = GitRepository.Open(path);
 
             if (repo.IsShallow)
@@ -134,40 +144,29 @@ namespace GitRepositoryTests
         }
 
 
-        public static IEnumerable<object[]> TestRepositoryArgsBitmapAndRev => TestRepositoryArgs.Where(x => x[0] is string s && Directory.EnumerateFiles(Path.Combine(s, ".git", "objects", "pack"), "*.bitmap").Any()).Concat(new[] { "0", "1", "2", "3" }.Select(x => new[] { ">" + x }));
+        public static IEnumerable<object[]> TestRepositoryArgsBitmapAndRev => TestRepositoryArgs.Where(x => x[0] is string s && (s.Contains('>') || Directory.EnumerateFiles(Path.Combine(s, ".git", "objects", "pack"), "*.bitmap").Any()));
         [TestMethod]
         [DynamicData(nameof(TestRepositoryArgsBitmapAndRev))]
         public async Task WalkObjectsViaBitmap(string path)
         {
             if (path.Contains('>'))
-            {
-                var pp = path.Substring(1);
-                GitRepository gc = GitRepository.Open(typeof(GitRepositoryWalks).Assembly.Location);
-                path = TestContext.PerTestDirectory(pp);
+                path = GitTestEnvironment.GetRepository((GitTestDir)Enum.Parse(typeof(GitTestDir), path.Substring(1)));
 
-                await gc.GetPlumbing().RunRawCommand("clone", new[] { "--bare", gc.FullPath, path });
-
-                gc = GitRepository.Open(path);
-                Assert.AreEqual(path, gc.FullPath);
-
-                int p = int.Parse(pp);
-
-                await gc.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = (1 == (p & 1)), WriteMultiPack = (2 == (p & 2)), SinglePack = true });
-            }
             using var repo = await GitRepository.OpenAsync(path);
 
             Assert.IsTrue(repo.Commits.Count() > 0);
             Assert.IsTrue(repo.Trees.Count() > 0);
             Assert.IsTrue(repo.Blobs.Count() > 0);
             Assert.IsTrue(repo.TagObjects.Count() > 0);
-
-            await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs { });
         }
 
         [TestMethod]
         [DynamicData(nameof(TestRepositoryArgs))]
         public async Task WalkTreeLinkItems(string path)
         {
+            if (path.Contains('>'))
+                path = GitTestEnvironment.GetRepository((GitTestDir)Enum.Parse(typeof(GitTestDir), path.Substring(1)));
+
             using var repo = await GitRepository.OpenAsync(path);
 
             GitTree tree = repo.Head.Tree!;

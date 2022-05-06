@@ -73,6 +73,17 @@ namespace AmpScm.Git
             }
         }
 
+        public string? Name
+        {
+            get
+            {
+                if (_name is null)
+                    Read();
+
+                return _name;
+            }
+        }
+
         public string? Summary
         {
             get

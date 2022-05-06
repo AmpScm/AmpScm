@@ -585,6 +585,113 @@ namespace GitRepositoryTests
         }
 
         [TestMethod]
+        public async Task WalkSvnPack()
+        {
+            string packFile = Directory.GetFiles(Path.Combine(GitTestEnvironment.GetRepository(GitTestDir.Packed), ".git/objects/pack"), "*.pack").First();
+
+            byte[]? fileChecksum = null;
+            using var srcFile = FileBucket.OpenRead(packFile, false);
+
+            long l = (await srcFile.ReadRemainingBytesAsync()).Value;
+
+            using var b = srcFile.Take(l - 20).SHA1(x => fileChecksum = x);
+
+            var gh = new GitPackHeaderBucket(b.NoClose());
+
+            var r = await gh.ReadAsync();
+            Assert.IsTrue(r.IsEof);
+
+            Assert.AreEqual("PACK", gh.GitType);
+            Assert.AreEqual(2, gh.Version);
+            //Assert.AreEqual(70, gh.ObjectCount);
+            TestContext.WriteLine("sha1 type body-length entry-length offset [delta-count]");
+
+            var hashes = new SortedList<GitId, (long, int)>();
+            for (int i = 0; i < gh.ObjectCount; i++)
+            {
+                long? offset = b.Position;
+                int crc = 0;
+                using var crcr = b.NoClose().Crc32(c => crc = c);
+                using var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id));
+
+                var type = await pf.ReadTypeAsync();
+
+                var len = await pf.ReadRemainingBytesAsync();
+
+                Assert.AreEqual(0L, pf.Position);
+
+                GitId? checksum = null;
+
+                var hdr = type.CreateHeader(len.Value);
+                var hdrLen = await hdr.ReadRemainingBytesAsync();
+
+                var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
+
+                var data = await csum.ReadToEnd();
+
+
+                TestContext.Write(checksum?.ToString());
+
+                TestContext.Write($" {type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {b.Position - offset} {offset}");
+                int deltaCount = await pf.ReadDeltaCountAsync();
+                if (deltaCount > 0)
+                    TestContext.Write($" {deltaCount} delta (body={len})");
+                else
+                    Assert.AreEqual(pf.BodySize, len);
+
+                Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
+                Assert.AreEqual(len.Value, pf.Position, "Expected end position");
+
+                pf.Dispose();
+                TestContext.WriteLine();
+
+                hashes.Add(checksum!, (offset!.Value, crc));
+            }
+
+            var eofCheck = await b.ReadAsync();
+
+            Assert.IsTrue(eofCheck.IsEof);
+            Assert.IsNotNull(fileChecksum);
+
+            int[] fanOut = new int[256];
+
+            foreach (var v in hashes)
+            {
+                fanOut[v.Key[0]]++;
+            }
+
+            for (int i = 0, last = 0; i < fanOut.Length; i++)
+            {
+                last = (fanOut[i] += last);
+            }
+
+            // Let's assume v2 pack index files
+            Bucket index = new byte[] { 255, (byte)'t', (byte)'O', (byte)'c' }.AsBucket();
+            index += NetBitConverter.GetBytes((int)2).AsBucket();
+
+            // Fanout table
+            index += fanOut.SelectMany(x => NetBitConverter.GetBytes(x)).ToArray().AsBucket();
+            // Hashes
+            index += new AggregateBucket(hashes.Keys.SelectMany(x => x.Hash.ToArray()).ToArray().AsBucket());
+
+            TestContext.WriteLine($"CRCs start at {await index.ReadRemainingBytesAsync()}");
+            // CRC32 values of packed data
+            index += new AggregateBucket(hashes.Values.Select(x => NetBitConverter.GetBytes(x.Item2).AsBucket()).ToArray());
+            // File offsets
+            index += new AggregateBucket(hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x.Item1).AsBucket()).ToArray());
+
+            index += fileChecksum.AsBucket();
+
+            using var indexFile = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"), false);
+            long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
+
+            byte[]? idxChecksum = null;
+            using var idxData = indexFile.Take(lIdx - 20).SHA1(x => idxChecksum = x);
+
+            await Assert.That.BucketsEqual(idxData, index);
+        }
+
+        [TestMethod]
         [DynamicData(nameof(LocalPacks))]
         public async Task WalkLocalPacks(string packFile)
         {

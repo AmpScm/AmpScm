@@ -11,6 +11,8 @@ namespace AmpScm.Git.Objects
     {
         GitId? Id { get; }
 
+        GitObjectType Type { get; }
+
         ValueTask<GitId> WriteToAsync(GitRepository repository);
     }
 }

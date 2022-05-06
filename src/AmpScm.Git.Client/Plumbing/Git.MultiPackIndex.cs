@@ -6,11 +6,21 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Git.Client.Plumbing
 {
+
+    public enum GitMultiPackIndexCommand
+    {
+        Write,
+        Verify,
+        Repack,
+    }
     public class GitMultiPackIndexArgs : GitPlumbingArgs
     {
+        public GitMultiPackIndexCommand Command { get; set; }
+
+        public bool? Bitmap { get; set; }
         public override void Verify()
         {
-            throw new NotImplementedException();
+
         }
     }
 
@@ -20,9 +30,24 @@ namespace AmpScm.Git.Client.Plumbing
         public static async ValueTask MultiPackIndex(this GitPlumbingClient c, GitMultiPackIndexArgs a)
         {
             a.Verify();
-            //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
-            await c.ThrowNotImplemented();
+            List<string> args = new();
+
+            args.Add(a.Command switch
+            {
+                GitMultiPackIndexCommand.Write => "write",
+                GitMultiPackIndexCommand.Verify => "verify",
+                GitMultiPackIndexCommand.Repack => "repack",
+                _ => throw new ArgumentException()
+            });
+
+            // Bitmap is nullable. Handle the two explicit states
+            if (a.Bitmap == true)
+                args.Add("--bitmap");
+            else if (a.Bitmap == false)
+                args.Add("--no-bitmap");
+
+            await c.Repository.RunPlumbingCommandOut("multi-pack-index", args.ToArray());
         }
     }
 }
