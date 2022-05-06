@@ -137,7 +137,7 @@ namespace AmpScm.Buckets.Git
                         i++;
                         subGroupStart = i;
 
-                        while(i < line.Length)
+                        while (i < line.Length)
                         {
                             if (line[i] == '\\' && line.Length + 1 < line.Length)
                             {
@@ -183,7 +183,7 @@ namespace AmpScm.Buckets.Git
                 {
                     int i = 0;
                     string? value;
-                    while(i < line.Length && char.IsLetterOrDigit(line, i) || line[i] == '-')
+                    while (i < line.Length && char.IsLetterOrDigit(line, i) || line[i] == '-')
                         i++;
 
                     int keyEnd = i;
@@ -207,16 +207,60 @@ namespace AmpScm.Buckets.Git
 
                     if (keyEnd > 0)
 #pragma warning disable CA1308 // Normalize strings to uppercase
-                        return new GitConfigurationItem { Group = _group, SubGroup = _subGroup!, Key = line.Substring(0, keyEnd).ToLowerInvariant(), Value = value };
+                        return new GitConfigurationItem { Group = _group, SubGroup = _subGroup!, Key = line.Substring(0, keyEnd).ToLowerInvariant(), Value = Unescape(value) };
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
                 }
             }
         }
+        static string? Unescape(string? value)
+        {
+            if (value is null)
+                return null;
+
+            if (value.Contains('\\'))
+            {
+                StringBuilder sb = new StringBuilder();
+
+                for (int i = 0; i < value.Length; i++)
+                {
+                    if (value[i] == '\\')
+                    {
+                        i++;
+                        if (i < value.Length)
+                        {
+                            switch (value[i])
+                            {
+                                case 'n':
+                                    sb.Append('\n');
+                                    break;
+                                case 'b':
+                                    sb.Append('\b');
+                                    break;
+                                case 't':
+                                    sb.Append('\t');
+                                    break;
+                                case 'r':
+                                    sb.Append('\r');
+                                    break;
+                                default:
+                                    sb.Append(value[i]);
+                                    break;
+                            }
+                        }
+                    }
+                    else
+                        sb.Append(value[i]);
+                }
+                return sb.ToString();
+            }
+            else
+                return value;
+        }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            while(await ReadConfigItem().ConfigureAwait(false) is not null)
+            while (await ReadConfigItem().ConfigureAwait(false) is not null)
             {
 
             }

@@ -166,21 +166,38 @@ namespace GitRepositoryTests
 
             cs = await cw.WriteAndFetchAsync(repo);
 
-            string? refName = ((GitSymbolicReference)repo.Head).ReferenceName;
-            Assert.AreEqual("refs/heads/master", refName);
-            await repo.GetPlumbing().UpdateReference(
-                new GitUpdateReference { Name = refName!, Target = cs.Id },
-                new GitUpdateReferenceArgs { Message = "Testing" });
-
 
             var ct = GitTagObjectWriter.Create(cs, "v0.1");
             ct.TagMessage = "Tag second Commit";
+            ct.Tagger = new GitSignature("BH", "bh@BH", new DateTimeOffset(new DateTime(2000, 1, 2, 0, 0, 0, DateTimeKind.Local)));
 
             var tag = await ct.WriteAndFetchAsync(repo);
 
             await repo.GetPlumbing().UpdateReference(
                 new GitUpdateReference { Name = $"refs/tags/{tag.Name}", Target = ct.Id },
                 new GitUpdateReferenceArgs { Message = "Apply tag" });
+
+            var baseId = cs.Id;
+
+
+            cw = GitCommitWriter.Create(cs);
+            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(new DateTime(2000, 1, 3, 0, 0, 0, DateTimeKind.Local)));
+            cw.Tree.Add("A/C/delta", GitBlobWriter.CreateFrom(Encoding.UTF8.GetBytes("This is the file 'delta'.\n").AsBucket()));
+            cw.CommitMessage = "Committed on branch";
+
+            var alt = await cw.WriteAndFetchAsync(repo);
+
+            cw = GitCommitWriter.Create(cs, alt);
+            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(new DateTime(2000, 1, 4, 0, 0, 0, DateTimeKind.Local)));
+            cw.CommitMessage = "Merged";
+
+            cs = await cw.WriteAndFetchAsync(repo);
+
+            string? refName = ((GitSymbolicReference)repo.Head).ReferenceName;
+            Assert.AreEqual("refs/heads/master", refName);
+            await repo.GetPlumbing().UpdateReference(
+                new GitUpdateReference { Name = refName!, Target = cs.Id },
+                new GitUpdateReferenceArgs { Message = "Testing" });
 
             await repo.GetPlumbing().RunRawCommand("checkout", "HEAD", ".");
         }
@@ -209,7 +226,7 @@ namespace GitRepositoryTests
             return Path.Combine(TestRunReadOnlyDir,
                 dir switch
                 {
-                    GitTestDir.Greek => "greek-base",
+                    GitTestDir.Greek => "greek",
                     GitTestDir.Packed => "greek-packed",
                     GitTestDir.MultiPack => "multipack",
                     GitTestDir.MultiPackBitmap => "multipack-bmp",

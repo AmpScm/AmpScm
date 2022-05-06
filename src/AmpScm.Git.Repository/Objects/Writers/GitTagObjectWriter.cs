@@ -10,6 +10,9 @@ namespace AmpScm.Git.Objects
 {
     public class GitTagObjectWriter : GitObjectWriter<GitTagObject>
     {
+        string? _name;
+        string? _message;
+        GitSignature? _tagger;
         public IGitLazy<GitObject> GitObject { get; set; } = default!;
 
         private GitTagObjectWriter()
@@ -18,16 +21,42 @@ namespace AmpScm.Git.Objects
         }
         public sealed override GitObjectType Type => GitObjectType.Tag;
 
-        public string Name { get; set; } = "";
+        public string Name
+        {
+            get => _name ?? "v0";
+            set
+            {
+                _name = value;
+                Id = null;
+            }
+        }
 
-        public string? TagMessage { get; set; }
+        public string? TagMessage
+        {
+            get => _message;
+            set
+            {
+                _message = value;
+                Id = null;
+            }
+        }
 
-        public GitSignature? Tagger { get; set; }
+        public GitSignature? Tagger
+        {
+            get => _tagger;
+            set
+            {
+                _tagger = value;
+                Id = null;
+            }
+        }
 
         public override async ValueTask<GitId> WriteToAsync(GitRepository repository)
         {
             if (repository is null)
                 throw new ArgumentNullException(nameof(repository));
+            else if (GitObject is null)
+                throw new InvalidOperationException();
 
             if (Id is null || !repository.Commits.ContainsId(Id))
             {
@@ -62,6 +91,8 @@ namespace AmpScm.Git.Objects
         {
             if (objectToTag is null)
                 throw new ArgumentNullException(nameof(objectToTag));
+            else if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(name);
 
             return new GitTagObjectWriter { GitObject = objectToTag, Name = name };
         }
