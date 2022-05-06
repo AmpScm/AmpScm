@@ -29,6 +29,10 @@ namespace AmpScm.Buckets.Git
             body
         }
 
+        /// <summary>
+        /// Gets the number of uncompressed bytes stored in this frame. Available when <see cref="ReadRemainingBytesAsync"/> is
+        /// available, but doesn't look at the delta (if any), but only the data in this frame.
+        /// </summary>
         public long? BodySize { get; private set; }
 
         public override string Name => (reader != null) ? $"GitPackFrame[{reader.Name}]>{Inner.Name}" : base.Name;
@@ -96,8 +100,7 @@ namespace AmpScm.Buckets.Git
         {
             if (reader == null || state != frame_state.body)
             {
-                if (!await ReadInfoAsync().ConfigureAwait(false))
-                    return BucketBytes.Eof;
+                await ReadInfoAsync().ConfigureAwait(false);
             }
 
             return await reader!.ReadAsync(requested).ConfigureAwait(false);
@@ -105,11 +108,7 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<long> ReadSkipAsync(long requested)
         {
-            if (reader == null || state != frame_state.body)
-            {
-                if (!await ReadInfoAsync().ConfigureAwait(false))
-                    return 0;
-            }
+            await ReadInfoAsync().ConfigureAwait(false);
 
             return await reader!.ReadSkipAsync(requested).ConfigureAwait(false);
         }
@@ -128,24 +127,25 @@ namespace AmpScm.Buckets.Git
             return _type;
         }
 
-        internal ValueTask<bool> ReadInfoAsync()
+        internal ValueTask ReadInfoAsync()
         {
             return PrepareState(frame_state.body);
         }
 
-        async ValueTask<bool> PrepareState(frame_state want_state)
+        async ValueTask PrepareState(frame_state want_state)
         {
             if (state >= frame_state.body)
-                return true;
+                return;
 
             if (state == frame_state.start)
             {
                 delta_position = Inner.Position ?? 0;
                 (_type, BodySize) = await ReadTypeAndSize().ConfigureAwait(false);
+                state = frame_state.size_done;
             }
 
             if (want_state == frame_state.type_done && state == frame_state.type_done)
-                return true;
+                return;
 
             if (state <= frame_state.size_done)
             {
@@ -206,7 +206,7 @@ namespace AmpScm.Buckets.Git
             }
 
             if (want_state == frame_state.type_done && state >= frame_state.type_done)
-                return true;
+                return;
 
             if (state == frame_state.open_body)
             {
@@ -218,8 +218,6 @@ namespace AmpScm.Buckets.Git
 
                 state = frame_state.body;
             }
-
-            return true;
         }
 
         private async ValueTask<(GitObjectType Type, long BodySize)> ReadTypeAndSize()
@@ -247,7 +245,6 @@ namespace AmpScm.Buckets.Git
                     else if ((int)type == 5)
                         throw new GitBucketException("Git pack frame 5 is unsupported");
 
-                    state = frame_state.size_done;
                     return (type, body_size);
                 }
             }
@@ -262,10 +259,7 @@ namespace AmpScm.Buckets.Git
         {
             if (state < frame_state.body)
             {
-                var b = await ReadInfoAsync().ConfigureAwait(false);
-
-                if (!b)
-                    return null;
+                await ReadInfoAsync().ConfigureAwait(false);
             }
 
             if (_deltaCount != 0)
