@@ -49,8 +49,6 @@ AmpScm.Buckets.Git.GitEwahBitmapBucket.GitEwahBitmapBucket(AmpScm.Buckets.Bucket
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadBitLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitObjectBucket
 AmpScm.Buckets.Git.GitObjectBucket.GitObjectBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.Git.GitObjectBucket.Type.get -> AmpScm.Git.GitObjectType
-AmpScm.Buckets.Git.GitObjectBucket.Type.set -> void
 AmpScm.Buckets.Git.GitObjectFileBucket
 AmpScm.Buckets.Git.GitObjectFileBucket.GitObjectFileBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitPacketBucket

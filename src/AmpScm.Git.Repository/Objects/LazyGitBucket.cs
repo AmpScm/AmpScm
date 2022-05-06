@@ -14,11 +14,12 @@ namespace AmpScm.Git.Objects
         GitRepository Repository { get; }
         GitId Id { get; }
         GitObjectBucket? _inner;
+        GitObjectType _type;
         public LazyGitObjectBucket(GitRepository repository, GitId id, GitObjectType type=GitObjectType.None) : base(Bucket.Empty)
         {
             Repository = repository ?? throw new ArgumentNullException(nameof(repository));
             Id = id ?? throw new ArgumentNullException(nameof(id));
-            Type = type;
+            _type = type;
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
@@ -27,21 +28,19 @@ namespace AmpScm.Git.Objects
                 _inner = await Repository.ObjectRepository.ResolveById(Id).ConfigureAwait(false) ?? throw new InvalidOperationException($"Can't fetch {Id}");
 
             var bb =  await _inner.ReadAsync(requested).ConfigureAwait(false);
-
-            if (Type == GitObjectType.None)
-                Type = _inner.Type;
+            
             return bb;
         }
 
         public override async ValueTask<GitObjectType> ReadTypeAsync()
         {
-            if (Type != GitObjectType.None)
-                return Type;
+            if (_type != GitObjectType.None)
+                return _type;
 
             if (_inner == null)
                 _inner = await Repository.ObjectRepository.ResolveById(Id).ConfigureAwait(false) ?? throw new InvalidOperationException($"Can't fetch {Id}");
 
-            return Type = await _inner.ReadTypeAsync().ConfigureAwait(false);
+            return _type = await _inner.ReadTypeAsync().ConfigureAwait(false);
         }
 
         public override BucketBytes Peek()

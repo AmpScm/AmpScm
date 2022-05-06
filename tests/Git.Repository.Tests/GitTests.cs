@@ -38,9 +38,9 @@ namespace GitRepositoryTests
                 long? offset = b.Position;
                 using var pf = new GitPackFrameBucket(b.NoClose(), GitIdType.Sha1, null);
 
-                await pf.ReadTypeAsync();
+                GitObjectType type = await pf.ReadTypeAsync();
 
-                TestContext.Write($"Object {i}: type={pf.Type}, offset={offset}");
+                TestContext.Write($"Object {i}: type={type}, offset={offset}");
                 int? deltaCount = await pf.ReadDeltaCountAsync();
                 if (deltaCount != 0)
                     TestContext.Write($", deltas={deltaCount}");
@@ -613,7 +613,7 @@ namespace GitRepositoryTests
                 using var crcr = b.NoClose().Crc32(c => crc = c);
                 using var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id));
 
-                await pf.ReadTypeAsync();
+                var type = await pf.ReadTypeAsync();
 
                 var len = await pf.ReadRemainingBytesAsync();
 
@@ -621,7 +621,7 @@ namespace GitRepositoryTests
 
                 GitId? checksum = null;
 
-                var hdr = pf.Type.CreateHeader(len.Value);
+                var hdr = type.CreateHeader(len.Value);
                 var hdrLen = await hdr.ReadRemainingBytesAsync();
 
                 var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
@@ -631,7 +631,7 @@ namespace GitRepositoryTests
 
                 TestContext.Write(checksum?.ToString());
 
-                TestContext.Write($" {pf.Type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {b.Position - offset} {offset}");
+                TestContext.Write($" {type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {b.Position - offset} {offset}");
                 int deltaCount = await pf.ReadDeltaCountAsync();
                 if (deltaCount > 0)
                     TestContext.Write($" {deltaCount} delta (body={len})");

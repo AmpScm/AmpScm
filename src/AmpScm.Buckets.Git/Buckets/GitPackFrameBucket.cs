@@ -17,6 +17,7 @@ namespace AmpScm.Buckets.Git
         Func<GitId, ValueTask<GitObjectBucket?>>? _fetchBucketById;
         GitId? _deltaId;
         int? _deltaCount;
+        GitObjectType _type;
 
         enum frame_state
         {
@@ -117,14 +118,14 @@ namespace AmpScm.Buckets.Git
         {
             await PrepareState(frame_state.type_done).ConfigureAwait(false);
 
-            if ((Type == GitObjectType.None || Type > GitObjectType.Tag)
+            if ((_type == GitObjectType.None || _type > GitObjectType.Tag)
                 && reader is GitObjectBucket gob)
             {
-                return Type = await gob.ReadTypeAsync().ConfigureAwait(false);
+                return _type = await gob.ReadTypeAsync().ConfigureAwait(false);
             }
 
-            Debug.Assert(Type >= GitObjectType.Commit && Type <= GitObjectType.Tag, "Bad Git Type");
-            return Type;
+            Debug.Assert(_type >= GitObjectType.Commit && _type <= GitObjectType.Tag, "Bad Git Type");
+            return _type;
         }
 
         internal ValueTask<bool> ReadInfoAsync()
@@ -140,7 +141,7 @@ namespace AmpScm.Buckets.Git
             if (state == frame_state.start)
             {
                 delta_position = Inner.Position ?? 0;
-                (Type, BodySize) = await ReadTypeAndSize().ConfigureAwait(false);
+                (_type, BodySize) = await ReadTypeAndSize().ConfigureAwait(false);
             }
 
             if (want_state == frame_state.type_done && state == frame_state.type_done)
@@ -148,14 +149,14 @@ namespace AmpScm.Buckets.Git
 
             if (state <= frame_state.size_done)
             {
-                if (Type == GitObjectType_DeltaReference)
+                if (_type == GitObjectType_DeltaReference)
                 {
                     _deltaId = await Inner.ReadGitIdAsync(_idType).ConfigureAwait(false);
 
                     state = frame_state.find_delta;
                     _deltaCount = -1;
                 }
-                else if (Type == GitObjectType_DeltaOffset)
+                else if (_type == GitObjectType_DeltaOffset)
                 {
                     // Body starts with negative offset of the delta base.
                     var dp = await Inner.ReadGitDeltaOffsetAsync().ConfigureAwait(false);
@@ -179,7 +180,7 @@ namespace AmpScm.Buckets.Git
             {
                 GitObjectBucket base_reader;
 
-                if (Type == GitObjectType_DeltaOffset)
+                if (_type == GitObjectType_DeltaOffset)
                 {
                     // The source needs support for this. Our file and memory buckets have this support
                     Bucket deltaSource = await Inner.DuplicateAsync(true).ConfigureAwait(false);

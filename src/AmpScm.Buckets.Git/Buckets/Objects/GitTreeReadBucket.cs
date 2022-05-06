@@ -50,10 +50,10 @@ namespace AmpScm.Buckets.Git.Objects
         {
             if (!_checkedType && Inner is GitObjectBucket gobb)
             {
-                await gobb.ReadTypeAsync().ConfigureAwait(false);
+                var type = await gobb.ReadTypeAsync().ConfigureAwait(false);
 
-                if (gobb.Type != GitObjectType.Tree)
-                    throw new GitBucketException($"Bucket {gobb.Name} is not Tree but {gobb.Type}");
+                if (type != GitObjectType.Tree)
+                    throw new GitBucketException($"Bucket {gobb.Name} is not Tree but {type}");
 
                 _checkedType = true;
             }

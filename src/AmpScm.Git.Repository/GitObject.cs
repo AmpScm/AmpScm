@@ -28,10 +28,7 @@ namespace AmpScm.Git
             GitObjectType tp;
 
             if (type == GitObjectType.None)
-            {
-                await rdr.ReadTypeAsync().ConfigureAwait(false);
-                tp = rdr.Type;
-            }
+                tp = await rdr.ReadTypeAsync().ConfigureAwait(false);
             else
                 tp = type;
 

@@ -15,6 +15,7 @@ namespace AmpScm.Buckets.Git
     {
         long _startOffset;
         long? _length;
+        GitObjectType _type;
 
         public GitObjectFileBucket(Bucket inner)
             : base(new ZLibBucket(inner, BucketCompressionAlgorithm.ZLib))
@@ -24,7 +25,7 @@ namespace AmpScm.Buckets.Git
         public override async ValueTask<GitObjectType> ReadTypeAsync()
         {
             int so = 0;
-            while (Type == GitObjectType.None && _startOffset < 2)
+            while (_type == GitObjectType.None && _startOffset < 2)
             {
                 var bb = await Inner.ReadAsync(2 - (int)_startOffset).ConfigureAwait(false);
 
@@ -35,44 +36,44 @@ namespace AmpScm.Buckets.Git
                     switch ((char)bb[bb.Length - 1])
                     {
                         case 'l':
-                            Type = GitObjectType.Blob;
+                            _type = GitObjectType.Blob;
                             break;
                         case 'o':
-                            Type = GitObjectType.Commit;
+                            _type = GitObjectType.Commit;
                             break;
                         case 'r':
-                            Type = GitObjectType.Tree;
+                            _type = GitObjectType.Tree;
                             break;
                         case 'a':
-                            Type = GitObjectType.Tag;
+                            _type = GitObjectType.Tag;
                             break;
                         default:
                             throw new GitBucketException($"Unexpected object type in '{Name}' bucket");
                     }
-                    return Type; // We know enough
+                    return _type; // We know enough
                 }
                 else if (bb.Length == 1)
                 {
                     switch ((char)bb[0])
                     {
                         case 'b':
-                            Type = GitObjectType.Blob;
+                            _type = GitObjectType.Blob;
                             break;
                         case 'c':
-                            Type = GitObjectType.Commit;
+                            _type = GitObjectType.Commit;
                             break;
                         case 't':
                             continue; // Really need additional byte
                         default:
                             throw new GitBucketException($"Unexpected object type in '{Name}' bucket");
                     }
-                    return Type;
+                    return _type;
                 }
                 else
                     throw new BucketEofException(Inner);
             }
 
-            return Type;
+            return _type;
         }
 
         public override long? Position
@@ -95,7 +96,7 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
-            if (Type == GitObjectType.None)
+            if (_type == GitObjectType.None)
             {
                 await ReadTypeAsync().ConfigureAwait(false);
             }
