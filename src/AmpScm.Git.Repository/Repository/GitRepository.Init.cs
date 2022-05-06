@@ -7,24 +7,42 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Git
 {
+    public sealed class GitRepositoryInitArgs
+    {
+        /// <summary>
+        /// Currently "master", but will follow 'git'
+        /// </summary>
+        public static readonly string DefaultInitialBranchName = "master";
+        public bool Bare { get; set; }
+        public string? InitialBranchName { get; set; }
+    }
+
     public partial class GitRepository
     {
         public static GitRepository Init(string path)
-            => Init(path, false);
+            => Init(path, new GitRepositoryInitArgs());
 
         public static GitRepository Init(string path, bool isBare)
+            => Init(path, new GitRepositoryInitArgs() { Bare = isBare });
+
+        public static GitRepository Init(string path, GitRepositoryInitArgs? init)
         {
             if (Directory.Exists(path) && Directory.EnumerateFileSystemEntries(path).Any())
                 throw new GitRepositoryException($"{path} already exists");
+            if (init is null)
+                init = new();
 
             // Quick and dirty setup minimal git repository
             string gitDir = path;
-            if (!isBare)
+            if (!init.Bare)
             {
                 gitDir = Path.Combine(path, ".git");
             }
 
-            const string headBranchName = "master";
+            string? branchName = init.InitialBranchName;
+
+            if (string.IsNullOrEmpty(branchName) || !branchName.Any(char.IsLetterOrDigit))
+                branchName = GitRepositoryInitArgs.DefaultInitialBranchName;
 
             Directory.CreateDirectory(Path.Combine(gitDir, "hooks"));
             Directory.CreateDirectory(Path.Combine(gitDir, "info"));
@@ -34,7 +52,7 @@ namespace AmpScm.Git
             Directory.CreateDirectory(Path.Combine(gitDir, "refs/tags"));
 
             File.WriteAllText(Path.Combine(gitDir, "description"), "Unnamed repository; edit this file 'description' to name the repository." + Environment.NewLine);
-            File.WriteAllText(Path.Combine(gitDir, "HEAD"), $"ref: refs/heads/{headBranchName}\n");
+            File.WriteAllText(Path.Combine(gitDir, "HEAD"), $"ref: refs/heads/{branchName ?? GitRepositoryInitArgs.DefaultInitialBranchName}\n");
 
             const string ignoreCase = "\tignorecase = true\n";
             const string symLinks = "\tsymlinks = false\n";
@@ -48,7 +66,7 @@ namespace AmpScm.Git
                 + symLinks
                 + ignoreCase;
 
-            if (isBare)
+            if (init.Bare)
                 configText = configText.Replace(bareFalse, bareFalse.Replace("false", "true", StringComparison.Ordinal), StringComparison.Ordinal);
 
             if (Environment.NewLine != "\r\n")
@@ -68,10 +86,10 @@ namespace AmpScm.Git
                 + "# *~\n"
             );
 
-            if (!isBare)
+            if (!init.Bare)
                 File.SetAttributes(gitDir, FileAttributes.Hidden | File.GetAttributes(gitDir));
 
-            return new GitRepository(path, isBare ? Repository.GitRootType.Bare : Repository.GitRootType.Normal);
+            return new GitRepository(path, init.Bare ? Repository.GitRootType.Bare : Repository.GitRootType.Normal);
         }
 
     }

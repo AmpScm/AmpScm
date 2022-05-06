@@ -151,5 +151,15 @@ namespace AmpScm.Buckets.Git
 
             throw new GitBucketException($"Git Delta Size overflows 64 bit integer in {bucket.Name} Bucket");
         }
+
+        internal static int IndexOf(this BucketBytes bytes, char value)
+        {
+            return bytes.IndexOf(unchecked((byte)value));
+        }
+
+        internal static int IndexOf(this BucketBytes bytes, char value, int startOffset)
+        {
+            return bytes.IndexOf(unchecked((byte)value), startOffset);
+        }
     }
 }

@@ -11,6 +11,11 @@ AmpScm.Buckets.BucketBytes.IndexOfAny(byte value0, byte value1) -> int
 AmpScm.Buckets.BucketBytes.IndexOfAny(params byte[]! values) -> int
 AmpScm.Buckets.BucketBytes.IndexOfAny(System.ReadOnlySpan<byte> values) -> int
 AmpScm.Buckets.BucketBytes.StartsWithASCII(string! value) -> bool
+AmpScm.Buckets.BucketBytes.Trim() -> AmpScm.Buckets.BucketBytes
+AmpScm.Buckets.BucketBytes.Trim(AmpScm.Buckets.BucketEol eol) -> AmpScm.Buckets.BucketBytes
+AmpScm.Buckets.BucketBytes.TrimEnd() -> AmpScm.Buckets.BucketBytes
+AmpScm.Buckets.BucketBytes.TrimEnd(AmpScm.Buckets.BucketEol eol) -> AmpScm.Buckets.BucketBytes
+AmpScm.Buckets.BucketBytes.TrimStart() -> AmpScm.Buckets.BucketBytes
 AmpScm.Buckets.BucketEofException
 AmpScm.Buckets.BucketEofException.BucketEofException() -> void
 AmpScm.Buckets.BucketEofException.BucketEofException(AmpScm.Buckets.Bucket! bucket) -> void

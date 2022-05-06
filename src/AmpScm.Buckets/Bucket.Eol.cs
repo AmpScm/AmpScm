@@ -26,7 +26,7 @@ namespace AmpScm.Buckets
         CRSplit = 0x100000
     }
 
-    public class BucketEolState
+    public sealed class BucketEolState
     {
         internal byte? _kept;
 
@@ -61,6 +61,22 @@ namespace AmpScm.Buckets
 #endif
         private static (int Requested, bool SingleCrRequested) CalculateEolReadLength(BucketEol acceptableEols, int requested, ReadOnlySpan<byte> buffer)
         {
+            if ((acceptableEols & ~(BucketEol.LF | BucketEol.CR | BucketEol.Zero)) == 0)
+            {
+                int n;
+                switch (acceptableEols)
+                {
+                    case BucketEol.LF:
+                        n = buffer.IndexOf((byte)'\n');
+                        return (1 + (n >= 0 ? n : buffer.Length), false);
+                    case BucketEol.Zero:
+                        n = buffer.IndexOf((byte)'\0');
+                        return (1 + (n >= 0 ? n : buffer.Length), false);
+                    case BucketEol.CR:
+                        n = buffer.IndexOf((byte)'\r');
+                        return (1 + (n >= 0 ? n : buffer.Length), false);
+                }
+            }
             int cr = (0 != (acceptableEols & (BucketEol.CR | BucketEol.CRLF))) ? buffer.IndexOf((byte)'\r') : -1;
             int lf = (0 != (acceptableEols & BucketEol.LF)) ? buffer.IndexOf((byte)'\n') : -1;
             int zr = (0 != (acceptableEols & BucketEol.Zero)) ? buffer.IndexOf((byte)'\0') : -1;

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Buckets;
 
 namespace AmpScm.Git.References
 {
@@ -45,14 +46,20 @@ namespace AmpScm.Git.References
 
             try
             {
-                using var sr = File.OpenText(fileName);
+                using var sr = FileBucket.OpenRead(fileName, false);
 
                 var idLength = GitId.HashLength(Repository.InternalConfig.IdType) * 2;
 
                 GitRefPeel? last = null;
-                while (await sr.ReadLineAsync().ConfigureAwait(false) is string line)
+                while(true)
                 {
-                    ParseLineToPeel(line, ref last, idLength);
+                    var (bb, eol) = await sr.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
+
+                    if (bb.IsEof)
+                        return;
+
+                    bb = bb.Trim(eol);
+                    ParseLineToPeel(bb, ref last, idLength);
                 }
             }
             catch (FileNotFoundException)
@@ -88,6 +95,28 @@ namespace AmpScm.Git.References
                     if (!processed.Contains(v.Name) && (v.Id == id || v.Peeled == id))
                         yield return new GitReference(this, v.Name, v.Id).SetPeeled(v.Peeled);
                 }
+            }
+        }
+
+        private protected void ParseLineToPeel(BucketBytes line, ref GitRefPeel? last, int idLength)
+        {
+            if (char.IsLetterOrDigit((char)line[0]) && line.Length > idLength + 1)
+            {
+                if (GitId.TryParse(line.Slice(0, idLength), out var oid))
+                {
+                    string name = line.Slice(idLength + 1).Trim().ToUTF8String();
+
+                    if (GitReference.ValidName(name, false))
+                        _peelRefs![name] = last = new GitRefPeel { Name = name, Id = oid };
+                }
+            }
+            else if (line[0] == '^')
+            {
+                if (last != null && GitId.TryParse(line.Slice(1).TrimEnd(), out var oid))
+                {
+                    last.Peeled = oid;
+                }
+                last = null;
             }
         }
 

@@ -20,7 +20,7 @@ namespace AmpScm.Git.References
 
         private protected override async ValueTask ReadRefs()
         {
-            var (r, o) = await Repository.RunPlumbingCommandOut("show-ref", Array.Empty<string>(), expectedResults: new int[] {0 /* ok */, 1 /* no references found */}).ConfigureAwait(false);
+            var (r, o) = await Repository.RunPlumbingCommandOut("show-ref", Array.Empty<string>(), expectedResults: new int[] { 0 /* ok */, 1 /* no references found */}).ConfigureAwait(false);
 
             if (r != 0)
                 return;
@@ -30,7 +30,7 @@ namespace AmpScm.Git.References
             GitRefPeel? last = null;
             foreach (string line in o.Split('\n'))
             {
-                ParseLineToPeel(line, ref last, idLength);
+                ParseLineToPeel(line.Trim(), ref last, idLength);
             }
         }
     }

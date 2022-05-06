@@ -48,13 +48,13 @@ namespace AmpScm.Buckets.Git
 
         public static bool TryReadFromBucket(BucketBytes bucketBytes, [NotNullWhen(true)] out GitSignatureRecord? record)
         {
-            int n = bucketBytes.IndexOf((byte)'<');
+            int n = bucketBytes.IndexOf('<');
             if (n < 0)
             {
                 record = null!;
                 return false;
             }
-            int n2 = bucketBytes.IndexOf((byte)'>', n);
+            int n2 = bucketBytes.IndexOf('>', n);
             if (n2 < 0)
             {
                 record = null!;
@@ -105,11 +105,11 @@ namespace AmpScm.Buckets.Git
             if (bb.IsEof)
                 return null;
 
-            int prefix = bb.IndexOf((byte)'\t', (2 * _idLength + 2) ?? 0);
+            int prefix = bb.IndexOf('\t', (2 * _idLength + 2) ?? 0);
 
             if (!_idLength.HasValue)
             {
-                _idLength = bb.IndexOf((byte)' ');
+                _idLength = bb.IndexOf(' ');
 
                 if (prefix < 0 || _idLength < GitId.HashLength(GitIdType.Sha1) * 2 || _idLength * 2 + 2 > prefix)
                     throw new GitBucketException($"Unable to determine reference log format in {Name} Bucket");

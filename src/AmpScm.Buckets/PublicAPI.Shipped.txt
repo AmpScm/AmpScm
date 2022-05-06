@@ -27,12 +27,12 @@ AmpScm.Buckets.BucketBytes.this[int index].get -> byte
 AmpScm.Buckets.BucketBytes.ToArray() -> byte[]!
 AmpScm.Buckets.BucketBytes.ToASCIIString() -> string!
 AmpScm.Buckets.BucketBytes.ToASCIIString(AmpScm.Buckets.BucketEol eol) -> string!
-AmpScm.Buckets.BucketBytes.ToASCIIString(int position, int length) -> string!
-AmpScm.Buckets.BucketBytes.ToASCIIString(int position, int length, AmpScm.Buckets.BucketEol eol) -> string!
+AmpScm.Buckets.BucketBytes.ToASCIIString(int start, int length) -> string!
+AmpScm.Buckets.BucketBytes.ToASCIIString(int start, int length, AmpScm.Buckets.BucketEol eol) -> string!
 AmpScm.Buckets.BucketBytes.ToUTF8String() -> string!
 AmpScm.Buckets.BucketBytes.ToUTF8String(AmpScm.Buckets.BucketEol eol) -> string!
-AmpScm.Buckets.BucketBytes.ToUTF8String(int position, int length) -> string!
-AmpScm.Buckets.BucketBytes.ToUTF8String(int position, int length, AmpScm.Buckets.BucketEol eol) -> string!
+AmpScm.Buckets.BucketBytes.ToUTF8String(int start, int length) -> string!
+AmpScm.Buckets.BucketBytes.ToUTF8String(int start, int length, AmpScm.Buckets.BucketEol eol) -> string!
 AmpScm.Buckets.BucketBytes.TryCopyTo(System.Memory<byte> destination) -> bool
 AmpScm.Buckets.BucketEol
 AmpScm.Buckets.BucketEol.AnyEol = AmpScm.Buckets.BucketEol.LF | AmpScm.Buckets.BucketEol.CR | AmpScm.Buckets.BucketEol.CRLF -> AmpScm.Buckets.BucketEol

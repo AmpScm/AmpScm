@@ -572,8 +572,19 @@ namespace BucketTests
             Assert.IsFalse(BucketBytes.Eof.Equals(BucketBytes.Empty), "BucketBytes.Eof != BucketBytes.Empty");
             //Assert.IsFalse(BucketBytes.Empty.IsEof, "BucketBytes.Eof.IsEof = false");
 
+            Assert.IsTrue(BucketBytes.Eof.Trim().IsEof, "Trimmed still eof");
+            Assert.IsFalse(BucketBytes.Empty.Trim().IsEof, "Trimmed not eof");
+
             BucketBytes bEmpty = Array.Empty<byte>();
             Assert.IsTrue(bEmpty.IsEmpty, "Empty");
+            Assert.IsFalse(bEmpty.IsEof, "Not EOF");
+
+
+            Assert.IsTrue(BucketBytes.Empty.Slice(0, 0).IsEmpty, "Empty");
+            Assert.IsTrue(BucketBytes.Eof.Slice(0, 0).IsEmpty, "Empty");
+            Assert.IsFalse(BucketBytes.Empty.Slice(0, 0).IsEof, "Eof");
+            Assert.IsTrue(BucketBytes.Eof.Slice(0, 0).IsEof, "Eof");
+            Assert.IsTrue(bEmpty.Slice(0, 0).IsEmpty, "Empty");
             Assert.IsFalse(bEmpty.IsEof, "Not EOF");
         }
 
@@ -729,7 +740,7 @@ namespace BucketTests
             {
                 bc = new(4);
                 bc.Append(51);
-                bc.Append(new byte[] { 65, 66});
+                bc.Append(new byte[] { 65, 66 });
 
                 Assert.AreEqual("3AB456", bc.AsBytes(new byte[] { 52, 53, 54 }).ToASCIIString());
             }
@@ -751,7 +762,7 @@ namespace BucketTests
 
             File.WriteAllText(p, "blub");
 
-            using(FileBucket fb = new FileBucket(p))
+            using (FileBucket fb = new FileBucket(p))
             {
                 Assert.AreEqual(4, await fb.ReadAtAsync(0, new byte[25]));
             }
@@ -765,7 +776,7 @@ namespace BucketTests
             {
                 Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
 
-                using(var fb2 = await fb.DuplicateAsync(true))
+                using (var fb2 = await fb.DuplicateAsync(true))
                 {
                     Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
                 }

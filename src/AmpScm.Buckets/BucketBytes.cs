@@ -57,14 +57,30 @@ namespace AmpScm.Buckets
 
         public BucketBytes Slice(int start)
         {
-            if (start == Length)
+            if (Length == 0 || start == 0)
+                return this; // Keep EOF
+            else if (start >= Length)
+            {
+                if (start > Length)
+                    throw new ArgumentOutOfRangeException(nameof(start));
                 return default;
-            return new BucketBytes(_data.Slice(start));
+            }
+            else
+                return new BucketBytes(_data.Slice(start));
         }
 
         public BucketBytes Slice(int start, int length)
         {
-            return new BucketBytes(_data.Slice(start, length));
+            if (Length == 0)
+            {
+                if (length > 1)
+                    throw new ArgumentOutOfRangeException(nameof(length));
+                return this; // Keep EOF
+            }
+            else if (length > 0)
+                return new BucketBytes(_data.Slice(start, length));
+            else
+                return Empty;
         }
 
         public byte[] ToArray()
@@ -100,7 +116,7 @@ namespace AmpScm.Buckets
             return new ValueTask<BucketBytes>(v);
         }
 
-        public static readonly BucketBytes Empty = new BucketBytes(new ReadOnlyMemory<byte>());
+        public static readonly BucketBytes Empty;// = default;
         // Clone to make sure data is not shared
         public static readonly BucketBytes Eof = new BucketBytes(new ReadOnlyMemory<byte>((byte[])new byte[] { (byte)'e', (byte)'O', (byte)'f' }.Clone(), 3, 0));
 

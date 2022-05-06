@@ -8,6 +8,7 @@ using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
+using AmpScm.Git.References;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests
@@ -35,11 +36,13 @@ namespace GitRepositoryTests
             //IAsyncIListProvider
             items = repo.Commits.Where(x => x != null).ToArray();
 
-            Assert.IsNotNull(items.Length);
+            Assert.AreEqual(0, items.Length);
 
             Assert.AreEqual(false, repo.Configuration.GetBool("core", "bare") ?? false);
 
             Assert.IsNotNull(repo.Head);
+            Assert.AreEqual("HEAD", repo.Head.Resolved.Name);
+            Assert.AreEqual($"refs/heads/{GitRepositoryInitArgs.DefaultInitialBranchName}", (repo.Head.Resolved as GitSymbolicReference)?.ReferenceName);
             Assert.IsNull(repo.Head.Commit);
             Assert.IsNull(repo.Head.GitObject);
         }

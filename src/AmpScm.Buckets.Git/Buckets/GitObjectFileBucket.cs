@@ -108,7 +108,7 @@ namespace AmpScm.Buckets.Git
                     throw new BucketException($"Expected '\\0' within first {MaxReadForHeader} characters of '{Inner.Name}'");
 
 
-                int nSize = bb.IndexOf((byte)' ');
+                int nSize = bb.IndexOf(' ');
 
                 if (nSize > 0 && long.TryParse(bb.ToASCIIString(nSize + 1, bb.Length - nSize - 1, eol), out var len))
                     _length = len;

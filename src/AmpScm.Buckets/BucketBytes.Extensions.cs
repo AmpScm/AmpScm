@@ -14,16 +14,16 @@ namespace AmpScm.Buckets
             return Encoding.ASCII.GetString(Span);
         }
 
-        public string ToASCIIString(int position, int length)
+        public string ToASCIIString(int start, int length)
         {
-            var data = Span.Slice(position, length);
+            var data = Span.Slice(start, length);
 
             return Encoding.ASCII.GetString(data);
         }
 
-        public string ToASCIIString(int position, int length, BucketEol eol)
+        public string ToASCIIString(int start, int length, BucketEol eol)
         {
-            return ToASCIIString(position, length - eol.CharCount());
+            return ToASCIIString(start, length - eol.CharCount());
         }
 
         public string ToASCIIString(BucketEol eol)
@@ -31,26 +31,124 @@ namespace AmpScm.Buckets
             return ToASCIIString(0, Length - eol.CharCount());
         }
 
+
         public string ToUTF8String()
         {
             return Encoding.UTF8.GetString(Span);
         }
 
-        public string ToUTF8String(int position, int length)
+        public string ToUTF8String(int start, int length)
         {
-            var data = Span.Slice(position, length);
+            var data = Span.Slice(start, length);
 
             return Encoding.UTF8.GetString(data);
         }
 
-        public string ToUTF8String(int position, int length, BucketEol eol)
+        public string ToUTF8String(int start, int length, BucketEol eol)
         {
-            return ToUTF8String(position, length - eol.CharCount());
+            return ToUTF8String(start, length - eol.CharCount());
         }
 
         public string ToUTF8String(BucketEol eol)
         {
             return ToUTF8String(0, Length - eol.CharCount());
+        }
+
+        public BucketBytes Trim()
+        {
+            var data = Span;
+            int start = 0;
+            int length = data.Length;
+
+            while (length > 0 && IsWhiteSpace(data[start]))
+            {
+                start++;
+                length--;
+            }
+
+            while (length > 0 && IsWhiteSpace(data[start + length - 1]))
+            {
+                length--;
+            }
+
+            return Slice(start, length);
+        }
+
+        public BucketBytes Trim(BucketEol eol)
+        {
+            var data = Span;
+            int start = 0;
+            int length = data.Length - eol.CharCount();
+
+            while (length > 0 && IsWhiteSpace(data[start]))
+            {
+                start++;
+                length--;
+            }
+
+            while (length > 0 && IsWhiteSpace(data[start + length - 1]))
+            {
+                length--;
+            }
+
+            return Slice(start, length);
+        }
+
+        public BucketBytes TrimEnd()
+        {
+            var data = Span;
+            int length = data.Length;
+
+            while (length > 0 && IsWhiteSpace(data[length - 1]))
+            {
+                length--;
+            }
+
+            return Slice(0, length);
+        }
+
+        public BucketBytes TrimEnd(BucketEol eol)
+        {
+            var data = Span;
+            int length = data.Length - eol.CharCount();
+
+            while (length > 0 && IsWhiteSpace(data[length - 1]))
+            {
+                length--;
+            }
+
+            return Slice(0, length);
+        }
+
+        public BucketBytes TrimStart()
+        {
+            var data = Span;
+            int start = 0;
+
+            while (start < data.Length && IsWhiteSpace(data[start]))
+            {
+                start++;
+            }
+
+            if (start == 0)
+                return this;
+            else
+                return Slice(start);
+        }
+
+        static bool IsWhiteSpace(byte v)
+        {
+            switch (v)
+            {
+                case (byte)' ':
+                case (byte)'\n':
+                case (byte)'\r':
+                case (byte)'\t':
+                case (byte)'\v':
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public bool StartsWithASCII(string value)
@@ -63,7 +161,7 @@ namespace AmpScm.Buckets
             if (p.Length < value.Length)
                 return false;
 
-            for(int i = 0; i < value.Length; i++)
+            for (int i = 0; i < value.Length; i++)
             {
                 if (p[i] != value[i])
                     return false;

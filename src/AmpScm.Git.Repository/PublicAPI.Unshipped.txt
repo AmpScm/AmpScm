@@ -79,6 +79,12 @@ AmpScm.Git.GitRepositoryException.GitRepositoryException() -> void
 AmpScm.Git.GitRepositoryException.GitRepositoryException(string! message) -> void
 AmpScm.Git.GitRepositoryException.GitRepositoryException(string! message, System.Exception! innerexception) -> void
 AmpScm.Git.GitRepositoryException.GitRepositoryException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+AmpScm.Git.GitRepositoryInitArgs
+AmpScm.Git.GitRepositoryInitArgs.Bare.get -> bool
+AmpScm.Git.GitRepositoryInitArgs.Bare.set -> void
+AmpScm.Git.GitRepositoryInitArgs.GitRepositoryInitArgs() -> void
+AmpScm.Git.GitRepositoryInitArgs.InitialBranchName.get -> string?
+AmpScm.Git.GitRepositoryInitArgs.InitialBranchName.set -> void
 AmpScm.Git.GitRevision
 AmpScm.Git.GitRevision.Commit.get -> AmpScm.Git.GitCommit!
 AmpScm.Git.GitRevision.ReadAsync() -> System.Threading.Tasks.ValueTask
@@ -245,6 +251,7 @@ static AmpScm.Git.GitReference.operator !=(AmpScm.Git.GitReference? r1, AmpScm.G
 static AmpScm.Git.GitReference.operator ==(AmpScm.Git.GitReference? r1, AmpScm.Git.GitReference? r2) -> bool
 static AmpScm.Git.GitReference.ValidName(string! name, bool allowSpecialSymbols) -> bool
 static AmpScm.Git.GitRepository.Init(string! path) -> AmpScm.Git.GitRepository!
+static AmpScm.Git.GitRepository.Init(string! path, AmpScm.Git.GitRepositoryInitArgs? init) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.Init(string! path, bool isBare) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.Open(string! path) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.OpenAsync(string! path, System.Threading.CancellationToken cancellation = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitRepository!>
@@ -266,6 +273,7 @@ static AmpScm.Git.Repository.GitConfiguration.GitProgramPath.get -> string!
 static AmpScm.Git.Repository.GitConfiguration.UserHomeDirectory.get -> string!
 static AmpScm.Git.Sets.GitTreeItem.operator !=(AmpScm.Git.Sets.GitTreeItem left, AmpScm.Git.Sets.GitTreeItem right) -> bool
 static AmpScm.Git.Sets.GitTreeItem.operator ==(AmpScm.Git.Sets.GitTreeItem left, AmpScm.Git.Sets.GitTreeItem right) -> bool
+static readonly AmpScm.Git.GitRepositoryInitArgs.DefaultInitialBranchName -> string!
 virtual AmpScm.Git.GitObject.ReadAsync() -> System.Threading.Tasks.ValueTask
 virtual AmpScm.Git.GitReference.Commit.get -> AmpScm.Git.GitCommit?
 virtual AmpScm.Git.GitReference.GitObject.get -> AmpScm.Git.GitObject?

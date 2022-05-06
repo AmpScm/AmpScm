@@ -87,12 +87,12 @@ namespace AmpScm.Buckets.Git
         {
             while (true)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.AnyEol, _state ??= new BucketEolState()).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.LF, _state ??= new BucketEolState()).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     return null;
 
-                string line = bb.ToUTF8String(eol).Trim();
+                string line = bb.Trim(eol).ToUTF8String();
 
                 if (line.Length == 0)
                     continue;
@@ -101,12 +101,12 @@ namespace AmpScm.Buckets.Git
                 {
                     line = line.Substring(0, line.Length - 1);
 
-                    (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.AnyEol, _state).ConfigureAwait(false);
+                    (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.LF, _state).ConfigureAwait(false);
 
                     if (bb.IsEmpty)
                         break;
 
-                    line += bb.ToUTF8String(eol).TrimEnd();
+                    line += bb.TrimEnd(eol).ToUTF8String();
                 }
 
                 if (line[0] == '#' || line[0] == ';')

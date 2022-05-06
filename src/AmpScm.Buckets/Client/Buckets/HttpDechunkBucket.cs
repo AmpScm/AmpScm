@@ -125,7 +125,7 @@ namespace AmpScm.Buckets.Client.Buckets
                             if (eol != BucketEol.None && eol != BucketEol.CRSplit)
                             {
                                 bb = _start!.AppendBytes(bb);
-                                _chunkLeft = Convert.ToInt32(bb.ToASCIIString().Trim(), 16);
+                                _chunkLeft = Convert.ToInt32(bb.Trim().ToASCIIString(), 16);
                                 _state = _chunkLeft > 0 ? DechunkState.Chunk : DechunkState.Fin;
                             }
                             else if (bb.IsEof)

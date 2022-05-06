@@ -66,7 +66,7 @@ namespace AmpScm.Buckets.Git.Objects
             if (eol != BucketEol.Zero)
                 throw new GitBucketException("Truncated tree");
 
-            int nSep = bb.IndexOf((byte)' ');
+            int nSep = bb.IndexOf(' ');
             if (nSep < 0)
                 throw new GitBucketException("Truncated tree. No mask separator");
 
