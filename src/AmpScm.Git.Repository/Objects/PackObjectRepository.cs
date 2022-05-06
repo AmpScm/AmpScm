@@ -163,7 +163,7 @@ namespace AmpScm.Git.Objects
         private async ValueTask<byte[]> GetOidArrayAsync(uint start, uint count)
         {
             if (count == 0)
-                throw new ArgumentNullException(nameof(count));
+                return Array.Empty<byte>();
 
             if (_ver == 2)
             {
@@ -196,7 +196,7 @@ namespace AmpScm.Git.Objects
         private async ValueTask<byte[]> GetOffsetArrayAsync(uint start, uint count, byte[] oids)
         {
             if (count == 0)
-                throw new ArgumentNullException(nameof(count));
+                return Array.Empty<byte>();
 
             if (_ver == 2)
             {
@@ -294,6 +294,9 @@ namespace AmpScm.Git.Objects
             uint start = (byte0 == 0) ? 0 : _fanOut![byte0 - 1];
             uint count = _fanOut![byte0] - start;
 
+            if (count == 0)
+                return false;
+
             byte[] oids = GetOidArrayAsync(start, count).AsTask().Result;
 
             return TryFindId(oids, id, out var _);
@@ -330,6 +333,9 @@ namespace AmpScm.Git.Objects
 
             uint start = (byte0 == 0) ? 0 : _fanOut![byte0 - 1];
             uint count = _fanOut![byte0] - start;
+
+            if (count == 0)
+                return (null, true);
 
             byte[] oids = await GetOidArrayAsync(start, count).ConfigureAwait(false);
 
