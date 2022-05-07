@@ -22,7 +22,7 @@ namespace GitRepositoryTests.Index
         [TestMethod]
         public async Task CheckIndexAsync()
         {
-            using var repo = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+            using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
 
             using var index = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
 
@@ -90,7 +90,7 @@ namespace GitRepositoryTests.Index
             // stored as tree objects directly in the index, instead of cached as trees.
             var path = TestContext.PerTestDirectory();
             {
-                using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+                using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
                 await gc.GetPorcelain().Clone(gc.FullPath, path, new()
                 {
                     Sparse = true,
@@ -127,7 +127,7 @@ namespace GitRepositoryTests.Index
         {
             var path = TestContext.PerTestDirectory($"{optimize}{lookFor}");
             {
-                using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+                using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
                 await gc.GetPorcelain().Clone(gc.FullPath, path, new()
                 {
                     Shared = true,
@@ -152,12 +152,12 @@ namespace GitRepositoryTests.Index
 
             await repo.GetPlumbing().RunRawCommand("update-index", "--split-index");
 
-            File.WriteAllText(Path.Combine(path, "iota"), "QQQ");
-            File.WriteAllText(Path.Combine(path, "src", "Mu"), "QQQ");
+            File.WriteAllText(Path.Combine(path, "miota"), "QQQ");
+            File.WriteAllText(Path.Combine(path, "A", "Mu"), "QQQ");
 
             File.AppendAllText(Path.Combine(path, "README.md"), " ");
 
-            await repo.GetPlumbing().RunRawCommand("add", "iota", "src/Mu", "README.md");
+            await repo.GetPlumbing().RunRawCommand("add", "miota", "A/Mu", "README.md");
 
 
 
@@ -193,7 +193,7 @@ namespace GitRepositoryTests.Index
         {
             var path = TestContext.PerTestDirectory();
             {
-                using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+                using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
                 await gc.GetPorcelain().Clone(gc.FullPath, path, new()
                 {
                     Shared = true,
@@ -230,7 +230,7 @@ namespace GitRepositoryTests.Index
         {
             var path = TestContext.PerTestDirectory();
             {
-                using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+                using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
                 await gc.GetPorcelain().Clone(gc.FullPath, path, new()
                 {
                     Shared = true,
