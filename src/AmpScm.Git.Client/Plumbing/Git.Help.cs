@@ -46,7 +46,7 @@ namespace AmpScm.Git.Client.Plumbing
 
             List<string> results = new List<string>();
             bool gotOne = false;
-            await foreach (var line in c.Repository.WalkPlumbingCommand(name, new[] { "-h" }, expectedResults: new[] { 129 }))
+            await foreach (var line in c.Repository.WalkPlumbingCommand(name, new[] { "-h" }, expectedResults: new[] { 129, 0 }))
             {
                 results.Add(line);
                 if (!gotOne && !string.IsNullOrWhiteSpace(line))
@@ -58,7 +58,7 @@ namespace AmpScm.Git.Client.Plumbing
 
             var (_, _, stderr) = await c.Repository.RunPlumbingCommandErr(name, new[] { "-h" }, expectedResults: new[] { 129 });
 
-            return new[] { stderr.TrimEnd() };
+            return stderr.Split('\n').Select(x=>x.TrimEnd()).ToArray();
         }
     }
 }

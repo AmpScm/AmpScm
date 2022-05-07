@@ -6,10 +6,12 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AmpScm;
 using AmpScm.Git;
+using AmpScm.Git.Client;
 using AmpScm.Git.Client.Plumbing;
+using AmpScm.Git.Client.Porcelain;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace GitRepositoryTests
+namespace GitRepositoryTests.Client
 {
     [TestClass]
     public class GitPlumbingTests
@@ -24,16 +26,24 @@ namespace GitRepositoryTests
         {
             using var repo = GitRepository.Init(TestContext.PerTestDirectory());
 
-            string commandList = await repo.GetPlumbing().Help(new GitHelpArgs { Command = "-a" });
+            var commandList = await repo.GetPlumbing().Help(new GitHelpArgs { Command = "-a" });
 
-            var implementedCommands = new HashSet<string>(
+            var porcelainCommands = new HashSet<string>(
+                typeof(GitPorcelain).GetMethods()
+                    .Where(x => x.IsPublic && x.IsStatic)
+                    .Select(x => x.GetCustomAttribute<GitCommandAttribute>()?.Name ?? "")
+                    .Where(x => x.Length > 0)
+                    .Distinct());
+
+            var plumbingCommands = new HashSet<string>(
                 typeof(GitPlumbing).GetMethods()
                     .Where(x => x.IsPublic && x.IsStatic)
                     .Select(x => x.GetCustomAttribute<GitCommandAttribute>()?.Name ?? "")
-                    .Where(x => x.Length > 0).Distinct());
+                    .Where(x => x.Length > 0)
+                    .Distinct());
 
             string? group = null;
-            foreach (string command in commandList.Split('\n'))
+            foreach (var command in commandList.Split('\n'))
             {
                 if (string.IsNullOrWhiteSpace(command))
                     group = null;
@@ -41,41 +51,41 @@ namespace GitRepositoryTests
                     group = command;
                 else if (group != null)
                 {
-                    string cmd = command.Trim().Split(' ')[0];
-                    if ((group.StartsWith("Low-level") && !group.Contains("Internal") && !group.Contains("Syncing Repositories"))
-                        || implementedCommands.Contains(cmd))
+                    var cmd = command.Trim().Split(' ')[0];
+                    if (group.StartsWith("Low-level") && !group.Contains("Internal") && !group.Contains("Syncing Repositories") && !porcelainCommands.Contains(cmd)
+                        || plumbingCommands.Contains(cmd))
                     {
-
 
                         if (ignored.Contains(cmd))
                             continue;
 
-                        string[] parts = cmd.Split('-');
+                        var parts = cmd.Split('-');
 
                         if (parts[0].StartsWith("mk"))
                             parts = new string[] { "make", parts[0].Substring(2) }.Concat(parts.Skip(1)).ToArray();
 
-                        for (int i = 0; i < parts.Length; i++)
+                        for (var i = 0; i < parts.Length; i++)
                         {
-                            if (parts[i] == "ref")
-                                parts[i] = "reference";
-                            if (parts[i] == "refs")
-                                parts[i] = "references";
-                            else if (parts[i] == "ls")
-                                parts[i] = "list";
-                            else if (parts[i] == "repo")
-                                parts[i] = "repository";
-                            else if (parts[i] == "rev")
-                                parts[i] = "revision";
-                            else if (parts[i] == "var")
-                                parts[i] = "variable";
-                            else if (parts[i] == "fsck")
-                                parts[i] = "ConsistencyCheck";
-                            else if (parts[i] == "gc")
-                                parts[i] = "GC";
+                            parts[i] = parts[i] switch
+                            {
+                                "ref" => "Reference",
+                                "refs" => "References",
+                                "reflog" => "ReferenceLog",
+                                "ls" => "List",
+                                "repo" => "Repository",
+                                "rev" => "Revision",
+                                "var" => "Variable",
+                                "fsck" => "ConsistencyCheck",
+                                "gc" => "GC",
+                                "mv" => "Move",
+                                "rm" => "Delete",
+                                "am" => "ApplyMailbox", 
+                                "whatchanged" => "WhatChanged",
+                                _ => parts[i]
+                            };
                         }
 
-                        string name = string.Join("", parts.Select(x => x.Substring(0, 1).ToUpperInvariant() + x.Substring(1)));
+                        var name = string.Join("", parts.Select(x => x.Substring(0, 1).ToUpperInvariant() + x.Substring(1)));
 
                         if (!typeof(GitPlumbing).GetMethods().Any(x => x.Name == name))
                         {
@@ -109,7 +119,7 @@ namespace GitRepositoryTests
 
         public static string PlumbingCommandName(MethodInfo mif, object[] args)
         {
-            MethodInfo mm = (MethodInfo)args[0];
+            var mm = (MethodInfo)args[0];
             return mif.Name + "-" + mm?.DeclaringType?.Name + "." + mm?.Name;
         }
 
@@ -124,9 +134,9 @@ namespace GitRepositoryTests
             using (var repo = GitRepository.Open(Environment.CurrentDirectory))
             {
                 var args = await repo.GetPlumbing().HelpUsage(gca.Name);
-                bool got = false;
+                var got = false;
 
-                IEnumerable<string> argInfo = args.SkipWhile(x=>!string.IsNullOrWhiteSpace(x)).Where(x=>x.StartsWith("    -")).Select(x=>x.TrimStart());
+                var argInfo = args.SkipWhile(x => !string.IsNullOrWhiteSpace(x)).Where(x => x.StartsWith("    -")).Select(x => x.TrimStart());
 
                 foreach (var line in argInfo)
                 {

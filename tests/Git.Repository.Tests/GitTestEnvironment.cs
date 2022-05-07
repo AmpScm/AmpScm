@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
+using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.Objects;
 using AmpScm.Git.References;
 using AmpScm.Git.Sets;
@@ -76,25 +77,25 @@ namespace GitRepositoryTests
                 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-packed"));
-                    await pp.GetPlumbing().GC(new GitGCArgs());
+                    await pp.GetPorcelain().GC(new GitGCArgs());
                 }
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-bmp"));
-                    await pp.GetPlumbing().GC(new GitGCArgs());
+                    await pp.GetPorcelain().GC(new GitGCArgs());
 
                     await pp.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true });
                 }
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "multipack"));
-                    await pp.GetPlumbing().GC(new GitGCArgs());
+                    await pp.GetPorcelain().GC(new GitGCArgs());
                     await pp.GetPlumbing().MultiPackIndex(new() { Command = GitMultiPackIndexCommand.Write });
                 }
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "multipack-bmp"));
-                    await pp.GetPlumbing().GC(new GitGCArgs());
+                    await pp.GetPorcelain().GC(new GitGCArgs());
                     await pp.GetPlumbing().MultiPackIndex(new() { Command = GitMultiPackIndexCommand.Write, Bitmap=true });
                 }
 
