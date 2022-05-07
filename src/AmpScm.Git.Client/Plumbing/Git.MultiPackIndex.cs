@@ -27,13 +27,13 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("multi-pack-index")]
-        public static async ValueTask MultiPackIndex(this GitPlumbingClient c, GitMultiPackIndexArgs a)
+        public static async ValueTask MultiPackIndex(this GitPlumbingClient c, GitMultiPackIndexArgs options)
         {
-            a.Verify();
+            options.Verify();
 
             List<string> args = new();
 
-            args.Add(a.Command switch
+            args.Add(options.Command switch
             {
                 GitMultiPackIndexCommand.Write => "write",
                 GitMultiPackIndexCommand.Verify => "verify",
@@ -42,9 +42,9 @@ namespace AmpScm.Git.Client.Plumbing
             });
 
             // Bitmap is nullable. Handle the two explicit states
-            if (a.Bitmap == true)
+            if (options.Bitmap == true)
                 args.Add("--bitmap");
-            else if (a.Bitmap == false)
+            else if (options.Bitmap == false)
                 args.Add("--no-bitmap");
 
             await c.Repository.RunPlumbingCommandOut("multi-pack-index", args.ToArray());

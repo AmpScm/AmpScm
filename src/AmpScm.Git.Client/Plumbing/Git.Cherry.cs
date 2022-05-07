@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("cherry")]
-        public static async ValueTask Cherry(this GitPlumbingClient c, GitCherryArgs a)
+        public static async ValueTask Cherry(this GitPlumbingClient c, GitCherryArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

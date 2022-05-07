@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Porcelain
 {
-    public class GitGCArgs : GitPlumbingArgs
+    public class GitGCArgs : GitPorcelainArgs
     {
         public DateTime? PruneDate { get; set; }
         public bool Aggressive { get; set; }
@@ -19,25 +19,25 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    partial class GitPorcelain
     {
         [GitCommand("gc")]
-        public static async ValueTask GC(this GitPlumbingClient c, GitGCArgs a)
+        public static async ValueTask GC(this GitPorcelainClient c, GitGCArgs options)
         {
-            a.Verify();
+            options.Verify();
 
             List<string> args = new List<string>();
 
-            if (a.Aggressive)
+            if (options.Aggressive)
                 args.Add("--aggressive");
-            if (a.Auto)
+            if (options.Auto)
                 args.Add("--auto");
-            if (a.Force)
+            if (options.Force)
                 args.Add("--force");
-            if (a.KeepLargestPack)
+            if (options.KeepLargestPack)
                 args.Add("--keep-largest-pack");
-            if (a.PruneDate.HasValue)
-                args.Add($"--prune={a.PruneDate.Value.Date.ToString("yyyy-MM-dd")}");
+            if (options.PruneDate.HasValue)
+                args.Add($"--prune={options.PruneDate.Value.Date.ToString("yyyy-MM-dd")}");
 
             await c.Repository.RunPlumbingCommandOut("gc", args.ToArray());
         }

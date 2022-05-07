@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("verify-pack")]
-        public static async ValueTask VerifyPack(this GitPlumbingClient c, GitVerifyPackArgs a)
+        public static async ValueTask VerifyPack(this GitPlumbingClient c, GitVerifyPackArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

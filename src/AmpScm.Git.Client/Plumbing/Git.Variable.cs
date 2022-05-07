@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("var")]
-        public static async ValueTask Variable(this GitPlumbingClient c, GitVariableArgs a)
+        public static async ValueTask Variable(this GitPlumbingClient c, GitVariableArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("checkout-index")]
-        public static async ValueTask CheckoutIndex(this GitPlumbingClient c, GitCheckoutIndexArgs a)
+        public static async ValueTask CheckoutIndex(this GitPlumbingClient c, GitCheckoutIndexArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

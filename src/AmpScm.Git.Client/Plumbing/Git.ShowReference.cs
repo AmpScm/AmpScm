@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("show-ref")]
-        public static async ValueTask ShowReference(this GitPlumbingClient c, GitShowReferenceArgs a)
+        public static async ValueTask ShowReference(this GitPlumbingClient c, GitShowReferenceArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

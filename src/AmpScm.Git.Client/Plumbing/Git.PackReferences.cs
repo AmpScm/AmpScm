@@ -20,13 +20,13 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("pack-refs")]
-        public static async ValueTask PackReferences(this GitPlumbingClient c, GitPackReferencesArgs a)
+        public static async ValueTask PackReferences(this GitPlumbingClient c, GitPackReferencesArgs options)
         {
-            a.Verify();
+            options.Verify();
 
             await c.Repository.RunPlumbingCommand("pack-refs", new [] {
-                a.All ? "--all" : "",
-                a.NoPrune ? "--no-prune" : ""
+                options.All ? "--all" : "",
+                options.NoPrune ? "--no-prune" : ""
             }.Where(x=>!string.IsNullOrEmpty(x)).ToArray());
         }
     }

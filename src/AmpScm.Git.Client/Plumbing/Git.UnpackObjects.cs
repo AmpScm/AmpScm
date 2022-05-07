@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("unpack-objects")]
-        public static async ValueTask UnpackObjects(this GitPlumbingClient c, GitUnpackObjectsArgs a)
+        public static async ValueTask UnpackObjects(this GitPlumbingClient c, GitUnpackObjectsArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

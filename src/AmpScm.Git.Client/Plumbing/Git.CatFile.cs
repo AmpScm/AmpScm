@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("cat-file")]
-        public static async ValueTask CatFile(this GitPlumbingClient c, GitCatFileArgs a)
+        public static async ValueTask CatFile(this GitPlumbingClient c, GitCatFileArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

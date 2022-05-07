@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("for-each-ref")]
-        public static async ValueTask ForEachReference(this GitPlumbingClient c, GitForEachReferenceArgs a)
+        public static async ValueTask ForEachReference(this GitPlumbingClient c, GitForEachReferenceArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("merge-base")]
-        public static async ValueTask MergeBase(this GitPlumbingClient c, GitMergeBaseArgs a)
+        public static async ValueTask MergeBase(this GitPlumbingClient c, GitMergeBaseArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

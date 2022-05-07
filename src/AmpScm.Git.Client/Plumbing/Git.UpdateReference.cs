@@ -69,22 +69,22 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("update-ref")]
-        public static async ValueTask UpdateReference(this GitPlumbingClient c, GitUpdateReference[] updates, GitUpdateReferenceArgs? a = null)
+        public static async ValueTask UpdateReference(this GitPlumbingClient c, GitUpdateReference[] updates, GitUpdateReferenceArgs? options = null)
         {
-            a ??= new GitUpdateReferenceArgs();
-            a.Verify();
+            options ??= new GitUpdateReferenceArgs();
+            options.Verify();
 
             List<string> args = new List<string>
             {
                 "--stdin",
                 "-z"
             };
-            if (a.CreateReferenceLog)
+            if (options.CreateReferenceLog)
                 args.Add("--create-reflog");
-            if (!string.IsNullOrWhiteSpace(a.Message))
+            if (!string.IsNullOrWhiteSpace(options.Message))
             {
                 args.Add("-m");
-                args.Add(a.Message!);
+                args.Add(options.Message!);
             }
 
             var (_, _) = await c.Repository.RunPlumbingCommandOut("update-ref", args.ToArray(),

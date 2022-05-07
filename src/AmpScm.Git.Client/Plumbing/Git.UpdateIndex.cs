@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("update-index")]
-        public static async ValueTask UpdateIndex(this GitPlumbingClient c, GitUpdateIndexArgs a)
+        public static async ValueTask UpdateIndex(this GitPlumbingClient c, GitUpdateIndexArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

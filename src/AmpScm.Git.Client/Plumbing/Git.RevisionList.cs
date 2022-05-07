@@ -49,40 +49,40 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("rev-list")]
-        public static IAsyncEnumerable<GitId> RevisionList(this GitPlumbingClient c, GitRevisionListArgs a)
+        public static IAsyncEnumerable<GitId> RevisionList(this GitPlumbingClient c, GitRevisionListArgs options)
         {
-            a.Verify();
+            options.Verify();
 
             List<string> args = new List<string>();
 
-            if (a.MaxCount != null)
-                args.Add($"--max-count={a.MaxCount}");
+            if (options.MaxCount != null)
+                args.Add($"--max-count={options.MaxCount}");
 
-            if (a.FirstParentOnly)
+            if (options.FirstParentOnly)
                 args.Add("--first-parent");
 
-            if (a.MaxParents != null)
-                args.Add($"--max-parents={a.MaxParents.Value}");
-            if (a.MinParents != null)
-                args.Add($"--max-parents={a.MinParents.Value}");
+            if (options.MaxParents != null)
+                args.Add($"--max-parents={options.MaxParents.Value}");
+            if (options.MinParents != null)
+                args.Add($"--max-parents={options.MinParents.Value}");
 
 
-            if (a.ShowPulls)
+            if (options.ShowPulls)
                 args.Add("--show-pulls");
-            if (a.FullHistory)
+            if (options.FullHistory)
                 args.Add("--full-history");
-            if (a.Dense)
+            if (options.Dense)
                 args.Add("--dense");
-            if (a.Sparse)
+            if (options.Sparse)
                 args.Add("--sparse");
-            if (a.SimplifyMerges)
+            if (options.SimplifyMerges)
                 args.Add("--simplify-merges");
-            if (a.AncestryPath)
+            if (options.AncestryPath)
                 args.Add("--ancestry-path");
-            if (a.Reverse)
+            if (options.Reverse)
                 args.Add("--reverse");
 
-            switch (a.Order)
+            switch (options.Order)
             {
                 case GitRevisionListOrder.ReverseChronological:
                     break; // Default
@@ -100,14 +100,14 @@ namespace AmpScm.Git.Client.Plumbing
             }
 
 
-            if (!a.Commits?.Any() ?? true)
+            if (!options.Commits?.Any() ?? true)
             {
                 args.Add("HEAD");
             }
             else
             {
                 args.Add("--");
-                args.AddRange(a.Commits!);
+                args.AddRange(options.Commits!);
             }
 
             return c.Repository.WalkPlumbingCommand("rev-list", args.ToArray()).Select(x => GitId.TryParse(x, out var oid) ? oid : null!);

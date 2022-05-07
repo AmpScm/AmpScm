@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Git.Client.Porcelain;
 
 namespace AmpScm.Git.Client.Plumbing
 {
@@ -22,15 +23,15 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("help")]
-        public static async ValueTask<string> Help(this GitPlumbingClient c, GitHelpArgs a)
+        public static async ValueTask<string> Help(this GitPlumbingClient c, GitHelpArgs options)
         {
-            a.Verify();
+            options.Verify();
             string[] args;
 
-            if (a.Command == "-a")
+            if (options.Command == "-a")
                 args = new string[] { "-a" };
             else
-                args = new string[] { "-i", a.Command! ?? a.Guide! };
+                args = new string[] { "-i", options.Command! ?? options.Guide! };
 
             var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", args);
 
@@ -39,7 +40,8 @@ namespace AmpScm.Git.Client.Plumbing
 
         public static async ValueTask<string[]> HelpUsage(this GitPlumbingClient c, string name)
         {
-            if (!typeof(GitPlumbing).GetMethods().Any(x => x.GetCustomAttribute<GitCommandAttribute>()?.Name == name))
+            if (!typeof(GitPlumbing).GetMethods().Any(x => x.GetCustomAttribute<GitCommandAttribute>()?.Name == name)
+                && !typeof(GitPorcelain).GetMethods().Any(x => x.GetCustomAttribute<GitCommandAttribute>()?.Name == name))
                 throw new ArgumentOutOfRangeException();
 
             List<string> results = new List<string>();

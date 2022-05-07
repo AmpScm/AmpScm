@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("name-rev")]
-        public static async ValueTask NameRevision(this GitPlumbingClient c, GitNameRevisionArgs a)
+        public static async ValueTask NameRevision(this GitPlumbingClient c, GitNameRevisionArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

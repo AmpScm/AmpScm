@@ -11,16 +11,6 @@ namespace AmpScm.Git.Client.Plumbing
         public abstract void Verify();
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
-    public class GitCommandAttribute : Attribute
-    {
-        public GitCommandAttribute(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
-    }
 
     public static partial class GitPlumbing
     {

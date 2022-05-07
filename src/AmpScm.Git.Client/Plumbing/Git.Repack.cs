@@ -24,25 +24,25 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("repack")]
-        public static async ValueTask Repack(this GitPlumbingClient c, GitRepackArgs a)
+        public static async ValueTask Repack(this GitPlumbingClient c, GitRepackArgs options)
         {
-            a.Verify();
+            options.Verify();
             var args = new List<string>();
 
-            if (a.SinglePack)
+            if (options.SinglePack)
             {
-                if (a.UnreachableAsLoose)
+                if (options.UnreachableAsLoose)
                     args.Add("-A");
                 else
                     args.Add("-a");
             }
-            if (a.RemoveUnused)
+            if (options.RemoveUnused)
                 args.Add("-d");
-            if (a.Quiet)
+            if (options.Quiet)
                 args.Add("-q");
-            if (a.WriteBitmap)
+            if (options.WriteBitmap)
                 args.Add("--write-bitmap-index");
-            if (a.WriteMultiPack)
+            if (options.WriteMultiPack)
                 args.Add("--write-midx");
 
 

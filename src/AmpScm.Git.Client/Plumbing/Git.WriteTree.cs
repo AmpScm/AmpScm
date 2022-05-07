@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("write-tree")]
-        public static async ValueTask WriteTree(this GitPlumbingClient c, GitWriteTreeArgs a)
+        public static async ValueTask WriteTree(this GitPlumbingClient c, GitWriteTreeArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("get-tar-commit-id")]
-        public static async ValueTask GetTarCommitId(this GitPlumbingClient c, GitGetTarCommitIdArgs a)
+        public static async ValueTask GetTarCommitId(this GitPlumbingClient c, GitGetTarCommitIdArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();

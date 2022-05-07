@@ -17,9 +17,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("merge-index")]
-        public static async ValueTask MergeIndex(this GitPlumbingClient c, GitMergeIndexArgs a)
+        public static async ValueTask MergeIndex(this GitPlumbingClient c, GitMergeIndexArgs options)
         {
-            a.Verify();
+            options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
             await c.ThrowNotImplemented();
