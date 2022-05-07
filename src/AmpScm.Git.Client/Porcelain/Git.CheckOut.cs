@@ -28,7 +28,7 @@ namespace AmpScm.Git.Client.Porcelain
         public static async ValueTask CheckOut(this GitPorcelainClient c, string branchOrCommit, string[]? targets, GitCheckOutArgs? options = null)
         {
             options ??= new();
-            options?.Verify();
+            options.Verify();
 
             List<string> args = new();
 
