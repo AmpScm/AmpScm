@@ -32,6 +32,19 @@ namespace AmpScm.Buckets.Specialized
                 _level = level;
             _algorithm = algorithm;
 
+            switch (algorithm)
+            {
+                case BucketCompressionAlgorithm.Deflate:
+                case BucketCompressionAlgorithm.ZLib:
+                    break;
+                case BucketCompressionAlgorithm.GZip:
+                    if (mode == CompressionMode.Compress)
+                        throw new NotImplementedException();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(algorithm));
+            }
+
             ZSetup();
             write_data = new byte[8192];
             _innerPoll = inner as IBucketPoll;

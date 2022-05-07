@@ -28,19 +28,19 @@ AmpScm.Buckets.Git.GitCommitGenerationValue.GitCommitGenerationValue(int generat
 AmpScm.Buckets.Git.GitCommitGenerationValue.HasTimeCorrection.get -> bool
 AmpScm.Buckets.Git.GitCommitGenerationValue.HasValue.get -> bool
 AmpScm.Buckets.Git.GitCommitGenerationValue.Value.get -> ulong
-AmpScm.Buckets.Git.GitConfigurationItem
-AmpScm.Buckets.Git.GitConfigurationItem.CompareTo(AmpScm.Buckets.Git.GitConfigurationItem? other) -> int
-AmpScm.Buckets.Git.GitConfigurationItem.Group.get -> string!
-AmpScm.Buckets.Git.GitConfigurationItem.Group.set -> void
-AmpScm.Buckets.Git.GitConfigurationItem.Key.get -> string!
-AmpScm.Buckets.Git.GitConfigurationItem.Key.set -> void
-AmpScm.Buckets.Git.GitConfigurationItem.SubGroup.get -> string?
-AmpScm.Buckets.Git.GitConfigurationItem.SubGroup.set -> void
-AmpScm.Buckets.Git.GitConfigurationItem.Value.get -> string?
-AmpScm.Buckets.Git.GitConfigurationItem.Value.set -> void
-AmpScm.Buckets.Git.GitConfigurationReaderBucket
-AmpScm.Buckets.Git.GitConfigurationReaderBucket.GitConfigurationReaderBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.Git.GitConfigurationReaderBucket.ReadConfigItem() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitConfigurationItem?>
+AmpScm.Buckets.Git.GitConfigurationBucket
+AmpScm.Buckets.Git.GitConfigurationBucket.GitConfigurationBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.GitConfigurationBucket.ReadRecord() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitConfigurationRecord?>
+AmpScm.Buckets.Git.GitConfigurationRecord
+AmpScm.Buckets.Git.GitConfigurationRecord.CompareTo(AmpScm.Buckets.Git.GitConfigurationRecord? other) -> int
+AmpScm.Buckets.Git.GitConfigurationRecord.Group.get -> string!
+AmpScm.Buckets.Git.GitConfigurationRecord.Group.set -> void
+AmpScm.Buckets.Git.GitConfigurationRecord.Key.get -> string!
+AmpScm.Buckets.Git.GitConfigurationRecord.Key.set -> void
+AmpScm.Buckets.Git.GitConfigurationRecord.SubGroup.get -> string?
+AmpScm.Buckets.Git.GitConfigurationRecord.SubGroup.set -> void
+AmpScm.Buckets.Git.GitConfigurationRecord.Value.get -> string?
+AmpScm.Buckets.Git.GitConfigurationRecord.Value.set -> void
 AmpScm.Buckets.Git.GitDeltaBucket
 AmpScm.Buckets.Git.GitDeltaBucket.GitDeltaBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Git.GitObjectBucket! baseBucket) -> void
 AmpScm.Buckets.Git.GitDeltaBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
@@ -138,8 +138,8 @@ AmpScm.Git.GitTreeElementType.SymbolicLink = 40960 -> AmpScm.Git.GitTreeElementT
 override AmpScm.Buckets.Git.GitBitmapHeaderBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitCommitGenerationValue.Equals(object? obj) -> bool
 override AmpScm.Buckets.Git.GitCommitGenerationValue.GetHashCode() -> int
-override AmpScm.Buckets.Git.GitConfigurationItem.ToString() -> string!
-override AmpScm.Buckets.Git.GitConfigurationReaderBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.GitConfigurationBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.GitConfigurationRecord.ToString() -> string!
 override AmpScm.Buckets.Git.GitDeltaBucket.CanReset.get -> bool
 override AmpScm.Buckets.Git.GitDeltaBucket.Name.get -> string!
 override AmpScm.Buckets.Git.GitDeltaBucket.Peek() -> AmpScm.Buckets.BucketBytes
@@ -184,10 +184,10 @@ override AmpScm.Git.GitId.ToString() -> string!
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitCommitGenerationValue.operator !=(AmpScm.Buckets.Git.GitCommitGenerationValue left, AmpScm.Buckets.Git.GitCommitGenerationValue right) -> bool
 static AmpScm.Buckets.Git.GitCommitGenerationValue.operator ==(AmpScm.Buckets.Git.GitCommitGenerationValue left, AmpScm.Buckets.Git.GitCommitGenerationValue right) -> bool
-static AmpScm.Buckets.Git.GitConfigurationItem.operator <(AmpScm.Buckets.Git.GitConfigurationItem! left, AmpScm.Buckets.Git.GitConfigurationItem! right) -> bool
-static AmpScm.Buckets.Git.GitConfigurationItem.operator <=(AmpScm.Buckets.Git.GitConfigurationItem! left, AmpScm.Buckets.Git.GitConfigurationItem! right) -> bool
-static AmpScm.Buckets.Git.GitConfigurationItem.operator >(AmpScm.Buckets.Git.GitConfigurationItem! left, AmpScm.Buckets.Git.GitConfigurationItem! right) -> bool
-static AmpScm.Buckets.Git.GitConfigurationItem.operator >=(AmpScm.Buckets.Git.GitConfigurationItem! left, AmpScm.Buckets.Git.GitConfigurationItem! right) -> bool
+static AmpScm.Buckets.Git.GitConfigurationRecord.operator <(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
+static AmpScm.Buckets.Git.GitConfigurationRecord.operator <=(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
+static AmpScm.Buckets.Git.GitConfigurationRecord.operator >(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
+static AmpScm.Buckets.Git.GitConfigurationRecord.operator >=(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitDeltaOffsetAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitDeltaSize(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitIdAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>

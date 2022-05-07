@@ -98,9 +98,9 @@ namespace AmpScm.Git.Repository
         async ValueTask LoadConfigAsync(string path)
         {
             using var b = FileBucket.OpenRead(path, false);
-            using var cr = new GitConfigurationReaderBucket(b);
+            using var cr = new GitConfigurationBucket(b);
 
-            while (await cr.ReadConfigItem().ConfigureAwait(false) is GitConfigurationItem item)
+            while (await cr.ReadRecord().ConfigureAwait(false) is GitConfigurationRecord item)
             {
                 _config[(item.Group, item.SubGroup, item.Key)] = item.Value ?? "\xFF";
 
@@ -114,7 +114,7 @@ namespace AmpScm.Git.Repository
             _loaded = true;
         }
 
-        private async ValueTask ParseInclude(string path, GitConfigurationItem item)
+        private async ValueTask ParseInclude(string path, GitConfigurationRecord item)
         {
             if (!(item.SubGroup is var check) || string.IsNullOrEmpty(check))
                 return;
@@ -129,7 +129,7 @@ namespace AmpScm.Git.Repository
             }
         }
 
-        private async ValueTask ParseIncludeIfAsync(string path, GitConfigurationItem item)
+        private async ValueTask ParseIncludeIfAsync(string path, GitConfigurationRecord item)
         {
             if (!(item.SubGroup is var check) || string.IsNullOrEmpty(check))
                 return;
@@ -184,7 +184,7 @@ namespace AmpScm.Git.Repository
             return path!;
         }
 
-        private void ParseCore(GitConfigurationItem item)
+        private void ParseCore(GitConfigurationRecord item)
         {
             if (item.Key == "repositoryformatversion" && item.Group == "core")
             {

@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Specialized;
+using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
     [DebuggerDisplay("{ToString(),nq}")]
-    public sealed record GitConfigurationItem : IComparable<GitConfigurationItem>, IEquatable<GitConfigurationItem>
+    public sealed record GitConfigurationRecord : IComparable<GitConfigurationRecord>, IEquatable<GitConfigurationRecord>
     {
         /// <summary>
         /// Group of configuration item. Normalized to UPPER-CASE using <see cref="String.ToLowerInvariant"/>.
@@ -32,7 +33,7 @@ namespace AmpScm.Buckets.Git
 
         public string? Value { get; set; } = "";
 
-        public int CompareTo(GitConfigurationItem? other)
+        public int CompareTo(GitConfigurationRecord? other)
         {
             int n = string.CompareOrdinal(Group, other?.Group);
             if (n == 0)
@@ -53,49 +54,54 @@ namespace AmpScm.Buckets.Git
                 return $"{Group}.{Key}: {Value ?? "<<empty>>"}";
         }
 
-        public static bool operator <(GitConfigurationItem left, GitConfigurationItem right)
+        public static bool operator <(GitConfigurationRecord left, GitConfigurationRecord right)
         {
             return (left is null) ? !(right is null) : left.CompareTo(right) < 0;
         }
 
-        public static bool operator <=(GitConfigurationItem left, GitConfigurationItem right)
+        public static bool operator <=(GitConfigurationRecord left, GitConfigurationRecord right)
         {
             return (left is null) || left.CompareTo(right) <= 0;
         }
 
-        public static bool operator >(GitConfigurationItem left, GitConfigurationItem right)
+        public static bool operator >(GitConfigurationRecord left, GitConfigurationRecord right)
         {
             return !(left is null) && left.CompareTo(right) > 0;
         }
 
-        public static bool operator >=(GitConfigurationItem left, GitConfigurationItem right)
+        public static bool operator >=(GitConfigurationRecord left, GitConfigurationRecord right)
         {
             return (left is null) ? (right is null) : left.CompareTo(right) >= 0;
         }
     }
-    public class GitConfigurationReaderBucket : GitBucket
+    public class GitConfigurationBucket : GitBucket
     {
         string? _group;
         string? _subGroup;
-        BucketEolState? _state;
+        readonly BucketEolState _state = new();
 
-        public GitConfigurationReaderBucket(Bucket inner) : base(inner)
+        public GitConfigurationBucket(Bucket inner) : base(inner)
         {
         }
 
-        public async ValueTask<GitConfigurationItem?> ReadConfigItem()
+        public async ValueTask<GitConfigurationRecord?> ReadRecord()
         {
             while (true)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.LF, _state ??= new BucketEolState()).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.LF, _state).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     return null;
 
-                string line = bb.Trim(eol).ToUTF8String();
+                bb = bb.Trim(eol);
 
-                if (line.Length == 0)
+                if (bb.Length == 0)
                     continue;
+
+                if (bb[0] == '#' || bb[0] == ';')
+                    continue;
+
+                string line = bb.ToUTF8String();
 
                 while (line.EndsWith("\\", StringComparison.Ordinal))
                 {
@@ -107,10 +113,7 @@ namespace AmpScm.Buckets.Git
                         break;
 
                     line += bb.TrimEnd(eol).ToUTF8String();
-                }
-
-                if (line[0] == '#' || line[0] == ';')
-                    continue;
+                }                
 
                 if (line[0] == '[')
                 {
@@ -207,7 +210,7 @@ namespace AmpScm.Buckets.Git
 
                     if (keyEnd > 0)
 #pragma warning disable CA1308 // Normalize strings to uppercase
-                        return new GitConfigurationItem { Group = _group, SubGroup = _subGroup!, Key = line.Substring(0, keyEnd).ToLowerInvariant(), Value = Unescape(value) };
+                        return new GitConfigurationRecord { Group = _group, SubGroup = _subGroup!, Key = line.Substring(0, keyEnd).ToLowerInvariant(), Value = Unescape(value) };
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
                 }
@@ -218,7 +221,7 @@ namespace AmpScm.Buckets.Git
             if (value is null)
                 return null;
 
-            if (value.Contains('\\'))
+            if (value.Contains('\\', StringComparison.Ordinal))
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -260,7 +263,7 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            while (await ReadConfigItem().ConfigureAwait(false) is not null)
+            while (await ReadRecord().ConfigureAwait(false) is not null)
             {
 
             }

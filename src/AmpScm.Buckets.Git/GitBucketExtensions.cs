@@ -99,5 +99,48 @@ namespace AmpScm.Git
                     throw new ArgumentOutOfRangeException(nameof(type));
             }
         }
+
+#if NETFRAMEWORK
+        internal static string Replace(this string? on, string oldValue, string newValue, StringComparison comparison)
+        {
+            if (on is null)
+                throw new ArgumentNullException(nameof(on));
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+            return on.Replace(oldValue, newValue);
+        }
+
+        internal static int IndexOf(this string on, char value, StringComparison comparison)
+        {
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+
+            return on.IndexOf(value);
+        }
+
+        internal static bool Contains(this string on, char value, StringComparison comparison)
+        {
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+
+            return on.Contains(value);
+        }
+
+        internal static bool Contains(this string on, string value, StringComparison comparison)
+        {
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+
+            return on.Contains(value);
+        }
+
+        internal static int GetHashCode(this string on, StringComparison comparison)
+        {
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+
+            return on.GetHashCode();
+        }
+#endif
     }
 }
