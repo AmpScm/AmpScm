@@ -8,6 +8,7 @@ using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
+using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.References;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -259,7 +260,7 @@ namespace GitRepositoryTests
             var dir = await TestContext.CreateCloneAsync();
 
             using var repo = GitRepository.Open(dir);
-            await repo.GetPlumbing().RunRawCommand("checkout", new[] { "HEAD~1" });
+            await repo.GetPorcelain().CheckOut("HEAD~1");
 
             Assert.IsTrue(repo.IsHeadDetached, "Head detached");
             int n = 0;
@@ -464,7 +465,7 @@ namespace GitRepositoryTests
         [TestMethod]
         public void WalkSetsDevRepository()
         {
-            using var repo = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
+            using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Default));
             HashSet<Type> walked = new HashSet<Type>();
 
             WalkSets_TestType(repo, walked);

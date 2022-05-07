@@ -49,7 +49,7 @@ namespace GitRepositoryTests.Index
             var path = TestContext.PerTestDirectory((version, addOptional, optimize).ToString());
             {
                 using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
-                
+
                 await gc.GetPorcelain().Clone(gc.FullPath, path, new()
                 {
                     Shared = true,
@@ -150,14 +150,14 @@ namespace GitRepositoryTests.Index
                 }
             }
 
-            await repo.GetPlumbing().RunRawCommand("update-index", "--split-index");
+            await repo.GetPlumbing().UpdateIndex(new() { SplitIndex = true });
 
             File.WriteAllText(Path.Combine(path, "miota"), "QQQ");
-            File.WriteAllText(Path.Combine(path, "A", "Mu"), "QQQ");
+            File.WriteAllText(Path.Combine(path, "A", "mu"), "QQQ");
 
             File.AppendAllText(Path.Combine(path, "README.md"), " ");
 
-            await repo.GetPlumbing().RunRawCommand("add", "miota", "A/Mu", "README.md");
+            await repo.GetPlumbing().RunRawCommand("add", "miota", "A/mu", "README.md");
 
 
 
@@ -205,9 +205,7 @@ namespace GitRepositoryTests.Index
             }
 
             using var repo = GitRepository.Open(path);
-
-            await repo.GetPlumbing().RunRawCommand("update-index");
-            Console.WriteLine(path);
+            await repo.GetPlumbing().UpdateIndex();
 
             using var dc = new GitDirectoryBucket(repo.WorktreePath);
 
@@ -246,7 +244,7 @@ namespace GitRepositoryTests.Index
 
             using var repo = GitRepository.Open(path);
 
-            await repo.GetPlumbing().RunRawCommand("update-index", "--split-index");
+            await repo.GetPlumbing().UpdateIndex(new() { SplitIndex = true });
             Console.WriteLine(path);
 
             try

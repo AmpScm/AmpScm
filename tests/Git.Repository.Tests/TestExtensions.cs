@@ -15,7 +15,7 @@ namespace GitRepositoryTests
     {
         public static async ValueTask<string> CreateCloneAsync(this TestContext self, string? repos = null, bool shareOdb=true)
         {
-            repos ??= Path.GetDirectoryName(typeof(TestExtensions).Assembly.Location) ?? throw new ArgumentNullException(nameof(repos));
+            repos ??= GitTestEnvironment.GetRepository(GitTestDir.Default);
 
             using var r = GitRepository.Open(repos);
 

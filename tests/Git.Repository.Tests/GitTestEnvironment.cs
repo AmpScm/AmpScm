@@ -26,7 +26,8 @@ namespace GitRepositoryTests
         Greek,
         Packed,
         MultiPack,
-        MultiPackBitmap
+        MultiPackBitmap,
+        Default
     }
 
 
@@ -98,15 +99,6 @@ namespace GitRepositoryTests
                     await pp.GetPorcelain().GC();
                     await pp.GetPlumbing().MultiPackIndex(new() { Command = GitMultiPackIndexCommand.Write, Bitmap=true });
                 }
-
-                //{
-                //    using var p = GitRepository.Open(Path.Combine(ro, "svn-base"));
-                //
-                //    await p.GetPlumbing().RunRawCommand("clone", Path.Combine(ro, "svn-base"), Path.Combine(ro, "svn-packed"));
-                //
-                //    using var pp = GitRepository.Open(Path.Combine(ro, "svn-packed"));
-                //    await pp.GetPlumbing().GC(new GitGCArgs());
-                //}
 
                 TestRunReadOnlyDir = ro;
             }).Wait();
@@ -199,7 +191,7 @@ namespace GitRepositoryTests
                 new GitUpdateReference { Name = refName!, Target = cs.Id },
                 new GitUpdateReferenceArgs { Message = "Testing" });
 
-            await repo.GetPlumbing().RunRawCommand("checkout", "HEAD", ".");
+            await repo.GetPorcelain().CheckOut("HEAD", new[] { "." });
         }
 
         [AssemblyCleanup]
@@ -230,8 +222,14 @@ namespace GitRepositoryTests
                     GitTestDir.Packed => "greek-packed",
                     GitTestDir.MultiPack => "multipack",
                     GitTestDir.MultiPackBitmap => "multipack-bmp",
+                    GitTestDir.Default => "greek-packed",
                     _ => throw new ArgumentOutOfRangeException(nameof(dir))
                 });
+        }
+
+        internal static string? GetRepository(object @default)
+        {
+            throw new NotImplementedException();
         }
     }
 }
