@@ -9,6 +9,7 @@ using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
+using AmpScm.Git.Client.Porcelain;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests.Index
@@ -47,15 +48,21 @@ namespace GitRepositoryTests.Index
         {
             var path = TestContext.PerTestDirectory((version, addOptional, optimize).ToString());
             {
-                using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
-                List<string> args = new() { gc.FullPath, path, "-s", "-c", $"index.version={version}" };
-
-                if (addOptional)
+                using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
+                
+                await gc.GetPorcelain().Clone(gc.FullPath, path, new()
                 {
-                    args.AddRange(new[] { "-c", "index.recordEndOfIndexEntries=true" });
-                    args.AddRange(new[] { "-c", "index.recordOffsetTable=true" });
-                }
-                await gc.GetPlumbing().RunRawCommand("clone", args.ToArray());
+                    Shared = true,
+                    InitialConfiguration = new[]
+                    {
+                        ("index.version", $"{version}"),
+                    }
+                    .Concat(addOptional ? new[]
+                    {
+                        ("index.recordEndOfIndexEntries", "true"),
+                        ("index.recordOffsetTable", "true")
+                    } : Enumerable.Empty<(string, string)>())
+                });
             }
 
             using var repo = GitRepository.Open(path);
@@ -84,14 +91,16 @@ namespace GitRepositoryTests.Index
             var path = TestContext.PerTestDirectory();
             {
                 using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
-                await gc.GetPlumbing().RunRawCommand("clone",
-                    gc.FullPath,
-                    path, "-s",
-                    "-c", "core.sparseCheckout=true",
-                    "-c", "core.sparseCheckoutCone=true",
-                    "-c", "index.sparse=true",
-                    "--sparse"
-                    );
+                await gc.GetPorcelain().Clone(gc.FullPath, path, new()
+                {
+                    Sparse = true,
+                    InitialConfiguration = new[]
+                    {
+                        ("core.sparseCheckout", "true"),
+                        ("core.sparseCheckoutCone", "true"),
+                        ("index.sparse", "true")
+                    }
+                });
             }
 
             using var repo = GitRepository.Open(path);
@@ -119,14 +128,16 @@ namespace GitRepositoryTests.Index
             var path = TestContext.PerTestDirectory($"{optimize}{lookFor}");
             {
                 using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
-                await gc.GetPlumbing().RunRawCommand("clone",
-                    gc.FullPath,
-                    path, "-s",
-                    "-c", $"core.splitIndex=true",
-                    //"-c", $"splitIndex.maxPercentChange=0",
-                    "-c", $"index.recordEndOfIndexEntries={optimize}",
-                    "-c", $"index.version=4"
-                    );
+                await gc.GetPorcelain().Clone(gc.FullPath, path, new()
+                {
+                    Shared = true,
+                    InitialConfiguration = new[]
+                    {
+                        ("core.splitIndex", "true"),
+                        ("index.recordEndOfIndexEntries", $"{optimize}"),
+                        ("index.version", "4")
+                    }
+                });
             }
 
             using var repo = GitRepository.Open(path);
@@ -183,11 +194,14 @@ namespace GitRepositoryTests.Index
             var path = TestContext.PerTestDirectory();
             {
                 using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
-                await gc.GetPlumbing().RunRawCommand("clone",
-                    gc.FullPath,
-                    path, "-s",
-                    "-c", $"core.fsmonitor=true"
-                    );
+                await gc.GetPorcelain().Clone(gc.FullPath, path, new()
+                {
+                    Shared = true,
+                    InitialConfiguration = new[]
+                    {
+                        ("core.fsmonitor", "true"),
+                    }
+                });
             }
 
             using var repo = GitRepository.Open(path);
@@ -217,12 +231,15 @@ namespace GitRepositoryTests.Index
             var path = TestContext.PerTestDirectory();
             {
                 using var gc = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
-                await gc.GetPlumbing().RunRawCommand("clone",
-                    gc.FullPath,
-                    path, "-s",
-                    "-c", $"core.splitIndex=true",
-                    "-c", $"index.version=4"
-                    );
+                await gc.GetPorcelain().Clone(gc.FullPath, path, new()
+                {
+                    Shared = true,
+                    InitialConfiguration = new[]
+                    {
+                        ("core.splitIndex", "true"),
+                        ("index.version", "4"),
+                    }
+                });
 
                 //TestContext.WriteLine(File.ReadAllText(Path.Combine(path, ".git", "config")));
             }

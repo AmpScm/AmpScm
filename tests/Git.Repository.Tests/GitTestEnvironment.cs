@@ -68,37 +68,36 @@ namespace GitRepositoryTests
                 {
                     using var p = GitRepository.Open(Path.Combine(ro, "greek-base"));
 
-                    await p.GetPlumbing().RunRawCommand("clone", Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek"));
-                    await p.GetPlumbing().RunRawCommand("clone", Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-packed"));
-                    await p.GetPlumbing().RunRawCommand("clone", Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bmp"));
-                    await p.GetPlumbing().RunRawCommand("clone", Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack"));
-                    await p.GetPlumbing().RunRawCommand("clone", Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack-bmp"));
+                    await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek"));
+                    await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-packed"));
+                    await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bmp"));
+                    await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack"));
+                    await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack-bmp"));
                 }
                 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-packed"));
-                    await pp.GetPorcelain().GC(new GitGCArgs());
+                    await pp.GetPorcelain().GC();
                 }
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-bmp"));
-                    await pp.GetPorcelain().GC(new GitGCArgs());
+                    await pp.GetPorcelain().GC();
 
                     await pp.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true });
                 }
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "multipack"));
-                    await pp.GetPorcelain().GC(new GitGCArgs());
+                    await pp.GetPorcelain().GC();
                     await pp.GetPlumbing().MultiPackIndex(new() { Command = GitMultiPackIndexCommand.Write });
                 }
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "multipack-bmp"));
-                    await pp.GetPorcelain().GC(new GitGCArgs());
+                    await pp.GetPorcelain().GC();
                     await pp.GetPlumbing().MultiPackIndex(new() { Command = GitMultiPackIndexCommand.Write, Bitmap=true });
                 }
-
 
                 //{
                 //    using var p = GitRepository.Open(Path.Combine(ro, "svn-base"));

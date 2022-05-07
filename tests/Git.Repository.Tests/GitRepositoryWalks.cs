@@ -7,6 +7,7 @@ using AmpScm;
 using AmpScm.Buckets.Git.Objects;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
+using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.References;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -202,7 +203,7 @@ namespace GitRepositoryTests
             var path2 = TestContext.PerTestDirectory("2");
             {
                 using GitRepository gc = GitRepository.Open(typeof(GitRepositoryWalks).Assembly.Location);
-                await gc.GetPlumbing().RunRawCommand("clone", new[] { "-s", gc.FullPath, path2 });
+                await gc.GetPorcelain().Clone(gc.FullPath, path2, new() { Shared = true });
             }
             {
                 using GitRepository gc = GitRepository.Open(path2);
