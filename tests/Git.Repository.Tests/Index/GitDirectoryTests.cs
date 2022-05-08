@@ -83,12 +83,14 @@ namespace GitRepositoryTests.Index
         }
 
         [TestMethod]
-        public async Task CheckReadSparse()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task CheckReadSparse(bool cone)
         {
             // This scenario is not really exposed by plain git yet, but this close
             // creates a new sparse checkout with sparse index for cone layout, where trees are
             // stored as tree objects directly in the index, instead of cached as trees.
-            var path = TestContext.PerTestDirectory();
+            var path = TestContext.PerTestDirectory($"{cone}");
             {
                 using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
                 await gc.GetPorcelain().Clone(gc.FullPath, path, new()
@@ -97,7 +99,7 @@ namespace GitRepositoryTests.Index
                     InitialConfiguration = new[]
                     {
                         ("core.sparseCheckout", "true"),
-                        ("core.sparseCheckoutCone", "true"),
+                        ("core.sparseCheckoutCone", $"{cone}"),
                         ("index.sparse", "true")
                     }
                 });

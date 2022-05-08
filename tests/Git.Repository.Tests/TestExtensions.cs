@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AmpScm;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
+using AmpScm.Git.Client.Porcelain;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests
@@ -15,17 +16,11 @@ namespace GitRepositoryTests
     {
         public static async ValueTask<string> CreateCloneAsync(this TestContext self, string? repos = null, bool shareOdb=true)
         {
-            repos ??= GitTestEnvironment.GetRepository(GitTestDir.Default);
-
-            using var r = GitRepository.Open(repos);
+            using var repo = GitRepository.Open(repos ?? GitTestEnvironment.GetRepository(GitTestDir.Default));
 
             var dir = self.PerTestDirectory("repo");
 
-            List<string> args = new List<string>() { r.FullPath, dir };
-            if (shareOdb)
-                args.Add("-s");
-
-            await r.GetPlumbing().RunRawCommand("clone", args.ToArray());
+            await repo.GetPorcelain().Clone(repo.FullPath, dir, new() { Shared = shareOdb });
 
             return dir;
         }

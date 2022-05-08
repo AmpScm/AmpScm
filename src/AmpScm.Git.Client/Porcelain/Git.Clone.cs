@@ -13,6 +13,17 @@ namespace AmpScm.Git.Client.Porcelain
         /// Adds alternate reference if cloning locally
         /// </summary>
         public bool Shared { get; set; }
+        public bool Mirror { get; set; }
+        public bool Bare { get; set; }
+        public bool? Tags { get; set; }
+        public bool NoCheckout { get; set; }
+        public bool? SingleBranch { get; set; }
+
+        public string? OriginName { get; set; }
+        public string? Branch { get; set; }
+        public string? TemplatePath { get; set; }
+
+        public int? Depth { get; set; }
 
         /// <summary>
         /// Bypasses git transport and just copies info if true, or explicitly uses git transport if false.
@@ -33,10 +44,27 @@ namespace AmpScm.Git.Client.Porcelain
         [GitCommand("clone")]
         public static async ValueTask Clone(this GitPorcelainClient c, Uri sourceUri, string path, GitCloneArgs? options = null)
         {
-            options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path));
+            else if (sourceUri is null)
+                throw new ArgumentNullException(nameof(sourceUri));
+            else if (!sourceUri.IsAbsoluteUri)
+                throw new ArgumentOutOfRangeException(nameof(sourceUri));
+            else if (sourceUri.Scheme == "file")
+            {
+                await Clone(c, sourceUri.AbsolutePath, path, options);
+                return;
+            }
 
-            await c.ThrowNotImplemented();
+            options ??= new();
+            options.Verify();
+
+            List<string> args = new();
+            PrepareCloneArgs(options, args);
+            args.Add(sourceUri.AbsoluteUri);
+            args.Add(path);
+
+            await c.Repository.RunPlumbingCommandOut("clone", args.ToArray());
         }
 
         [GitCommand("clone")]
@@ -58,20 +86,68 @@ namespace AmpScm.Git.Client.Porcelain
             options.Verify();
 
             List<string> args = new();
+            PrepareCloneArgs(options, args);
+            args.Add(sourcePath);
+            args.Add(path);
 
+            await c.Repository.RunPlumbingCommandOut("clone", args.ToArray());
+        }
+
+        private static void PrepareCloneArgs(GitCloneArgs options, List<string> args)
+        {
             if (options.Shared)
                 args.Add("--shared");
             if (options.Sparse)
                 args.Add("--sparse");
+
+            if (options.Mirror)
+                args.Add("--mirror"); // Implies --bare
+            else if (options.Bare)
+                args.Add("--bare");
 
             if (options.Local == true)
                 args.Add("--local");
             else if (options.Local == false)
                 args.Add("--no-local");
 
+            if (options.SingleBranch == true)
+                args.Add("--single-branch");
+            else if (options.SingleBranch == false)
+                args.Add("--no-single-branch");
+
+            if (options.Tags == false)
+                args.Add("--no-tags");
+
+            if (options.NoCheckout)
+                args.Add("--no-checkout");
+
+            if (options.Depth >= 1)
+            {
+                args.Add("--depth");
+                args.Add(Convert.ToString(options.Depth.Value));
+            }
+
+            if (!string.IsNullOrEmpty(options.OriginName))
+            {
+                args.Add("--origin");
+                args.Add(options.OriginName);
+            }
+
+            if (!string.IsNullOrEmpty(options.Branch))
+            {
+                args.Add("--branch");
+                args.Add(options.Branch);
+            }
+
+            if (!string.IsNullOrEmpty(options.TemplatePath))
+            {
+                args.Add("--template");
+                args.Add(options.TemplatePath);
+            }
+
             if (options.InitialConfiguration is not null)
             {
-                foreach(var (k,v) in options.InitialConfiguration)
+                foreach (var (k, v) in options.InitialConfiguration)
                 {
                     args.Add("-c");
                     args.Add($"{k}={v}");
@@ -79,10 +155,6 @@ namespace AmpScm.Git.Client.Porcelain
             }
 
             args.Add("--");
-            args.Add(sourcePath);
-            args.Add(path);
-
-            await c.Repository.RunPlumbingCommandOut("clone", args.ToArray());
         }
     }
 }
