@@ -36,6 +36,11 @@ namespace AmpScm.Git.Objects
         public void Add<TGitObject>(string name, IGitLazy<TGitObject> item)
             where TGitObject : GitObject
         {
+            if (typeof(TGitObject) == typeof(GitObject))
+            {
+                typeof(GitTreeWriter).GetMethod(nameof(Add)).MakeGenericMethod(item.Type.AsType()).Invoke(this, new object[] { name, item });
+                return;
+            }
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
             else if (item is null)
@@ -44,7 +49,7 @@ namespace AmpScm.Git.Objects
             if (IsValidName(name))
             {
                 if (_items.ContainsKey(name))
-                    throw new ArgumentOutOfRangeException(nameof(name));
+                    throw new ArgumentOutOfRangeException(nameof(name), $"Entry with name '{name}' already exists");
 
                 _items.Add(name, new Item<TGitObject>(name, item));
             }
@@ -55,15 +60,22 @@ namespace AmpScm.Git.Objects
 
                 foreach (var si in p.Take(p.Length - 1))
                 {
-                    if (tw._items.TryGetValue(si, out var v)
-                        && v.Writer is GitTreeWriter subTw)
+                    if (tw._items.TryGetValue(si, out var v))
                     {
-                        tw = subTw;
+                        if (v.Writer is GitTreeWriter subTw)
+                            tw = subTw;
+                        else if (v.Lazy is GitTree)
+                            tw = (GitTreeWriter)v.EnsureWriter();
+                        else
+                            throw new InvalidOperationException();
+
+                        tw.Updated();
                     }
                     else
                     {
-                        tw.Add(si, subTw = GitTreeWriter.CreateEmpty());
-                        tw = subTw;
+                        var stw = GitTreeWriter.CreateEmpty();
+                        tw.Add(si, stw);
+                        tw = stw;
                     }
                 }
 
@@ -72,6 +84,11 @@ namespace AmpScm.Git.Objects
             else
                 throw new ArgumentOutOfRangeException(nameof(name), name, "Invalid name");
 
+            Id = null;
+        }
+
+        private void Updated()
+        {
             Id = null;
         }
 
@@ -97,15 +114,22 @@ namespace AmpScm.Git.Objects
 
                 foreach (var si in p.Take(p.Length - 1))
                 {
-                    if (tw._items.TryGetValue(si, out var v)
-                        && v.Writer is GitTreeWriter subTw)
+                    if (tw._items.TryGetValue(si, out var v))
                     {
-                        tw = subTw;
+                        if (v.Writer is GitTreeWriter subTw)
+                            tw = subTw;
+                        else if (v.Lazy is GitTree)
+                            tw = (GitTreeWriter)v.EnsureWriter();
+                        else
+                            throw new InvalidOperationException();
+
+                        tw.Updated();
                     }
                     else
                     {
-                        tw.Add(si, subTw = GitTreeWriter.CreateEmpty());
-                        tw = subTw;
+                        var stw = GitTreeWriter.CreateEmpty();
+                        tw.Add(si, stw);
+                        tw = stw;
                     }
                 }
 
@@ -156,6 +180,8 @@ namespace AmpScm.Git.Objects
 
             public abstract ValueTask EnsureAsync(GitRepository repository);
 
+            public abstract GitObjectWriter EnsureWriter();
+
             public abstract GitObjectWriter? Writer { get; }
 
             public abstract IGitLazy<GitObject> Lazy { get; }
@@ -170,6 +196,9 @@ namespace AmpScm.Git.Objects
             public Item(string name, IGitLazy<TGitObject> lazy)
                 : base(name)
             {
+                if (typeof(TGitObject) == typeof(GitObject))
+                    throw new InvalidOperationException();
+
                 _lazy = lazy;
                 if (lazy is TGitObject item)
                 {
@@ -203,6 +232,17 @@ namespace AmpScm.Git.Objects
             public override async ValueTask EnsureAsync(GitRepository repository)
             {
                 await _lazy.WriteToAsync(repository).ConfigureAwait(false);
+            }
+
+            public override GitObjectWriter EnsureWriter()
+            {
+                if (_writer is null)
+                {
+                    _writer = ((GitObject)Lazy).AsWriter();
+                    _lazy = (GitObjectWriter<TGitObject>)_writer;
+                }
+
+                return _writer;
             }
         }
 

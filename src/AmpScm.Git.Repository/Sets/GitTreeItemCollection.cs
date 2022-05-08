@@ -145,7 +145,7 @@ namespace AmpScm.Git.Sets
                 if (TryGet(path, out var item))
                     return item.Value;
 
-                throw new ArgumentOutOfRangeException(nameof(path));
+                throw new ArgumentOutOfRangeException(nameof(path), $"Item with path '{path}' does not exist");
             }
         }
 

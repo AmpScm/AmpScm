@@ -146,22 +146,23 @@ namespace GitRepositoryTests
                 }
             }
 
-            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Local)));
+            TimeSpan offset = new TimeSpan(1, 0, 0);
+            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 1, 0, 0, 0, offset));
             cw.CommitMessage = "Initial Commit";
 
-            var cs = await cw.WriteAndFetchAsync(repo);
+            var firstCommit = await cw.WriteAndFetchAsync(repo);
 
-            cw = GitCommitWriter.Create(cs);
+            cw = GitCommitWriter.Create(firstCommit);
 
-            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(new DateTime(2000, 1, 1, 1, 0, 0, DateTimeKind.Local)));
+            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 1, 1, 0, 0, offset));
             cw.CommitMessage = "Second Commit";
 
-            cs = await cw.WriteAndFetchAsync(repo);
+            var secondCommit = await cw.WriteAndFetchAsync(repo);
 
 
-            var ct = GitTagObjectWriter.Create(cs, "v0.1");
+            var ct = GitTagObjectWriter.Create(secondCommit, "v0.1");
             ct.TagMessage = "Tag second Commit";
-            ct.Tagger = new GitSignature("BH", "bh@BH", new DateTimeOffset(new DateTime(2000, 1, 2, 0, 0, 0, DateTimeKind.Local)));
+            ct.Tagger = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 2, 0, 0, 0, offset));
 
             var tag = await ct.WriteAndFetchAsync(repo);
 
@@ -169,26 +170,27 @@ namespace GitRepositoryTests
                 new GitUpdateReference { Name = $"refs/tags/{tag.Name}", Target = ct.Id },
                 new GitUpdateReferenceArgs { Message = "Apply tag" });
 
-            var baseId = cs.Id;
+            var baseId = secondCommit.Id;
 
 
-            cw = GitCommitWriter.Create(cs);
-            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(new DateTime(2000, 1, 3, 0, 0, 0, DateTimeKind.Local)));
+            cw = GitCommitWriter.Create(firstCommit);
+            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 3, 0, 0, 0, offset));
             cw.Tree.Add("A/C/delta", GitBlobWriter.CreateFrom(Encoding.UTF8.GetBytes("This is the file 'delta'.\n").AsBucket()));
             cw.CommitMessage = "Committed on branch";
 
-            var alt = await cw.WriteAndFetchAsync(repo);
+            var branchCommit = await cw.WriteAndFetchAsync(repo);
 
-            cw = GitCommitWriter.Create(cs, alt);
-            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(new DateTime(2000, 1, 4, 0, 0, 0, DateTimeKind.Local)));
+            cw = GitCommitWriter.Create(firstCommit, branchCommit);
+            cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 4, 0, 0, 0, offset));
             cw.CommitMessage = "Merged";
+            cw.Tree.Add("A/C/delta", branchCommit.Tree.AllItems["A/C/delta"].Entry.GitObject.AsLazy());
 
-            cs = await cw.WriteAndFetchAsync(repo);
+            var headCommit = await cw.WriteAndFetchAsync(repo);
 
             string? refName = ((GitSymbolicReference)repo.Head).ReferenceName;
             Assert.AreEqual("refs/heads/master", refName);
             await repo.GetPlumbing().UpdateReference(
-                new GitUpdateReference { Name = refName!, Target = cs.Id },
+                new GitUpdateReference { Name = refName!, Target = headCommit.Id },
                 new GitUpdateReferenceArgs { Message = "Testing" });
 
             await repo.GetPorcelain().CheckOut("HEAD", new[] { "." });
