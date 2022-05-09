@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Git.Implementation;
+using AmpScm.Git.References;
 
 namespace AmpScm.Git.Sets
 {
@@ -19,5 +20,12 @@ namespace AmpScm.Git.Sets
         }
 
         public GitReference Head => Repository.ReferenceRepository.GetAsync(Git.References.GitReferenceRepository.Head).AsTask().Result!;
+
+
+
+        public GitReferenceUpdateTransaction CreateUpdateTransaction()
+        {
+            return Repository.ReferenceRepository.CreateUpdateTransaction();
+        }
     }
 }

@@ -36,15 +36,16 @@ namespace AmpScm.Git.Objects
         public void Add<TGitObject>(string name, IGitLazy<TGitObject> item)
             where TGitObject : GitObject
         {
-            if (typeof(TGitObject) == typeof(GitObject))
-            {
-                typeof(GitTreeWriter).GetMethod(nameof(Add)).MakeGenericMethod(item.Type.AsType()).Invoke(this, new object[] { name, item });
-                return;
-            }
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
             else if (item is null)
                 throw new ArgumentNullException(nameof(item));
+
+            if (typeof(TGitObject) == typeof(GitObject))
+            {
+                typeof(GitTreeWriter).GetMethod(nameof(Add))!.MakeGenericMethod(item.Type.AsType()).Invoke(this, new object[] { name, item });
+                return;
+            }
 
             if (IsValidName(name))
             {

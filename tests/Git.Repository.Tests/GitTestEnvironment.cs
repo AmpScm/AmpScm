@@ -166,10 +166,12 @@ namespace GitRepositoryTests
 
             var tag = await ct.WriteAndFetchAsync(repo);
 
-            await repo.GetPlumbing().UpdateReference(
-                new GitUpdateReference { Name = $"refs/tags/{tag.Name}", Target = ct.Id },
-                new GitUpdateReferenceArgs { Message = "Apply tag" });
-
+            using (var rt = repo.References.CreateUpdateTransaction())
+            {
+                rt.Reason = "Apply tag";
+                rt.Create($"refs/tags/{tag.Name}", tag.Id);
+                await rt.CommitAsync();
+            }
             var baseId = secondCommit.Id;
 
 
@@ -189,11 +191,15 @@ namespace GitRepositoryTests
 
             string? refName = ((GitSymbolicReference)repo.Head).ReferenceName;
             Assert.AreEqual("refs/heads/master", refName);
-            await repo.GetPlumbing().UpdateReference(
-                new GitUpdateReference { Name = refName!, Target = headCommit.Id },
-                new GitUpdateReferenceArgs { Message = "Testing" });
 
-            await repo.GetPorcelain().CheckOut("HEAD", new[] { "." });
+            using (var rt = repo.References.CreateUpdateTransaction())
+            {
+                rt.Reason = "Initial Checkout";
+                rt.UpdateHead(headCommit.Id);
+
+                await rt.CommitAsync();
+            }
+            await repo.GetPorcelain().CheckOut("HEAD");
         }
 
         [AssemblyCleanup]

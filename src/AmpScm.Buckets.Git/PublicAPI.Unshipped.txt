@@ -52,6 +52,7 @@ AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadLengthAsync() -> System.Threading.Tas
 AmpScm.Buckets.Git.GitEwahBitmapBucket.SetIndexes.get -> System.Collections.Generic.IAsyncEnumerable<int>!
 AmpScm.Buckets.Git.GitPackFrameBucket.ReadDeltaCountAsync() -> System.Threading.Tasks.ValueTask<int>
 override AmpScm.Buckets.Git.GitDirectoryBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.GitReferenceLogRecord.ToString() -> string!
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool

@@ -72,7 +72,7 @@ namespace GitRepositoryTests
                 new RepoItem { Name = "A/D/H/omega", Content = "This is the file 'omega'.\n" }
             };
 
-            Dictionary<string, GitObject> ht = new ();
+            Dictionary<string, GitObject> ht = new();
             foreach (var i in items.Where(x => x.Content != null))
             {
                 GitBlobWriter b = GitBlobWriter.CreateFrom(System.Text.Encoding.UTF8.GetBytes(i.Content!).AsBucket());
@@ -121,9 +121,16 @@ namespace GitRepositoryTests
         }
 
         [TestMethod]
-        public async Task CreateSvnTree2()
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task CreateSvnTree2(bool noGit)
         {
-            using var repo = GitRepository.Init(TestContext.PerTestDirectory());
+            GitRepositoryInitArgs opts = new();
+
+            if (noGit)
+                opts.InitialConfiguration = new[] { ("ampscm.git-update-ref", "false"), ("ampscm.git-hook", "false") };
+
+            using var repo = GitRepository.Init(TestContext.PerTestDirectory($"{noGit}"), opts);
 
             GitCommitWriter cw = GitCommitWriter.Create(new GitCommitWriter[0]);
 
@@ -185,20 +192,24 @@ namespace GitRepositoryTests
             Assert.AreEqual(items.Length + 2, repo.Objects.Count()); // F and C are the same empty tree
             Assert.IsFalse(items.Select(x => x.Name).Except(((IEnumerable<GitTreeItem>)repo.Commits[cs.Id]!.Tree.AllItems).Select(x => x.Path)).Any(), "All paths reached");
 
-            string? refName = ((GitSymbolicReference)repo.Head).ReferenceName;
-            Assert.AreEqual("refs/heads/master", refName);
-            await repo.GetPlumbing().UpdateReference(
-                new GitUpdateReference { Name = refName!, Target = cs.Id },
-                new GitUpdateReferenceArgs { Message = "Testing" });
+            using (var t = repo.References.CreateUpdateTransaction())
+            {
+                t.Reason = "Testing";
+                t.UpdateHead(cs.Id);
+                await t.CommitAsync();
+            }
 
             var ct = GitTagObjectWriter.Create(cs, "v0.1");
             ct.TagMessage = "Tag second Commit";
 
             var tag = await ct.WriteAndFetchAsync(repo);
 
-            await repo.GetPlumbing().UpdateReference(
-                new GitUpdateReference { Name = $"refs/tags/{tag.Name}", Target = ct.Id },
-                new GitUpdateReferenceArgs { Message = "Apply tag" });
+            using (var t = repo.References.CreateUpdateTransaction())
+            {
+                t.Reason = "Testing";
+                t.Create($"refs/tags/{tag.Name}", tag.Id);
+                await t.CommitAsync();
+            }
 
             fsckOutput = await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
             Assert.AreEqual($"", fsckOutput);

@@ -15,6 +15,8 @@ namespace AmpScm.Git
         public static readonly string DefaultInitialBranchName = "master";
         public bool Bare { get; set; }
         public string? InitialBranchName { get; set; }
+
+        public IEnumerable<(string, string)>? InitialConfiguration { get; set; }
     }
 
     public partial class GitRepository
@@ -73,6 +75,26 @@ namespace AmpScm.Git
             {
                 configText = configText.Replace(symLinks, "", StringComparison.Ordinal);
                 configText = configText.Replace(ignoreCase, "", StringComparison.Ordinal);
+            }
+
+            if(init.InitialConfiguration?.Any() ?? false)
+            {
+                string? lastGroup = null;
+
+                foreach(var (k, v) in init.InitialConfiguration)
+                {
+                    var sp = k.Split(new[] { '.' }, 2);
+
+                    if (sp.Length != 2)
+                        continue;
+
+                    if (!sp[0].Equals(lastGroup, StringComparison.OrdinalIgnoreCase))
+                    {
+                        lastGroup = sp[0];
+                        configText += $"\n[{lastGroup}]\n";
+                    }
+                    configText += $"\t{sp[1]} = {v}\n";
+                }
             }
 
             File.WriteAllText(Path.Combine(gitDir, "config"), configText);

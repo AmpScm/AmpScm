@@ -57,9 +57,7 @@ namespace AmpScm.Git.Objects
             {
                 foreach (var (key, value) in Repository.Configuration.GetGroup("extensions", null))
                 {
-#pragma warning disable CA1308 // Normalize strings to uppercase
-                    switch (key.ToLowerInvariant())
-#pragma warning restore CA1308 // Normalize strings to uppercase
+                    switch (key)
                     {
                         case "noop":
                             break;
@@ -79,10 +77,8 @@ namespace AmpScm.Git.Objects
                             else
                                 throw new GitException($"Found unsupported objectFormat {value} in repository {Repository.FullPath}");
                             break;
-#if DEBUG
                         case "worktreeconfig":
                             break;
-#endif
                         default:
                             throw new GitException($"Found unsupported extension {key} in repository {Repository.FullPath}");
                     }

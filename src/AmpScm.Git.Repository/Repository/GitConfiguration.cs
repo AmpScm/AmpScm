@@ -34,6 +34,7 @@ namespace AmpScm.Git.Repository
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         Lazy<GitLazyConfig> _lazy;
+        private bool _parseWorkTreeConfig;
 
         internal GitConfiguration(GitRepository repository, string gitDir)
             : base(repository)
@@ -59,11 +60,19 @@ namespace AmpScm.Git.Repository
             {
                 await LoadConfigAsync(Path.Combine(_gitDir, "config")).ConfigureAwait(false);
 
+                if (_parseWorkTreeConfig)
+                {
+                    string path = Path.Combine(Repository.WorktreePath, "config.worktree");
+
+                    if (File.Exists(path))
+                        await LoadConfigAsync(Path.Combine(Repository.WorktreePath, "config.worktree")).ConfigureAwait(false);
+                }
+
                 var v = Environment.GetEnvironmentVariable("GIT_CONFIG_COUNT");
 
                 if (!string.IsNullOrEmpty(v) && int.TryParse(v, out var nVars) && nVars > 0)
                 {
-                    for(int i = 0; i < nVars; i++)
+                    for (int i = 0; i < nVars; i++)
                     {
                         string? key = Environment.GetEnvironmentVariable($"GIT_CONFIG_KEY_{i}");
                         string? value = Environment.GetEnvironmentVariable($"GIT_CONFIG_VALUE_{i}");
@@ -191,6 +200,8 @@ namespace AmpScm.Git.Repository
                 if (int.TryParse(item.Value, out var version))
                     _repositoryFormatVersion = version;
             }
+            else if (item.Key == "worktreeconfig" && item.Group == "extensions")
+                _parseWorkTreeConfig = true;
         }
 
         internal IEnumerable<(string, string)> GetGroup(string group, string? subGroup)
@@ -299,7 +310,7 @@ namespace AmpScm.Git.Repository
 
                 vResult = vResult.TrimEnd();
 
-                if ((vResult.EndsWith("k", StringComparison.OrdinalIgnoreCase) || vResult.EndsWith("m",StringComparison.OrdinalIgnoreCase) || vResult.EndsWith("g",StringComparison.OrdinalIgnoreCase))
+                if ((vResult.EndsWith("k", StringComparison.OrdinalIgnoreCase) || vResult.EndsWith("m", StringComparison.OrdinalIgnoreCase) || vResult.EndsWith("g", StringComparison.OrdinalIgnoreCase))
 #if !NETFRAMEWORK
                     && int.TryParse(vResult.AsSpan(0, vResult.Length - 1), out r))
 #else

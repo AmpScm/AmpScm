@@ -5,6 +5,7 @@ abstract AmpScm.Git.Objects.GitObjectWriter.Type.get -> AmpScm.Git.GitObjectType
 abstract AmpScm.Git.Objects.GitObjectWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 abstract AmpScm.Git.References.GitReferenceRepository.GetAll(System.Collections.Generic.HashSet<string!>! alreadyReturned) -> System.Collections.Generic.IAsyncEnumerable<AmpScm.Git.GitReference!>!
 abstract AmpScm.Git.References.GitReferenceRepository.GetUnsafeAsync(string! name) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
+abstract AmpScm.Git.References.GitReferenceUpdateTransaction.CommitAsync() -> System.Threading.Tasks.ValueTask
 abstract AmpScm.Git.Repository.GitBackendRepository.Dispose(bool disposing) -> void
 abstract AmpScm.Git.Sets.GitSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 AmpScm.Git.GitBlob
@@ -161,6 +162,15 @@ AmpScm.Git.References.GitReferenceRepository.GetAsync(string! name) -> System.Th
 AmpScm.Git.References.GitReferenceRepository.GitDir.get -> string!
 AmpScm.Git.References.GitReferenceRepository.GitReferenceRepository(AmpScm.Git.GitRepository! repository, string! gitDir, string! workTreeDir) -> void
 AmpScm.Git.References.GitReferenceRepository.WorkTreeDir.get -> string!
+AmpScm.Git.References.GitReferenceUpdateTransaction
+AmpScm.Git.References.GitReferenceUpdateTransaction.Create(string! referenceName, AmpScm.Git.GitId! newValue) -> void
+AmpScm.Git.References.GitReferenceUpdateTransaction.Delete(string! referenceName, AmpScm.Git.GitId? oldValue = null) -> void
+AmpScm.Git.References.GitReferenceUpdateTransaction.Dispose() -> void
+AmpScm.Git.References.GitReferenceUpdateTransaction.Reason.get -> string?
+AmpScm.Git.References.GitReferenceUpdateTransaction.Reason.set -> void
+AmpScm.Git.References.GitReferenceUpdateTransaction.Update(string! referenceName, AmpScm.Git.GitId! newValue, AmpScm.Git.GitId? oldValue = null) -> void
+AmpScm.Git.References.GitReferenceUpdateTransaction.UpdateHead(AmpScm.Git.GitId! newValue, AmpScm.Git.GitId? oldValue = null) -> void
+AmpScm.Git.References.GitReferenceUpdateTransaction.Verify(string! referenceName, AmpScm.Git.GitId? oldValue = null) -> void
 AmpScm.Git.References.GitSymbolicReference
 AmpScm.Git.References.GitSymbolicReference.Reference.get -> AmpScm.Git.GitReference?
 AmpScm.Git.References.GitSymbolicReference.ReferenceName.get -> string?
@@ -190,6 +200,7 @@ AmpScm.Git.Sets.GitObjectWrapper<TGitObject>
 AmpScm.Git.Sets.GitReferenceChangeSet
 AmpScm.Git.Sets.GitReferenceChangeSet.GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerator<AmpScm.Git.GitReferenceChange!>!
 AmpScm.Git.Sets.GitReferencesSet
+AmpScm.Git.Sets.GitReferencesSet.CreateUpdateTransaction() -> AmpScm.Git.References.GitReferenceUpdateTransaction!
 AmpScm.Git.Sets.GitReferencesSet.Head.get -> AmpScm.Git.GitReference!
 AmpScm.Git.Sets.GitRemotesSet
 AmpScm.Git.Sets.GitRevisionSet

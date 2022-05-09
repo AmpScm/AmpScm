@@ -130,19 +130,19 @@ namespace AmpScm.Git.Client.Porcelain
             if (!string.IsNullOrEmpty(options.OriginName))
             {
                 args.Add("--origin");
-                args.Add(options.OriginName);
+                args.Add(options.OriginName!);
             }
 
             if (!string.IsNullOrEmpty(options.Branch))
             {
                 args.Add("--branch");
-                args.Add(options.Branch);
+                args.Add(options.Branch!);
             }
 
             if (!string.IsNullOrEmpty(options.TemplatePath))
             {
                 args.Add("--template");
-                args.Add(options.TemplatePath);
+                args.Add(options.TemplatePath!);
             }
 
             if (options.InitialConfiguration is not null)

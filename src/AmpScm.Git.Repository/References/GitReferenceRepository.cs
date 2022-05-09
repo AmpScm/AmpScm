@@ -28,6 +28,11 @@ namespace AmpScm.Git.References
 
         public abstract IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned);
 
+        internal GitReferenceUpdateTransaction CreateUpdateTransaction()
+        {
+            return new GitReferenceUpdater(this);
+        }
+
         public ValueTask<GitReference?> GetAsync(string name)
         {
             if (!GitReference.ValidName(name, true))

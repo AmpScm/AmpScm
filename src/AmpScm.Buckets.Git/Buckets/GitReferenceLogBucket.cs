@@ -17,6 +17,23 @@ namespace AmpScm.Buckets.Git
         public GitId Target { get; init; } = default!;
         public GitSignatureRecord Signature { get; init; } = default!;
         public string? Summary { get; init; } = default!;
+
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append(Original);
+            sb.Append(' ');
+            sb.Append(Target);
+            sb.Append(' ');
+            sb.Append(Signature);
+            sb.Append('\t');
+            sb.Append(Summary);
+            sb.Append('\n');
+
+            return sb.ToString();
+        }
     }
 
     public record GitSignatureRecord

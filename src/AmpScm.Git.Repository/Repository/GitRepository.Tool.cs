@@ -66,7 +66,7 @@ namespace AmpScm.Git
 
             await Task.WhenAll(p.WaitForExitAsync(), rcv.DoneTask).ConfigureAwait(false);
 
-            if (expectedResults != null ? !expectedResults.Contains(p.ExitCode) : p.ExitCode != 0)
+            if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
                 throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation: {rcv.StdErr}");
 
             return p.ExitCode;
@@ -106,7 +106,7 @@ namespace AmpScm.Git
 
             await Task.WhenAll(p.WaitForExitAsync(), rcv.DoneTask).ConfigureAwait(false);
 
-            if (expectedResults != null ? !expectedResults.Contains(p.ExitCode) : p.ExitCode != 0)
+            if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
                 throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation: {rcv.StdErr}");
 
             return (p.ExitCode, rcv.StdOut);
@@ -146,7 +146,7 @@ namespace AmpScm.Git
 
             await Task.WhenAll(p.WaitForExitAsync(), rcv.DoneTask).ConfigureAwait(false);
 
-            if (expectedResults != null ? !expectedResults.Contains(p.ExitCode) : p.ExitCode != 0)
+            if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
                 throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation");
 
             return (p.ExitCode, rcv.StdOut, rcv.StdErr ?? "");
@@ -241,7 +241,7 @@ namespace AmpScm.Git
 
                     lock (_l)
                     {
-                        if (_expectedResults != null ? !_expectedResults.Contains(_p.ExitCode) : _p.ExitCode != 0)
+                        if (_expectedResults != null ? !(_expectedResults.Length == 0 || _expectedResults.Contains(_p.ExitCode)) : _p.ExitCode != 0)
                             throw new GitExecCommandException($"Unexpected error {_p.ExitCode} from git plumbing operation: {_errText?.ToString()}");
                     }
 
