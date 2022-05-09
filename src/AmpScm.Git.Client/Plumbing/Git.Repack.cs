@@ -46,7 +46,7 @@ namespace AmpScm.Git.Client.Plumbing
                 args.Add("--write-midx");
 
 
-            var (_, txt) = await c.Repository.RunPlumbingCommandOut("repack", args.ToArray());
+            await c.Repository.RunPlumbingCommand("repack", args.ToArray());
         }
     }
 }

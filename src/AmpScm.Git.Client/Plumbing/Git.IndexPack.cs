@@ -8,21 +8,39 @@ namespace AmpScm.Git.Client.Plumbing
 {
     public class GitIndexPackArgs : GitPlumbingArgs
     {
+        public bool? ReverseIndex { get; set; }
+        public bool FixThin { get; set; }
+
         public override void Verify()
         {
-            throw new NotImplementedException();
         }
     }
 
     partial class GitPlumbing
     {
         [GitCommand("index-pack")]
-        public static async ValueTask IndexPack(this GitPlumbingClient c, GitIndexPackArgs options)
+        public static async ValueTask IndexPack(this GitPlumbingClient c, string path, GitIndexPackArgs? options = null)
         {
-            options.Verify();
-            //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path));
 
-            await c.ThrowNotImplemented();
+            options ??= new GitIndexPackArgs();
+            options.Verify();
+
+            List<string> args = new();
+
+            if (options.FixThin)
+                args.Add("--fix-thin");
+
+            if (options.ReverseIndex == true)
+                args.Add("--rev-index");
+            else if (options.ReverseIndex == false)
+                args.Add("--no-rev-index");
+
+
+            args.Add(path);
+
+            await c.Repository.RunPlumbingCommand("index-pack", args.ToArray());
         }
     }
 }

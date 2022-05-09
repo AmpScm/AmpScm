@@ -57,7 +57,7 @@ namespace AmpScm.Git
             if (p == null)
                 throw new GitExecCommandException($"Unable to start 'git {command}' operation");
 
-            var rcv = new OutputReceiver(p, true);
+            var rcv = new OutputReceiver(p);
 
             if (!string.IsNullOrEmpty(stdinText))
                 await p.StandardInput.WriteAsync(stdinText).ConfigureAwait(false);
@@ -97,7 +97,7 @@ namespace AmpScm.Git
             if (p == null)
                 throw new GitExecCommandException($"Unable to start 'git {command}' operation");
 
-            var rcv = new OutputReceiver(p, true);
+            var rcv = new OutputReceiver(p);
 
             if (!string.IsNullOrEmpty(stdinText))
                 await p.StandardInput.WriteAsync(stdinText).ConfigureAwait(false);
@@ -137,7 +137,7 @@ namespace AmpScm.Git
             if (p == null)
                 throw new GitExecCommandException($"Unable to start 'git {command}' operation");
 
-            var rcv = new OutputReceiver(p, true);
+            var rcv = new OutputReceiver(p);
 
             if (!string.IsNullOrEmpty(stdinText))
                 await p.StandardInput.WriteAsync(stdinText).ConfigureAwait(false);
@@ -285,20 +285,18 @@ namespace AmpScm.Git
             StringBuilder? _stdErr;
             public Task DoneTask { get; }
 
-            public OutputReceiver(Process p, bool receiveStderr)
+            public OutputReceiver(Process p)
             {
                 _tcs = new TaskCompletionSource<object?>();
-                _n = receiveStderr ? 2 : 1;
+                _n = 2;
                 _stdOut = new StringBuilder();
                 p.OutputDataReceived += P_OutputDataReceived;
                 p.BeginOutputReadLine();
 
-                if (receiveStderr)
-                {
-                    _stdErr = new StringBuilder();
-                    p.ErrorDataReceived += P_ErrorDataReceived;
-                    p.BeginErrorReadLine();
-                }
+                _stdErr = new StringBuilder();
+                p.ErrorDataReceived += P_ErrorDataReceived;
+                p.BeginErrorReadLine();
+
                 DoneTask = _tcs.Task;
             }
 

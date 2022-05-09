@@ -143,6 +143,7 @@ namespace GitRepositoryTests.Index
             }
 
             using var repo = GitRepository.Open(path);
+            Assert.AreEqual(path, repo.FullPath);
             List<GitDirectoryEntry> entries = new List<GitDirectoryEntry>();
             using (var dc2 = new GitDirectoryBucket(repo.WorktreePath, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
             {
@@ -165,31 +166,27 @@ namespace GitRepositoryTests.Index
 
 
 
-            using var dc = new GitDirectoryBucket(repo.WorktreePath, new GitDirectoryOptions
+            using (var dc = new GitDirectoryBucket(repo.WorktreePath, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
             {
-                LookForEndOfIndex = lookFor
-            });
+                await dc.ReadHeaderAsync();
 
-            await dc.ReadHeaderAsync();
+                TestContext.WriteLine($"Version: {dc.IndexVersion}");
 
-            TestContext.WriteLine($"Version: {dc.IndexVersion}");
-
-            int n = 0;
-            string? ln = null;
-            while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
-            {
-                TestContext.WriteLine($"{entry.Name} - {entry}");
-                if (ln is not null)
+                int n = 0;
+                string? ln = null;
+                while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
                 {
-                    Assert.IsTrue(string.CompareOrdinal(entry.Name, ln) >= 0);
+                    TestContext.WriteLine($"{entry.Name} - {entry}");
+                    if (ln is not null)
+                    {
+                        Assert.IsTrue(string.CompareOrdinal(entry.Name, ln) >= 0);
+                    }
+                    ln = entry.Name;
+                    n++;
                 }
-                ln = entry.Name;
-                n++;
+
+                Assert.AreEqual(entries.Count + 2, n);
             }
-
-            Assert.AreEqual(entries.Count + 2, n);
-
-            _ = await dc.ReadAsync();
         }
 
         [TestMethod]

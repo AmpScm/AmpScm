@@ -64,7 +64,7 @@ namespace AmpScm.Git.Client.Porcelain
             args.Add(sourceUri.AbsoluteUri);
             args.Add(path);
 
-            await c.Repository.RunPlumbingCommandOut("clone", args.ToArray());
+            await c.Repository.RunPlumbingCommand("clone", args.ToArray());
         }
 
         [GitCommand("clone")]
@@ -90,7 +90,7 @@ namespace AmpScm.Git.Client.Porcelain
             args.Add(sourcePath);
             args.Add(path);
 
-            await c.Repository.RunPlumbingCommandOut("clone", args.ToArray());
+            await c.Repository.RunPlumbingCommand("clone", args.ToArray());
         }
 
         private static void PrepareCloneArgs(GitCloneArgs options, List<string> args)

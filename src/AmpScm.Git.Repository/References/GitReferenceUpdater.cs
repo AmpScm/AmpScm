@@ -315,7 +315,7 @@ namespace AmpScm.Git.References
                 args.AddRange(new[] { "-m", Reason! });
             }
 
-            await Repository.RunPlumbingCommandOut("update-ref", args.ToArray(), sb.ToString()).ConfigureAwait(false);
+            await Repository.RunPlumbingCommand("update-ref", args.ToArray(), sb.ToString()).ConfigureAwait(false);
         }
     }
 }

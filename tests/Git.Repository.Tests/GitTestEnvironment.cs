@@ -25,6 +25,8 @@ namespace GitRepositoryTests
     {
         Greek,
         Packed,
+        PackedBitmap,
+        PackedBitmapRevIdx,
         MultiPack,
         MultiPackBitmap,
         Default
@@ -44,7 +46,7 @@ namespace GitRepositoryTests
             SetupRepositories(ctx.TestRunDirectory);
         }
 
-        public static IEnumerable<GitTestDir> TestDirectories 
+        public static IEnumerable<GitTestDir> TestDirectories
             => Enum.GetValues(typeof(GitTestDir)).Cast<GitTestDir>();
 
         private static void SetupRepositories(string testRunDirectory)
@@ -63,7 +65,7 @@ namespace GitRepositoryTests
                 {
                     using var r = GitRepository.Init(Path.Combine(ro, "bare"), true);
                 }
-            
+
                 await CreateSvnTreeAsync(Path.Combine(ro, "greek-base"));
 
                 {
@@ -72,10 +74,11 @@ namespace GitRepositoryTests
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-packed"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bmp"));
+                    await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bmp-rev"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack-bmp"));
                 }
-                
+
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-packed"));
                     await pp.GetPorcelain().GC();
@@ -85,7 +88,16 @@ namespace GitRepositoryTests
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-bmp"));
                     await pp.GetPorcelain().GC();
 
-                    await pp.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true });
+                    await pp.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true, RemoveUnused = true });
+                }
+
+                {
+                    using var pp = GitRepository.Open(Path.Combine(ro, "greek-bmp-rev"));
+                    await pp.GetPorcelain().GC();
+
+                    await pp.GetPlumbing().Repack(new GitRepackArgs { WriteBitmap = true, SinglePack = true, RemoveUnused = true });
+
+                    await pp.GetPlumbing().IndexPack(Directory.GetFiles(Path.Combine(pp.FullPath, ".git", "objects", "pack"), "*.pack").Single(), new GitIndexPackArgs { ReverseIndex = true });
                 }
 
                 {
@@ -97,7 +109,7 @@ namespace GitRepositoryTests
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "multipack-bmp"));
                     await pp.GetPorcelain().GC();
-                    await pp.GetPlumbing().MultiPackIndex(new() { Command = GitMultiPackIndexCommand.Write, Bitmap=true });
+                    await pp.GetPlumbing().MultiPackIndex(new() { Command = GitMultiPackIndexCommand.Write, Bitmap = true });
                 }
 
                 TestRunReadOnlyDir = ro;
@@ -209,7 +221,7 @@ namespace GitRepositoryTests
             {
                 try
                 {
-                    foreach(var f in Directory.GetFiles(TestRunReadOnlyDir, "*", SearchOption.AllDirectories))
+                    foreach (var f in Directory.GetFiles(TestRunReadOnlyDir, "*", SearchOption.AllDirectories))
                     {
                         var a = File.GetAttributes(f);
                         if ((a & (FileAttributes.ReadOnly | FileAttributes.System)) != 0)
@@ -219,8 +231,8 @@ namespace GitRepositoryTests
                 }
                 catch { }
             }
-        }    
-        
+        }
+
         public static string GetRepository(GitTestDir dir)
         {
             return Path.Combine(TestRunReadOnlyDir,
@@ -231,6 +243,8 @@ namespace GitRepositoryTests
                     GitTestDir.MultiPack => "multipack",
                     GitTestDir.MultiPackBitmap => "multipack-bmp",
                     GitTestDir.Default => "greek-packed",
+                    GitTestDir.PackedBitmap => "greek-bmp",
+                    GitTestDir.PackedBitmapRevIdx => "greek-bmp-rev",
                     _ => throw new ArgumentOutOfRangeException(nameof(dir))
                 });
         }

@@ -87,7 +87,7 @@ namespace AmpScm.Git.Client.Plumbing
                 args.Add(options.Message!);
             }
 
-            var (_, _) = await c.Repository.RunPlumbingCommandOut("update-ref", args.ToArray(),
+            await c.Repository.RunPlumbingCommand("update-ref", args.ToArray(),
                 stdinText: string.Join("", updates.Select(x => x.ZeroString()).ToArray()));
         }
 

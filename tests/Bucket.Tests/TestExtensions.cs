@@ -34,16 +34,13 @@ namespace AmpScm
             }
         }
 
-        static int? _pid;
-        static int Pid => _pid ?? System.Diagnostics.Process.GetCurrentProcess().Id;
-
         public static string PerTestDirectory(this TestContext tc, string? subPath = null)
         {
             string dir;
             if (!string.IsNullOrEmpty(subPath))
-                dir = Path.Combine(tc.TestRunDirectory, Pid.ToString(), tc.FullyQualifiedTestClassName, tc.TestName, subPath);
+                dir = Path.Combine(tc.TestResultsDirectory, tc.FullyQualifiedTestClassName, tc.TestName, subPath);
             else
-                dir = Path.Combine(tc.TestRunDirectory, Pid.ToString(), tc.FullyQualifiedTestClassName, tc.TestName);
+                dir = Path.Combine(tc.TestResultsDirectory, tc.FullyQualifiedTestClassName, tc.TestName);
 
             if (dir.Length > 100)
                 dir = Path.Combine(tc.TestResultsDirectory, SHA1String(dir).Substring(0, 10));
