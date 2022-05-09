@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,6 +53,17 @@ namespace AmpScm.Git.Client.Plumbing
                 args.AddRange(new[] { "--index-version", options.IndexVersion.ToString()! });
 
             args.Add("--");
+
+#if NET5_0_OR_GREATER
+            if (OperatingSystem.IsWindows())
+#endif
+            {
+                string idx = Path.Combine(c.Repository.WorktreePath, "index");
+                if (File.Exists(idx))
+                {
+                    File.SetAttributes(idx, FileAttributes.Normal);
+                }
+            }
 
             await c.Repository.RunPlumbingCommand("update-index", args.ToArray());
         }

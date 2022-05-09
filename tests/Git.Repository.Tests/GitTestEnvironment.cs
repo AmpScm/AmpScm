@@ -10,7 +10,6 @@ using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.Objects;
 using AmpScm.Git.References;
-using AmpScm.Git.Sets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests
@@ -29,7 +28,8 @@ namespace GitRepositoryTests
         PackedBitmapRevIdx,
         MultiPack,
         MultiPackBitmap,
-        Default
+        Default,
+        Bare,
     }
 
 
@@ -62,11 +62,8 @@ namespace GitRepositoryTests
                 {
                     using var r = GitRepository.Init(Path.Combine(ro, "empty"));
                 }
-                {
-                    using var r = GitRepository.Init(Path.Combine(ro, "bare"), true);
-                }
 
-                await CreateSvnTreeAsync(Path.Combine(ro, "greek-base"));
+                await CreateGreekTreeAsync(Path.Combine(ro, "greek-base"));
 
                 {
                     using var p = GitRepository.Open(Path.Combine(ro, "greek-base"));
@@ -116,9 +113,9 @@ namespace GitRepositoryTests
             }).Wait();
         }
 
-        private static async Task CreateSvnTreeAsync(string v)
+        private static async Task CreateGreekTreeAsync(string v)
         {
-            using var repo = GitRepository.Init(v);
+            using var repo = GitRepository.Init(v, new GitRepositoryInitArgs { Bare=true});
 
             GitCommitWriter cw = GitCommitWriter.Create(new GitCommitWriter[0]);
 
@@ -211,7 +208,6 @@ namespace GitRepositoryTests
 
                 await rt.CommitAsync();
             }
-            await repo.GetPorcelain().CheckOut("HEAD");
         }
 
         [AssemblyCleanup]
@@ -245,6 +241,7 @@ namespace GitRepositoryTests
                     GitTestDir.Default => "greek-packed",
                     GitTestDir.PackedBitmap => "greek-bmp",
                     GitTestDir.PackedBitmapRevIdx => "greek-bmp-rev",
+                    GitTestDir.Bare => "greek-base",
                     _ => throw new ArgumentOutOfRangeException(nameof(dir))
                 });
         }
