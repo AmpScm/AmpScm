@@ -477,6 +477,7 @@ namespace AmpScm.Buckets
             {
                 if (string.IsNullOrEmpty(path))
                     throw new ArgumentNullException(nameof(path));
+
                 SafeFileHandle handle = NativeMethods.CreateFileW(path,
                     access: 0x80000000 /* GENERIC_READ */, // We want to read
                     share: 0x00000004 /* FILE_SHARE_DELETE */ | 0x00000001 /* FILE_SHARE_READ */, // Others can read, delete, rename, but we keep our file open

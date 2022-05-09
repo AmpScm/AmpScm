@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,8 +38,16 @@ namespace AmpScm.Git.Client.Plumbing
             else if (options.ReverseIndex == false)
                 args.Add("--no-rev-index");
 
-
             args.Add(path);
+
+#if NET5_0_OR_GREATER
+            if (OperatingSystem.IsWindows())
+#endif
+            {
+                string idx = Path.ChangeExtension(path, ".idx");
+                if (File.Exists(idx))
+                    File.SetAttributes(idx, FileAttributes.Normal);
+            }
 
             await c.Repository.RunPlumbingCommand("index-pack", args.ToArray());
         }
