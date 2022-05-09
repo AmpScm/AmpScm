@@ -44,6 +44,7 @@ namespace AmpScm.Git.References
 
             Action? unlock = null;
             string? hookData = null;
+            bool? logRefUpdates = null;
             try
             {
                 foreach (var v in Updates.Select(x => x.Name).Distinct())
@@ -67,7 +68,7 @@ namespace AmpScm.Git.References
                     var f = new FileStream(path + ".lock", FileMode.CreateNew);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-                    unlock += () => { f.Close(); File.Delete(p); };                   
+                    unlock += () => { f.Close(); File.Delete(p); };
                 }
 
 
@@ -123,7 +124,7 @@ namespace AmpScm.Git.References
 
                     if (hookData is not null)
                     {
-                        var r = await Repository.RunHookErr("reference-transaction", new[] {"prepared" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+                        var r = await Repository.RunHookErr("reference-transaction", new[] { "prepared" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
 
                         if (r.ExitCode != 0)
                         {
@@ -178,13 +179,19 @@ namespace AmpScm.Git.References
                                 continue;
                         }
 
+                        logRefUpdates ??= await Repository.Configuration.GetBoolAsync("core", "logallrefupdates").ConfigureAwait(false) ?? false;
 
-                        var log = new GitReferenceLogRecord { Original = originalId ?? Zero, Target = v.Id ?? Zero, Signature = signature, Reason = Reason };
+                        if (logRefUpdates == true
+                            && (GitReference.AllUpper(v.Name) || v.Name.StartsWith("refs/heads/", StringComparison.OrdinalIgnoreCase)
+                                || v.Name.StartsWith("refs/remotes/", StringComparison.OrdinalIgnoreCase) || v.Name.StartsWith("refs/notes/", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            var log = new GitReferenceLogRecord { Original = originalId ?? Zero, Target = v.Id ?? Zero, Signature = signature, Reason = Reason };
 
-                        await AppendLog(v.Name, log).ConfigureAwait(false);
+                            await AppendLog(v.Name, log).ConfigureAwait(false);
 
-                        if (rf is not null && rf.Name != v.Name)
-                            await AppendLog(rf.Name!, log).ConfigureAwait(false);
+                            if (rf is not null && rf.Name != v.Name)
+                                await AppendLog(rf.Name!, log).ConfigureAwait(false);
+                        }
                     }
 
                     if (hookData is not null)
