@@ -43,7 +43,7 @@ namespace AmpScm
                 dir = Path.Combine(tc.TestResultsDirectory, tc.FullyQualifiedTestClassName, tc.TestName);
 
             if (dir.Length > 100)
-                dir = Path.Combine(tc.TestResultsDirectory, SHA1String(dir).Substring(0, 8));
+                dir = Path.Combine(tc.TestResultsDirectory, SHA1String(dir).Substring(0, 10));
 
             Directory.CreateDirectory(dir);
 

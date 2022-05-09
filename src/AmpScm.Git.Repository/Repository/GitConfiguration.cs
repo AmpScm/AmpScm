@@ -366,6 +366,16 @@ namespace AmpScm.Git.Repository
                 return null;
         }
 
+        public async ValueTask<string?> GetPathAsync(string group, string key)
+        {
+            var value = await GetStringAsync(group, key).ConfigureAwait(false);
+
+            if (value is not null)
+                return ApplyHomeDir(value);
+            else
+                return null;
+        }
+
         internal string? GetString(string group, string key)
         {
             return GetStringAsync(group, key).AsTask().Result;
@@ -583,6 +593,13 @@ namespace AmpScm.Git.Repository
             catch (SecurityException)
             { }
             return null;
+        }
+
+        internal async ValueTask<bool> HookExistsAsync(string hookName)
+        {
+            string path = await GetPathAsync("core", "hookspath").ConfigureAwait(false) ?? Path.Combine(Repository.GitDir, "hooks");
+
+            return File.Exists(Path.Combine(path, hookName));
         }
 
         public GitSignature Identity

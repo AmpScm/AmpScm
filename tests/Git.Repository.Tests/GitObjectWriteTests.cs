@@ -128,7 +128,7 @@ namespace GitRepositoryTests
             GitRepositoryInitArgs opts = new();
 
             if (noGit)
-                opts.InitialConfiguration = new[] { ("ampscm.git-update-ref", "false"), ("ampscm.git-hook", "false") };
+                opts.InitialConfiguration = new[] { ("ampscm.git-update-ref", "false") };
 
             using var repo = GitRepository.Init(TestContext.PerTestDirectory($"{noGit}"), opts);
 

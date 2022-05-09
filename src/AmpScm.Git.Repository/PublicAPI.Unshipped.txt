@@ -47,8 +47,8 @@ AmpScm.Git.GitReference.ShortName.get -> string!
 AmpScm.Git.GitReference.Tree.get -> AmpScm.Git.GitTree?
 AmpScm.Git.GitReferenceChange
 AmpScm.Git.GitReferenceChange.OriginalId.get -> AmpScm.Git.GitId!
+AmpScm.Git.GitReferenceChange.Reason.get -> string!
 AmpScm.Git.GitReferenceChange.Signature.get -> AmpScm.Git.GitSignature!
-AmpScm.Git.GitReferenceChange.Summary.get -> string!
 AmpScm.Git.GitReferenceChange.TargetId.get -> AmpScm.Git.GitId!
 AmpScm.Git.GitRemote
 AmpScm.Git.GitRemote.Name.get -> string!
@@ -86,6 +86,8 @@ AmpScm.Git.GitRepositoryInitArgs.Bare.set -> void
 AmpScm.Git.GitRepositoryInitArgs.GitRepositoryInitArgs() -> void
 AmpScm.Git.GitRepositoryInitArgs.InitialBranchName.get -> string?
 AmpScm.Git.GitRepositoryInitArgs.InitialBranchName.set -> void
+AmpScm.Git.GitRepositoryInitArgs.InitialConfiguration.get -> System.Collections.Generic.IEnumerable<(string!, string!)>?
+AmpScm.Git.GitRepositoryInitArgs.InitialConfiguration.set -> void
 AmpScm.Git.GitRevision
 AmpScm.Git.GitRevision.Commit.get -> AmpScm.Git.GitCommit!
 AmpScm.Git.GitRevision.ReadAsync() -> System.Threading.Tasks.ValueTask
@@ -183,6 +185,7 @@ AmpScm.Git.Repository.GitConfiguration.BasicAuthenticationHandler(object? sender
 AmpScm.Git.Repository.GitConfiguration.GetBool(string! group, string! key) -> bool?
 AmpScm.Git.Repository.GitConfiguration.GetBoolAsync(string! group, string! key) -> System.Threading.Tasks.ValueTask<bool?>
 AmpScm.Git.Repository.GitConfiguration.GetIntAsync(string! group, string! key) -> System.Threading.Tasks.ValueTask<int?>
+AmpScm.Git.Repository.GitConfiguration.GetPathAsync(string! group, string! key) -> System.Threading.Tasks.ValueTask<string?>
 AmpScm.Git.Repository.GitConfiguration.GetStringAsync(string! group, string! key) -> System.Threading.Tasks.ValueTask<string?>
 AmpScm.Git.Repository.GitConfiguration.GetSubGroups(string! group) -> System.Collections.Generic.IEnumerable<string!>!
 AmpScm.Git.Repository.GitConfiguration.Identity.get -> AmpScm.Git.GitSignature!

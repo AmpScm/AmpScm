@@ -152,6 +152,17 @@ namespace AmpScm.Git
             return (p.ExitCode, rcv.StdOut, rcv.StdErr ?? "");
         }
 
+        internal async ValueTask<(int ExitCode, string OutputText, string ErrorText)> RunHookErr(string hook, string[] args, string? stdinText = null, int[]? expectedResults = null)
+        {
+            if (!await Configuration.HookExistsAsync(hook).ConfigureAwait(false))
+                return (0, "", "");
+
+            List<string> aa = new List<string>();
+            aa.AddRange(new[] { "run", hook, "--" });
+            aa.AddRange(args);
+            return await RunPlumbingCommandErr("hook", aa.ToArray(), stdinText, expectedResults).ConfigureAwait(false);
+        }
+
         protected internal IAsyncEnumerable<string> WalkPlumbingCommand(string command, string[] args, string? stdinText = null, int[]? expectedResults = null)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo(GitConfiguration.GitProgramPath)

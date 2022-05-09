@@ -218,11 +218,11 @@ namespace GitRepositoryTests
 
             await foreach (var c in repo.Head.ReferenceChanges)
             {
-                TestContext.WriteLine($"{c.OriginalId} {c.TargetId} {c.Signature}\t{c.Summary}");
+                TestContext.WriteLine($"{c.OriginalId} {c.TargetId} {c.Signature}\t{c.Reason}");
                 Assert.IsNotNull(c.OriginalId);
                 Assert.IsNotNull(c.TargetId);
                 Assert.IsNotNull(c.Signature);
-                Assert.IsNotNull(c.Summary);
+                Assert.IsNotNull(c.Reason);
                 n++;
             }
 
@@ -241,11 +241,11 @@ namespace GitRepositoryTests
 
             await foreach (var c in repo.Head.Resolved.ReferenceChanges)
             {
-                TestContext.WriteLine($"{c.OriginalId} {c.TargetId} {c.Signature}\t{c.Summary}");
+                TestContext.WriteLine($"{c.OriginalId} {c.TargetId} {c.Signature}\t{c.Reason}");
                 Assert.IsNotNull(c.OriginalId);
                 Assert.IsNotNull(c.TargetId);
                 Assert.IsNotNull(c.Signature);
-                Assert.IsNotNull(c.Summary);
+                Assert.IsNotNull(c.Reason);
                 n++;
             }
 
@@ -290,11 +290,11 @@ namespace GitRepositoryTests
 
             await foreach (var c in repo.Head.Resolved.ReferenceChanges)
             {
-                TestContext.WriteLine($"{c.OriginalId} {c.TargetId} {c.Signature}\t{c.Summary}");
+                TestContext.WriteLine($"{c.OriginalId} {c.TargetId} {c.Signature}\t{c.Reason}");
                 Assert.IsNotNull(c.OriginalId);
                 Assert.IsNotNull(c.TargetId);
                 Assert.IsNotNull(c.Signature);
-                Assert.IsNotNull(c.Summary);
+                Assert.IsNotNull(c.Reason);
                 n++;
             }
 

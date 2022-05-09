@@ -70,10 +70,10 @@ AmpScm.Buckets.Git.GitReferenceLogBucket.ReadGitReferenceLogRecordAsync() -> Sys
 AmpScm.Buckets.Git.GitReferenceLogRecord
 AmpScm.Buckets.Git.GitReferenceLogRecord.Original.get -> AmpScm.Git.GitId!
 AmpScm.Buckets.Git.GitReferenceLogRecord.Original.init -> void
+AmpScm.Buckets.Git.GitReferenceLogRecord.Reason.get -> string?
+AmpScm.Buckets.Git.GitReferenceLogRecord.Reason.init -> void
 AmpScm.Buckets.Git.GitReferenceLogRecord.Signature.get -> AmpScm.Buckets.Git.GitSignatureRecord!
 AmpScm.Buckets.Git.GitReferenceLogRecord.Signature.init -> void
-AmpScm.Buckets.Git.GitReferenceLogRecord.Summary.get -> string?
-AmpScm.Buckets.Git.GitReferenceLogRecord.Summary.init -> void
 AmpScm.Buckets.Git.GitReferenceLogRecord.Target.get -> AmpScm.Git.GitId!
 AmpScm.Buckets.Git.GitReferenceLogRecord.Target.init -> void
 AmpScm.Buckets.Git.GitSignatureRecord

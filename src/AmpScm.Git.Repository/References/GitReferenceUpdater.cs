@@ -74,7 +74,7 @@ namespace AmpScm.Git.References
                 bool allowContinue = true;
 
                 if (!string.IsNullOrEmpty(GitConfiguration.GitProgramPath)
-                    && (await Repository.Configuration.GetBoolAsync("ampscm", "git-hook").ConfigureAwait(false) ?? true))
+                    && await Repository.Configuration.HookExistsAsync("reference-transaction").ConfigureAwait(false))
                 {
                     StringBuilder sb = new StringBuilder();
 
@@ -123,7 +123,7 @@ namespace AmpScm.Git.References
 
                     if (hookData is not null)
                     {
-                        var r = await Repository.RunPlumbingCommandErr("hook", new[] { "run", "--ignore-missing", "reference-transaction", "--", "prepared" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+                        var r = await Repository.RunHookErr("reference-transaction", new[] {"prepared" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
 
                         if (r.ExitCode != 0)
                         {
@@ -179,7 +179,7 @@ namespace AmpScm.Git.References
                         }
 
 
-                        var log = new GitReferenceLogRecord { Original = originalId ?? Zero, Target = v.Id ?? Zero, Signature = signature, Summary = Reason };
+                        var log = new GitReferenceLogRecord { Original = originalId ?? Zero, Target = v.Id ?? Zero, Signature = signature, Reason = Reason };
 
                         await AppendLog(v.Name, log).ConfigureAwait(false);
 
@@ -192,14 +192,14 @@ namespace AmpScm.Git.References
                         var hd = hookData;
                         hookData = null;
                         // Ignore errors
-                        await Repository.RunPlumbingCommandErr("hook", new[] { "run", "--ignore-missing", "reference-transaction", "--", "committed" }, stdinText: hd, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+                        await Repository.RunHookErr("run", new[] { "committed" }, stdinText: hd, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
                     }
                 }
             }
             catch when (hookData is not null)
             {
                 // Ignore errors
-                await Repository.RunPlumbingCommandErr("hook", new[] { "run", "--ignore-missing", "reference-transaction", "--", "abort" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+                await Repository.RunHookErr("run", new[] { "abort" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
                 throw;
             }
             finally

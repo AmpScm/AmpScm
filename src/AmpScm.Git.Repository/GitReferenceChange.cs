@@ -9,7 +9,7 @@ using AmpScm.Git.Sets;
 
 namespace AmpScm.Git
 {
-    [DebuggerDisplay("{TargetId.ToString(\"x12\"),nq} {Signature.When,nq} {Summary,nq}")]
+    [DebuggerDisplay("{TargetId.ToString(\"x12\"),nq} {Signature.When,nq} {Reason,nq}")]
     public sealed class GitReferenceChange : IGitObject
     {
         object _signature;
@@ -18,7 +18,7 @@ namespace AmpScm.Git
             OriginalId = record.Original;
             TargetId = record.Target;
             _signature = record.Signature;
-            Summary = record.Summary ?? "";
+            Reason = record.Reason ?? "";
         }
 
         public GitId OriginalId { get; }
@@ -26,7 +26,7 @@ namespace AmpScm.Git
         public GitSignature Signature
             => (_signature as GitSignature) ?? (GitSignature)(_signature = new GitSignature((GitSignatureRecord)_signature));
 
-        public string Summary { get; }
+        public string Reason { get; }
 
 
         ValueTask IGitObject.ReadAsync()

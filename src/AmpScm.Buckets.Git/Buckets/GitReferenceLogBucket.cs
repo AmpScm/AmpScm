@@ -16,7 +16,7 @@ namespace AmpScm.Buckets.Git
         public GitId Original { get; init; } = default!;
         public GitId Target { get; init; } = default!;
         public GitSignatureRecord Signature { get; init; } = default!;
-        public string? Summary { get; init; } = default!;
+        public string? Reason { get; init; } = default!;
 
 
         public override string ToString()
@@ -29,7 +29,7 @@ namespace AmpScm.Buckets.Git
             sb.Append(' ');
             sb.Append(Signature);
             sb.Append('\t');
-            sb.Append(Summary);
+            sb.Append(Reason);
             sb.Append('\n');
 
             return sb.ToString();
@@ -137,7 +137,7 @@ namespace AmpScm.Buckets.Git
                 Original = ReadGitId(bb, 0) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Original)} OID in RefLog line from {Inner.Name}"),
                 Target = ReadGitId(bb, _idLength.Value + 1) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Target)} OID in RefLog line from {Inner.Name}"),
                 Signature = GitSignatureRecord.TryReadFromBucket(bb.Slice(0, prefix).Slice(2 * (_idLength.Value + 1)), out var v) ? v : throw new GitBucketException("Invalid reference log item"),
-                Summary = bb.Slice(prefix + 1).ToUTF8String(eol)
+                Reason = bb.Slice(prefix + 1).ToUTF8String(eol)
             };
         }
 
