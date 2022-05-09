@@ -53,9 +53,19 @@ namespace GitRepositoryTests
         {
             Task.Run(async () =>
             {
-                var ro = Path.Combine(testRunDirectory, "base");
-                while (Directory.Exists(ro))
-                    ro += "_";
+                if (Path.GetFileName(testRunDirectory)?.StartsWith("Deploy_") ?? false)
+                    testRunDirectory = Path.GetDirectoryName(testRunDirectory)!;
+
+                string b = Path.Combine(testRunDirectory, "b");
+                string ro;
+                int i = System.Diagnostics.Process.GetCurrentProcess().Id;
+
+                if (Directory.Exists(ro = b))
+                {
+                    while (Directory.Exists(ro = $"{b}_{i++}"))
+                    {
+                    }
+                }
 
                 Directory.CreateDirectory(ro);
 
@@ -69,6 +79,7 @@ namespace GitRepositoryTests
                     using var p = GitRepository.Open(Path.Combine(ro, "greek-base"));
 
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek"));
+                    await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bare"), new GitCloneArgs { Bare = true });
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-packed"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bmp"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bmp-rev"));
@@ -78,6 +89,11 @@ namespace GitRepositoryTests
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-packed"));
+                    await pp.GetPorcelain().GC();
+                }
+
+                {
+                    using var pp = GitRepository.Open(Path.Combine(ro, "greek-bare"));
                     await pp.GetPorcelain().GC();
                 }
 
@@ -115,7 +131,7 @@ namespace GitRepositoryTests
 
         private static async Task CreateGreekTreeAsync(string v)
         {
-            using var repo = GitRepository.Init(v, new GitRepositoryInitArgs { Bare=true});
+            using var repo = GitRepository.Init(v, new GitRepositoryInitArgs { Bare = true });
 
             GitCommitWriter cw = GitCommitWriter.Create(new GitCommitWriter[0]);
 
@@ -241,7 +257,7 @@ namespace GitRepositoryTests
                     GitTestDir.Default => "greek-packed",
                     GitTestDir.PackedBitmap => "greek-bmp",
                     GitTestDir.PackedBitmapRevIdx => "greek-bmp-rev",
-                    GitTestDir.Bare => "greek-base",
+                    GitTestDir.Bare => "greek-bare",
                     _ => throw new ArgumentOutOfRangeException(nameof(dir))
                 });
         }
