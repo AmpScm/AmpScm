@@ -46,7 +46,10 @@ namespace AmpScm.Git.Client.Plumbing
             {
                 string idx = Path.ChangeExtension(path, ".idx");
                 if (File.Exists(idx))
+                {
                     File.SetAttributes(idx, FileAttributes.Normal);
+                    File.Delete(idx);
+                    }
             }
 
             await c.Repository.RunPlumbingCommand("index-pack", args.ToArray());
