@@ -150,6 +150,8 @@ namespace GitRepositoryTests.Index
                 {
                     entries.Add(q);
                 }
+
+                GC.KeepAlive(dc2);
             }
 
             await repo.GetPlumbing().UpdateIndex(new() { SplitIndex = true });
