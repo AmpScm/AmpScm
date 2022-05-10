@@ -180,5 +180,6 @@ namespace AmpScm.Buckets
             return found;
         }
 
+        public static BucketFactory Create => BucketFactory.Instance;
     }
 }

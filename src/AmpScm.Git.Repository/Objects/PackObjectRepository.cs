@@ -128,7 +128,7 @@ namespace AmpScm.Git.Objects
 
                 var check = GitId.FromByteArrayOffset(_idType, oids, sz * mid);
 
-                int n = oid.HashCompare(check);
+                int n = oid.CompareTo(check);
 
                 if (n == 0)
                 {
@@ -150,7 +150,7 @@ namespace AmpScm.Git.Objects
             var check2 = GitId.FromByteArrayOffset(_idType, oids, sz * first);
             index = (uint)first;
 
-            c = oid.HashCompare(check2);
+            c = oid.CompareTo(check2);
 
             if (c == 0)
                 return true;

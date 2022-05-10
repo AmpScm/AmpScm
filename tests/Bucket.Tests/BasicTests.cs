@@ -77,7 +77,7 @@ namespace BucketTests
         public async Task BasicHash()
         {
             var strings = new[] { "This is string1\n", "This is string2\n", "This is string 3\n" };
-            byte[][] buffers = strings.Select(x => System.Text.Encoding.UTF8.GetBytes(x)).ToArray();
+            byte[][] buffers = strings.Select(x => Encoding.UTF8.GetBytes(x)).ToArray();
 
             var b = buffers.AsBucket(true);
 

@@ -18,8 +18,9 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("fsck")]
-        public static async ValueTask<string> ConsistencyCheck(this GitPlumbingClient c, GitConsistencyCheckArgs options)
+        public static async ValueTask<string> ConsistencyCheck(this GitPlumbingClient c, GitConsistencyCheckArgs? options = null)
         {
+            options ??= new();
             options.Verify();
             var args = new List<string>();
 

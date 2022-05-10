@@ -33,6 +33,7 @@ AmpScm.Buckets.ByteCollector.AsBytes(byte appendByte) -> AmpScm.Buckets.BucketBy
 AmpScm.Buckets.ByteCollector.AsBytes(byte[]! appendBytes) -> AmpScm.Buckets.BucketBytes
 AmpScm.Buckets.ByteCollector.ByteCollector() -> void
 AmpScm.Buckets.ByteCollector.ByteCollector(int expectedSize) -> void
+AmpScm.Buckets.ByteCollector.Clear() -> void
 AmpScm.Buckets.ByteCollector.Count.get -> int
 AmpScm.Buckets.ByteCollector.Equals(AmpScm.Buckets.ByteCollector other) -> bool
 AmpScm.Buckets.ByteCollector.GetEnumerator() -> System.Collections.Generic.IEnumerator<byte>!
@@ -138,6 +139,9 @@ AmpScm.Buckets.Specialized.BitwiseOrBucket
 AmpScm.Buckets.Specialized.BitwiseOrBucket.BitwiseOrBucket(AmpScm.Buckets.Bucket! left, AmpScm.Buckets.Bucket! right) -> void
 AmpScm.Buckets.Specialized.BitwiseXorBucket
 AmpScm.Buckets.Specialized.BitwiseXorBucket.BitwiseXorBucket(AmpScm.Buckets.Bucket! left, AmpScm.Buckets.Bucket! right) -> void
+AmpScm.Buckets.Specialized.BucketFactory
+AmpScm.Buckets.Specialized.BucketFactory.FromASCII(string! value) -> AmpScm.Buckets.Bucket!
+AmpScm.Buckets.Specialized.BucketFactory.FromUTF8(string! value) -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Specialized.ConversionBucket
 AmpScm.Buckets.Specialized.ConversionBucket.ConversionBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Specialized.ZLibBucket.ZLibBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm = AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib, System.IO.Compression.CompressionMode mode = System.IO.Compression.CompressionMode.Decompress, AmpScm.Buckets.Specialized.BucketCompressionLevel level = AmpScm.Buckets.Specialized.BucketCompressionLevel.Default) -> void
@@ -191,6 +195,7 @@ override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.Bucket.Create.get -> AmpScm.Buckets.Specialized.BucketFactory!
 static AmpScm.Buckets.BucketExtensions.All<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> bool
 static AmpScm.Buckets.BucketExtensions.Any<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> bool
 static AmpScm.Buckets.BucketExtensions.Compress(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm, AmpScm.Buckets.Specialized.BucketCompressionLevel level) -> AmpScm.Buckets.Bucket!

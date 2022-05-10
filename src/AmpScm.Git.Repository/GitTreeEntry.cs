@@ -8,7 +8,7 @@ using AmpScm.Git.Sets;
 namespace AmpScm.Git
 {
     [DebuggerDisplay("{EntryName} - {Id}")]
-    public abstract class GitTreeEntry : IEquatable<GitTreeEntry>, IGitObject
+    public abstract class GitTreeEntry : IEquatable<GitTreeEntry>, IGitObject, IComparable<GitTreeEntry>
     {
         internal GitTreeEntry(GitTree tree, string name, GitId id)
         {
@@ -24,9 +24,9 @@ namespace AmpScm.Git
 
         public virtual GitTreeElementType ElementType => GitTreeElementType.None;
 
-        public override bool Equals(object? obj)
+        public sealed override bool Equals(object? obj)
         {
-            return base.Equals(obj as GitTreeEntry);
+            return Equals(obj as GitTreeEntry);
         }
 
         public bool Equals(GitTreeEntry? other)
@@ -34,12 +34,17 @@ namespace AmpScm.Git
             return other?.Name == Name && Id == other.Id;
         }
 
-        public override int GetHashCode()
+        public sealed override int GetHashCode()
         {
             return Id.GetHashCode() ^ Name.GetHashCode(StringComparison.Ordinal);
         }
 
         public abstract ValueTask ReadAsync();
+
+        public int CompareTo(GitTreeEntry? other)
+        {
+            return StringComparer.Ordinal.Compare(Name, other?.Name);
+        }
 
         public abstract GitObject GitObject { get; }
 
@@ -50,6 +55,26 @@ namespace AmpScm.Git
 
         public static bool operator !=(GitTreeEntry e1, GitTreeEntry e2)
             => !(e1?.Equals(e2) ?? false);
+
+        public static bool operator <(GitTreeEntry left, GitTreeEntry right)
+        {
+            return (left is null) ? !(right is null) : left.CompareTo(right) < 0;
+        }
+
+        public static bool operator <=(GitTreeEntry left, GitTreeEntry right)
+        {
+            return (left is null) || left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >(GitTreeEntry left, GitTreeEntry right)
+        {
+            return !(left is null) && left.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(GitTreeEntry left, GitTreeEntry right)
+        {
+            return (left is null) ? (right is null) : left.CompareTo(right) >= 0;
+        }
     }
 
     public abstract class GitTreeEntry<TEntry, TObject> : GitTreeEntry

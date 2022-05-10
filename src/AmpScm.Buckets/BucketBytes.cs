@@ -34,7 +34,7 @@ namespace AmpScm.Buckets
             if (obj is BucketBytes bb)
                 return Equals(bb);
 
-            return base.Equals(obj);
+            return false;
         }
 
         public bool Equals(BucketBytes other)

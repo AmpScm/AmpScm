@@ -71,6 +71,7 @@ intended for testing the lower layers, but probly useful for more users. May bec
 | Packed Object Files           | Yes           | Yes       | Yes     | Yes           |
 | Loose References              | Yes           | Yes       | Yes     | Yes           |
 | Packed References             | Yes           | Yes       | Yes     | Yes           |
+| Sha256 Repositories           | Yes           | No        | No      | Yes           |
 | Reference Table format        | Expected Soon | No        | No      | Expected Soon |
 | Reference Log                 | Yes           | Yes       | Yes     | Yes           |
 | Multipack index               | Yes           | Yes       | No      | Yes           |

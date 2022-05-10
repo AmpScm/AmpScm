@@ -176,7 +176,7 @@ namespace AmpScm.Git.Objects
 
                 var check = await GetGitIdByIndexAsync(mid).ConfigureAwait(false);
 
-                int n = id.HashCompare(check);
+                int n = id.CompareTo(check);
 
                 if (n == 0)
                 {
@@ -195,7 +195,7 @@ namespace AmpScm.Git.Objects
 
             var check2 = await GetGitIdByIndexAsync(first).ConfigureAwait(false);
 
-            int n2 = id.HashCompare(check2);
+            int n2 = id.CompareTo(check2);
 
             if (n2 == 0)
                 return (true, first);

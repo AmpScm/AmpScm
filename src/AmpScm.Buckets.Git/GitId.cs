@@ -112,7 +112,7 @@ namespace AmpScm.Git
 
         public override bool Equals(object? obj)
         {
-            return base.Equals(obj as GitId);
+            return Equals(obj as GitId);
         }
 
         public bool Equals(GitId? other)
@@ -123,18 +123,7 @@ namespace AmpScm.Git
             if (other.Type != Type)
                 return false;
 
-            return HashCompare(other) == 0;
-        }
-
-        public int HashCompare(GitId other)
-        {
-            if (other is null)
-                return 1;
-
-            if (other.Type != Type)
-                return (int)Type - (int)other.Type;
-
-            return Hash.Span.SequenceCompareTo(other.Hash.Span);
+            return Hash.Span.SequenceEqual(other.Hash.Span);
         }
 
         public static bool TryParse(string idString, [NotNullWhen(true)] out GitId? id)
@@ -354,11 +343,10 @@ namespace AmpScm.Git
             if (other is null)
                 return 1;
 
-            int n = (int)Type - (int)other.Type;
-            if (n != 0)
-                return n;
+            if (other.Type != Type)
+                return (int)Type - (int)other.Type;
 
-            return HashCompare(other);
+            return Hash.Span.SequenceCompareTo(other.Hash.Span);
         }
 
         string IFormattable.ToString(string? format, IFormatProvider? formatProvider)

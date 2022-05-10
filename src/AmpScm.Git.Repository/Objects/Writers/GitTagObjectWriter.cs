@@ -80,7 +80,7 @@ namespace AmpScm.Git.Objects
                 if (!string.IsNullOrWhiteSpace(msg))
                     sb.Append(msg.Replace("\r", "", StringComparison.Ordinal));
 
-                var b = Encoding.UTF8.GetBytes(sb.ToString()).AsBucket();
+                var b = Bucket.Create.FromUTF8(sb.ToString());
 
                 Id = await WriteBucketAsObject(b, repository).ConfigureAwait(false);
             }

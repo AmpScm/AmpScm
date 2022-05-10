@@ -23,7 +23,7 @@ namespace GitRepositoryTests
         {
             using var repo = GitRepository.Init(TestContext.PerTestDirectory());
 
-            GitBlobWriter bw = GitBlobWriter.CreateFrom(System.Text.Encoding.UTF8.GetBytes("This is 'iota'.").AsBucket());
+            GitBlobWriter bw = GitBlobWriter.CreateFrom(Bucket.Create.FromUTF8("This is 'iota'."));
 
             var blob = await bw.WriteAndFetchAsync(repo);
 
@@ -75,7 +75,7 @@ namespace GitRepositoryTests
             Dictionary<string, GitObject> ht = new();
             foreach (var i in items.Where(x => x.Content != null))
             {
-                GitBlobWriter b = GitBlobWriter.CreateFrom(System.Text.Encoding.UTF8.GetBytes(i.Content!).AsBucket());
+                GitBlobWriter b = GitBlobWriter.CreateFrom(Bucket.Create.FromUTF8(i.Content!));
 
                 var r = await b.WriteAndFetchAsync(repo);
                 ht[i.Name] = r;
@@ -162,7 +162,7 @@ namespace GitRepositoryTests
             {
                 if (item.Content is not null)
                 {
-                    cw.Tree.Add(item.Name, GitBlobWriter.CreateFrom(System.Text.Encoding.UTF8.GetBytes(item.Content!).AsBucket()));
+                    cw.Tree.Add(item.Name, GitBlobWriter.CreateFrom(Bucket.Create.FromUTF8(item.Content!)));
                 }
                 else
                 {

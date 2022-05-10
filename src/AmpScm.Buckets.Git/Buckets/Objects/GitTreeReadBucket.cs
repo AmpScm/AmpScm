@@ -17,11 +17,10 @@ namespace AmpScm.Buckets.Git.Objects
 
         public Bucket AsBucket()
         {
-            var pf = $"{Convert.ToString((int)Type, 8)} {Name}\0";
-
-            return new AggregateBucket(
-                Encoding.UTF8.GetBytes(pf).AsBucket(),  // "100644 MyFile\0"
-                Id.Hash.AsBucket());                    // Hashcode
+            return
+                Bucket.Create.FromUTF8(
+                    $"{Convert.ToString((int)Type, 8)} {Name}\0")  // "100644 MyFile\0"
+                + Id.Hash.AsBucket();                              // Hashcode
 
         }
     }

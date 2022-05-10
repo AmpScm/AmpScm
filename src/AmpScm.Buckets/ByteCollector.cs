@@ -91,6 +91,17 @@ namespace AmpScm.Buckets
             Count += bytes.Length;
         }
 
+        public void Clear()
+        {
+            Count = 0;
+
+            if (_expected == 0)
+            {
+                _bytes = null;
+                _expected = 256;
+            }
+        }
+
         public void Append(byte[] bytes)
         {
             if (bytes is null || bytes.Length == 0)

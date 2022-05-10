@@ -12,6 +12,7 @@ namespace AmpScm.Git.Client.Porcelain
         public bool Bare { get; set; }
         public string? Branch { get; set; }
         public string? TemplatePath { get; set; }
+        public GitIdType? IdType { get; set; }
 
         public override void Verify()
         {
@@ -48,6 +49,11 @@ namespace AmpScm.Git.Client.Porcelain
                 args.Add(options.TemplatePath!);
             }
 
+            if (options.IdType.HasValue)
+            {
+                args.Add("--object-format");
+                args.Add(options.IdType.Value.ToString().ToLowerInvariant());
+            }
 
             args.Add(path);
 

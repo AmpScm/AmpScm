@@ -57,12 +57,12 @@ namespace AmpScm.Git
             return other?.Id.Equals(Id) ?? false;
         }
 
-        public override bool Equals(object? obj)
+        public sealed override bool Equals(object? obj)
         {
-            return base.Equals(obj as GitObject);
+            return Equals(obj as GitObject);
         }
 
-        public override int GetHashCode()
+        public sealed override int GetHashCode()
         {
             return Id.GetHashCode();
         }

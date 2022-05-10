@@ -8,6 +8,7 @@ using AmpScm.Buckets.Git.Objects;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;
+using AmpScm.Git.Objects;
 using AmpScm.Git.References;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -98,7 +99,7 @@ namespace GitRepositoryTests
 
                 await repo.GetPorcelain().Init(p);
 
-                GitRepository.Init(p2);
+                using var rep2 = GitRepository.Init(p2);
             }
 
             var r = GitRepository.Open(p);
@@ -116,6 +117,7 @@ namespace GitRepositoryTests
 
                 if (Directory.Exists(f))
                 {
+
                     var f2 = Path.Combine(p2, ".git", subPath);
                     Assert.IsTrue(Directory.Exists(f2), $"Directory '{f2}' exists");
                 }
@@ -125,6 +127,40 @@ namespace GitRepositoryTests
                     Assert.IsTrue(File.Exists(f2), $"File '{f2}' exists");
                 }
             }
+        }
+
+        [TestMethod]
+        public async Task CanReadSha256()
+        {
+            string p = TestContext.PerTestDirectory("1");
+            {
+                using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Bare));
+
+                await repo.GetPorcelain().Init(p, new GitInitArgs { IdType = GitIdType.Sha256 });
+            }
+
+            var r = GitRepository.Open(p);
+
+            Assert.IsFalse(r.Commits.Any(), "No commits");
+            Assert.IsFalse(r.Blobs.Any(), "No blobs");
+            Assert.IsFalse(r.Remotes.Any(), "No remotes");
+
+            var cw = GitCommitWriter.Create();
+            cw.Author = cw.Committer = new GitSignature("A A", "A@A", new DateTime(2020, 2, 2, 0, 0, 0, DateTimeKind.Utc));
+
+            var c = await cw.WriteAndFetchAsync(r);
+
+            Assert.AreEqual(GitIdType.Sha256, c.Id.Type);
+
+            using (var t = r.References.CreateUpdateTransaction())
+            {
+                t.UpdateHead(c.Id);
+                await t.CommitAsync();
+            }
+
+            Assert.AreEqual("", await r.GetPlumbing().ConsistencyCheck(new() { Full = true }));
+            Assert.AreEqual(c.Id.Type, r.Head.Id!.Type);
+            Assert.AreEqual(c.Id, r.Head.Id);
         }
 
         [TestMethod]

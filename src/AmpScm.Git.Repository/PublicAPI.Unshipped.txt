@@ -114,6 +114,7 @@ AmpScm.Git.GitTree.AllItems.get -> AmpScm.Git.Sets.GitTreeItemCollection!
 AmpScm.Git.GitTree.GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerator<AmpScm.Git.GitTreeEntry!>!
 AmpScm.Git.GitTree.GetEnumerator() -> System.Collections.Generic.IEnumerator<AmpScm.Git.GitTreeEntry!>!
 AmpScm.Git.GitTreeEntry
+AmpScm.Git.GitTreeEntry.CompareTo(AmpScm.Git.GitTreeEntry? other) -> int
 AmpScm.Git.GitTreeEntry.Equals(AmpScm.Git.GitTreeEntry? other) -> bool
 AmpScm.Git.GitTreeEntry.Id.get -> AmpScm.Git.GitId!
 AmpScm.Git.GitTreeEntry.Name.get -> string!
@@ -232,8 +233,6 @@ override AmpScm.Git.GitCommit.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.GitDirectoryTreeEntry.ElementType.get -> AmpScm.Git.GitTreeElementType
 override AmpScm.Git.GitDirectoryTreeEntry.EntryName.get -> string!
 override AmpScm.Git.GitFileTreeEntry.ElementType.get -> AmpScm.Git.GitTreeElementType
-override AmpScm.Git.GitObject.Equals(object? obj) -> bool
-override AmpScm.Git.GitObject.GetHashCode() -> int
 override AmpScm.Git.GitReference.Equals(object? obj) -> bool
 override AmpScm.Git.GitReference.GetHashCode() -> int
 override AmpScm.Git.GitRepository.ToString() -> string!
@@ -244,8 +243,6 @@ override AmpScm.Git.GitTag.Name.get -> string!
 override AmpScm.Git.GitTagObject.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.GitTagObject.Type.get -> AmpScm.Git.GitObjectType
 override AmpScm.Git.GitTree.Type.get -> AmpScm.Git.GitObjectType
-override AmpScm.Git.GitTreeEntry.Equals(object? obj) -> bool
-override AmpScm.Git.GitTreeEntry.GetHashCode() -> int
 override AmpScm.Git.GitTreeEntry<TEntry, TObject>.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.Objects.GitBlobWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 override AmpScm.Git.Objects.GitCommitWriter.Type.get -> AmpScm.Git.GitObjectType
@@ -266,6 +263,10 @@ override AmpScm.Git.Sets.GitTreeItem.Equals(object? obj) -> bool
 override AmpScm.Git.Sets.GitTreeItem.GetHashCode() -> int
 override sealed AmpScm.Git.GitBlob.Type.get -> AmpScm.Git.GitObjectType
 override sealed AmpScm.Git.GitCommit.Type.get -> AmpScm.Git.GitObjectType
+override sealed AmpScm.Git.GitObject.Equals(object? obj) -> bool
+override sealed AmpScm.Git.GitObject.GetHashCode() -> int
+override sealed AmpScm.Git.GitTreeEntry.Equals(object? obj) -> bool
+override sealed AmpScm.Git.GitTreeEntry.GetHashCode() -> int
 override sealed AmpScm.Git.GitTreeEntry<TEntry, TObject>.GitObject.get -> AmpScm.Git.GitObject!
 override sealed AmpScm.Git.Objects.GitBlobWriter.Type.get -> AmpScm.Git.GitObjectType
 override sealed AmpScm.Git.Objects.GitTagObjectWriter.Type.get -> AmpScm.Git.GitObjectType
@@ -283,7 +284,11 @@ static AmpScm.Git.GitRepository.TryFindRoot(string! path, out string? rootPath) 
 static AmpScm.Git.GitTools.FirstLine(string? message) -> string?
 static AmpScm.Git.GitTools.GetNormalizedFullPath(string! path) -> string!
 static AmpScm.Git.GitTreeEntry.operator !=(AmpScm.Git.GitTreeEntry! e1, AmpScm.Git.GitTreeEntry! e2) -> bool
+static AmpScm.Git.GitTreeEntry.operator <(AmpScm.Git.GitTreeEntry! left, AmpScm.Git.GitTreeEntry! right) -> bool
+static AmpScm.Git.GitTreeEntry.operator <=(AmpScm.Git.GitTreeEntry! left, AmpScm.Git.GitTreeEntry! right) -> bool
 static AmpScm.Git.GitTreeEntry.operator ==(AmpScm.Git.GitTreeEntry! e1, AmpScm.Git.GitTreeEntry! e2) -> bool
+static AmpScm.Git.GitTreeEntry.operator >(AmpScm.Git.GitTreeEntry! left, AmpScm.Git.GitTreeEntry! right) -> bool
+static AmpScm.Git.GitTreeEntry.operator >=(AmpScm.Git.GitTreeEntry! left, AmpScm.Git.GitTreeEntry! right) -> bool
 static AmpScm.Git.Objects.GitBlobWriter.CreateFrom(AmpScm.Buckets.Bucket! bucket) -> AmpScm.Git.Objects.GitBlobWriter!
 static AmpScm.Git.Objects.GitCommitWriter.Create(params AmpScm.Git.Objects.IGitLazy<AmpScm.Git.GitCommit!>![]! parents) -> AmpScm.Git.Objects.GitCommitWriter!
 static AmpScm.Git.Objects.GitCommitWriter.CreateFromTree(AmpScm.Git.Objects.IGitLazy<AmpScm.Git.GitTree!>! tree) -> AmpScm.Git.Objects.GitCommitWriter!
