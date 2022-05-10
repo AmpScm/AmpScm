@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
+using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Wrappers
 {
@@ -119,7 +120,7 @@ namespace AmpScm.Buckets.Wrappers
             if (destination is null)
                 throw new ArgumentNullException(nameof(destination));
 
-            while(true)
+            while (true)
             {
                 var bb = await Bucket.ReadAsync().ConfigureAwait(false);
 
@@ -194,7 +195,18 @@ namespace AmpScm.Buckets.Wrappers
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            throw new NotImplementedException();
+            switch (origin)
+            {
+                case SeekOrigin.Begin:
+                    Bucket.SeekAsync(offset).AsTask().Wait();
+                    return Position;
+                case SeekOrigin.Current:
+                    return Seek(offset + Position, SeekOrigin.Begin);
+                case SeekOrigin.End:
+                    return Seek(Length - offset, SeekOrigin.Begin);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(origin));
+            }
         }
 
         public override void SetLength(long value)
