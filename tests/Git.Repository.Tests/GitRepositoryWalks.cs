@@ -130,14 +130,17 @@ namespace GitRepositoryTests
             }
         }
 
+        public static IEnumerable<object[]> GitIdTypes => Enum.GetValues(typeof(GitIdType)).Cast<GitIdType>().Where(x => x != GitIdType.None).Select(x => new object[] { x });
+
         [TestMethod]
-        public async Task CanReadSha256()
+        [DynamicData(nameof(GitIdTypes))]
+        public async Task CanReadType(GitIdType idType)
         {
-            string p = TestContext.PerTestDirectory("1");
+            string p = TestContext.PerTestDirectory(idType.ToString());
             {
                 using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Bare));
 
-                await repo.GetPorcelain().Init(p, new GitInitArgs { IdType = GitIdType.Sha256 });
+                await repo.GetPorcelain().Init(p, new GitInitArgs { IdType = idType });
             }
 
             var r = GitRepository.Open(p);
@@ -151,7 +154,7 @@ namespace GitRepositoryTests
 
             var c = await cw.WriteAndFetchAsync(r);
 
-            Assert.AreEqual(GitIdType.Sha256, c.Id.Type);
+            Assert.AreEqual(idType, c.Id.Type);
 
             using (var t = r.References.CreateUpdateTransaction())
             {
@@ -160,7 +163,36 @@ namespace GitRepositoryTests
             }
 
             Assert.AreEqual("", await r.GetPlumbing().ConsistencyCheck(new() { Full = true }));
-            Assert.AreEqual(c.Id.Type, r.Head.Id!.Type);
+            Assert.AreEqual(idType, r.Head.Id!.Type);
+            Assert.AreEqual(c.Id, r.Head.Id);
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(GitIdTypes))]
+        public async Task CanCreateType(GitIdType idType)
+        {
+            string p = TestContext.PerTestDirectory(idType.ToString());
+            var r = GitRepository.Init(p, new GitRepositoryInitArgs { IdType = idType });
+
+            Assert.IsFalse(r.Commits.Any(), "No commits");
+            Assert.IsFalse(r.Blobs.Any(), "No blobs");
+            Assert.IsFalse(r.Remotes.Any(), "No remotes");
+
+            var cw = GitCommitWriter.Create();
+            cw.Author = cw.Committer = new GitSignature("A A", "A@A", new DateTime(2020, 2, 2, 0, 0, 0, DateTimeKind.Utc));
+
+            var c = await cw.WriteAndFetchAsync(r);
+
+            Assert.AreEqual(idType, c.Id.Type);
+
+            using (var t = r.References.CreateUpdateTransaction())
+            {
+                t.UpdateHead(c.Id);
+                await t.CommitAsync();
+            }
+
+            Assert.AreEqual("", await r.GetPlumbing().ConsistencyCheck(new() { Full = true }));
+            Assert.AreEqual(idType, r.Head.Id!.Type);
             Assert.AreEqual(c.Id, r.Head.Id);
         }
 

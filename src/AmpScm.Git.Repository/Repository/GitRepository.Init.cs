@@ -17,6 +17,7 @@ namespace AmpScm.Git
         public string? InitialBranchName { get; set; }
 
         public IEnumerable<(string, string)>? InitialConfiguration { get; set; }
+        public GitIdType? IdType { get; set; }
     }
 
     public partial class GitRepository
@@ -56,32 +57,44 @@ namespace AmpScm.Git
             File.WriteAllText(Path.Combine(gitDir, "description"), "Unnamed repository; edit this file 'description' to name the repository." + Environment.NewLine);
             File.WriteAllText(Path.Combine(gitDir, "HEAD"), $"ref: refs/heads/{branchName ?? GitRepositoryInitArgs.DefaultInitialBranchName}\n");
 
-            const string ignoreCase = "\tignorecase = true\n";
-            const string symLinks = "\tsymlinks = false\n";
-            const string bareFalse = "\tbare = false\n";
-            string configText = ""
-                + "[core]\n"
-                + "\trepositoryformatversion = 0\n"
-                + "\tfilemode = false\n"
-                + bareFalse
-                + "\tlogallrefupdates = true\n"
-                + symLinks
-                + ignoreCase;
+            bool sha256 = (init.IdType == GitIdType.Sha256);
 
-            if (init.Bare)
-                configText = configText.Replace(bareFalse, bareFalse.Replace("false", "true", StringComparison.Ordinal), StringComparison.Ordinal);
+
+            StringBuilder configText = new StringBuilder("[core]\n");
+
+            if (!sha256)
+                configText.Append("\trepositoryformatversion = 0\n");
+            else
+                configText.Append("\trepositoryformatversion = 1\n");
+
+            configText.Append(""
+                + "\tfilemode = false\n"
+                + "\tlogallrefupdates = true\n");
+
+            const string bareFalse = "\tbare = false\n";
+            if (!init.Bare)
+                configText.Append(bareFalse);
+            else
+                configText.Append(bareFalse.Replace(bareFalse, bareFalse.Replace("false", "true", StringComparison.Ordinal), StringComparison.Ordinal));
+
+            if (File.Exists(Path.Combine(gitDir, "hEaD")))
+                configText.Append("\tignorecase = true\n");
 
             if (Environment.NewLine != "\r\n")
             {
-                configText = configText.Replace(symLinks, "", StringComparison.Ordinal);
-                configText = configText.Replace(ignoreCase, "", StringComparison.Ordinal);
+                configText.Append("\tsymlinks = false\n");
             }
 
-            if(init.InitialConfiguration?.Any() ?? false)
+            if (sha256)
+            {
+                configText.Append("[extensions]\n\tobjectformat = sha256\n");
+            }
+
+            if (init.InitialConfiguration?.Any() ?? false)
             {
                 string? lastGroup = null;
 
-                foreach(var (k, v) in init.InitialConfiguration)
+                foreach (var (k, v) in init.InitialConfiguration)
                 {
                     var sp = k.Split(new[] { '.' }, 2);
 
@@ -91,13 +104,13 @@ namespace AmpScm.Git
                     if (!sp[0].Equals(lastGroup, StringComparison.OrdinalIgnoreCase))
                     {
                         lastGroup = sp[0];
-                        configText += $"\n[{lastGroup}]\n";
+                        configText.Append((string)$"\n[{lastGroup}]\n");
                     }
-                    configText += $"\t{sp[1]} = {v}\n";
+                    configText.Append((string)$"\t{sp[1]} = {v}\n");
                 }
             }
 
-            File.WriteAllText(Path.Combine(gitDir, "config"), configText);
+            File.WriteAllText(Path.Combine(gitDir, "config"), configText.ToString());
 
             File.WriteAllText(Path.Combine(gitDir, "info/exclude"), ""
                 + "# git ls-files --others --exclude-from=.git/info/exclude\n"
@@ -111,7 +124,12 @@ namespace AmpScm.Git
             if (!init.Bare)
                 File.SetAttributes(gitDir, FileAttributes.Hidden | File.GetAttributes(gitDir));
 
-            return new GitRepository(path, init.Bare ? Repository.GitRootType.Bare : Repository.GitRootType.Normal);
+            var r=  new GitRepository(path, init.Bare ? Repository.GitRootType.Bare : Repository.GitRootType.Normal);
+
+            if (sha256)
+                r.SetSHA256();
+
+            return r;
         }
 
     }
