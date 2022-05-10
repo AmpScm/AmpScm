@@ -189,6 +189,11 @@ namespace AmpScm.Buckets
 
         public static Bucket Compress(this Bucket bucket, BucketCompressionAlgorithm algorithm)
         {
+            return Compress(bucket, algorithm, BucketCompressionLevel.Default);
+        }
+
+        public static Bucket Compress(this Bucket bucket, BucketCompressionAlgorithm algorithm, BucketCompressionLevel level)
+        {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
@@ -196,14 +201,30 @@ namespace AmpScm.Buckets
             {
                 case BucketCompressionAlgorithm.ZLib:
                 case BucketCompressionAlgorithm.Deflate:
-                    return new ZLibBucket(bucket, algorithm, CompressionMode.Compress);
+                    return new ZLibBucket(bucket, algorithm, CompressionMode.Compress, level);
                 case BucketCompressionAlgorithm.GZip:
                     // Could be optimized like zlib, but currently unneeded
-                    return new CompressionBucket(bucket, (inner) => new GZipStream(inner, CompressionMode.Compress));
+                    return new CompressionBucket(bucket, (inner) => new GZipStream(inner, level switch
+                    {
+                        BucketCompressionLevel.Store => CompressionLevel.NoCompression,
+                        BucketCompressionLevel.BestSpeed => CompressionLevel.Fastest,
+#if NET6_0_OR_GREATER
+                        BucketCompressionLevel.Maximum => CompressionLevel.SmallestSize,
+#endif
+                        _ => CompressionLevel.Optimal,
+                    }));
                 case BucketCompressionAlgorithm.Brotli:
 #if !NETFRAMEWORK
                     // Available starting with .Net Core
-                    return new CompressionBucket(bucket, (inner) => new BrotliStream(inner, CompressionMode.Compress));
+                    return new CompressionBucket(bucket, (inner) => new BrotliStream(inner, level switch
+                    {
+                        BucketCompressionLevel.Store => CompressionLevel.NoCompression,
+                        BucketCompressionLevel.BestSpeed => CompressionLevel.Fastest,
+#if NET6_0_OR_GREATER
+                        BucketCompressionLevel.Maximum => CompressionLevel.SmallestSize,
+#endif
+                        _ => CompressionLevel.Optimal,
+                    }));
 #endif
                 // Maybe: ZStd via https://www.nuget.org/packages/ZstdSharp.Port
                 default:

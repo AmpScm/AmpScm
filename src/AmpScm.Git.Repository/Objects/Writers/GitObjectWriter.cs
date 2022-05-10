@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
@@ -18,32 +19,51 @@ namespace AmpScm.Git.Objects
 
         public abstract ValueTask<GitId> WriteToAsync(GitRepository repository);
 
-        private protected async ValueTask<GitId> WriteBucketAsObject(Bucket bucket, GitRepository repository)
+        private protected async ValueTask<GitId> WriteBucketAsObject(Bucket bucket, GitRepository repository, CancellationToken cancellationToken = default)
         {
             string tmpFile = Guid.NewGuid().ToString() + ".tmp";
-            var di = Directory.CreateDirectory(Path.Combine(repository.GitDir, "objects", "tmp"));
+            var di = Directory.CreateDirectory(Path.Combine(repository.GitDir, "objects", "info"));
             var tmpFilePath = Path.Combine(di.FullName, tmpFile);
             GitId? id = null;
             {
                 using var f = File.Create(tmpFilePath);
-
-                long? r = await bucket.ReadRemainingBytesAsync().ConfigureAwait(false);
-                if (!r.HasValue)
+                try
                 {
-                    string innerTmp = Path.Combine(di.FullName, tmpFile) + ".pre";
-
-                    using (var tmp = File.Create(innerTmp))
+                    long? r = await bucket.ReadRemainingBytesAsync().ConfigureAwait(false);
+                    if (!r.HasValue)
                     {
-                        await tmp.WriteAsync(bucket.ReadLength(len => r = len)).ConfigureAwait(false);
-                    }
-                    bucket = FileBucket.OpenRead(innerTmp);
-                }
+                        string innerTmp = Path.Combine(di.FullName, tmpFile) + ".pre";
 
-                using (var wb = Type.CreateHeader(r.Value!).Append(bucket)
-                    .GitHash(repository.InternalConfig.IdType, cs => id = cs)
-                    .Compress(BucketCompressionAlgorithm.ZLib))
+                        using (var tmp = File.Create(innerTmp))
+                        {
+                            await tmp.WriteAsync(bucket, cancellationToken).ConfigureAwait(false);
+                            r = tmp.Length;
+                        }
+                        bucket = FileBucket.OpenRead(innerTmp, false);
+                        File.Delete(innerTmp); // We opened the file with allow-delete rights
+                    }
+
+                    using (var wb = Type.CreateHeader(r.Value!).Append(bucket)
+                        .GitHash(repository.InternalConfig.IdType, cs => id = cs)
+                        .Compress(BucketCompressionAlgorithm.ZLib, BucketCompressionLevel.Maximum))
+                    {
+                        await f.WriteAsync(wb, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                catch
                 {
-                    await f.WriteAsync(wb).ConfigureAwait(false);
+                    f.Close();
+
+                    try
+                    {
+                        File.Delete(tmpFilePath);
+                    }
+                    catch (UnauthorizedAccessException)
+                    { }
+                    catch(IOException)
+                    { }
+
+                    throw;
                 }
             }
 

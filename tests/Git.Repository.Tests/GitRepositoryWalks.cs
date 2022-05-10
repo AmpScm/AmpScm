@@ -18,7 +18,7 @@ namespace GitRepositoryTests
     {
         public TestContext TestContext { get; set; } = null!;
 
-        static List<string> TestRepositories { get; } = GetTestRepositories().Concat(GitTestEnvironment.TestDirectories.Select(x=> $">{x}")).ToList();
+        static List<string> TestRepositories { get; } = GetTestRepositories().Concat(GitTestEnvironment.TestDirectories.Select(x => $">{x}")).ToList();
 
         static IEnumerable<string> GetTestRepositories()
         {
@@ -86,7 +86,45 @@ namespace GitRepositoryTests
             Assert.IsTrue(repo.References.Any(), "Repository has references");
             Assert.IsNotNull(repo.References.Any(x => x.Name == "HEAD"), "Has reference called HEAD-1");
             Assert.IsNotNull(repo.References["HEAD"], "Has reference called HEAD-2");
+        }
 
+        [TestMethod]
+        public async Task CompareInitAmpVsGit()
+        {
+            string p = TestContext.PerTestDirectory("1");
+            string p2 = TestContext.PerTestDirectory("2");
+            {
+                using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Bare));
+
+                await repo.GetPorcelain().Init(p);
+
+                GitRepository.Init(p2);
+            }
+
+            var r = GitRepository.Open(p);
+
+            Assert.IsFalse(r.Commits.Any(), "No commits");
+            Assert.IsFalse(r.Blobs.Any(), "No blobs");
+            Assert.IsFalse(r.Remotes.Any(), "No remotes");
+
+            TestContext.WriteLine(File.ReadAllText(Path.Combine(r.WorktreePath, "config")));
+
+            foreach (var f in Directory.GetFileSystemEntries(r.WorktreePath, "*", SearchOption.AllDirectories))
+            {
+                string subPath = f.Substring(r.WorktreePath.Length + 1);
+                TestContext.WriteLine(subPath);
+
+                if (Directory.Exists(f))
+                {
+                    var f2 = Path.Combine(p2, ".git", subPath);
+                    Assert.IsTrue(Directory.Exists(f2), $"Directory '{f2}' exists");
+                }
+                else if (File.Exists(f) && !subPath.StartsWith("hooks"))
+                {
+                    var f2 = Path.Combine(p2, ".git", subPath);
+                    Assert.IsTrue(File.Exists(f2), $"File '{f2}' exists");
+                }
+            }
         }
 
         [TestMethod]
@@ -174,7 +212,7 @@ namespace GitRepositoryTests
 
             bool hasModules = tree.AllFiles.TryGet(".gitmodules", out _);
             bool foundModule = false;
-            foreach(var item in tree)
+            foreach (var item in tree)
             {
                 switch (item.ElementType)
                 {
@@ -203,7 +241,7 @@ namespace GitRepositoryTests
             var path2 = TestContext.PerTestDirectory("2");
             {
                 using GitRepository gc = GitRepository.Open(typeof(GitRepositoryWalks).Assembly.Location);
-                await gc.GetPorcelain().Clone(gc.FullPath, path2, new() { Shared = true, NoCheckout=true });
+                await gc.GetPorcelain().Clone(gc.FullPath, path2, new() { Shared = true, NoCheckout = true });
             }
             {
                 using GitRepository gc = GitRepository.Open(path2);

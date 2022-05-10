@@ -77,6 +77,14 @@ namespace AmpScm.Buckets
 #endif
         }
 
+        /// <summary>
+        /// Writes the bucket to <paramref name="stream"/> and then closes <paramref name="bucket"/>
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="bucket"></param>
+        /// <param name="cancellationToken">Token for <see cref="Stream.WriteAsync(byte[], int, int, CancellationToken)"/></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static async ValueTask WriteAsync(this Stream stream, Bucket bucket, CancellationToken cancellationToken = default)
         {
             if (stream is null)

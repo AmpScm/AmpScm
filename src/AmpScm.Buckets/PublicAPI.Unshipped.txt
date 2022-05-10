@@ -193,6 +193,7 @@ override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketExtensions.All<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> bool
 static AmpScm.Buckets.BucketExtensions.Any<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> bool
+static AmpScm.Buckets.BucketExtensions.Compress(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm, AmpScm.Buckets.Specialized.BucketCompressionLevel level) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.IndexOf<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> int
 static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.WithTlsClientFor<TBucket>(this TBucket! bucket, string! targetHost) -> AmpScm.Buckets.Specialized.TlsBucket!
