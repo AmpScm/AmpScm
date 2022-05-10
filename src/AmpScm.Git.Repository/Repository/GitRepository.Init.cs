@@ -55,7 +55,6 @@ namespace AmpScm.Git
             Directory.CreateDirectory(Path.Combine(gitDir, "refs/tags"));
 
             File.WriteAllText(Path.Combine(gitDir, "description"), "Unnamed repository; edit this file 'description' to name the repository." + Environment.NewLine);
-            File.WriteAllText(Path.Combine(gitDir, "HEAD"), $"ref: refs/heads/{branchName ?? GitRepositoryInitArgs.DefaultInitialBranchName}\n");
 
             bool sha256 = (init.IdType == GitIdType.Sha256);
 
@@ -75,9 +74,9 @@ namespace AmpScm.Git
             if (!init.Bare)
                 configText.Append(bareFalse);
             else
-                configText.Append(bareFalse.Replace(bareFalse, bareFalse.Replace("false", "true", StringComparison.Ordinal), StringComparison.Ordinal));
+                configText.Append(bareFalse.Replace("false", "true", StringComparison.Ordinal));
 
-            if (File.Exists(Path.Combine(gitDir, "hEaD")))
+            if (File.Exists(Path.Combine(gitDir, "dEsCrIpTiOn")))
                 configText.Append("\tignorecase = true\n");
 
             if (Environment.NewLine != "\r\n")
@@ -128,6 +127,10 @@ namespace AmpScm.Git
 
             if (sha256)
                 r.SetSHA256();
+
+            branchName ??= r.Configuration.GetString("init", "defaultbranch") ?? GitRepositoryInitArgs.DefaultInitialBranchName;
+
+            File.WriteAllText(Path.Combine(gitDir, "HEAD"), $"ref: refs/heads/{branchName}\n");
 
             return r;
         }

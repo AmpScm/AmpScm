@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Git.Objects;
+using AmpScm.Buckets;
 
 namespace AmpScm.Git.Objects
 {
-    public static class GitObjectWriterExtensions
+    public static partial class GitObjectWriterExtensions
     {
         public static GitTreeWriter AsWriter(this GitTree tree)
         {
@@ -73,7 +70,7 @@ namespace AmpScm.Git.Objects
 
         public static GitObjectWriter AsWriter(this GitObject gitObject)
         {
-            switch(gitObject)
+            switch (gitObject)
             {
                 case GitCommit gc:
                     return gc.AsWriter();
@@ -96,7 +93,7 @@ namespace AmpScm.Git.Objects
 
         internal static Type AsType(this GitObjectType type)
         {
-            switch(type)
+            switch (type)
             {
                 case GitObjectType.Commit:
                     return typeof(GitCommit);

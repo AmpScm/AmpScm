@@ -20,15 +20,11 @@ namespace AmpScm.Git.References
 
         private protected override async ValueTask ReadRefs()
         {
-            var (r, o) = await Repository.RunPlumbingCommandOut("show-ref", Array.Empty<string>(), expectedResults: new int[] { 0 /* ok */, 1 /* no references found */}).ConfigureAwait(false);
-
-            if (r != 0)
-                return;
-
+            GitRefPeel? last = null;
             var idLength = GitId.HashLength(Repository.InternalConfig.IdType) * 2;
 
-            GitRefPeel? last = null;
-            foreach (string line in o.Split('\n'))
+            await foreach (var line in Repository.WalkPlumbingCommand("show-ref", new[] {"-d", "--head"}, 
+                expectedResults: new int[] { 0 /* ok */, 1 /* no references found */}).ConfigureAwait(false))
             {
                 ParseLineToPeel(line.Trim(), ref last, idLength);
             }

@@ -108,6 +108,11 @@ namespace AmpScm.Git.References
 
                     if (GitReference.ValidName(name, false))
                         _peelRefs![name] = last = new GitRefPeel { Name = name, Id = oid };
+                    else if (name.EndsWith("^{}", StringComparison.OrdinalIgnoreCase)
+                        && last != null && name.Substring(0, name.Length - 3) == last.Name)
+                    {
+                        last.Peeled = oid;
+                    }
                 }
             }
             else if (line[0] == '^')
@@ -133,6 +138,11 @@ namespace AmpScm.Git.References
 
                     if (GitReference.ValidName(name, false))
                         _peelRefs![name] = last = new GitRefPeel { Name = name, Id = oid };
+                    else if (name.EndsWith("^{}", StringComparison.OrdinalIgnoreCase)
+                        && last != null && name.Substring(0, name.Length-3) == last.Name)
+                    {
+                        last.Peeled = oid;
+                    }
                 }
             }
             else if (line[0] == '^')

@@ -19,7 +19,7 @@ namespace AmpScm.Git.Objects
 
         public GitTreeWriter Tree
         {
-            get => _tree ?? GitTreeWriter.CreateEmpty();
+            get => _tree ??= GitTreeWriter.CreateEmpty();
             set
             {
                 _tree = value;
@@ -62,7 +62,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        public string? CommitMessage
+        public string? Message
         {
             get => _message;
             set
@@ -127,7 +127,7 @@ namespace AmpScm.Git.Objects
                 // -extra headers-
                 sb.Append('\n');
 
-                var msg = CommitMessage;
+                var msg = Message;
                 if (!string.IsNullOrWhiteSpace(msg))
                     sb.Append(msg.Replace("\r", "", StringComparison.Ordinal));
 

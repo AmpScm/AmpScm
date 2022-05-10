@@ -19,12 +19,16 @@ namespace AmpScm.Git.References
 
         private IEnumerable<GitReferenceRepository> GetRepositories()
         {
+            if (File.Exists(Path.Combine(GitDir, "refs", "heads")))
+            {
+                yield return new GitShellReferenceRepository(this, GitDir, WorkTreeDir);
+                yield break;
+            }
+
             yield return new GitFileReferenceRepository(this, GitDir, WorkTreeDir);
 
             if (File.Exists(Path.Combine(GitDir, GitPackedRefsReferenceRepository.PackedRefsFile)))
                 yield return new GitPackedRefsReferenceRepository(this, GitDir, WorkTreeDir);
-
-            //yield return new GitShellReferenceRepository(this, GitDir);
         }
 
         public override async IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned)

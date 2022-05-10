@@ -55,6 +55,12 @@ namespace AmpScm.Git
             _entries.Add(NewGitTreeEntry(el));
         }
 
+        public override async ValueTask ReadAsync()
+        {
+            await foreach(var _ in this)
+            { }
+        }
+
         private GitTreeEntry NewGitTreeEntry(GitTreeElementRecord value)
         {
             if (value.Type.IsFile())

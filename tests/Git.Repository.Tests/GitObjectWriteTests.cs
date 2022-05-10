@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
+using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.Objects;
 using AmpScm.Git.References;
+using AmpScm.Git.Repository;
 using AmpScm.Git.Sets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -200,7 +204,7 @@ namespace GitRepositoryTests
             }
 
             var ct = GitTagObjectWriter.Create(cs, "v0.1");
-            ct.TagMessage = "Tag second Commit";
+            ct.Message = "Tag second Commit";
 
             var tag = await ct.WriteAndFetchAsync(repo);
 
@@ -213,6 +217,40 @@ namespace GitRepositoryTests
 
             fsckOutput = await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
             Assert.AreEqual($"", fsckOutput);
+        }
+
+        [TestMethod]
+        public async Task TestFastImport()
+        {
+            var dir = TestContext.PerTestDirectory();
+            var srcRepo = GitTestEnvironment.GetRepository(GitTestDir.Packed);
+            ProcessStartInfo psi = new ProcessStartInfo(GitConfiguration.GitProgramPath, "fast-export --all");
+            psi.RedirectStandardOutput = true;
+            psi.WorkingDirectory = srcRepo;
+
+            var p = Process.Start(psi)!;
+            using (var f = File.Create(Path.Combine(dir, "fast-export"), 16384, FileOptions.SequentialScan | FileOptions.DeleteOnClose))
+            {
+                using (p)
+                {
+                    while (!p.HasExited)
+                    {
+                        await p.StandardOutput.BaseStream.CopyToAsync(f);
+                    }
+
+                    Assert.AreEqual(0, p.ExitCode);
+                }
+                f.Position = 0;
+
+                using var rp = GitRepository.Init(Path.Combine(dir, "rp"));
+
+                await rp.FastImportAsync(f.AsBucket());
+
+                await rp.GetPorcelain().CheckOut("HEAD");
+
+                var fsckOutput = await rp.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
+                Assert.AreEqual($"", fsckOutput);
+            }
         }
     }
 }

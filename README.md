@@ -84,3 +84,4 @@ intended for testing the lower layers, but probly useful for more users. May bec
 | Directory Index format 4      | Yes           | Yes       | Yes     | Yes           |
 | Split Directory Index format  | Yes           | No        | No      | Yes           |
 | Sparse Index (Cone) support   | Yes           | No        | No      | Yes           |
+| Fast Import support           | Yes           | No        | No      | Yes           |

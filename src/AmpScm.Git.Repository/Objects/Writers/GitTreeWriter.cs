@@ -142,6 +142,49 @@ namespace AmpScm.Git.Objects
             Id = null;
         }
 
+        public bool Remove(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+
+            if (IsValidName(name))
+            {
+                if (_items.Remove(name))
+                {
+                    Updated();
+                    return true;
+                }
+                return false;
+            }
+            else if (name.Contains('/', StringComparison.Ordinal))
+            {
+                var p = name.Split('/');
+                GitTreeWriter tw = this;
+
+                foreach (var si in p.Take(p.Length - 1))
+                {
+                    if (tw._items.TryGetValue(si, out var v))
+                    {
+                        if (v.Writer is GitTreeWriter subTw)
+                            tw = subTw;
+                        else if (v.Lazy is GitTree)
+                            tw = (GitTreeWriter)v.EnsureWriter();
+                        else
+                            throw new InvalidOperationException();
+
+                        tw.Updated();
+                    }
+                    else
+                        return false;
+                }
+
+                return tw.Remove(p.Last());
+            }
+            else
+                throw new ArgumentOutOfRangeException(nameof(name), name, "Invalid name");
+        }
+
+
         public override async ValueTask<GitId> WriteToAsync(GitRepository repository)
         {
             if (repository is null)

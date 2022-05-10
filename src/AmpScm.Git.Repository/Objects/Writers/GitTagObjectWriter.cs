@@ -31,7 +31,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        public string? TagMessage
+        public string? Message
         {
             get => _message;
             set
@@ -76,7 +76,7 @@ namespace AmpScm.Git.Objects
                 // -extra headers-
                 sb.Append('\n');
 
-                var msg = TagMessage;
+                var msg = Message;
                 if (!string.IsNullOrWhiteSpace(msg))
                     sb.Append(msg.Replace("\r", "", StringComparison.Ordinal));
 

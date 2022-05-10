@@ -173,20 +173,20 @@ namespace GitRepositoryTests
 
             TimeSpan offset = new TimeSpan(1, 0, 0);
             cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 1, 0, 0, 0, offset));
-            cw.CommitMessage = "Initial Commit";
+            cw.Message = "Initial Commit";
 
             var firstCommit = await cw.WriteAndFetchAsync(repo);
 
             cw = GitCommitWriter.Create(firstCommit);
 
             cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 1, 1, 0, 0, offset));
-            cw.CommitMessage = "Second Commit";
+            cw.Message = "Second Commit";
 
             var secondCommit = await cw.WriteAndFetchAsync(repo);
 
 
             var ct = GitTagObjectWriter.Create(secondCommit, "v0.1");
-            ct.TagMessage = "Tag second Commit";
+            ct.Message = "Tag second Commit";
             ct.Tagger = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 2, 0, 0, 0, offset));
 
             var tag = await ct.WriteAndFetchAsync(repo);
@@ -203,13 +203,13 @@ namespace GitRepositoryTests
             cw = GitCommitWriter.Create(firstCommit);
             cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 3, 0, 0, 0, offset));
             cw.Tree.Add("A/C/delta", GitBlobWriter.CreateFrom(Encoding.UTF8.GetBytes("This is the file 'delta'.\n").AsBucket()));
-            cw.CommitMessage = "Committed on branch";
+            cw.Message = "Committed on branch";
 
             var branchCommit = await cw.WriteAndFetchAsync(repo);
 
             cw = GitCommitWriter.Create(firstCommit, branchCommit);
             cw.Author = cw.Committer = new GitSignature("BH", "bh@BH", new DateTimeOffset(2000, 1, 4, 0, 0, 0, offset));
-            cw.CommitMessage = "Merged";
+            cw.Message = "Merged";
             cw.Tree.Add("A/C/delta", branchCommit.Tree.AllItems["A/C/delta"].Entry.GitObject.AsLazy());
 
             var headCommit = await cw.WriteAndFetchAsync(repo);
