@@ -227,6 +227,7 @@ namespace GitRepositoryTests
             ProcessStartInfo psi = new ProcessStartInfo(GitConfiguration.GitProgramPath, "fast-export --all");
             psi.RedirectStandardOutput = true;
             psi.WorkingDirectory = srcRepo;
+            psi.UseShellExecute = false;
 
             var p = Process.Start(psi)!;
             using (var f = File.Create(Path.Combine(dir, "fast-export"), 16384, FileOptions.SequentialScan | FileOptions.DeleteOnClose))

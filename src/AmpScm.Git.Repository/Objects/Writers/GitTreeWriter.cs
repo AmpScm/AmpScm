@@ -33,7 +33,7 @@ namespace AmpScm.Git.Objects
             return true;
         }
 
-        public void Add<TGitObject>(string name, IGitLazy<TGitObject> item)
+        public void Add<TGitObject>(string name, IGitLazy<TGitObject> item, GitTreeElementType? setType = null)
             where TGitObject : GitObject
         {
             if (string.IsNullOrEmpty(name))
@@ -43,7 +43,7 @@ namespace AmpScm.Git.Objects
 
             if (typeof(TGitObject) == typeof(GitObject))
             {
-                typeof(GitTreeWriter).GetMethod(nameof(Add))!.MakeGenericMethod(item.Type.AsType()).Invoke(this, new object[] { name, item });
+                typeof(GitTreeWriter).GetMethod(nameof(Add))!.MakeGenericMethod(item.Type.AsType()).Invoke(this, new object?[] { name, item, setType });
                 return;
             }
 
@@ -52,7 +52,7 @@ namespace AmpScm.Git.Objects
                 if (_items.ContainsKey(name))
                     throw new ArgumentOutOfRangeException(nameof(name), $"Entry with name '{name}' already exists");
 
-                _items.Add(name, new Item<TGitObject>(name, item));
+                _items.Add(name, new Item<TGitObject>(name, item, setType));
             }
             else if (name.Contains('/', StringComparison.Ordinal))
             {
@@ -75,12 +75,12 @@ namespace AmpScm.Git.Objects
                     else
                     {
                         var stw = GitTreeWriter.CreateEmpty();
-                        tw.Add(si, stw);
+                        tw.Add(si, stw, null);
                         tw = stw;
                     }
                 }
 
-                tw.Add(p.Last(), item);
+                tw.Add(p.Last(), item, setType);
             }
             else
                 throw new ArgumentOutOfRangeException(nameof(name), name, "Invalid name");
@@ -93,7 +93,7 @@ namespace AmpScm.Git.Objects
             Id = null;
         }
 
-        public void Replace<TGitObject>(string name, IGitLazy<TGitObject> item)
+        public void Replace<TGitObject>(string name, IGitLazy<TGitObject> item, GitTreeElementType? setType = null)
             where TGitObject : GitObject
         {
             if (string.IsNullOrEmpty(name))
@@ -101,12 +101,18 @@ namespace AmpScm.Git.Objects
             else if (item is null)
                 throw new ArgumentNullException(nameof(item));
 
+            if (typeof(TGitObject) == typeof(GitObject))
+            {
+                typeof(GitTreeWriter).GetMethod(nameof(Replace))!.MakeGenericMethod(item.Type.AsType()).Invoke(this, new object?[] { name, item, setType });
+                return;
+            }
+
             if (IsValidName(name))
             {
                 if (_items.ContainsKey(name))
                     throw new ArgumentOutOfRangeException(nameof(name));
 
-                _items[name] = new Item<TGitObject>(name, item);
+                _items[name] = new Item<TGitObject>(name, item, setType);
             }
             else if (name.Contains('/', StringComparison.Ordinal))
             {
@@ -134,7 +140,7 @@ namespace AmpScm.Git.Objects
                     }
                 }
 
-                tw.Replace(p.Last(), item);
+                tw.Replace(p.Last(), item, setType);
             }
             else
                 throw new ArgumentOutOfRangeException(nameof(name), name, "Invalid name");
@@ -237,7 +243,7 @@ namespace AmpScm.Git.Objects
             IGitLazy<TGitObject> _lazy;
             private GitObjectWriter? _writer;
 
-            public Item(string name, IGitLazy<TGitObject> lazy)
+            public Item(string name, IGitLazy<TGitObject> lazy, GitTreeElementType? setType)
                 : base(name)
             {
                 if (typeof(TGitObject) == typeof(GitObject))
@@ -267,6 +273,25 @@ namespace AmpScm.Git.Objects
                 }
                 else
                     throw new InvalidOperationException();
+
+                if (setType != null)
+                {
+                    switch (setType.Value)
+                    {
+                        case GitTreeElementType.File:
+                        case GitTreeElementType.FileExecutable:
+                        case GitTreeElementType.SymbolicLink:
+                            if (typeof(TGitObject) == typeof(GitBlob))
+                                Type = setType.Value;
+                            else
+                                throw new ArgumentOutOfRangeException(nameof(setType));
+                            break;
+                        default:
+                            if (Type != setType.Value)
+                                throw new ArgumentOutOfRangeException(nameof(setType));
+                            break;
+                    }
+                }
             }
 
             public override GitObjectWriter? Writer => _writer;

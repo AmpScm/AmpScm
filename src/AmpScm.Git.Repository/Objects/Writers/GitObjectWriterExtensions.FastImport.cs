@@ -232,17 +232,25 @@ namespace AmpScm.Git.Objects
                 {
                     var items = bb.Slice(2).ToUTF8String().Split(new[] { ' ' }, 3);
 
-                    int flag = Convert.ToInt32(items[0], 8);
+                    GitTreeElementType? fileType = (GitTreeElementType)Convert.ToInt32(items[0], 8);
                     string mark = items[1];
                     string name = items[2];
                     var b = repo.Blobs[marks[mark]]!;
 
+#if NET6_0_OR_GREATER
+                    if (!Enum.IsDefined<GitTreeElementType>(fileType.Value))
+                        fileType = null;
+#else
+                    if (!Enum.IsDefined(typeof(GitTreeElementType),fileType))
+                        fileType = null;
+#endif
+
                     if (tree?.AllFiles.TryGet(name, out _) ?? false)
                     {
-                        gcw.Tree.Replace(name, b);
+                        gcw.Tree.Replace(name, b, fileType);
                     }
                     else
-                        gcw.Tree.Add(name, b);
+                        gcw.Tree.Add(name, b, fileType);
 
                 }
                 else if (bb.StartsWithASCII("D "))
