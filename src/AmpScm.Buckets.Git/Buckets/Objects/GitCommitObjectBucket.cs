@@ -9,14 +9,15 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git.Objects
 {
-    public sealed class GitCommitReadBucket : GitBucket, IBucketPoll
+    public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
     {
         GitId? _treeId;
         IReadOnlyCollection<GitId>? _parents;
         GitSignatureRecord? _author;
         GitSignatureRecord? _committer;
+        bool _readHeaders;
 
-        public GitCommitReadBucket(Bucket inner)
+        public GitCommitObjectBucket(Bucket inner)
             : base(inner)
         {
         }
@@ -34,7 +35,7 @@ namespace AmpScm.Buckets.Git.Objects
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tree "))
                 throw new GitBucketException($"Expected 'tree' record at start of commit in '{Inner.Name}'");
 
-            if (GitId.TryParse(bb.Slice(5, bb.Length - 5 - eol.CharCount()), out var id))
+            if (GitId.TryParse(bb.Slice(5, eol), out var id))
                 _treeId = id;
             else
                 throw new GitBucketException($"Expected valid 'tree' record at start of commit in '{Inner.Name}'");
@@ -161,7 +162,7 @@ namespace AmpScm.Buckets.Git.Objects
             return _author ?? throw new GitBucketException($"Unable to read author header from '{Inner.Name}'");
         }
 
-        public async ValueTask<GitSignatureRecord> ReadCommitter()
+        public async ValueTask<GitSignatureRecord> ReadCommitterAsync()
         {
             if (_committer is not null)
                 return _committer;
@@ -181,16 +182,67 @@ namespace AmpScm.Buckets.Git.Objects
             return _committer = cm;
         }
 
+
+        async ValueTask ReadOtherHeadersAsync()
+        {
+            if (_readHeaders)
+                return;
+
+            await ReadCommitterAsync().ConfigureAwait(false);
+
+            while (true)
+            {
+                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.LF, null).ConfigureAwait(false);
+
+                if (bb.IsEof || bb.Length <= eol.CharCount())
+                    break;
+
+                bb = bb.Slice(eol);
+
+                var parts = bb.SplitToUtf8String((byte)' ', 2);
+                switch (parts[0])
+                {
+                    case "mergetag":
+                        break;
+
+                    case "encoding":
+                    case "gpgsig":
+                        break; // Ignored for now
+
+                    default:
+                        //if (!char.IsWhiteSpace((char)bb[0]))
+                        //{
+                        //    _headers ??= new Dictionary<string, string>();
+                        //    if (_headers.TryGetValue(parts[0], out var v))
+                        //        _headers[parts[0]] = v + "\n" + parts[1];
+                        //    else
+                        //        _headers[parts[0]] = parts[1];
+                        //}
+                        break;
+                }
+            }
+
+            _readHeaders = true;
+        }
+
+        public override ValueTask<long?> ReadRemainingBytesAsync()
+        {
+            if (_readHeaders)
+                return Inner.ReadRemainingBytesAsync();
+
+            return base.ReadRemainingBytesAsync();
+        }
+
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            await ReadCommitter().ConfigureAwait(false);
+            await ReadOtherHeadersAsync().ConfigureAwait(false);
 
             return await Inner.ReadAsync(requested).ConfigureAwait(false);
         }
 
         public override BucketBytes Peek()
         {
-            if (_committer is not null)
+            if (_readHeaders)
                 return Inner.Peek();
 
             return BucketBytes.Empty;

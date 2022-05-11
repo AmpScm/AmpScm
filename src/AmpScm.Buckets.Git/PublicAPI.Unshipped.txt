@@ -51,12 +51,22 @@ AmpScm.Buckets.Git.GitEwahBitmapBucket.AllBits.get -> System.Collections.Generic
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitEwahBitmapBucket.SetIndexes.get -> System.Collections.Generic.IAsyncEnumerable<int>!
 AmpScm.Buckets.Git.GitPackFrameBucket.ReadDeltaCountAsync() -> System.Threading.Tasks.ValueTask<int>
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadObjectIdAsync() -> System.Threading.Tasks.ValueTask<(AmpScm.Git.GitId!, AmpScm.Git.GitObjectType)>
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadTaggerAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadTagNameAsync() -> System.Threading.Tasks.ValueTask<string!>
 override AmpScm.Buckets.Git.GitDirectoryBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitReferenceLogRecord.ToString() -> string!
+override AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
+override AmpScm.Buckets.Git.Objects.GitTagObjectBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
+static AmpScm.Buckets.Git.GitReadExtensions.SplitToUtf8String(this AmpScm.Buckets.BucketBytes bytes, byte separator, int count) -> string![]!
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.HighestSupportedFormat -> int
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.LowestSupportedFormat -> int

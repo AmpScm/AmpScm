@@ -161,5 +161,18 @@ namespace AmpScm.Buckets.Git
         {
             return bytes.IndexOf(unchecked((byte)value), startOffset);
         }
+
+        public static string[] SplitToUtf8String(this BucketBytes bytes, byte separator, int count)
+        {
+            var bbs = bytes.Split(separator, count);
+
+            string[] s = new string[bbs.Length];
+
+            for(int i = 0; i < bbs.Length; i++)
+            {
+                s[i] = bbs[i].ToUTF8String();
+            }
+            return s;
+        }
     }
 }

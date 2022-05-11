@@ -20,13 +20,11 @@ namespace AmpScm.Git
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitCommitReadBucket? _rb;
+        GitCommitObjectBucket? _rb;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object? _tree;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object[]? _parent;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        Dictionary<string, string>? _headers;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _message;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -39,7 +37,7 @@ namespace AmpScm.Git
         internal GitCommit(GitRepository repository, GitObjectBucket objectReader, GitId id)
             : base(repository, id)
         {
-            _rb = new GitCommitReadBucket(objectReader);
+            _rb = new GitCommitObjectBucket(objectReader);
         }
 
         public sealed override GitObjectType Type => GitObjectType.Commit;
@@ -210,45 +208,7 @@ namespace AmpScm.Git
 
             _author ??= new GitSignature(await _rb.ReadAuthorAsync().ConfigureAwait(false));
 
-            _committer ??= new GitSignature(await _rb.ReadCommitter().ConfigureAwait(false));
-
-            //if (!all)
-            //    return;
-
-            while (true)
-            {
-                var (bb, eol) = await _rb.ReadUntilEolFullAsync(BucketEol.LF, null).ConfigureAwait(false);
-
-                if (bb.IsEof || bb.Length == eol.CharCount())
-                    break;
-
-                string line = bb.ToUTF8String(eol);
-
-                if (line.Length == 0)
-                    break;
-
-                var parts = line.Split(new[] { ' ' }, 2);
-                switch (parts[0])
-                {
-                    case "mergetag":
-                        break;
-
-                    case "encoding":
-                    case "gpgsig":
-                        break; // Ignored for now
-
-                    default:
-                        if (!char.IsWhiteSpace(line, 0))
-                        {
-                            _headers ??= new Dictionary<string, string>();
-                            if (_headers.TryGetValue(parts[0], out var v))
-                                _headers[parts[0]] = v + "\n" + parts[1];
-                            else
-                                _headers[parts[0]] = parts[1];
-                        }
-                        break;
-                }
-            }
+            _committer ??= new GitSignature(await _rb.ReadCommitterAsync().ConfigureAwait(false));
 
             while (true)
             {

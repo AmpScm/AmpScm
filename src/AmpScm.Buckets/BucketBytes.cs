@@ -83,6 +83,17 @@ namespace AmpScm.Buckets
                 return Empty;
         }
 
+        public BucketBytes Slice(int start, BucketEol untilEol)
+        {
+            return Slice(start, Length - start - untilEol.CharCount());
+        }
+
+        public BucketBytes Slice(BucketEol untilEol)
+        {
+            return Slice(0, Length - untilEol.CharCount());
+        }
+
+
         public byte[] ToArray()
         {
             return _data.ToArray();

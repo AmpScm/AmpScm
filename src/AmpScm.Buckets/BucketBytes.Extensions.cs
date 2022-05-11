@@ -14,6 +14,13 @@ namespace AmpScm.Buckets
             return Encoding.ASCII.GetString(Span);
         }
 
+        public string ToASCIIString(int start)
+        {
+            var data = Span.Slice(start);
+
+            return Encoding.ASCII.GetString(data);
+        }
+
         public string ToASCIIString(int start, int length)
         {
             var data = Span.Slice(start, length);
@@ -21,9 +28,9 @@ namespace AmpScm.Buckets
             return Encoding.ASCII.GetString(data);
         }
 
-        public string ToASCIIString(int start, int length, BucketEol eol)
+        public string ToASCIIString(int start, BucketEol eol)
         {
-            return ToASCIIString(start, length - eol.CharCount());
+            return ToASCIIString(start, Length - start - eol.CharCount());
         }
 
         public string ToASCIIString(BucketEol eol)
@@ -37,6 +44,13 @@ namespace AmpScm.Buckets
             return Encoding.UTF8.GetString(Span);
         }
 
+        public string ToUTF8String(int start)
+        {
+            var data = Span.Slice(start);
+
+            return Encoding.UTF8.GetString(data);
+        }
+
         public string ToUTF8String(int start, int length)
         {
             var data = Span.Slice(start, length);
@@ -44,9 +58,9 @@ namespace AmpScm.Buckets
             return Encoding.UTF8.GetString(data);
         }
 
-        public string ToUTF8String(int start, int length, BucketEol eol)
+        public string ToUTF8String(int start, BucketEol eol)
         {
-            return ToUTF8String(start, length - eol.CharCount());
+            return ToUTF8String(start, Length - start - eol.CharCount());
         }
 
         public string ToUTF8String(BucketEol eol)
@@ -136,6 +150,60 @@ namespace AmpScm.Buckets
                 return Slice(start);
         }
 
+        public BucketBytes[] Split(byte separator)
+        {
+            int next = IndexOf(separator);
+
+            if (next < 0)
+                return new BucketBytes[] { this };
+
+            int start = 0;
+
+            var result = new List<BucketBytes>();
+            while(next > 0)
+            {
+                result.Add(Slice(start, next - start));
+
+                start = next + 1;
+                if (start >= Length)
+                    break;
+
+                next = IndexOf(separator, start);
+            }
+
+            if (start < Length)
+                result.Add(Slice(start));
+
+            return result.ToArray();
+        }
+
+        public BucketBytes[] Split(byte separator, int count)
+        {
+            int next = IndexOf(separator);
+            count--;
+            if (next < 0)
+                return new BucketBytes[] { this };
+
+            int start = 0;
+
+            var result = new List<BucketBytes>();
+            while (next > 0 && result.Count < count)
+            {
+                result.Add(Slice(start, next - start));
+
+                start = next + 1;
+                if (start >= Length)
+                    break;
+
+                next = IndexOf(separator, start);
+            }
+
+            if (start < Length)
+                result.Add(Slice(start));
+
+            return result.ToArray();
+        }
+
         static bool IsWhiteSpace(byte v)
         {
             switch (v)
@@ -159,6 +227,25 @@ namespace AmpScm.Buckets
             var p = _data.Span;
 
             if (p.Length < value.Length)
+                return false;
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (p[i] != value[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        public bool EqualsASCII(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                throw new ArgumentNullException(nameof(value));
+
+            var p = _data.Span;
+
+            if (p.Length != value.Length)
                 return false;
 
             for (int i = 0; i < value.Length; i++)

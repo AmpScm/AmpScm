@@ -18,7 +18,7 @@ namespace AmpScm.Git.Objects
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="BucketException"></exception>
-        /// <remarks>Imports objects and updates references based on information in <see cref="source"/></remarks>
+        /// <remarks>Imports objects and updates references based on information in <paramref name="source"/></remarks>
         public static async ValueTask FastImportAsync(this GitRepository repository, Bucket source)
         {
             if (repository is null)
@@ -156,7 +156,7 @@ namespace AmpScm.Git.Objects
                                     string from = headers.Single(x => x.StartsWith("from ", StringComparison.Ordinal)).Substring(5);
                                     string tagger = headers.Single(x => x.StartsWith("tagger ", StringComparison.Ordinal)).Substring(7);
 
-                                    var c = repository.Commits[marks[from]];
+                                    var c = repository.Commits[marks[from]] ?? throw new GitRepositoryException("Failed to load commit");
 
                                     GitTagObjectWriter tw = GitTagObjectWriter.Create(c, follow);
                                     tw.Message = message;

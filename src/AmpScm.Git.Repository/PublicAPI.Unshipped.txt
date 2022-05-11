@@ -100,7 +100,9 @@ AmpScm.Git.GitSignature.GitSignature(string! name, string! email, System.DateTim
 AmpScm.Git.GitSignature.Name.get -> string!
 AmpScm.Git.GitSignature.When.get -> System.DateTimeOffset
 AmpScm.Git.GitTag
+AmpScm.Git.GitTag.Message.get -> string?
 AmpScm.Git.GitTag.Reference.get -> AmpScm.Git.GitReference!
+AmpScm.Git.GitTag.Tagger.get -> AmpScm.Git.GitSignature?
 AmpScm.Git.GitTag.TagObject.get -> AmpScm.Git.GitTagObject?
 AmpScm.Git.GitTagObject
 AmpScm.Git.GitTagObject.GitObject.get -> AmpScm.Git.GitObject!

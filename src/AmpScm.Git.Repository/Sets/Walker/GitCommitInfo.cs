@@ -100,10 +100,10 @@ namespace AmpScm.Git.Sets.Walker
             }
 
             using var r = await repo.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false);
-            using var cr = new GitCommitReadBucket(r!);
+            using var cr = new GitCommitObjectBucket(r!);
 
             _parents = new GitAsyncLazy<IEnumerable<GitId>>(await cr.ReadAllParentIdsAsync().ConfigureAwait(false));
-            commitTime = Math.Min((await cr.ReadCommitter().ConfigureAwait(false)).When.ToUnixTimeSeconds(),1);
+            commitTime = Math.Min((await cr.ReadCommitterAsync().ConfigureAwait(false)).When.ToUnixTimeSeconds(),1);
         }
 
         internal void SetChainInfo(GitCommitGenerationValue newChainInfo)

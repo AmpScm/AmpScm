@@ -83,13 +83,13 @@ AmpScm.Buckets.Git.GitSignatureRecord.Name.get -> string!
 AmpScm.Buckets.Git.GitSignatureRecord.Name.init -> void
 AmpScm.Buckets.Git.GitSignatureRecord.When.get -> System.DateTimeOffset
 AmpScm.Buckets.Git.GitSignatureRecord.When.init -> void
-AmpScm.Buckets.Git.Objects.GitCommitReadBucket
-AmpScm.Buckets.Git.Objects.GitCommitReadBucket.GitCommitReadBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadAllParentIdsAsync() -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyCollection<AmpScm.Git.GitId!>!>
-AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadAuthorAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
-AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadCommitter() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
-AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadFirstParentIdAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId?>
-AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadTreeIdAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ReadAllParentIdsAsync() -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyCollection<AmpScm.Git.GitId!>!>
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ReadAuthorAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ReadCommitterAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ReadFirstParentIdAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId?>
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ReadTreeIdAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 AmpScm.Buckets.Git.Objects.GitTreeElementRecord
 AmpScm.Buckets.Git.Objects.GitTreeElementRecord.AsBucket() -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Git.Objects.GitTreeElementRecord.Id.get -> AmpScm.Git.GitId!
@@ -98,9 +98,9 @@ AmpScm.Buckets.Git.Objects.GitTreeElementRecord.Name.get -> string!
 AmpScm.Buckets.Git.Objects.GitTreeElementRecord.Name.init -> void
 AmpScm.Buckets.Git.Objects.GitTreeElementRecord.Type.get -> AmpScm.Git.GitTreeElementType
 AmpScm.Buckets.Git.Objects.GitTreeElementRecord.Type.init -> void
-AmpScm.Buckets.Git.Objects.GitTreeReadBucket
-AmpScm.Buckets.Git.Objects.GitTreeReadBucket.GitTreeReadBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Git.GitIdType idType) -> void
-AmpScm.Buckets.Git.Objects.GitTreeReadBucket.ReadTreeElementRecord() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.Objects.GitTreeElementRecord?>
+AmpScm.Buckets.Git.Objects.GitTreeObjectBucket
+AmpScm.Buckets.Git.Objects.GitTreeObjectBucket.GitTreeObjectBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Git.GitIdType idType) -> void
+AmpScm.Buckets.Git.Objects.GitTreeObjectBucket.ReadTreeElementRecord() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.Objects.GitTreeElementRecord?>
 AmpScm.Git.GitBucketExtensions
 AmpScm.Git.GitException
 AmpScm.Git.GitException.GitException() -> void
@@ -174,9 +174,9 @@ override AmpScm.Buckets.Git.GitPackFrameBucket.ResetAsync() -> System.Threading.
 override AmpScm.Buckets.Git.GitPackHeaderBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitReferenceLogBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitSignatureRecord.ToString() -> string!
-override AmpScm.Buckets.Git.Objects.GitCommitReadBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Git.Objects.GitCommitReadBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Git.Objects.GitTreeReadBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.Objects.GitTreeObjectBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Git.GitId.Equals(object? obj) -> bool
 override AmpScm.Git.GitId.GetHashCode() -> int
 override AmpScm.Git.GitId.ToString() -> string!
@@ -196,8 +196,6 @@ static AmpScm.Git.GitBucketExtensions.GitHash(this AmpScm.Buckets.Bucket! bucket
 static AmpScm.Git.GitBucketExtensions.HashLength(this AmpScm.Git.GitIdType type) -> int
 static AmpScm.Git.GitBucketExtensions.IsDirectory(this AmpScm.Git.GitTreeElementType elementType) -> bool
 static AmpScm.Git.GitBucketExtensions.IsFile(this AmpScm.Git.GitTreeElementType elementType) -> bool
-static AmpScm.Git.GitBucketExtensions.Slice(this AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol untilEol) -> AmpScm.Buckets.BucketBytes
-static AmpScm.Git.GitBucketExtensions.Slice(this AmpScm.Buckets.BucketBytes bb, int start, AmpScm.Buckets.BucketEol untilEol) -> AmpScm.Buckets.BucketBytes
 static AmpScm.Git.GitId.FromByteArrayOffset(AmpScm.Git.GitIdType type, byte[]! hash, int offset) -> AmpScm.Git.GitId!
 static AmpScm.Git.GitId.HashLength(AmpScm.Git.GitIdType type) -> int
 static AmpScm.Git.GitId.operator !=(AmpScm.Git.GitId? one, AmpScm.Git.GitId? other) -> bool

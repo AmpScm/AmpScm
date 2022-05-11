@@ -111,7 +111,7 @@ namespace AmpScm.Buckets.Git
 
                 int nSize = bb.IndexOf(' ');
 
-                if (nSize > 0 && long.TryParse(bb.ToASCIIString(nSize + 1, bb.Length - nSize - 1, eol), out var len))
+                if (nSize > 0 && long.TryParse(bb.ToASCIIString(nSize + 1, eol), out var len))
                     _length = len;
                 else
                     throw new BucketException($"Expected length information within header of '{Inner.Name}'");

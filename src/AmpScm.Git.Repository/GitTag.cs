@@ -22,5 +22,16 @@ namespace AmpScm.Git
 
 
         public GitTagObject? TagObject => Reference.GitObject as GitTagObject;
+
+
+        /// <summary>
+        /// When the Tag has a <see cref="GitTagObject"/> the tag message via <see cref="GitTagObject.Message"/>
+        /// </summary>
+        public string? Message => TagObject?.Message;
+
+        /// <summary>
+        /// When the Tag has a <see cref="GitTagObject"/> the tagger via <see cref="GitTagObject.Tagger"/>
+        /// </summary>
+        public GitSignature? Tagger => TagObject?.Tagger;
     }
 }

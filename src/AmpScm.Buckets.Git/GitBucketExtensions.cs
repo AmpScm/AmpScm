@@ -75,16 +75,6 @@ namespace AmpScm.Git
             return Encoding.ASCII.GetBytes(txt).AsBucket();
         }
 
-        public static BucketBytes Slice(this BucketBytes bb, int start, BucketEol untilEol)
-        {
-            return bb.Slice(start, bb.Length - start - untilEol.CharCount());
-        }
-
-        public static BucketBytes Slice(this BucketBytes bb, BucketEol untilEol)
-        {
-            return bb.Slice(0, bb.Length - untilEol.CharCount());
-        }
-
         public static Bucket GitHash(this Bucket bucket, GitIdType type, Action<GitId> created)
         {
             if (bucket is null)

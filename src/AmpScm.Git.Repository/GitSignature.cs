@@ -7,7 +7,7 @@ namespace AmpScm.Git
     public sealed class GitSignature : IEquatable<GitSignature>
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string _value;
+        string _name;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _email;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -15,14 +15,14 @@ namespace AmpScm.Git
 
         internal GitSignature(GitSignatureRecord signature)
         {
-            _value = signature.Name;
+            _name = signature.Name;
             _email = signature.Email;
             _when = signature.When;
         }
 
         public GitSignature(string name, string email, DateTimeOffset now)
         {
-            _value = name ?? throw new ArgumentNullException(nameof(name));
+            _name = name ?? throw new ArgumentNullException(nameof(name));
             _email = email ?? throw new ArgumentNullException(nameof(email));
             _when = now;
             if (email.IndexOfAny(new[] { '<', '>' }) >= 0)
@@ -31,22 +31,22 @@ namespace AmpScm.Git
 
         internal GitSignature(string authorValue)
         {
-            _value = authorValue;
+            _name = authorValue;
         }
 
         public string Name
         {
-            get => MyRead()._value;
+            get => _name;
         }
 
         public string Email
         {
-            get => MyRead()._email!;
+            get => _email!;
         }
 
         public DateTimeOffset When
         {
-            get => MyRead()._when;
+            get => _when;
         }
 
         public override bool Equals(object? obj)
@@ -70,30 +70,6 @@ namespace AmpScm.Git
         public override string ToString()
         {
             return $"{Name} <{Email}> {When}";
-        }
-
-        internal GitSignature MyRead()
-        {
-            if (_email != null)
-                return this;
-
-            int nS = _value.LastIndexOf('<');
-            int nF = _value.IndexOf('>', nS + 1);
-
-            _email = _value.Substring(nS + 1, nF - nS - 1);
-            string[] time = _value.Substring(nF + 2).Split(new[] { ' ' }, 2);
-
-            if (int.TryParse(time[0], out var unixtime) && int.TryParse(time[1], out var offset))
-            {
-                _when = DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
-            }
-
-            while (nS > 0 && char.IsWhiteSpace(_value, nS - 1))
-                nS--;
-
-            _value = _value.Substring(0, nS);
-
-            return this;
         }
 
         internal GitSignatureRecord AsRecord()

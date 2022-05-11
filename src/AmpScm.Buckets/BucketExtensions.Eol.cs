@@ -11,6 +11,14 @@ namespace AmpScm.Buckets
 {
     public static partial class BucketExtensions
     {
+        public static bool IsEmpty(this BucketBytes bytes, BucketEol eol)
+        {
+            if (bytes.IsEmpty || bytes.Length == eol.CharCount())
+                return true;
+
+            return false;
+        }
+
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
 #endif

@@ -38,9 +38,9 @@ namespace AmpScm.Git
             if (_rdr == null)
                 return;
 
-            if (_rdr is not GitTreeReadBucket rdr)
+            if (_rdr is not GitTreeObjectBucket rdr)
             {
-                _rdr = rdr = new GitTreeReadBucket(_rdr, Repository.InternalConfig.IdType);
+                _rdr = rdr = new GitTreeObjectBucket(_rdr, Repository.InternalConfig.IdType);
             }
 
             var el = await rdr.ReadTreeElementRecord().ConfigureAwait(false);

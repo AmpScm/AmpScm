@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
+using AmpScm.Buckets.Git.Objects;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git.Objects;
 
@@ -12,17 +14,25 @@ namespace AmpScm.Git
 {
     public sealed class GitTagObject : GitObject, IGitLazy<GitTagObject>
     {
-        private object _obj;
-        string? _message, _summary;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        GitTagObjectBucket? _rb;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        object? _obj;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        string? _message;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        string? _summary;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitSignature? _tagger;
-        Dictionary<string, string>? _headers;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitObjectType? _objType;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _name;
 
-        internal GitTagObject(GitRepository repository, GitBucket rdr, GitId id)
+        internal GitTagObject(GitRepository repository, GitObjectBucket rdr, GitId id)
             : base(repository, id)
         {
-            _obj = rdr;
+            _rb = new GitTagObjectBucket(rdr);
         }
 
         public override GitObjectType Type => GitObjectType.Tag;
@@ -36,28 +46,19 @@ namespace AmpScm.Git
 
                 Read();
 
-                if (_obj is string s && !string.IsNullOrEmpty(s) && GitId.TryParse(s, out var oid))
+                if (_obj is GitId oid)
                 {
-                    _obj = oid;
+                    GitObject? t = Repository.ObjectRepository.GetByIdAsync<GitObject>(oid).AsTask().Result; // BAD async
 
-                    try
-                    {
-                        GitObject? t = Repository.ObjectRepository.GetByIdAsync<GitObject>(oid).AsTask().Result; // BAD async
 
-                        if (t != null)
-                        {
-                            _obj = t;
-                            return t;
-                        }
-                    }
-                    catch
+                    if (t != null)
                     {
-                        _obj = s; // Continue later
-                        throw;
+                        _obj = t;
+                        return t;
                     }
                 }
 
-                return null!;
+                return (_obj as GitObject)!;
             }
         }
 
@@ -121,73 +122,30 @@ namespace AmpScm.Git
 
         public override async ValueTask ReadAsync()
         {
-            if (_obj is Bucket b)
+            if (_rb is null)
+                return;
+
+            var (id, type) = await _rb.ReadObjectIdAsync().ConfigureAwait(false);
+
+            _obj ??= id;
+            _objType = type;
+
+            _name = await _rb.ReadTagNameAsync().ConfigureAwait(false);
+
+            _tagger = new GitSignature(await _rb.ReadTaggerAsync().ConfigureAwait(false));
+
+            while (true)
             {
-                _obj = "";
-                _objType = GitObjectType.None;
-                BucketEolState? _eolState = null;
+                var (bb, _) = await _rb.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
 
-                while(true)
-                {
-                    var (bb, eol) = await b.ReadUntilEolFullAsync(BucketEol.LF, _eolState ??= new BucketEolState()).ConfigureAwait(false);
+                if (bb.IsEof)
+                    break;
 
-                    if (bb.IsEof || bb.Length == eol.CharCount())
-                        break;
-
-                    string line = bb.ToUTF8String(eol);
-
-                    if (line.Length == 0)
-                        break;
-
-                    var parts = line.Split(new[] { ' ' }, 2);
-                    switch (parts[0])
-                    {
-                        case "object":
-                            _obj = parts[1];
-                            break;
-                        case "type":
-                            if (parts[1] == "commit")
-                                _objType = GitObjectType.Commit;
-                            else if (parts[1] == "tree")
-                                _objType = GitObjectType.Tree;
-                            else if (parts[1] == "blob")
-                                _objType = GitObjectType.Blob;
-                            else if (parts[1] == "tag")
-                                _objType = GitObjectType.Tag;
-                            else
-                                _objType = GitObjectType.None;
-                            break;
-                        case "tag":
-                            _name = parts[1];
-                            break;
-
-                        case "tagger":
-                            _tagger = new GitSignature(parts[1]);
-                            break;
-
-                        default:
-                            if (!char.IsWhiteSpace(line, 0))
-                            {
-                                _headers ??= new Dictionary<string, string>();
-                                if (_headers.TryGetValue(parts[0], out var v))
-                                    _headers[parts[0]] = v + "\n" + parts[1];
-                                else
-                                    _headers[parts[0]] = parts[1];
-                            }
-                            break;
-                    }
-                }
-
-                while(true)
-                {
-                    var (bb, _) = await b.ReadUntilEolFullAsync(BucketEol.Zero, _eolState ??= new BucketEolState()).ConfigureAwait(false);
-
-                    if (bb.IsEof)
-                        break;
-
-                    _message += bb.ToUTF8String();
-                }
+                _message += bb.ToUTF8String(); // Includes EOL
             }
+
+            _rb.Dispose();
+            _rb = null;
         }
 
         ValueTask<GitId> IGitLazy<GitTagObject>.WriteToAsync(GitRepository repository)

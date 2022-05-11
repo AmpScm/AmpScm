@@ -160,11 +160,15 @@ namespace AmpScm.Buckets.Client.Buckets
             var (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
             while (bb.Length - eol.CharCount() > 0)
             {
-                string line = bb.ToUTF8String(eol);
+                var parts = bb.Split((byte)':', 2);
 
-                string[] parts = line.Split(new[] { ':' }, 2);
+                if (parts.Length != 2)
+                    continue;
 
-                whc[parts[0]] = parts[1].Trim();
+                string key = parts[0].ToASCIIString();
+                string value = parts[1].Trim(eol).ToUTF8String();
+
+                whc[key] = value;
 
                 (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
             }
@@ -181,16 +185,14 @@ namespace AmpScm.Buckets.Client.Buckets
             {
                 var (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
 
-                string line = bb.ToASCIIString(eol);
+                var parts = bb.Split((byte)' ', 3);
 
-                var parts = line.Split(new[] { ' ' }, 3);
-
-                if (parts[0].StartsWith("HTTP/", StringComparison.OrdinalIgnoreCase) && parts.Length == 3)
-                    HttpVersion = parts[0].Substring(1);
+                if (parts[0].StartsWithASCII("HTTP/") && parts.Length == 3)
+                    HttpVersion = parts[0].ToASCIIString("HTTP/".Length);
                 else
-                    throw new HttpBucketException($"No HTTP result: {line}");
+                    throw new HttpBucketException($"No HTTP result: {bb.ToASCIIString()}");
 
-                if (int.TryParse(parts[1], out var status) && status >= 100 && status < 1000)
+                if (int.TryParse(parts[1].ToASCIIString(), out var status) && status >= 100 && status < 1000)
                 {
                     switch (status)
                     {
@@ -226,9 +228,9 @@ namespace AmpScm.Buckets.Client.Buckets
                     }
                 }
                 else
-                    throw new HttpBucketException($"No Proper HTTP status: {line}");
+                    throw new HttpBucketException($"No Proper HTTP status: {bb.ToASCIIString()}");
 
-                HttpMessage = parts[2];
+                HttpMessage = parts[2].ToASCIIString(eol);
                 return status;
             }
         }

@@ -75,9 +75,10 @@ namespace GitRepositoryTests
             Assert.IsTrue(repo.Head is GitSymbolicReference, "HEAD is an Symbolic reference");
             Assert.IsNotNull(repo.Head?.Commit, "Head can be resolved");
             TestContext.WriteLine($"Last change: {repo.Head.Commit.Author}");
-
+            int n = 0; ;
             await foreach (var r in repo.References)
             {
+                n++;
                 TestContext.WriteLine($"{r.Name} {r.ShortName.PadRight(15)} - {r.Commit?.Id:x7} - {r.Commit?.Author}");
             }
 

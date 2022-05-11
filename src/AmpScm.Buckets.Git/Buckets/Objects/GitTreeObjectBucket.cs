@@ -25,12 +25,12 @@ namespace AmpScm.Buckets.Git.Objects
         }
     }
 
-    public sealed class GitTreeReadBucket : GitBucket
+    public sealed class GitTreeObjectBucket : GitBucket
     {
         readonly GitIdType _idType;
         bool _checkedType;
 
-        public GitTreeReadBucket(Bucket inner, GitIdType idType) : base(inner)
+        public GitTreeObjectBucket(Bucket inner, GitIdType idType) : base(inner)
         {
             _idType = idType;
         }
@@ -69,7 +69,7 @@ namespace AmpScm.Buckets.Git.Objects
             if (nSep < 0)
                 throw new GitBucketException("Truncated tree. No mask separator");
 
-            string name = bb.ToUTF8String(nSep + 1, bb.Length - nSep - 1, eol);
+            string name = bb.ToUTF8String(nSep + 1, eol);
             string mask = bb.ToASCIIString(0, nSep);
 
             bb = await Inner.ReadFullAsync(GitId.HashLength(_idType)).ConfigureAwait(false);
