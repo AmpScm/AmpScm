@@ -46,7 +46,7 @@ namespace AmpScm.Git.Client.Porcelain
             else if (string.IsNullOrEmpty(branchOrCommit))
                 throw new ArgumentNullException(nameof(branchOrCommit));
 
-            await c.Repository.RunPlumbingCommand("checkout", args.ToArray());
+            await c.Repository.RunGitCommandAsync("checkout", args);
         }
     }
 }

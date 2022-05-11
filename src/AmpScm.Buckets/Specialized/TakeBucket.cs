@@ -7,23 +7,36 @@ namespace AmpScm.Buckets.Specialized
     internal sealed class TakeBucket : PositionBucket, IBucketTake
     {
         public long Limit { get; private set; }
+        bool _ensure;
 
-        public TakeBucket(Bucket inner, long limit)
+        public TakeBucket(Bucket inner, long limit, bool ensure)
             : base(inner)
         {
             if (limit < 0)
                 throw new ArgumentOutOfRangeException(nameof(limit));
 
             Limit = limit;
+            _ensure = ensure;
         }
 
-        public Bucket Take(long limit)
+        public Bucket Take(long limit, bool ensure = true)
         {
             if (limit < 0)
                 throw new ArgumentOutOfRangeException(nameof(limit));
 
-            if (limit < Limit)
+            if (ensure)
+            {
+                if (limit > Limit)
+                    throw new BucketException($"Can't read {limit} bytes from a bucket that is limited to {Limit}");
+
                 Limit = limit;
+            }
+            else
+            {
+                if (limit < Limit)
+                    Limit = limit;
+            }
+            _ensure = ensure;
 
             return this;
         }
@@ -58,7 +71,7 @@ namespace AmpScm.Buckets.Specialized
             return poll;
         }
 
-        public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
             long pos = Position!.Value;
 
@@ -68,7 +81,12 @@ namespace AmpScm.Buckets.Specialized
             if (Limit - pos < requested)
                 requested = (int)(Limit - pos);
 
-            return base.ReadAsync(requested); // Position updated in base
+            var bb = await base.ReadAsync(requested).ConfigureAwait(false); // Position updated in base
+
+            if (bb.IsEof && _ensure)
+                throw new BucketEofException(Inner);
+
+            return bb;
         }
 
         public override ValueTask<long> ReadSkipAsync(long requested)
@@ -91,6 +109,10 @@ namespace AmpScm.Buckets.Specialized
                 return 0L;
 
             var limit = Limit - pos;
+
+            if (_ensure)
+                return limit;
+
             var l = await base.ReadRemainingBytesAsync().ConfigureAwait(false);
 
             if (!l.HasValue)
@@ -101,7 +123,7 @@ namespace AmpScm.Buckets.Specialized
 
         protected override PositionBucket NewPositionBucket(Bucket duplicatedInner)
         {
-            return new TakeBucket(duplicatedInner, Limit);
+            return new TakeBucket(duplicatedInner, Limit, _ensure);
         }
     }
 }

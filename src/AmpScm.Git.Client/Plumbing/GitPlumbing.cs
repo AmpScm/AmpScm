@@ -21,7 +21,7 @@ namespace AmpScm.Git.Client.Plumbing
 
         public static async ValueTask<(int ExitCode, string OutputText)> RunRawCommand(this GitPlumbingClient c, string command, params string[] args)
         {
-            return await c.Repository.RunPlumbingCommandOut(command, args);
+            return await c.Repository.RunGitCommandOutAsync(command, args);
         }
     }
 }

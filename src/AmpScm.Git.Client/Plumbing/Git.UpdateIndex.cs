@@ -65,7 +65,7 @@ namespace AmpScm.Git.Client.Plumbing
                 }
             }
 
-            await c.Repository.RunPlumbingCommand("update-index", args.ToArray());
+            await c.Repository.RunGitCommandAsync("update-index", args);
         }
     }
 }

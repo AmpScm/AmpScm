@@ -133,6 +133,28 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static Bucket AtEof(this Bucket bucket, Func<Task> action)
+        {
+            return new AtEofBucket(bucket, action);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static Bucket AtEof(this Bucket bucket, Action action)
+        {
+            return new AtEofBucket(bucket, () => { action(); return Task.CompletedTask; });
+        }
+
+        /// <summary>
         /// Reads from the bucket until EOF
         /// </summary>
         /// <param name="bucket"></param>

@@ -52,7 +52,7 @@ namespace AmpScm.Git.Client.Plumbing
                     }
             }
 
-            await c.Repository.RunPlumbingCommand("index-pack", args.ToArray());
+            await c.Repository.RunGitCommandAsync("index-pack", args);
         }
     }
 }

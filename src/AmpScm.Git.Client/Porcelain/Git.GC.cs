@@ -40,7 +40,7 @@ namespace AmpScm.Git.Client.Porcelain
             if (options.PruneDate.HasValue)
                 args.Add($"--prune={options.PruneDate.Value.Date.ToString("yyyy-MM-dd")}");
 
-            await c.Repository.RunPlumbingCommand("gc", args.ToArray());
+            await c.Repository.RunGitCommandAsync("gc", args);
         }
     }
 }

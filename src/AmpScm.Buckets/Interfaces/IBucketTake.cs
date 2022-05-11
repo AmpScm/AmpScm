@@ -8,6 +8,6 @@ namespace AmpScm.Buckets.Interfaces
 {
     interface IBucketTake
     {
-        Bucket Take(long limit);
+        Bucket Take(long limit, bool ensure = true);
     }
 }

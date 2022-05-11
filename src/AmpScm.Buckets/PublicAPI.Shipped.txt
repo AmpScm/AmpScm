@@ -269,7 +269,6 @@ static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! buc
 static AmpScm.Buckets.BucketExtensions.WithPosition(this AmpScm.Buckets.Bucket! bucket, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.WithTlsClientFor<TBucket>(this TBucket! bucket, string! targetHost) -> AmpScm.Buckets.Specialized.TlsBucket!
 static AmpScm.Buckets.BucketExtensions.Wrap(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.WriteAsync(this System.IO.Stream! stream, AmpScm.Buckets.Bucket! bucket, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.BucketExtensions.WriteAsync(this System.IO.Stream! stream, AmpScm.Buckets.BucketBytes bucketBytes, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.ByteCollector.operator !=(AmpScm.Buckets.ByteCollector left, AmpScm.Buckets.ByteCollector right) -> bool
 static AmpScm.Buckets.ByteCollector.operator ==(AmpScm.Buckets.ByteCollector left, AmpScm.Buckets.ByteCollector right) -> bool

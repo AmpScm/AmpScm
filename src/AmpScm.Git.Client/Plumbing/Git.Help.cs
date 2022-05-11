@@ -33,7 +33,7 @@ namespace AmpScm.Git.Client.Plumbing
             else
                 args = new string[] { "-i", options.Command! ?? options.Guide! };
 
-            var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", args);
+            var (_, txt) = await c.Repository.RunGitCommandOutAsync("help", args);
 
             return txt ?? "";
         }
@@ -56,7 +56,7 @@ namespace AmpScm.Git.Client.Plumbing
             if (gotOne)
                 return results.ToArray();
 
-            var (_, _, stderr) = await c.Repository.RunPlumbingCommandErr(name, new[] { "-h" }, expectedResults: new[] { 129 });
+            var (_, _, stderr) = await c.Repository.RunGitCommandErrAsync(name, new[] { "-h" }, expectedResults: new[] { 129 });
 
             return stderr.Split('\n').Select(x=>x.TrimEnd()).ToArray();
         }

@@ -85,16 +85,18 @@ namespace AmpScm.Buckets
         /// <param name="cancellationToken">Token for <see cref="Stream.WriteAsync(byte[], int, int, CancellationToken)"/></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static async ValueTask WriteAsync(this Stream stream, Bucket bucket, CancellationToken cancellationToken = default)
+        public static async ValueTask WriteToAsync(this Bucket bucket, Stream stream, CancellationToken cancellationToken = default)
         {
-            if (stream is null)
-                throw new ArgumentNullException(nameof(stream));
-            else if (bucket is null)
+            if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
+            else if (stream is null)
+                throw new ArgumentNullException(nameof(stream));
 
             using (bucket)
                 while (true)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var bb = await bucket.ReadAsync().ConfigureAwait(false);
 
                     if (bb.IsEof)

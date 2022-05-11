@@ -96,7 +96,7 @@ namespace AmpScm.Buckets.Client.Buckets
             if (!chunked && headers[HttpResponseHeader.ContentLength] is string cl
                 && long.TryParse(cl, out var contentLength) && contentLength >= 0)
             {
-                rdr = rdr.Take(contentLength, true).NoClose();
+                rdr = rdr.TakeExact(contentLength, alwaysWrap: true).NoClose();
                 allowNext = true;
             }
 

@@ -48,6 +48,40 @@ namespace AmpScm.Buckets
             return new PositionBucket(bucket);
         }
 
+        /// <summary>
+        /// Takes exactly <paramref name="length"/> bytes from <paramref name="bucket"/>
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="length"></param>
+        /// <param name="alwaysWrap"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <remarks>See also <see cref="Take"/>, which handles truncated streams</remarks>
+        public static Bucket TakeExact(this Bucket bucket, long length, bool alwaysWrap = false)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length));
+
+            if (!alwaysWrap && bucket is IBucketTake take)
+                return take.Take(length, true);
+            else
+                return new TakeBucket(bucket, length, true);
+        }
+
+        /// <summary>
+        /// Takes at most <paramref name="limit"/> bytes from <paramref name="bucket"/>
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="limit"></param>
+        /// <param name="alwaysWrap"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <remarks>See also <see cref="TakeExact"/>, which takes an exact amount
+        /// of bytes</remarks>
         public static Bucket Take(this Bucket bucket, long limit, bool alwaysWrap = false)
         {
             if (bucket is null)
@@ -56,9 +90,9 @@ namespace AmpScm.Buckets
                 throw new ArgumentOutOfRangeException(nameof(limit));
 
             if (!alwaysWrap && bucket is IBucketTake take)
-                return take.Take(limit);
+                return take.Take(limit, false);
             else
-                return new TakeBucket(bucket, limit);
+                return new TakeBucket(bucket, limit, false);
         }
 
         public static Bucket Skip(this Bucket bucket, long firstPosition, bool alwaysWrap = false)
@@ -239,7 +273,7 @@ namespace AmpScm.Buckets
 
             using (MemoryStream ms = new MemoryStream())
             {
-                await ms.WriteAsync(bucket).ConfigureAwait(false);
+                await bucket.WriteToAsync(ms).ConfigureAwait(false);
 
                 return ms.ToArray();
             }

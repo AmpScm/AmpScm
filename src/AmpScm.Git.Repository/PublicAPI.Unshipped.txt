@@ -248,6 +248,7 @@ override AmpScm.Git.GitSignature.ToString() -> string!
 override AmpScm.Git.GitTag.Name.get -> string!
 override AmpScm.Git.GitTagObject.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.GitTagObject.Type.get -> AmpScm.Git.GitObjectType
+override AmpScm.Git.GitTree.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.GitTree.Type.get -> AmpScm.Git.GitObjectType
 override AmpScm.Git.GitTreeEntry<TEntry, TObject>.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.Objects.GitBlobWriter.WriteToAsync(AmpScm.Git.GitRepository! repository) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>

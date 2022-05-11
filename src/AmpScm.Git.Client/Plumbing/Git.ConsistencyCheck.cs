@@ -27,7 +27,7 @@ namespace AmpScm.Git.Client.Plumbing
             if (options.Full)
                 args.Add("--full");
 
-            var (_, txt) = await c.Repository.RunPlumbingCommandOut("fsck", args.ToArray());
+            var (_, txt) = await c.Repository.RunGitCommandOutAsync("fsck", args);
             return txt.Replace("\r","", StringComparison.Ordinal).TrimEnd();
         }
     }

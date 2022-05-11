@@ -331,8 +331,8 @@ namespace AmpScm.Git.Objects
                             .GitHash(Repository.InternalConfig.IdType, r => sha = r))
             using (var fs = File.Create(tmpName))
             {
-                await fs.WriteAsync(b).ConfigureAwait(false);
-                await fs.WriteAsync(sha!.Hash.AsBucket()).ConfigureAwait(false); // Needs fix for SHA256
+                await b.WriteToAsync(fs).ConfigureAwait(false);
+                await fs.WriteAsync(sha!.Hash).ConfigureAwait(false);
             }
 
             if (!File.Exists(revName))

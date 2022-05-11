@@ -220,26 +220,15 @@ namespace GitRepositoryTests
         }
 
         [TestMethod]
-        public async Task TestFastImport()
+        public async Task TestFastImportFile()
         {
             var dir = TestContext.PerTestDirectory();
-            var srcRepo = GitTestEnvironment.GetRepository(GitTestDir.Packed);
-            ProcessStartInfo psi = new ProcessStartInfo(GitConfiguration.GitProgramPath, "fast-export --all");
-            psi.RedirectStandardOutput = true;
-            psi.WorkingDirectory = srcRepo;
-            psi.UseShellExecute = false;
-
-            var p = Process.Start(psi)!;
             using (var f = File.Create(Path.Combine(dir, "fast-export"), 16384, FileOptions.SequentialScan | FileOptions.DeleteOnClose))
             {
-                using (p)
+                using (var srcRepo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed)))
+                using (var fastExportData = await srcRepo.GetPorcelain().FastExport(new() { All = true }))
                 {
-                    while (!p.HasExited)
-                    {
-                        await p.StandardOutput.BaseStream.CopyToAsync(f);
-                    }
-
-                    Assert.AreEqual(0, p.ExitCode);
+                    await fastExportData.WriteToAsync(f);
                 }
                 f.Position = 0;
 
@@ -262,6 +251,33 @@ namespace GitRepositoryTests
                     Assert.AreEqual($"", fsckOutput);
                 }
             }
+        }
+
+        [TestMethod]
+        public async Task TestFastImportStream()
+        {
+            var dir = TestContext.PerTestDirectory();
+
+            using var rp = GitRepository.Init(Path.Combine(dir, "rp"));
+
+            TestContext.WriteLine($"Count before: {rp.Objects.Count()}");
+            TestContext.WriteLine($"References: {rp.References.Count()}");
+            TestContext.WriteLine($"HEAD: {rp.Head}");
+
+            using (var srcRepo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed)))
+            using (var pp = await srcRepo.GetPorcelain().FastExport(new() { All = true }))
+            {
+                await rp.FastImportAsync(pp);
+            }
+
+            TestContext.WriteLine($"Count after: {rp.Objects.Count()}");
+            TestContext.WriteLine($"References: {rp.References.Count()}");
+            TestContext.WriteLine($"HEAD: {rp.Head}");
+
+            await rp.GetPorcelain().CheckOut("HEAD");
+
+            var fsckOutput = await rp.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
+            Assert.AreEqual($"", fsckOutput);
         }
     }
 }

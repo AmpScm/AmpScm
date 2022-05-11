@@ -57,7 +57,7 @@ namespace AmpScm.Git.Client.Porcelain
 
             args.Add(path);
 
-            await c.Repository.RunPlumbingCommand("init", args.ToArray());
+            await c.Repository.RunGitCommandAsync("init", args);
 
         }
     }

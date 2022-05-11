@@ -124,7 +124,7 @@ namespace AmpScm.Git.References
 
                     if (hookData is not null)
                     {
-                        var r = await Repository.RunHookErr("reference-transaction", new[] { "prepared" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+                        var r = await Repository.RunHookErrAsync("reference-transaction", new[] { "prepared" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
 
                         if (r.ExitCode != 0)
                         {
@@ -199,14 +199,14 @@ namespace AmpScm.Git.References
                         var hd = hookData;
                         hookData = null;
                         // Ignore errors
-                        await Repository.RunHookErr("run", new[] { "committed" }, stdinText: hd, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+                        await Repository.RunHookErrAsync("run", new[] { "committed" }, stdinText: hd, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
                     }
                 }
             }
             catch when (hookData is not null)
             {
                 // Ignore errors
-                await Repository.RunHookErr("run", new[] { "abort" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+                await Repository.RunHookErrAsync("run", new[] { "abort" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
                 throw;
             }
             finally
@@ -315,7 +315,7 @@ namespace AmpScm.Git.References
                 args.AddRange(new[] { "-m", Reason! });
             }
 
-            await Repository.RunPlumbingCommand("update-ref", args.ToArray(), sb.ToString()).ConfigureAwait(false);
+            await Repository.RunGitCommandAsync("update-ref", args.ToArray(), sb.ToString()).ConfigureAwait(false);
         }
     }
 }

@@ -594,7 +594,7 @@ namespace GitRepositoryTests
 
             long l = (await srcFile.ReadRemainingBytesAsync()).Value;
 
-            using var b = srcFile.Take(l - 20).SHA1(x => fileChecksum = x);
+            using var b = srcFile.TakeExact(l - 20).SHA1(x => fileChecksum = x);
 
             var gh = new GitPackHeaderBucket(b.NoClose());
 
@@ -686,7 +686,7 @@ namespace GitRepositoryTests
             long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
 
             byte[]? idxChecksum = null;
-            using var idxData = indexFile.Take(lIdx - 20).SHA1(x => idxChecksum = x);
+            using var idxData = indexFile.TakeExact(lIdx - 20).SHA1(x => idxChecksum = x);
 
             await Assert.That.BucketsEqual(idxData, index);
         }
@@ -700,7 +700,7 @@ namespace GitRepositoryTests
 
             long l = (await srcFile.ReadRemainingBytesAsync()).Value;
 
-            using var b = srcFile.Take(l - 20).SHA1(x => fileChecksum = x);
+            using var b = srcFile.TakeExact(l - 20).SHA1(x => fileChecksum = x);
 
             var gh = new GitPackHeaderBucket(b.NoClose());
 
@@ -792,7 +792,7 @@ namespace GitRepositoryTests
             long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
 
             byte[]? idxChecksum = null;
-            using var idxData = indexFile.Take(lIdx - 20).SHA1(x => idxChecksum = x);
+            using var idxData = indexFile.TakeExact(lIdx - 20).SHA1(x => idxChecksum = x);
 
             await Assert.That.BucketsEqual(idxData, index);
         }

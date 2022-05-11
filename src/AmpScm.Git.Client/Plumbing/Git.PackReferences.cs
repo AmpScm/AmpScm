@@ -24,7 +24,7 @@ namespace AmpScm.Git.Client.Plumbing
         {
             options.Verify();
 
-            await c.Repository.RunPlumbingCommand("pack-refs", new [] {
+            await c.Repository.RunGitCommandAsync("pack-refs", new [] {
                 options.All ? "--all" : "",
                 options.NoPrune ? "--no-prune" : ""
             }.Where(x=>!string.IsNullOrEmpty(x)).ToArray());

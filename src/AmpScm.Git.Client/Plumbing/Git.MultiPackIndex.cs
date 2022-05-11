@@ -47,7 +47,7 @@ namespace AmpScm.Git.Client.Plumbing
             else if (options.Bitmap == false)
                 args.Add("--no-bitmap");
 
-            await c.Repository.RunPlumbingCommand("multi-pack-index", args.ToArray());
+            await c.Repository.RunGitCommandAsync("multi-pack-index", args);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace AmpScm.Git.Client.Plumbing
         public static async ValueTask<string> ListFiles(this GitPlumbingClient c, GitListFilesArgs options)
         {
             options.Verify();
-            var (_, txt) = await c.Repository.RunPlumbingCommandOut("ls-files", new string[] { });
+            var (_, txt) = await c.Repository.RunGitCommandOutAsync("ls-files", new string[] { });
 
             return txt;
         }

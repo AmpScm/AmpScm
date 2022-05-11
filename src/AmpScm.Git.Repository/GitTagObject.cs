@@ -12,7 +12,9 @@ using AmpScm.Git.Objects;
 
 namespace AmpScm.Git
 {
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
     public sealed class GitTagObject : GitObject, IGitLazy<GitTagObject>
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitTagObjectBucket? _rb;

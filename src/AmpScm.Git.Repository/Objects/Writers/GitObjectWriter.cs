@@ -24,6 +24,7 @@ namespace AmpScm.Git.Objects
             string tmpFile = Guid.NewGuid().ToString() + ".tmp";
             var di = Directory.CreateDirectory(Path.Combine(repository.GitDir, "objects", "info"));
             var tmpFilePath = Path.Combine(di.FullName, tmpFile);
+            string? tmpFile2 = null;
             GitId? id = null;
             {
                 using var f = File.Create(tmpFilePath);
@@ -36,27 +37,27 @@ namespace AmpScm.Git.Objects
 
                         using (var tmp = File.Create(innerTmp))
                         {
-                            await tmp.WriteAsync(bucket, cancellationToken).ConfigureAwait(false);
+                            tmpFile2 = innerTmp; 
+                            await bucket.WriteToAsync(tmp, cancellationToken).ConfigureAwait(false);
                             r = tmp.Length;
                         }
-                        bucket = FileBucket.OpenRead(innerTmp, false);
-                        File.Delete(innerTmp); // We opened the file with allow-delete rights
+                        bucket = FileBucket.OpenRead(innerTmp);                        
                     }
 
                     using (var wb = Type.CreateHeader(r.Value!).Append(bucket)
                         .GitHash(repository.InternalConfig.IdType, cs => id = cs)
                         .Compress(BucketCompressionAlgorithm.ZLib, BucketCompressionLevel.Maximum))
                     {
-                        await f.WriteAsync(wb, cancellationToken).ConfigureAwait(false);
+                        await wb.WriteToAsync(f, cancellationToken).ConfigureAwait(false);
                     }
-                }
+                }                
                 catch
                 {
                     f.Close();
 
                     try
                     {
-                        File.Delete(tmpFilePath);
+                        File.Delete(tmpFilePath);                        
                     }
                     catch (UnauthorizedAccessException)
                     { }
@@ -64,6 +65,18 @@ namespace AmpScm.Git.Objects
                     { }
 
                     throw;
+                }
+                finally
+                {
+                    try
+                    {
+                        if (tmpFile2 is not null)
+                            File.Delete(tmpFile2);
+                    }
+                    catch (UnauthorizedAccessException)
+                    { }
+                    catch (IOException)
+                    { }
                 }
             }
 
