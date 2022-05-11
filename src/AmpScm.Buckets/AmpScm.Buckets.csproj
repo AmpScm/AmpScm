@@ -23,6 +23,9 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Copyright>(c) Copyright AmpScm Project</Copyright>
     <PackageProjectUrl>https://github.com/AmpScm/AmpScm</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <NeutralLanguage>en-US</NeutralLanguage>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <AnalysisLevel>latest-all</AnalysisLevel>
@@ -50,6 +53,7 @@
     <PackageReference Include="GitVersion.MsBuild" Version="5.10.1">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
   </ItemGroup>
 
 </Project>

@@ -229,10 +229,10 @@ namespace AmpScm.Git
             if (string.IsNullOrEmpty(stdinText))
                 p.StandardInput.Close();
 
-            return new StdOutputWalker(p, stdinText, expectedResults);
+            return new StdOutputLineWalker(p, stdinText, expectedResults);
         }
 
-        sealed class StdOutputWalker : IAsyncEnumerable<string>, IAsyncEnumerator<string>
+        sealed class StdOutputLineWalker : IAsyncEnumerable<string>, IAsyncEnumerator<string>
         {
             readonly Process _p;
             readonly StreamReader _reader;
@@ -240,10 +240,9 @@ namespace AmpScm.Git
             bool _eof;
             string? _current;
             readonly int[]? _expectedResults;
-            readonly object _l = new();
             ErrorReceiver _rcv;
 
-            public StdOutputWalker(Process p, string? stdinText, int[]? expectedResults)
+            public StdOutputLineWalker(Process p, string? stdinText, int[]? expectedResults)
             {
                 if (p is null)
                     throw new ArgumentNullException(nameof(p));
