@@ -79,8 +79,12 @@ namespace GitRepositoryTests.Client
                                 "gc" => "GC",
                                 "mv" => "Move",
                                 "rm" => "Delete",
-                                "am" => "ApplyMailbox", 
+                                "am" => "ApplyMailbox",
                                 "whatchanged" => "WhatChanged",
+                                "worktree" => "WorkTree",
+                                "checkout" => "CheckOut",
+                                "shortlog" => "ShortLog",
+                                "submodule" => "SubModule",
                                 _ => parts[i]
                             };
                         }

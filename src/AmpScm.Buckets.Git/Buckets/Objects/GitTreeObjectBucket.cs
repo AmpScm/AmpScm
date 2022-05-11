@@ -72,16 +72,14 @@ namespace AmpScm.Buckets.Git.Objects
             string name = bb.ToUTF8String(nSep + 1, eol);
             string mask = bb.ToASCIIString(0, nSep);
 
-            bb = await Inner.ReadFullAsync(GitId.HashLength(_idType)).ConfigureAwait(false);
+            var id = await Inner.ReadGitIdAsync(_idType).ConfigureAwait(false);
 
-            if (nSep < 0)
-                throw new GitBucketException("Truncated tree. Incomplete hash");
-
-            var id = new GitId(_idType, bb.ToArray());
-
-            var val = Convert.ToInt32(mask, 8);
-
-            return new GitTreeElementRecord { Name = name, Type = (GitTreeElementType)val, Id = id };
+            return new GitTreeElementRecord
+            {
+                Name = name,
+                Type = (GitTreeElementType)Convert.ToInt32(mask, 8),
+                Id = id
+            };
         }
     }
 }

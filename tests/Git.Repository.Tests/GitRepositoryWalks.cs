@@ -311,7 +311,7 @@ namespace GitRepositoryTests
             var path2 = TestContext.PerTestDirectory("2");
             {
                 using GitRepository gc = GitRepository.Open(typeof(GitRepositoryWalks).Assembly.Location);
-                await gc.GetPorcelain().Clone(gc.FullPath, path2, new() { Shared = true, NoCheckout = true });
+                await gc.GetPorcelain().Clone(gc.FullPath, path2, new() { Shared = true, NoCheckOut = true });
             }
             {
                 using GitRepository gc = GitRepository.Open(path2);

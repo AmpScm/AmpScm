@@ -56,5 +56,10 @@ namespace AmpScm.Git.References
         public override GitCommit? Commit => ReferenceEquals(Reference, this) ? base.Commit : Reference?.Commit;
 
         public override GitId? Id => Reference?.Id ?? base.Id;
+
+        public override string ToString()
+        {
+            return $"{Name}: {ReferenceName}";
+        }
     }
 }

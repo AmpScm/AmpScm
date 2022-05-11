@@ -44,12 +44,12 @@ namespace AmpScm.Git.Objects
                         if (bb.IsEof)
                             return;
 
-                        int s = bb.IndexOf((byte)' ');
+                        var parts = bb.Split((byte)' ', 2);
 
-                        if (s >= 0)
+                        if (parts.Length == 2)
                         {
-                            type = bb.ToASCIIString(0, s);
-                            follow = bb.Slice(s + 1, eol).ToUTF8String();
+                            type = parts[0].ToASCIIString();
+                            follow = parts[1].ToUTF8String(eol);
                         }
                         else
                         {

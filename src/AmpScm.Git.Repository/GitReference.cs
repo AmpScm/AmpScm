@@ -252,6 +252,11 @@ namespace AmpScm.Git
         {
             return !(r1 == r2);
         }
+
+        public override string ToString()
+        {
+            return $"{Name}: {Id}";
+        }
     }
 }
 

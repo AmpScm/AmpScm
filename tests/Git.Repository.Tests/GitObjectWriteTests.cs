@@ -243,14 +243,24 @@ namespace GitRepositoryTests
                 }
                 f.Position = 0;
 
-                using var rp = GitRepository.Init(Path.Combine(dir, "rp"));
+                {
+                    using var rp = GitRepository.Init(Path.Combine(dir, "rp"));
 
-                await rp.FastImportAsync(f.AsBucket());
+                    TestContext.WriteLine($"Count before: {rp.Objects.Count()}");
+                    TestContext.WriteLine($"References: {rp.References.Count()}");
+                    TestContext.WriteLine($"HEAD: {rp.Head}");
 
-                await rp.GetPorcelain().CheckOut("HEAD");
+                    await rp.FastImportAsync(f.AsBucket());
 
-                var fsckOutput = await rp.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
-                Assert.AreEqual($"", fsckOutput);
+                    TestContext.WriteLine($"Count after: {rp.Objects.Count()}");
+                    TestContext.WriteLine($"References: {rp.References.Count()}");
+                    TestContext.WriteLine($"HEAD: {rp.Head}");
+
+                    await rp.GetPorcelain().CheckOut("HEAD");
+
+                    var fsckOutput = await rp.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
+                    Assert.AreEqual($"", fsckOutput);
+                }
             }
         }
     }

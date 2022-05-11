@@ -240,6 +240,7 @@ override AmpScm.Git.GitDirectoryTreeEntry.EntryName.get -> string!
 override AmpScm.Git.GitFileTreeEntry.ElementType.get -> AmpScm.Git.GitTreeElementType
 override AmpScm.Git.GitReference.Equals(object? obj) -> bool
 override AmpScm.Git.GitReference.GetHashCode() -> int
+override AmpScm.Git.GitReference.ToString() -> string!
 override AmpScm.Git.GitRepository.ToString() -> string!
 override AmpScm.Git.GitSignature.Equals(object? obj) -> bool
 override AmpScm.Git.GitSignature.GetHashCode() -> int
@@ -260,6 +261,7 @@ override AmpScm.Git.References.GitSymbolicReference.Commit.get -> AmpScm.Git.Git
 override AmpScm.Git.References.GitSymbolicReference.GitObject.get -> AmpScm.Git.GitObject?
 override AmpScm.Git.References.GitSymbolicReference.Id.get -> AmpScm.Git.GitId?
 override AmpScm.Git.References.GitSymbolicReference.ReadAsync() -> System.Threading.Tasks.ValueTask
+override AmpScm.Git.References.GitSymbolicReference.ToString() -> string!
 override AmpScm.Git.Sets.GitNamedSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 override AmpScm.Git.Sets.GitObjectSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 override AmpScm.Git.Sets.GitReferenceChangeSet.GetEnumerator() -> System.Collections.Generic.IEnumerator<AmpScm.Git.GitReferenceChange!>!

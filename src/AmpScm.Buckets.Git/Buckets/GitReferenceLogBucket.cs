@@ -79,9 +79,9 @@ namespace AmpScm.Buckets.Git
             }
             record = new GitSignatureRecord
             {
-                Name = bucketBytes.Slice(0, n - 1).ToUTF8String(),
-                Email = bucketBytes.Slice(n + 1, n2 - n - 1).ToUTF8String(),
-                When = ParseWhen(bucketBytes.Slice(n2 + 2).ToUTF8String())
+                Name = bucketBytes.ToUTF8String(0, n-1),
+                Email = bucketBytes.ToUTF8String(n + 1, n2 - n - 1),
+                When = ParseWhen(bucketBytes.ToUTF8String(n2 + 2))
             };
             return true;
         }

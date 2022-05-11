@@ -16,7 +16,7 @@ namespace AmpScm.Git.Client.Porcelain
         public bool Mirror { get; set; }
         public bool Bare { get; set; }
         public bool? Tags { get; set; }
-        public bool NoCheckout { get; set; }
+        public bool NoCheckOut { get; set; }
         public bool? SingleBranch { get; set; }
 
         public string? OriginName { get; set; }
@@ -118,7 +118,7 @@ namespace AmpScm.Git.Client.Porcelain
             if (options.Tags == false)
                 args.Add("--no-tags");
 
-            if (options.NoCheckout)
+            if (options.NoCheckOut)
                 args.Add("--no-checkout");
 
             if (options.Depth >= 1)

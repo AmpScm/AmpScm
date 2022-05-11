@@ -45,7 +45,6 @@ namespace AmpScm.Buckets.Git
 
             var bb = await bucket.PollAsync(max_offset_len).ConfigureAwait(false);
             int n = bb.Span.IndexOf(x => (x & 0x80) == 0);
-            
 
             if (n >= 0)
             {
@@ -129,7 +128,7 @@ namespace AmpScm.Buckets.Git
                     size |= (long)(uc & 0x7F) << shift;
                 }
 
-                Debug.Assert(0 == (bb[bb.Length-1] & 0x80));
+                Debug.Assert(0 == (bb[bb.Length - 1] & 0x80));
                 return size;
             }
             else
@@ -154,12 +153,12 @@ namespace AmpScm.Buckets.Git
 
         internal static int IndexOf(this BucketBytes bytes, char value)
         {
-            return bytes.IndexOf(unchecked((byte)value));
+            return bytes.IndexOf((byte)value);
         }
 
         internal static int IndexOf(this BucketBytes bytes, char value, int startOffset)
         {
-            return bytes.IndexOf(unchecked((byte)value), startOffset);
+            return bytes.IndexOf((byte)value, startOffset);
         }
 
         public static string[] SplitToUtf8String(this BucketBytes bytes, byte separator, int count)
@@ -168,7 +167,7 @@ namespace AmpScm.Buckets.Git
 
             string[] s = new string[bbs.Length];
 
-            for(int i = 0; i < bbs.Length; i++)
+            for (int i = 0; i < bbs.Length; i++)
             {
                 s[i] = bbs[i].ToUTF8String();
             }

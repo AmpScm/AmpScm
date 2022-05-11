@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Git.Client.Plumbing
 {
-    public class GitCheckoutIndexArgs : GitPlumbingArgs
+    public class GitCheckOutIndexArgs : GitPlumbingArgs
     {
         public override void Verify()
         {
@@ -17,7 +17,7 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("checkout-index")]
-        public static async ValueTask CheckoutIndex(this GitPlumbingClient c, GitCheckoutIndexArgs options)
+        public static async ValueTask CheckOutIndex(this GitPlumbingClient c, GitCheckOutIndexArgs options)
         {
             options.Verify();
             //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
