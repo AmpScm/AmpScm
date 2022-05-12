@@ -144,6 +144,7 @@ override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketByt
 override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Bucket.Create.get -> AmpScm.Buckets.Specialized.BucketFactory!
+static AmpScm.Buckets.BucketExtensions.AsBucket(this System.Collections.Generic.IEnumerable<byte>! bytes) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.IsEmpty(this AmpScm.Buckets.BucketBytes bytes, AmpScm.Buckets.BucketEol eol) -> bool
 static AmpScm.Buckets.BucketExtensions.SkipExact(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.TakeExact(this AmpScm.Buckets.Bucket! bucket, long length, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!

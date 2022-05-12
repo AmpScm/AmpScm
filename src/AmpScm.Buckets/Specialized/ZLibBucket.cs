@@ -236,9 +236,16 @@ namespace AmpScm.Buckets.Specialized
                     var now_read = await Inner.ReadAsync(to_read).ConfigureAwait(false);
                     if (now_read.Length != to_read)
                         throw new BucketException($"Read on {Inner.Name} did not complete as promised by peek");
+
+
                 }
                 else
-                    read_buffer = read_buffer.Slice(_z.NextInIndex - rb_offs);
+                {
+                    if (to_read < 0)
+                        read_buffer = read_buffer.Slice(0, -to_read);
+                    else
+                        read_buffer = read_buffer.Slice(_z.NextInIndex - rb_offs);
+                }
             }
             while (retry_refill && !_eof);
 
@@ -265,7 +272,10 @@ namespace AmpScm.Buckets.Specialized
 
             if (write_buffer.IsEmpty)
             {
-                if (_eof || await Refill(false, requested).ConfigureAwait(false))
+                // Loosing data. See TestConvertFail for deflate and zlib stream
+                int rq = (_level.HasValue && requested < 256) ? 256 : requested;
+
+                if (_eof || await Refill(false, rq).ConfigureAwait(false))
                     return BucketBytes.Eof;
             }
 

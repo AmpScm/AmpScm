@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
 using AmpScm.Buckets.Specialized;
+using AmpScm.BucketTests.Buckets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BucketTests
@@ -86,6 +89,72 @@ namespace BucketTests
                 var bb = await src.ReadAsync();
                 Assert.IsTrue(bb.IsEof);
             }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(ConvertBuckets), DynamicDataDisplayName = nameof(ConvertDisplayName))]
+        public async Task TestConvertFail(string name, Func<Bucket, Bucket> encode, Func<Bucket, Bucket> decode)
+        {
+            var sd = Enumerable.Range(0, 30).Select(x => Enumerable.Range(0, 40).Select(y => (byte)y).ToArray().AsBucket()).AsBucket();
+            var alt = Enumerable.Range(0, 30).SelectMany(x => Enumerable.Range(0, 40).Select(y => (byte)y)).ToArray();
+
+            Bucket src = encode(sd);
+
+            List<byte> save = new List<byte>();
+
+            while ((await src.ReadByteAsync()) is byte b)
+            {
+                save.Add(b);
+            }
+
+            {
+                using var dest = decode(save.ToArray().AsBucket());
+
+                byte[] resultData = await dest.ToArrayAsync();
+                Assert.AreEqual(alt.Length, resultData.Length);
+
+                Assert.IsTrue(resultData.SequenceEqual(alt), "Data was properly converted back");
+
+                var bb = await src.ReadAsync();
+                Assert.IsTrue(bb.IsEof);
+            }
+            {
+                using var dest = decode(save.AsBucket()).PerByte();
+
+                byte[] resultData = await dest.ToArrayAsync();
+                Assert.AreEqual(alt.Length, resultData.Length);
+
+                Assert.IsTrue(resultData.SequenceEqual(alt), "Data was properly converted back per byte");
+
+                var bb = await src.ReadAsync();
+                Assert.IsTrue(bb.IsEof);
+            }
+        }
+
+        [TestMethod]
+        public async Task TestConvertFail2()
+        {
+            var sd = new byte[] { 1, 2, 3 }.AsBucket() + new byte[] { 11, 12, 13 }.AsBucket();
+            var alt = new byte[] { 1, 2, 3, 11, 12, 13 };
+
+            Bucket src = sd.Compress(BucketCompressionAlgorithm.ZLib);
+
+            List<byte> save = new List<byte>();
+
+            while ((await src.ReadByteAsync()) is byte b)
+            {
+                save.Add(b);
+            }
+
+            using var dest = save.ToArray().AsBucket().Decompress(BucketCompressionAlgorithm.ZLib);
+
+            byte[] resultData = await dest.ToArrayAsync();
+            Assert.AreEqual(alt.Length, resultData.Length);
+
+            Assert.IsTrue(resultData.SequenceEqual(alt), "Data was properly converted back");
+
+            var bb = await src.ReadAsync();
+            Assert.IsTrue(bb.IsEof);
         }
 
         [TestMethod]

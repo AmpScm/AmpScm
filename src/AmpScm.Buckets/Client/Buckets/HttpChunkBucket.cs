@@ -11,11 +11,13 @@ namespace AmpScm.Buckets.Client.Buckets
     {
         BucketBytes _remaining;
         BucketBytes _next;
+        Bucket? _chunkReader;
         bool _addEol;
         bool _eof;
 
         static ReadOnlyMemory<byte> CRLF = new byte[] { 0x0d, 0x0a };
         static ReadOnlyMemory<byte> ZeroCRLFCRLF = new byte[] { (byte)'0', 0x0d, 0x0a, 0x0d, 0x0a };
+        const int MaxChunkSize = 16 * 1024 * 1024;
 
         public HttpChunkBucket(Bucket inner) : base(inner)
         {
@@ -35,25 +37,41 @@ namespace AmpScm.Buckets.Client.Buckets
                     _remaining = _next;
                     _next = BucketBytes.Empty;
                 }
+                else if (_chunkReader is not null && !(_remaining = await _chunkReader.ReadAsync().ConfigureAwait(false)).IsEof)
+                { }
                 else if (_addEol)
                 {
                     _remaining = CRLF;
                     _addEol = false;
+                    _chunkReader = null;
                 }
                 else if (!_eof)
                 {
                     // TODO: Perhaps use remaining bytes, and...
-                    _next = await Inner.ReadAsync(int.MaxValue).ConfigureAwait(false);
+                    long ?len = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
 
-                    if (_next.IsEof || _next.IsEmpty)
+                    if (len.HasValue && len.Value > 0)
                     {
-                        _eof = true;
-                        _remaining = ZeroCRLFCRLF;
+                        int size = (len.Value > MaxChunkSize) ? MaxChunkSize : (int)len;
+                        _chunkReader = Inner.TakeExact(size);
+
+                        _remaining = Encoding.ASCII.GetBytes($"{Convert.ToString(size, 16)}\r\n");
+                        _addEol = true;
                     }
                     else
                     {
-                        _remaining = Encoding.ASCII.GetBytes($"{Convert.ToString(_next.Length, 16)}\r\n");
-                        _addEol = true;
+                        _next = await Inner.ReadAsync(int.MaxValue).ConfigureAwait(false);
+
+                        if (_next.IsEof || _next.IsEmpty)
+                        {
+                            _eof = true;
+                            _remaining = ZeroCRLFCRLF;
+                        }
+                        else
+                        {
+                            _remaining = Encoding.ASCII.GetBytes($"{Convert.ToString(_next.Length, 16)}\r\n");
+                            _addEol = true;
+                        }
                     }
                 }
             }

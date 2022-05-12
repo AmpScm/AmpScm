@@ -196,6 +196,14 @@ namespace AmpScm.Buckets
             return new MemoryBucket(bytes!);
         }
 
+        public static Bucket AsBucket(this IEnumerable<byte> bytes)
+        {
+            if (!(bytes?.Any() ?? false))
+                return Bucket.Empty;
+
+            return new MemoryBucket(bytes.ToArray());
+        }
+
         public static Bucket AsBucket(this byte[] bytes, bool copy)
         {
             if ((bytes?.Length ?? 0) == 0)
