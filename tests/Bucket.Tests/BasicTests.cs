@@ -776,7 +776,7 @@ namespace BucketTests
             {
                 Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
 
-                using (var fb2 = fb.Duplicate())
+                using (var fb2 = fb.Duplicate(true))
                 {
                     Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
                 }

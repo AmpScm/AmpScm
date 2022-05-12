@@ -198,7 +198,7 @@ namespace AmpScm.Buckets
 
         public static Bucket AsBucket(this IEnumerable<byte> bytes)
         {
-            if (!(bytes?.Any() ?? false))
+            if (bytes is null || !bytes.Any())
                 return Bucket.Empty;
 
             return new MemoryBucket(bytes.ToArray());
@@ -230,15 +230,19 @@ namespace AmpScm.Buckets
             return new TlsBucket(bucket, bucket, targetHost);
         }
 
-        [CLSCompliant(false)]
-        public static Bucket AsBucket(this byte[][] bytes)
+        public static Bucket AsBucket(this IEnumerable<byte[]> bytes)
         {
+            if (bytes is null || !bytes.Any())
+                return Bucket.Empty;
+
             return bytes.Select(x => x.AsBucket()).AsBucket();
         }
 
-        [CLSCompliant(false)]
-        public static Bucket AsBucket(this byte[][] bytes, bool keepOpen)
+        public static Bucket AsBucket(this IEnumerable<byte[]> bytes, bool keepOpen)
         {
+            if (bytes is null || !bytes.Any())
+                return Bucket.Empty;
+
             return bytes.Select(x => x.AsBucket()).AsBucket(keepOpen);
         }
 
@@ -249,10 +253,26 @@ namespace AmpScm.Buckets
 
         public static Bucket AsBucket(this IEnumerable<Bucket> buckets)
         {
-            if (!buckets.Any())
+            if (buckets is null || !buckets.Any())
                 return Bucket.Empty;
 
             return new AggregateBucket(buckets.ToArray());
+        }
+
+        public static Bucket AsBucket(this IEnumerable<ReadOnlyMemory<byte>> buffers)
+        {
+            if (buffers is null || !buffers.Any())
+                return Bucket.Empty;
+
+            return new AggregateBucket(buffers.Select(x=>x.AsBucket()).ToArray());
+        }
+
+        public static Bucket AsBucket(this IEnumerable<ReadOnlyMemory<byte>> buffers, bool keepOpen)
+        {
+            if (buffers is null || !buffers.Any())
+                return Bucket.Empty;
+
+            return new AggregateBucket(keepOpen, buffers.Select(x => x.AsBucket()).ToArray());
         }
 
         public static Bucket AsBucket(this IEnumerable<Bucket> buckets, bool keepOpen)

@@ -585,7 +585,7 @@ namespace BucketTests
         public async Task NormalizeBucketToUtf8(Encoding enc)
         {
             var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
-            var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
+            var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
             using var b = encodedBytes.AsBucket();
 
             // This wil test the peaking
@@ -606,7 +606,7 @@ namespace BucketTests
         public async Task ConvertBucketToUtf8(Encoding enc)
         {
             var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
-            var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
+            var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
             using var b = encodedBytes.AsBucket();
 
             var bb = await b.ConvertToUtf8(enc).ReadFullAsync(1024);
@@ -619,7 +619,7 @@ namespace BucketTests
         public async Task BomScan(Encoding enc)
         {
             var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
-            var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
+            var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
 
             for(int i = 1; i < encodedBytes.Length-1;i++)
             {
@@ -644,7 +644,7 @@ namespace BucketTests
         {
             var enc = new UTF8Encoding(false);
             var data = Enumerable.Range(120, 20).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
-            var encodedBytes = (enc.GetPreamble().ToArray().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
+            var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
 
             for (int i = 1; i < encodedBytes.Length - 1; i++)
             {

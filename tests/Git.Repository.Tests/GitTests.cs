@@ -675,11 +675,11 @@ namespace GitRepositoryTests
             // Fanout table
             index += fanOut.SelectMany(x => NetBitConverter.GetBytes(x)).ToArray().AsBucket();
             // Hashes
-            index += new AggregateBucket(hashes.Keys.SelectMany(x => x.Hash.ToArray()).ToArray().AsBucket());
+            index += hashes.Keys.SelectMany(x => x.Hash.ToArray()).ToArray().AsBucket();
 
             TestContext.WriteLine($"CRCs start at {await index.ReadRemainingBytesAsync()}");
             // CRC32 values of packed data
-            index += new AggregateBucket(hashes.Values.Select(x => NetBitConverter.GetBytes(x.Item2).AsBucket()).ToArray());
+            index += hashes.Values.Select(x => NetBitConverter.GetBytes(x.Item2)).ToArray().AsBucket();
             // File offsets
             index += new AggregateBucket(hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x.Item1).AsBucket()).ToArray());
 
@@ -779,15 +779,15 @@ namespace GitRepositoryTests
             index += NetBitConverter.GetBytes((int)2).AsBucket();
 
             // Fanout table
-            index += fanOut.SelectMany(x => NetBitConverter.GetBytes(x)).ToArray().AsBucket();
+            index += fanOut.Select(x => NetBitConverter.GetBytes(x)).AsBucket();
             // Hashes
-            index += new AggregateBucket(hashes.Keys.SelectMany(x => x.Hash.ToArray()).ToArray().AsBucket());
+            index += hashes.Keys.Select(x => x.Hash).AsBucket();
 
             TestContext.WriteLine($"CRCs start at {await index.ReadRemainingBytesAsync()}");
             // CRC32 values of packed data
-            index += new AggregateBucket(hashes.Values.Select(x => NetBitConverter.GetBytes(x.Item2).AsBucket()).ToArray());
+            index += hashes.Values.Select(x => NetBitConverter.GetBytes(x.Item2)).AsBucket();
             // File offsets
-            index += new AggregateBucket(hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x.Item1).AsBucket()).ToArray());
+            index += hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x.Item1)).AsBucket();
 
             byte[]? fileChecksum = null;
             {
