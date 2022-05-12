@@ -146,7 +146,7 @@ namespace AmpScm.Git
             if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
                 throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation");
 
-            return (p.ExitCode, rcv.StdOut, rcv.StdErr ?? "");
+            return (p.ExitCode, rcv.StdOut, rcv.StdErr);
         }
 
         protected internal async ValueTask<Bucket> RunGitCommandBucketAsync(string command, IEnumerable<string>? args, string? stdinText = null, int[]? expectedResults = null)
@@ -300,7 +300,7 @@ namespace AmpScm.Git
 
         class ErrorReceiver
         {
-            TaskCompletionSource<bool?> Tcs { get; } = new();
+            TaskCompletionSource<bool> Tcs { get; } = new();
             protected int N;
             public Task DoneTask { get; }
             readonly StringBuilder _stdErr = new();
@@ -321,16 +321,25 @@ namespace AmpScm.Git
                 {
                     lock (std)
                     {
-                        std!.AppendLine(e.Data);
+                        std.AppendLine(e.Data);
                     }
                 }
                 else if (Interlocked.Decrement(ref N) == 0)
                 {
-                    Tcs.SetResult(null);
+                    Tcs.TrySetResult(true);
                 }
             }
 
-            public string? StdErr => _stdErr?.ToString();
+            public string StdErr
+            {
+                get
+                {
+                    lock (_stdErr)
+                    {
+                        return _stdErr.ToString();
+                    }
+                }
+            }
         }
 
 
@@ -348,7 +357,16 @@ namespace AmpScm.Git
                 p.BeginOutputReadLine();
             }
 
-            public string StdOut => _stdOut.ToString();            
+            public string StdOut
+            {
+                get
+                {
+                    lock (_stdOut)
+                    {
+                        return _stdOut.ToString();
+                    }
+                }
+            }
         }
 
 #if NETFRAMEWORK

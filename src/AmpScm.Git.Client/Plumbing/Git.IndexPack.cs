@@ -49,7 +49,7 @@ namespace AmpScm.Git.Client.Plumbing
                 {
                     File.SetAttributes(idx, FileAttributes.Normal);
                     File.Delete(idx);
-                    }
+                }
             }
 
             await c.Repository.RunGitCommandAsync("index-pack", args);

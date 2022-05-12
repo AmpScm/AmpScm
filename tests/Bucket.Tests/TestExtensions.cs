@@ -45,6 +45,9 @@ namespace AmpScm
             if (dir.Length > 100)
                 dir = Path.Combine(tc.TestResultsDirectory, SHA1String(dir).Substring(0, 10));
 
+            if (Path.AltDirectorySeparatorChar != Path.DirectorySeparatorChar)
+                dir = dir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
             Directory.CreateDirectory(dir);
 
             return dir;

@@ -120,13 +120,17 @@ namespace AmpScm.Git
                 + "# *~\n"
             );
 
-            if (!init.Bare)
-                File.SetAttributes(gitDir, FileAttributes.Hidden | File.GetAttributes(gitDir));
 
-            var r=  new GitRepository(path, init.Bare ? Repository.GitRootType.Bare : Repository.GitRootType.Normal);
+            var r = new GitRepository(path, init.Bare ? Repository.GitRootType.Bare : Repository.GitRootType.Normal);
 
             if (sha256)
                 r.SetSHA256();
+
+            if (!init.Bare &&
+                (r.Configuration.GetBool("core", "hidedotfiles") ?? string.Equals(r.Configuration.GetString("core", "hidedotfiles") ?? "dotgitonly", "dotgitonly", StringComparison.OrdinalIgnoreCase)))
+            {
+                File.SetAttributes(gitDir, FileAttributes.Hidden | File.GetAttributes(gitDir));
+            }
 
             branchName ??= r.Configuration.GetString("init", "defaultbranch") ?? GitRepositoryInitArgs.DefaultInitialBranchName;
 
