@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Client.Buckets
             Start, // Before next size block
             Size, // Within size block
             Chunk, // Within a chunk
-            Term, // Within the CRLF at the end of the cunk
+            Term, // Within the CRLF at the end of the chunk
             Fin, // Last CRLF before EOF
             Fin2, // Last LF  before EOF
             Eof // done
@@ -102,8 +102,7 @@ namespace AmpScm.Buckets.Client.Buckets
 
                             if (eol == BucketEol.CRLF || eol == BucketEol.LF)
                             {
-                                var s = bb.ToASCIIString(eol);
-                                if (s.Length > 0)
+                                if (bb.Length > eol.CharCount())
                                     _chunkLeft = Convert.ToInt32(bb.ToASCIIString(eol), 16);
                                 else
                                     _chunkLeft = 0;
@@ -115,6 +114,9 @@ namespace AmpScm.Buckets.Client.Buckets
                             {
                                 _state = DechunkState.Size;
                                 _start = bb.ToArray();
+
+                                if (_start.Length > 16 || _start.Any(x => !IsHexChar(x)))
+                                    throw new HttpBucketException($"Invalid chunk header in {Name} Bucket");
                             }
                         }
                         break;
@@ -125,7 +127,7 @@ namespace AmpScm.Buckets.Client.Buckets
                             if (eol != BucketEol.None && eol != BucketEol.CRSplit)
                             {
                                 bb = _start!.AppendBytes(bb);
-                                _chunkLeft = Convert.ToInt32(bb.Trim().ToASCIIString(), 16);
+                                _chunkLeft = Convert.ToInt32(bb.ToASCIIString(eol), 16);
                                 _state = _chunkLeft > 0 ? DechunkState.Chunk : (_noFin ? DechunkState.Eof : DechunkState.Fin);
                             }
                             else if (bb.IsEof)

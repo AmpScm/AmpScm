@@ -58,7 +58,7 @@ namespace BucketTests
                 Assert.IsTrue(resultData.SequenceEqual(sourceData), "Data was properly converted back");
             }
 
-            for(int i = 10; i >= 0; i--)
+            for (int i = 10; i >= 0; i--)
             {
                 byte[] sourceData = Encoding.UTF8.GetBytes("".PadLeft(i, 'Q'));
 
@@ -70,12 +70,28 @@ namespace BucketTests
 
                 Assert.IsTrue(resultData.SequenceEqual(sourceData), "Data was properly converted back");
             }
+
+            {
+                var sd = Enumerable.Range(0, 30).Select(x => Enumerable.Range(0, 40).Select(y => (byte)x).ToArray().AsBucket()).AsBucket();
+                var alt = Enumerable.Range(0, 30).SelectMany(x => Enumerable.Range(0, 40).Select(y => (byte)x)).ToArray();
+
+                Bucket src = encode(sd);
+
+                using var dest = decode(src);
+
+                byte[] resultData = await dest.ToArrayAsync();
+
+                Assert.IsTrue(resultData.SequenceEqual(alt), "Data was properly converted back");
+
+                var bb = await src.ReadAsync();
+                Assert.IsTrue(bb.IsEof);
+            }
         }
 
         [TestMethod]
         public async Task TestBase64Encoding()
         {
-            foreach (string src in new[] { 
+            foreach (string src in new[] {
                 $"Some Other Data for the {nameof(TestBase64Encoding)} function",
                 "Aap aap aap",
                 "1234",

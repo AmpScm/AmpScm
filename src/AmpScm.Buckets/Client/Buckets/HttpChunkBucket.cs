@@ -11,7 +11,12 @@ namespace AmpScm.Buckets.Client.Buckets
     {
         BucketBytes _remaining;
         BucketBytes _next;
+        bool _addEol;
         bool _eof;
+
+        static ReadOnlyMemory<byte> CRLF = new byte[] { 0x0d, 0x0a };
+        static ReadOnlyMemory<byte> ZeroCRLFCRLF = new byte[] { (byte)'0', 0x0d, 0x0a, 0x0d, 0x0a };
+
         public HttpChunkBucket(Bucket inner) : base(inner)
         {
         }
@@ -30,21 +35,26 @@ namespace AmpScm.Buckets.Client.Buckets
                     _remaining = _next;
                     _next = BucketBytes.Empty;
                 }
+                else if (_addEol)
+                {
+                    _remaining = CRLF;
+                    _addEol = false;
+                }
                 else if (!_eof)
                 {
+                    // TODO: Perhaps use remaining bytes, and...
                     _next = await Inner.ReadAsync(int.MaxValue).ConfigureAwait(false);
-                    string size;
 
                     if (_next.IsEof || _next.IsEmpty)
                     {
                         _eof = true;
-                        size = "0\r\n\r\n";
+                        _remaining = ZeroCRLFCRLF;
                     }
                     else
-                        size = $"{Convert.ToString(_next.Length, 16)}\r\n";
-
-                    _remaining = Encoding.ASCII.GetBytes(size);
-
+                    {
+                        _remaining = Encoding.ASCII.GetBytes($"{Convert.ToString(_next.Length, 16)}\r\n");
+                        _addEol = true;
+                    }
                 }
             }
 
