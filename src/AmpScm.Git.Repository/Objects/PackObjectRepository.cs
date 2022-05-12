@@ -497,7 +497,7 @@ namespace AmpScm.Git.Objects
                 }
                 else
                 {
-                    await ew.ReadSkipUntilEofAsync().ConfigureAwait(false);
+                    await ew.ReadUntilEofAsync().ConfigureAwait(false);
                 }
             }
 

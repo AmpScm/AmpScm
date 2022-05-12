@@ -20,6 +20,7 @@ namespace AmpScm.Buckets.Client.Buckets
         Action? _authFailed;
         int _nRedirects;
         Stack<Bucket>? _readUntilEof;
+        bool _readEol;
 
         const BucketEol ResponseEol = BucketEol.LF | BucketEol.CRLF;
 
@@ -27,10 +28,11 @@ namespace AmpScm.Buckets.Client.Buckets
         public int? HttpStatus { get; private set; }
         public string? HttpMessage { get; private set; }
 
-        internal HttpResponseBucket(Bucket inner, HttpBucketWebRequest request)
+        internal HttpResponseBucket(Bucket inner, HttpBucketWebRequest request, bool readEol)
             : base(inner, request)
         {
             _nRedirects = request.MaxRedirects;
+            _readEol = readEol;
         }
 
         public new HttpBucketWebRequest Request => (HttpBucketWebRequest)base.Request;
@@ -52,13 +54,14 @@ namespace AmpScm.Buckets.Client.Buckets
 
             if (bb.IsEof)
             {
+                bool? readOneEol = null;
                 while (_readUntilEof?.Count > 0)
                 {
                     _reader = _readUntilEof.Pop();
 
-                    while(0 != await _reader.ReadSkipAsync(int.MaxValue).ConfigureAwait(false))
-                    {
-                    }
+                    await _reader.ReadUntilEofAsync().ConfigureAwait(false);
+
+                    readOneEol = (_reader as HttpDechunkBucket)?.ReadFinalEol;
                 }
 
                 if (Request.Channel != null)
@@ -66,7 +69,7 @@ namespace AmpScm.Buckets.Client.Buckets
                     _reader.Dispose();
                     _reader = Bucket.Empty;
 
-                    Request.ReleaseChannel();
+                    Request.ReleaseChannel(readOneEol ?? false);
                 }
             }
             return bb;
@@ -86,7 +89,7 @@ namespace AmpScm.Buckets.Client.Buckets
                     if (string.Equals(tEnc, "chunked", StringComparison.OrdinalIgnoreCase))
                     {
                         allowNext = chunked = true;
-                        rdr = new HttpDechunkBucket(rdr).NoClose();
+                        rdr = new HttpDechunkBucket(rdr, true).NoClose();
                     }
                 }
             }
@@ -184,6 +187,11 @@ namespace AmpScm.Buckets.Client.Buckets
             while (true)
             {
                 var (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
+
+                if (_readEol && bb.IsEmpty(eol) && eol == BucketEol.CRLF)
+                {
+                    (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
+                }
 
                 var parts = bb.Split((byte)' ', 3);
 
@@ -340,7 +348,9 @@ namespace AmpScm.Buckets.Client.Buckets
             var (reader, noClose) = GetBodyReader(headers);
 
             using (reader)
-                await reader.ReadSkipUntilEofAsync().ConfigureAwait(false);
+                await reader.ReadUntilEofAsync().ConfigureAwait(false);
+
+            _readEol = (reader as HttpDechunkBucket)?.ReadFinalEol ?? false;
 
             var c = _authState.Current;
 
@@ -393,7 +403,8 @@ namespace AmpScm.Buckets.Client.Buckets
             }
 
             var (reader, _) = GetBodyReader(headers);
-            await reader.ReadSkipUntilEofAsync().ConfigureAwait(false);
+            await reader.ReadUntilEofAsync().ConfigureAwait(false);
+            _readEol = (reader as HttpDechunkBucket)?.ReadFinalEol ?? false;
 
             if (Request.RequestUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) == newUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))
             {
@@ -405,7 +416,7 @@ namespace AmpScm.Buckets.Client.Buckets
             }
             else
             {
-                await Request.RunRedirect(newUri, keepMethod, this).ConfigureAwait(false);
+                await Request.RunRedirect(newUri, keepMethod, _readEol).ConfigureAwait(false);
                 return false;
             }
         }

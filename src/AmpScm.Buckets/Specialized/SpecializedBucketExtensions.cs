@@ -155,17 +155,17 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
-        /// Reads from the bucket until EOF
+        /// Reads from the bucket until EOF using <see cref="Bucket.ReadSkipAsync(long)"/>
         /// </summary>
         /// <param name="bucket"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static async ValueTask ReadSkipUntilEofAsync(this Bucket bucket)
+        public static async ValueTask ReadUntilEofAsync(this Bucket bucket)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            while (0 != await bucket.ReadSkipAsync(int.MaxValue).ConfigureAwait(false))
+            while (0 != await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false))
             { }
         }
 

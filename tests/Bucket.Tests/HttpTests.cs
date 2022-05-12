@@ -21,7 +21,7 @@ namespace BucketTests
         [Timeout(20000)]
 #endif
         [TestMethod]
-        public async Task GetCloudFlareHome()
+        public async Task GetCloudFlare404()
         {
             var br = Client.CreateRequest($"https://cloudflare.com/get-404-{Guid.NewGuid()}");
 
@@ -36,7 +36,7 @@ namespace BucketTests
 
             if (result is HttpResponseBucket hrb)
             {
-                TestContext.WriteLine($"HTTP/1.1 {hrb.HttpStatus} {hrb.HttpMessage}");
+                TestContext.WriteLine($"HTTP/{hrb.HttpVersion} {hrb.HttpStatus} {hrb.HttpMessage}");
                 TestContext.WriteLine(result.Headers.ToString());
             }
 
@@ -44,7 +44,7 @@ namespace BucketTests
             {
                 var t = bb.ToUTF8String();
                 len += bb.Length;
-                //TestContext.WriteLine(t);
+                TestContext.Write(t);
                 total += t;
             }
         }
@@ -53,7 +53,7 @@ namespace BucketTests
         [Timeout(20000)]
 #endif
         [TestMethod]
-        public async Task GetGitHubHomeInsecure()
+        public async Task GetGitHub404()
         {
             var br = Client.CreateRequest($"http://github.com/get-404-{Guid.NewGuid()}");
 
@@ -77,7 +77,7 @@ namespace BucketTests
             {
                 var t = bb.ToUTF8String();
                 len += bb.Length;
-                TestContext.Write(t);
+                //TestContext.Write(t);
                 total += t;
             }
         }

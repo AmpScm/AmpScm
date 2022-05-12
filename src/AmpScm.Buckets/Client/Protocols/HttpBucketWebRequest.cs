@@ -29,7 +29,7 @@ namespace AmpScm.Buckets.Client
         {
             var channel = await SetupChannel().ConfigureAwait(false);
 
-            var response = new HttpResponseBucket(channel.Reader, this);
+            var response = new HttpResponseBucket(channel.Reader, this, Channel?.ReadOneEol ?? false);
 
             if (PreAuthenticate)
                 response.HandlePreAuthenticate(this);
@@ -86,11 +86,11 @@ namespace AmpScm.Buckets.Client
             }
         }
 
-        internal void ReleaseChannel()
+        internal void ReleaseChannel(bool readOneEol)
         {
             try
             {
-                Channel?.Release();
+                Channel?.Release(readOneEol);
             }
             finally
             {
@@ -141,7 +141,7 @@ namespace AmpScm.Buckets.Client
             return bucket;
         }
 
-        internal async ValueTask RunRedirect(Uri newUri, bool keepMethod, HttpResponseBucket httpResponseBucket)
+        internal async ValueTask RunRedirect(Uri newUri, bool keepMethod, bool readOneEol)
         {
             UpdateUri(newUri);
 
@@ -149,7 +149,7 @@ namespace AmpScm.Buckets.Client
 
             (c as HttpBucketWebRequest)?.CopyFrom(this);
 
-            ReleaseChannel();
+            ReleaseChannel(readOneEol);
             _redirectResponse = (HttpResponseBucket)await c.GetResponseAsync().ConfigureAwait(false);
         }
 

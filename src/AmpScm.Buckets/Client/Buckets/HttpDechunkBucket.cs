@@ -22,12 +22,14 @@ namespace AmpScm.Buckets.Client.Buckets
         DechunkState _state;
         int _chunkLeft;
         byte[]? _start;
+        bool _noFin;
 
+        public bool ReadFinalEol => true;
 
-        public HttpDechunkBucket(Bucket inner)
+        public HttpDechunkBucket(Bucket inner, bool noFin=false)
             : base(inner)
         {
-
+            _noFin = noFin;
         }
 
         public override BucketBytes Peek()
@@ -107,7 +109,7 @@ namespace AmpScm.Buckets.Client.Buckets
                                     _chunkLeft = Convert.ToInt32(bb.ToASCIIString(eol), 16);
                                 else
                                     _chunkLeft = 0;
-                                _state = _chunkLeft > 0 ? DechunkState.Chunk : DechunkState.Fin;
+                                _state = _chunkLeft > 0 ? DechunkState.Chunk : (_noFin ? DechunkState.Eof : DechunkState.Fin);
                             }
                             else if (bb.IsEof)
                                 throw new HttpBucketException($"Unexpected EOF in {Name} Bucket");
@@ -126,7 +128,7 @@ namespace AmpScm.Buckets.Client.Buckets
                             {
                                 bb = _start!.AppendBytes(bb);
                                 _chunkLeft = Convert.ToInt32(bb.Trim().ToASCIIString(), 16);
-                                _state = _chunkLeft > 0 ? DechunkState.Chunk : DechunkState.Fin;
+                                _state = _chunkLeft > 0 ? DechunkState.Chunk : (_noFin ? DechunkState.Eof : DechunkState.Fin);
                             }
                             else if (bb.IsEof)
                                 throw new HttpBucketException($"Unexpected EOF in {Name} Bucket");

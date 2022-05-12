@@ -24,10 +24,13 @@ namespace AmpScm.Buckets.Client
         internal Bucket Reader { get; }
         internal IBucketWriter Writer { get; }
 
-        internal void Release()
+        internal void Release(bool readOneEol)
         {
+            ReadOneEol = readOneEol;
             Client.Release(this);
         }
+
+        internal bool ReadOneEol { get; set; }
 
         void Dispose(bool disposing)
         {

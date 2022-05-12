@@ -793,7 +793,7 @@ namespace GitRepositoryTests
             {
                 using var b = srcFile.Duplicate(true).TakeExact(l - 20).SHA1(x => fileChecksum = x);
 
-                await b.ReadSkipUntilEofAsync();
+                await b.ReadUntilEofAsync();
                 Assert.IsNotNull(fileChecksum);
                 Assert.AreEqual(checksumFromFile, new GitId(GitIdType.Sha1, fileChecksum));
             }
