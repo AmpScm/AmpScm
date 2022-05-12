@@ -115,7 +115,7 @@ namespace AmpScm.Buckets.Client.Buckets
                                 _state = DechunkState.Size;
                                 _start = bb.ToArray();
 
-                                if (_start.Length > 16 || _start.Any(x => !IsHexChar(x)))
+                                if (_start.Length > 16 || _start.Any(x => !IsHexCharOrCR(x)))
                                     throw new HttpBucketException($"Invalid chunk header in {Name} Bucket");
                             }
                         }
@@ -127,7 +127,8 @@ namespace AmpScm.Buckets.Client.Buckets
                             if (eol != BucketEol.None && eol != BucketEol.CRSplit)
                             {
                                 bb = _start!.AppendBytes(bb);
-                                _chunkLeft = Convert.ToInt32(bb.ToASCIIString(eol), 16);
+                                // Strip final '\r' if any, before passing to ToInt32
+                                _chunkLeft = Convert.ToInt32(bb.Trim(eol).ToASCIIString(), 16);
                                 _state = _chunkLeft > 0 ? DechunkState.Chunk : (_noFin ? DechunkState.Eof : DechunkState.Fin);
                             }
                             else if (bb.IsEof)
@@ -136,7 +137,7 @@ namespace AmpScm.Buckets.Client.Buckets
                             {
                                 _start = _start!.AppendBytes(bb);
 
-                                if (_start.Length > 16 || _start.Any(x => !IsHexChar(x)))
+                                if (_start.Length > 16 || _start.Any(x => !IsHexCharOrCR(x)))
                                     throw new HttpBucketException($"Invalid chunk header in {Name} Bucket");
                             }
                         }
@@ -181,13 +182,15 @@ namespace AmpScm.Buckets.Client.Buckets
             }
         }
 
-        static bool IsHexChar(byte x)
+        static bool IsHexCharOrCR(byte x)
         {
             if (x >= '0' && x <= '9')
                 return true;
             else if (x >= 'A' && x <= 'F')
                 return true;
             else if (x >= 'a' && x <= 'f')
+                return true;
+            else if (x == '\r')
                 return true;
             else
                 return false;
