@@ -225,15 +225,15 @@ namespace AmpScm.Buckets.Specialized
 
         public override bool CanReset => Inner.CanReset;
 
-        public override ValueTask ResetAsync()
+        public override void Reset()
         {
-            return Inner.ResetAsync();
+            Inner.Reset();
         }
 
-        public override async ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        public override Bucket Duplicate(bool reset = false)
         {
             return new EolNormalizeBucket(
-                    await Inner.DuplicateAsync(reset).ConfigureAwait(false),
+                    Inner.Duplicate(reset),
                     _acceptedEols,
                     _producedEol);
         }

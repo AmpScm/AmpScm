@@ -1,15 +1,6 @@
 ﻿#nullable enable
 abstract AmpScm.Buckets.Client.BucketWebRequest.GetResponseAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Client.ResponseBucket!>
 abstract AmpScm.Buckets.Specialized.ConversionBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
-AmpScm.Buckets.Bucket.ReadSkipAsync(int requested) -> System.Threading.Tasks.ValueTask<int>
-AmpScm.Buckets.BucketBytes.EqualsASCII(string! value) -> bool
-AmpScm.Buckets.BucketEofException
-AmpScm.Buckets.BucketEofException.BucketEofException() -> void
-AmpScm.Buckets.BucketEofException.BucketEofException(AmpScm.Buckets.Bucket! bucket) -> void
-AmpScm.Buckets.BucketEofException.BucketEofException(string? message) -> void
-AmpScm.Buckets.BucketEofException.BucketEofException(string? message, System.Exception? innerException) -> void
-AmpScm.Buckets.BucketEofException.BucketEofException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
-AmpScm.Buckets.BucketPollBytes.Span.get -> System.ReadOnlySpan<byte>
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.get -> string?
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.set -> void
@@ -87,6 +78,8 @@ AmpScm.Buckets.HttpBucketException.HttpBucketException() -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(string! message) -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(string? message, System.Exception? innerException) -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+AmpScm.Buckets.Interfaces.IBucketSeekOnReset
+AmpScm.Buckets.Interfaces.IBucketSeekOnReset.SeekOnReset() -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Interfaces.IBucketWriterStats
 AmpScm.Buckets.Interfaces.IBucketWriterStats.BytesWritten.get -> long
 AmpScm.Buckets.Specialized.BitwiseAndBucket
@@ -119,7 +112,7 @@ override AmpScm.Buckets.Specialized.BitwiseAndBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-override AmpScm.Buckets.Specialized.BitwiseAndBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
+override AmpScm.Buckets.Specialized.BitwiseAndBucket.Reset() -> void
 override AmpScm.Buckets.Specialized.BitwiseNotBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.BitwiseNotBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.BitwiseNotBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
@@ -132,7 +125,7 @@ override AmpScm.Buckets.Specialized.BitwiseOrBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-override AmpScm.Buckets.Specialized.BitwiseOrBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
+override AmpScm.Buckets.Specialized.BitwiseOrBucket.Reset() -> void
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.Peek() -> AmpScm.Buckets.BucketBytes
@@ -140,11 +133,11 @@ override AmpScm.Buckets.Specialized.BitwiseXorBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-override AmpScm.Buckets.Specialized.BitwiseXorBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
+override AmpScm.Buckets.Specialized.BitwiseXorBucket.Reset() -> void
 override AmpScm.Buckets.Specialized.ConversionBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.ConversionBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.ConversionBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Specialized.ConversionBucket.ResetAsync() -> System.Threading.Tasks.ValueTask
+override AmpScm.Buckets.Specialized.ConversionBucket.Reset() -> void
 override AmpScm.Buckets.Specialized.TlsBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
@@ -152,6 +145,7 @@ override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Bucket.Create.get -> AmpScm.Buckets.Specialized.BucketFactory!
 static AmpScm.Buckets.BucketExtensions.IsEmpty(this AmpScm.Buckets.BucketBytes bytes, AmpScm.Buckets.BucketEol eol) -> bool
+static AmpScm.Buckets.BucketExtensions.SkipExact(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.TakeExact(this AmpScm.Buckets.Bucket! bucket, long length, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.WriteToAsync(this AmpScm.Buckets.Bucket! bucket, System.IO.Stream! stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.Client.BucketHttpClientExtensions.HttpChunk(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!

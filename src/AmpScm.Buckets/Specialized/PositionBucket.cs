@@ -27,9 +27,9 @@ namespace AmpScm.Buckets.Specialized
             return v;
         }
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
-            await base.ResetAsync().ConfigureAwait(false);
+            base.Reset();
             _position = 0;
         }
 

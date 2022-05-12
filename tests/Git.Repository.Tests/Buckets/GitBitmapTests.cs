@@ -34,7 +34,7 @@ namespace GitRepositoryTests
             //BitArray
             var bitLengths = new int[4];
             {
-                var c = await fb.DuplicateAsync(false);
+                var c = fb.Duplicate(false);
                 Assert.AreEqual(32, c.Position);
 
                 for (int i = 0; i < 4; i++)
@@ -112,7 +112,7 @@ namespace GitRepositoryTests
             List<GitEwahBitmapBucket> buckets = new List<GitEwahBitmapBucket>();
             for (int i = 0; i < 4; i++)
             {
-                buckets.Add(new GitEwahBitmapBucket(await fb.DuplicateAsync(false)));
+                buckets.Add(new GitEwahBitmapBucket(fb.Duplicate(false)));
 
                 await fb.ReadNetworkUInt32Async(); // Bitlength
                 uint u2 = await fb.ReadNetworkUInt32Async(); // Compressed length

@@ -47,7 +47,7 @@ namespace AmpScm.Buckets
             return new ValueTask<long?>(_data.Length - _offset);
         }
 
-        public override ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        public override Bucket Duplicate(bool reset = false)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var mb = new MemoryBucket(_data.Memory);
@@ -55,18 +55,16 @@ namespace AmpScm.Buckets
             if (!reset)
                 mb._offset = _offset;
 
-            return new ValueTask<Bucket>(mb);
+            return mb;
         }
 
         public override long? Position => _offset;
 
         public override bool CanReset => true;
 
-        public override ValueTask ResetAsync()
+        public override void Reset()
         {
             _offset = 0;
-
-            return new ValueTask();
         }
 
 #pragma warning disable CA1033 // Interface methods should be callable by child types

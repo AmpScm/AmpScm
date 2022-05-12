@@ -816,7 +816,7 @@ namespace GitRepositoryTests
             {
                 for (int i = 0; i < 32768; i++)
                 {
-                    await fb.ResetAsync();
+                    fb.Reset();
 
                     await fb.ReadSkipAsync(1024 + i);
                     int expectCount = 1 + r.Next(512);
@@ -839,9 +839,9 @@ namespace GitRepositoryTests
             using var srcFile = FileBucket.OpenRead(packFile);
             var b = new List<Bucket>();
             for (int i = 0; i < 100; i++)
-                b.Add(await srcFile.Wrap().Skip(i * 1024).DuplicateAsync(true));
+                b.Add(srcFile.Duplicate().SkipExact(i * 1024));
 
-            var s = b.Select(b => b.ReadAsync(1024).AsTask()).ToArray();
+            var s = b.Select(async b => await b.ReadAsync(1024)).ToArray();
             await Task.WhenAll(s);
             foreach (var w in s)
             {

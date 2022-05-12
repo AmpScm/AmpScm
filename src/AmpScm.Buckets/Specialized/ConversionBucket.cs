@@ -95,12 +95,12 @@ namespace AmpScm.Buckets.Specialized
             return requested;
         }
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
             if (!CanReset)
                 throw new InvalidOperationException();
 
-            await Inner.ResetAsync().ConfigureAwait(false);
+            Inner.Reset();
             _position = 0;
         }
 

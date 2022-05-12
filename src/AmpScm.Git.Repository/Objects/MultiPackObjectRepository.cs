@@ -267,7 +267,7 @@ namespace AmpScm.Git.Objects
                 }
 
                 _revIdxBucket ??= FileBucket.OpenRead(Path.ChangeExtension(_multiPackBitmapPath!, ".rev"));
-                await _revIdxBucket.ResetAsync().ConfigureAwait(false);
+                _revIdxBucket.Reset();
                 await _revIdxBucket.ReadSkipAsync(12 + sizeof(uint) * v).ConfigureAwait(false);
 
                 var index = await _revIdxBucket.ReadNetworkUInt32Async().ConfigureAwait(false);

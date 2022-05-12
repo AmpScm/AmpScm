@@ -7,7 +7,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets
 {
-    public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek
+    public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBucketSkip, IBucketSeekOnReset, IBucketNoClose
     {
         FileHolder _holder;
         readonly byte[] _buffer;
@@ -15,6 +15,8 @@ namespace AmpScm.Buckets
         int _pos;
         long _filePos;
         long _bufStart;
+        long _resetPosition;
+        int _noDisposeCount;
         readonly int _chunkSizeMinus1;
 
         private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 4096)
@@ -46,15 +48,18 @@ namespace AmpScm.Buckets
 
         protected override void Dispose(bool disposing)
         {
-            try
-            {
-                _holder?.Release();
-            }
-            finally
-            {
-                _holder = null!;
-                base.Dispose(disposing);
-            }
+            if (_noDisposeCount > 0)
+                _noDisposeCount--;
+            else
+                try
+                {
+                    _holder?.Release();
+                }
+                finally
+                {
+                    _holder = null!;
+                    base.Dispose(disposing);
+                }
         }
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
@@ -97,12 +102,10 @@ namespace AmpScm.Buckets
 
         public override bool CanReset => true;
 
-        public override ValueTask ResetAsync()
+        public override void Reset()
         {
             _pos = _size;
-            _filePos = 0;
-
-            return default;
+            _filePos = _resetPosition;
         }
 
         ValueTask IBucketSeek.SeekAsync(long newPosition)
@@ -126,18 +129,50 @@ namespace AmpScm.Buckets
             return default;
         }
 
-        public override ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        Bucket IBucketSeekOnReset.SeekOnReset()
+        {
+            _resetPosition = Position!.Value;
+            return this;
+        }
+
+        Bucket IBucketNoClose.NoClose()
+        {
+            _noDisposeCount++;
+            return this;
+        }
+
+        Bucket IBucketSkip.Skip(long skipBytes, bool ensure)
+        {
+            if (_size - _pos > skipBytes)
+            {
+                var skip = (int)skipBytes;
+
+                _pos += skip;
+                _filePos += skip;
+            }
+            else
+            {
+                _pos = _size;
+
+                _filePos = Math.Min(_filePos + skipBytes, _holder.Length);
+            }
+
+            return this;
+        }
+
+        public override Bucket Duplicate(bool reset = false)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             FileBucket fbNew = new FileBucket(_holder, _buffer.Length, _chunkSizeMinus1 + 1);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
+            fbNew._resetPosition = _resetPosition;
             if (reset)
-                fbNew._filePos = 0;
+                fbNew._filePos = _resetPosition;
             else
                 fbNew._filePos = _filePos;
 
-            return new ValueTask<Bucket>(fbNew);
+            return fbNew;
         }
 
         const int MinCache = 16; // Only use the existing cache instead of seek when at least this many bytes are available

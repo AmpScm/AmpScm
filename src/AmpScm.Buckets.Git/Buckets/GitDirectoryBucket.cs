@@ -438,7 +438,7 @@ namespace AmpScm.Buckets.Git
         {
             if (_remaining is null && _firstReal.HasValue)
             {
-                Bucket b = await Inner.DuplicateAsync().ConfigureAwait(false)!;
+                Bucket b = Inner.Duplicate();
                 await b.SeekAsync(_firstReal.Value).ConfigureAwait(false);
 
                 _remaining = new GitDirectoryBucket(b);
@@ -504,7 +504,7 @@ namespace AmpScm.Buckets.Git
                 reader = Inner.NoClose(true);
             else
             {
-                reader = await Inner.DuplicateAsync(true).ConfigureAwait(false);
+                reader = Inner.Duplicate(true);
 
                 await reader.SeekAsync(_endOfIndex.Value).ConfigureAwait(false);
             }
@@ -576,13 +576,13 @@ namespace AmpScm.Buckets.Git
 
             GitId shared = await reader.ReadGitIdAsync(_idType).ConfigureAwait(false);
 
-            _deleted = new GitEwahBitmapBucket(await reader.DuplicateAsync().ConfigureAwait(false));
+            _deleted = new GitEwahBitmapBucket(reader.Duplicate());
             int delLength = await _deleted.ReadLengthAsync().ConfigureAwait(false);
 
             if (await reader.ReadSkipAsync(delLength).ConfigureAwait(false) != delLength)
                 throw new BucketEofException(reader);
 
-            _replaced = new GitEwahBitmapBucket(await reader.DuplicateAsync().ConfigureAwait(false));
+            _replaced = new GitEwahBitmapBucket(reader.Duplicate());
 #if DEBUG
             int replaceLength = await _replaced.ReadLengthAsync().ConfigureAwait(false);
 

@@ -6,17 +6,19 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class SkipBucket : PositionBucket, IBucketSkip
     {
+        bool _ensure, _skipped;
         public long FirstPosition { get; private set; }
 
-        public SkipBucket(Bucket inner, long firstPosition) : base(inner)
+        public SkipBucket(Bucket inner, long firstPosition, bool ensure) : base(inner)
         {
-            if (firstPosition < 0)
+            if (firstPosition <= 0)
                 throw new ArgumentOutOfRangeException(nameof(firstPosition));
 
             FirstPosition = firstPosition;
+            _ensure = ensure;
         }
 
-        public Bucket Skip(long firstPosition)
+        public Bucket Skip(long firstPosition, bool ensure)
         {
             if (firstPosition < 0)
                 throw new ArgumentOutOfRangeException(nameof(firstPosition));
@@ -27,14 +29,14 @@ namespace AmpScm.Buckets.Specialized
                 return this;
             }
             else
-                return new SkipBucket(this, firstPosition);
+                return new SkipBucket(this, firstPosition, ensure);
         }
 
         public override long? Position => Math.Max(0L, base.Position!.Value - FirstPosition);
 
         public override BucketBytes Peek()
         {
-            if (base.Position >= FirstPosition)
+            if (_skipped)
                 return Inner.Peek();
 
             var b = Inner.Peek();
@@ -54,7 +56,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
         {
-            if (base.Position >= FirstPosition)
+            if (_skipped)
                 return await Inner.PollAsync(minRequested).ConfigureAwait(false);
 
             var b = await Inner.PollAsync(minRequested).ConfigureAwait(false);
@@ -74,25 +76,35 @@ namespace AmpScm.Buckets.Specialized
 
         public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            if (base.Position >= FirstPosition)
+            if (_skipped)
                 return base.ReadAsync(requested);
             else
                 return SkipReadAsync(requested);
         }
 
-        public override ValueTask ResetAsync()
+        public override void Reset()
         {
-            return base.ResetAsync();
+            base.Reset();
+            _skipped = false;
         }
 
         private async ValueTask<BucketBytes> SkipReadAsync(int requested)
         {
             long skip = FirstPosition - base.Position!.Value;
 
-            skip -= await ReadSkipAsync(skip).ConfigureAwait(false);
-
             if (skip > 0)
-                return BucketBytes.Eof;
+            {
+                long skipped = await ReadSkipAsync(skip).ConfigureAwait(false);
+
+                if (skip != skipped)
+                {
+                    if (!_ensure)
+                        return BucketBytes.Eof;
+                    else
+                        throw new BucketEofException(Inner);
+                }
+            }
+            _skipped = true;
 
             return await base.ReadAsync(requested).ConfigureAwait(false);
         }
@@ -106,7 +118,7 @@ namespace AmpScm.Buckets.Specialized
 
             if (p.HasValue)
             {
-                var sb = new SkipBucket(bucket, p.Value);
+                var sb = new SkipBucket(bucket, p.Value, true);
                 sb.SetPosition(p.Value);
                 return sb;
             }
@@ -116,7 +128,7 @@ namespace AmpScm.Buckets.Specialized
 
         protected override PositionBucket NewPositionBucket(Bucket duplicatedInner)
         {
-            return new SkipBucket(duplicatedInner, FirstPosition);
+            return new SkipBucket(duplicatedInner, FirstPosition, _ensure);
         }
     }
 }

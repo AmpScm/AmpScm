@@ -33,7 +33,7 @@ namespace AmpScm.Buckets
         public bool IsEmpty => !_kept.HasValue;
     }
 
-    partial class Bucket
+    public partial class Bucket
     {
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]

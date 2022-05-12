@@ -395,20 +395,20 @@ namespace AmpScm.Buckets.Specialized
 
         public override bool CanReset => Inner.CanReset;
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
-            await base.ResetAsync().ConfigureAwait(false);
+            base.Reset();
             _state = State.Init;
             _position = 0;
             _inner = base.Inner;
         }
 
-        public override async ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        public override Bucket Duplicate(bool reset = false)
         {
             if (!reset)
                 throw new NotSupportedException();
 
-            var b = await Inner.DuplicateAsync(reset).ConfigureAwait(false);
+            var b = Inner.Duplicate(reset);
             return new TextNormalizeBucket(b, _default);
         }
     }

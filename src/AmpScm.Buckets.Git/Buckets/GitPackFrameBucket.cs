@@ -183,7 +183,7 @@ namespace AmpScm.Buckets.Git
                 if (_type == GitObjectType_DeltaOffset)
                 {
                     // The source needs support for this. Our file and memory buckets have this support
-                    Bucket deltaSource = await Inner.DuplicateAsync(true).ConfigureAwait(false);
+                    Bucket deltaSource = Inner.Duplicate(true);
                     await deltaSource.SeekAsync(delta_position).ConfigureAwait(false);
 
                     base_reader = new GitPackFrameBucket(deltaSource, _idType, _fetchBucketById);
@@ -286,12 +286,12 @@ namespace AmpScm.Buckets.Git
             return 0;
         }
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
             if (state < frame_state.body)
                 return; // Nothing to reset
 
-            await reader!.ResetAsync().ConfigureAwait(false);
+            reader!.Reset();
         }
 
         public override bool CanReset => Inner.CanReset;

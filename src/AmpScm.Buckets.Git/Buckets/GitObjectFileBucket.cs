@@ -148,9 +148,9 @@ namespace AmpScm.Buckets.Git
 
         public override bool CanReset => Inner.CanReset;
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
-            await base.ResetAsync().ConfigureAwait(false);
+            base.Reset();
 
             _startOffset = 0; // Handles skip and offset
             _length = 0;

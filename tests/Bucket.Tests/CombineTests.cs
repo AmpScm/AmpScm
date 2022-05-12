@@ -103,5 +103,36 @@ namespace BucketTests
 
             Assert.IsTrue(notResult.SequenceEqual(Enumerable.Range(0, 300).Select(x => ~(x * 27))));
         }
+
+        [TestMethod]
+        public async Task TakeSkipTests()
+        {
+            var bb = await new byte[128].AsBucket().Take(130).ReadFullAsync(200);
+            Assert.AreEqual(128, bb.Length);
+
+            try
+            {
+                bb = await new byte[128].AsBucket().TakeExact(130).ReadFullAsync(200);
+                Assert.Fail("Expected eof exception");
+            }
+            catch(BucketEofException)
+            {
+            }
+
+
+            bb = await new byte[128].AsBucket().Skip(130).ReadFullAsync(200);
+            Assert.AreEqual(0, bb.Length);
+            Assert.IsTrue(bb.IsEof);
+            Assert.IsTrue(bb.IsEmpty);
+
+            try
+            {
+                bb = await new byte[128].AsBucket().SkipExact(130).ReadFullAsync(200);
+                Assert.Fail("Expected eof exception");
+            }
+            catch (BucketEofException)
+            {
+            }
+        }
     }
 }

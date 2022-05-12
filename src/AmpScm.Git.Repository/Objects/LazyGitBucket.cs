@@ -60,20 +60,17 @@ namespace AmpScm.Git.Objects
 
         public override bool CanReset => _inner?.CanReset ?? true;
 
-        public override ValueTask ResetAsync()
+        public override void Reset()
         {
-            if (_inner != null)
-                return _inner.ResetAsync();
-            else
-                return default;
+            _inner?.Reset();
         }
 
-        public override ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        public override Bucket Duplicate(bool reset = false)
         {
             if (_inner != null)
-                return _inner.DuplicateAsync(reset);
+                return _inner.Duplicate(reset);
 
-            return base.DuplicateAsync(reset);
+            return base.Duplicate(reset);
         }
 
         public override ValueTask<long> ReadSkipAsync(long requested)

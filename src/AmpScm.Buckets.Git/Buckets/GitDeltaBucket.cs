@@ -215,7 +215,7 @@ namespace AmpScm.Buckets.Git
 
             if (newPosition < curPosition)
             {
-                await ResetAsync().ConfigureAwait(false);
+                Reset();
                 curPosition = 0;
             }
 
@@ -352,13 +352,13 @@ namespace AmpScm.Buckets.Git
 
         public override string Name => "GitDelta[" + Inner.Name + "]>" + BaseBucket.Name;
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
             if (!CanReset)
                 throw new InvalidOperationException($"Reset not supported on {Name} bucket");
 
-            await Inner.ResetAsync().ConfigureAwait(false); // Default error text or source reset
-            await BaseBucket.ResetAsync().ConfigureAwait(false);
+            Inner.Reset(); // Default error text or source reset
+            BaseBucket.Reset();
 
             state = delta_state.start;
             _length = 0;

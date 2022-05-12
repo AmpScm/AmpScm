@@ -8,7 +8,7 @@ namespace AmpScm.Buckets.Interfaces
 {
     interface IBucketSkip
     {
-        Bucket Skip(long firstPosition);
+        Bucket Skip(long skipBytes, bool ensure);
     }
 
 }

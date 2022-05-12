@@ -10,4 +10,9 @@ namespace AmpScm.Buckets.Interfaces
     {
         ValueTask SeekAsync(long newPosition);
     }
+
+    public interface IBucketSeekOnReset
+    {
+        Bucket SeekOnReset();
+    }
 }

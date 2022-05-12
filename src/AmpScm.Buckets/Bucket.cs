@@ -86,8 +86,8 @@ namespace AmpScm.Buckets
         /// Tries to read <paramref name="requested"/> bytes from the bucket. Returns the number of bytes
         /// read when reading completed by EOF or completing the total number.
         /// </summary>
-        /// <param name="requested"></param>
-        /// <returns></returns>
+        /// <param name="requested">The number of bytes to skip</param>
+        /// <returns>The number of bytes skipped</returns>
         /// <remarks>The default implementation performs this as calling <see cref="ReadAsync(int)"/> as
         /// many times as necessary. But callers may optimize this</remarks>
         public virtual ValueTask<long> ReadSkipAsync(long requested)
@@ -100,7 +100,12 @@ namespace AmpScm.Buckets
         /// <returns></returns>
         public async ValueTask<int> ReadSkipAsync(int requested)
         {
-            return (int)await ReadSkipAsync((long)requested).ConfigureAwait(false);
+            long r = await ReadSkipAsync((long)requested).ConfigureAwait(false);
+
+            if (r > int.MaxValue)
+                throw new BucketException($"{Name} bucket skipped more bytes than requested, and than fit in an integer");
+
+            return (int)r;
         }
 
         internal async ValueTask<long> SkipByReading(long requested)
@@ -146,16 +151,16 @@ namespace AmpScm.Buckets
         /// <exception cref="InvalidOperationException">Reset is not supported on bucket</exception>
         /// <exception cref="NotSupportedException">Duplicating this bucket is not supported</exception>
         /// <remarks>Caller should take care of calling <see cref="Dispose()"/> on the returned bucket</remarks>
-        public virtual ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        public virtual Bucket Duplicate(bool reset = false)
         {
             if (reset && !CanReset)
                 throw new InvalidOperationException($"Reset not supported on {Name} bucket");
 
-            throw new NotSupportedException($"DuplicateAsync not implemented on {Name} bucket");
+            throw new NotSupportedException($"{nameof(Duplicate)} not implemented on {Name} bucket");
         }
 
         /// <summary>
-        /// Gets a boolean indictating whether <see cref="ResetAsync"/> is supported.
+        /// Gets a boolean indictating whether <see cref="Reset"/> is supported.
         /// </summary>
         public virtual bool CanReset => false;
 
@@ -164,12 +169,10 @@ namespace AmpScm.Buckets
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException">Reset is not supported. (See <cref name="CanReset" /></exception>
-        public virtual ValueTask ResetAsync()
+        public virtual void Reset()
         {
             if (!CanReset)
-                throw new InvalidOperationException($"Reset not supported on {Name} bucket");
-
-            return default;
+                throw new InvalidOperationException($"{nameof(Reset)} not supported on {Name} bucket");
         }
 
         /// <summary>
@@ -226,7 +229,8 @@ namespace AmpScm.Buckets
         /// <param name="second"></param>
         /// <returns></returns>
         /// <remarks>If <paramref name="first"/> or <paramref name="second"/> is an aggregate bucket,
-        /// insert the other in the existing aggregate. Otherwise creates a new aggregate bucket</remarks>
+        /// insert the other in the existing aggregate. Otherwise creates a new aggregate bucket.
+        /// Implemented using <see cref="BucketExtensions.Append(Bucket, Bucket)"/></remarks>
 #pragma warning disable CA2225 // Operator overloads have named alternates
         public static Bucket operator +(Bucket first, Bucket second)
 #pragma warning restore CA2225 // Operator overloads have named alternates

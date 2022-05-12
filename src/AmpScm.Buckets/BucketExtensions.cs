@@ -13,6 +13,12 @@ namespace AmpScm.Buckets
 {
     public static partial class BucketExtensions
     {
+        /// <summary>
+        /// Returns a new bucket, containing the result of both buckets. (May be optimized to re-use the original buckets)
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="newLast"></param>
+        /// <returns></returns>
         public static Bucket Append(this Bucket bucket, Bucket newLast)
         {
             if (bucket is IBucketAggregation col)
@@ -25,6 +31,12 @@ namespace AmpScm.Buckets
             }
         }
 
+        /// <summary>
+        /// Returns a new bucket, containing the result of both buckets. (May be optimized to re-use the original buckets)
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="newFirst"></param>
+        /// <returns></returns>
         public static Bucket Prepend(this Bucket bucket, Bucket newFirst)
         {
             if (bucket is IBucketAggregation col)
@@ -37,6 +49,14 @@ namespace AmpScm.Buckets
             }
         }
 
+        /// <summary>
+        /// If bucket doesn't provide <see cref="Bucket.Position"/> or <paramref name="alwaysWrap"/> is true, wraps
+        /// the bucket with a position calculating bucket
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="alwaysWrap"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static Bucket WithPosition(this Bucket bucket, bool alwaysWrap = false)
         {
             if (bucket is null)
@@ -49,7 +69,8 @@ namespace AmpScm.Buckets
         }
 
         /// <summary>
-        /// Takes exactly <paramref name="length"/> bytes from <paramref name="bucket"/>
+        /// Takes exactly <paramref name="length"/> bytes from <paramref name="bucket"/>, providing
+        /// position and remaining bytes
         /// </summary>
         /// <param name="bucket"></param>
         /// <param name="length"></param>
@@ -72,7 +93,8 @@ namespace AmpScm.Buckets
         }
 
         /// <summary>
-        /// Takes at most <paramref name="limit"/> bytes from <paramref name="bucket"/>
+        /// Takes at most <paramref name="limit"/> bytes from <paramref name="bucket"/>,
+        /// while also adding position support if not provided by the inner <paramref name="bucket"/>.
         /// </summary>
         /// <param name="bucket"></param>
         /// <param name="limit"></param>
@@ -95,17 +117,48 @@ namespace AmpScm.Buckets
                 return new TakeBucket(bucket, limit, false);
         }
 
-        public static Bucket Skip(this Bucket bucket, long firstPosition, bool alwaysWrap = false)
+        /// <summary>
+        /// Skips the first <paramref name="skipBytes"/> buckets from bucket
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="skipBytes"></param>
+        /// <param name="alwaysWrap"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Bucket SkipExact(this Bucket bucket, long skipBytes, bool alwaysWrap = false)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            else if (firstPosition < 0)
-                throw new ArgumentOutOfRangeException(nameof(firstPosition));
+            else if (skipBytes < 0)
+                throw new ArgumentOutOfRangeException(nameof(skipBytes));
 
             if (!alwaysWrap && bucket is IBucketSkip sb)
-                return sb.Skip(firstPosition);
+                return sb.Skip(skipBytes, true);
             else
-                return new SkipBucket(bucket, firstPosition);
+                return new SkipBucket(bucket, skipBytes, true);
+        }
+
+        /// <summary>
+        /// Skips the first <paramref name="skipBytes"/> buckets from bucket
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="skipBytes"></param>
+        /// <param name="alwaysWrap"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Bucket Skip(this Bucket bucket, long skipBytes, bool alwaysWrap = false)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (skipBytes < 0)
+                throw new ArgumentOutOfRangeException(nameof(skipBytes));
+
+            if (!alwaysWrap && bucket is IBucketSkip sb)
+                return sb.Skip(skipBytes, false);
+            else
+                return new SkipBucket(bucket, skipBytes, false);
         }
 
         public static Bucket NoClose(this Bucket bucket, bool alwaysWrap = false)
@@ -118,7 +171,10 @@ namespace AmpScm.Buckets
 
         public static Bucket SeekOnReset(this Bucket bucket)
         {
-            return SkipBucket.SeekOnReset(bucket);
+            if (bucket is IBucketSeekOnReset sr)
+                return sr.SeekOnReset();
+            else
+                return SkipBucket.SeekOnReset(bucket);
         }
 
         public static Bucket Wrap(this Bucket bucket)

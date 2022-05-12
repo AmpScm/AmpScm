@@ -40,14 +40,14 @@ namespace AmpScm.Buckets.Specialized
             return Inner.ReadSkipAsync(requested);
         }
 
-        public override ValueTask ResetAsync()
+        public override void Reset()
         {
-            return Inner.ResetAsync();
+            Inner.Reset();
         }
 
-        public override async ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        public override Bucket Duplicate(bool reset = false)
         {
-            var r = await Inner.DuplicateAsync(reset).ConfigureAwait(false);
+            var r = Inner.Duplicate(reset);
             return WrapDuplicate(r, reset) ?? r;
         }
 

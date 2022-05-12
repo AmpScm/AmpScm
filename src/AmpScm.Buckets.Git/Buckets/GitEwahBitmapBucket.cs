@@ -193,9 +193,9 @@ namespace AmpScm.Buckets.Git
 
         public override bool CanReset => Inner.CanReset;
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
-            await Inner.ResetAsync().ConfigureAwait(false);
+            Inner.Reset();
             _state = ewah_state.init;
             _wpos = 0;
             _position = 0;

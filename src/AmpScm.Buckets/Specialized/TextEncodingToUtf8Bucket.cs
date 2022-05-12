@@ -140,9 +140,9 @@ namespace AmpScm.Buckets.Specialized
 
         public override bool CanReset => Inner.CanReset;
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
-            await Inner.ResetAsync().ConfigureAwait(false);
+            Inner.Reset();
 
             _position = 0;
             _remaining = BucketBytes.Empty;

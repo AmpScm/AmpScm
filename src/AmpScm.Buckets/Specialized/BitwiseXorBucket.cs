@@ -117,10 +117,10 @@ namespace AmpScm.Buckets.Specialized
 
         public override bool CanReset => Left.CanReset && Right.CanReset;
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
-            await Left.ResetAsync().ConfigureAwait(false);
-            await Right.ResetAsync().ConfigureAwait(false);
+            Left.Reset();
+            Right.Reset();
 
             _bbLeft = _bbRight = BucketBytes.Empty;
         }

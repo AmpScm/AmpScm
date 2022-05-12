@@ -79,7 +79,7 @@ namespace AmpScm.Buckets
 
         public override bool CanReset => _keepOpen && _buckets.All(x => x!.CanReset);
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
             if (!_keepOpen)
                 throw new InvalidOperationException();
@@ -89,7 +89,7 @@ namespace AmpScm.Buckets
 
             while (_n >= 0)
             {
-                await _buckets[_n]!.ResetAsync().ConfigureAwait(false);
+                _buckets[_n]!.Reset();
                 _n--;
             }
             _n = 0;
@@ -229,7 +229,7 @@ namespace AmpScm.Buckets
             get => _position;
         }
 
-        public override async ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        public override Bucket Duplicate(bool reset = false)
         {
             if (!_keepOpen)
                 throw new NotSupportedException();
@@ -239,7 +239,7 @@ namespace AmpScm.Buckets
             var newBuckets = new List<Bucket>();
 
             foreach (var v in _buckets)
-                newBuckets.Add(await v!.DuplicateAsync(reset).ConfigureAwait(false));
+                newBuckets.Add(v!.Duplicate(reset));
 
             var ab = new AggregateBucket(true, newBuckets.ToArray());
             if (!reset)

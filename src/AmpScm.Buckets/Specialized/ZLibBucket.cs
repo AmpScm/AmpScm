@@ -300,7 +300,7 @@ namespace AmpScm.Buckets.Specialized
                 else
                 {
                     // Reset the world and start reading at the start
-                    await Inner.ResetAsync().ConfigureAwait(false);
+                    Inner.Reset();
 
                     ZSetup();
                 }
@@ -316,12 +316,12 @@ namespace AmpScm.Buckets.Specialized
 
         public override long? Position => _position;
 
-        public override async ValueTask ResetAsync()
+        public override void Reset()
         {
             if (!CanReset)
                 throw new InvalidOperationException();
 
-            await Inner.ResetAsync().ConfigureAwait(false);
+            Inner.Reset();
 
             ZSetup();
         }
@@ -338,12 +338,12 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        public override async ValueTask<Bucket> DuplicateAsync(bool reset = false)
+        public override Bucket Duplicate(bool reset = false)
         {
             if (!reset)
                 throw new InvalidOperationException();
 
-            var b = await Inner.DuplicateAsync(reset).ConfigureAwait(false);
+            var b = Inner.Duplicate(reset);
 
             return new ZLibBucket(b, _algorithm, (_level is null) ? CompressionMode.Decompress : CompressionMode.Compress);
         }

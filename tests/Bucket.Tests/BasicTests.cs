@@ -84,7 +84,7 @@ namespace BucketTests
             var r = await b.ReadSkipAsync(1024);
             Assert.AreEqual(49L, r);
 
-            await b.ResetAsync();
+            b.Reset();
 
             byte[]? hashResult = null;
             var c = b.MD5(r => hashResult = r);
@@ -95,7 +95,7 @@ namespace BucketTests
             Assert.IsNotNull(hashResult);
             Assert.AreEqual("E358B5530A87E41AF9168B4F45548AFC", TestExtensions.FormatHash(hashResult));
 
-            await b.ResetAsync();
+            b.Reset();
             hashResult = null;
             var c2 = b.SHA1(r => hashResult = r);
 
@@ -105,7 +105,7 @@ namespace BucketTests
             Assert.IsNotNull(hashResult);
             Assert.AreEqual("D9F7CE90FB58072D8A68F69A0CB30C133F9B08CB", TestExtensions.FormatHash(hashResult));
 
-            await c2.ResetAsync();
+            c2.Reset();
 
             r = await c2.ReadSkipAsync(1024);
             Assert.AreEqual(49L, r);
@@ -154,7 +154,7 @@ namespace BucketTests
             v = await b.ReadAsync();
             Assert.IsTrue(v.IsEof);
 
-            await b.ResetAsync();
+            b.Reset();
             r = b.PerByte().Decompress(BucketCompressionAlgorithm.ZLib);
             r.ReadFull(chars34);
             Assert.AreEqual("blob 26\0ABCDEFGHIJKLMNOPQRSTUVWXYZ", Encoding.ASCII.GetString(chars34));
@@ -229,7 +229,7 @@ namespace BucketTests
         {
             var b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
 
-            b = b.Skip(4).TakeExact(10);
+            b = b.SkipExact(4).TakeExact(10);
 
             var p = b.Peek();
 
@@ -776,7 +776,7 @@ namespace BucketTests
             {
                 Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
 
-                using (var fb2 = await fb.DuplicateAsync(true))
+                using (var fb2 = fb.Duplicate())
                 {
                     Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
                 }
