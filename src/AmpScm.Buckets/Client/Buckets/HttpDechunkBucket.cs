@@ -24,12 +24,10 @@ namespace AmpScm.Buckets.Client.Buckets
         byte[]? _start;
         bool _noFin;
 
-        public bool ReadFinalEol => true;
-
-        public HttpDechunkBucket(Bucket inner, bool noFin=false)
+        public HttpDechunkBucket(Bucket inner, bool leaveFinalEol = false)
             : base(inner)
         {
-            _noFin = noFin;
+            _noFin = leaveFinalEol;
         }
 
         public override BucketBytes Peek()

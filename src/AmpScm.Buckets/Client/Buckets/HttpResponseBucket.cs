@@ -61,7 +61,7 @@ namespace AmpScm.Buckets.Client.Buckets
 
                     await _reader.ReadUntilEofAsync().ConfigureAwait(false);
 
-                    readOneEol = (_reader as HttpDechunkBucket)?.ReadFinalEol;
+                    readOneEol = (_reader is HttpDechunkBucket);
                 }
 
                 if (Request.Channel != null)
@@ -350,7 +350,7 @@ namespace AmpScm.Buckets.Client.Buckets
             using (reader)
                 await reader.ReadUntilEofAsync().ConfigureAwait(false);
 
-            _readEol = (reader as HttpDechunkBucket)?.ReadFinalEol ?? false;
+            _readEol = (reader is HttpDechunkBucket);
 
             var c = _authState.Current;
 
@@ -404,7 +404,7 @@ namespace AmpScm.Buckets.Client.Buckets
 
             var (reader, _) = GetBodyReader(headers);
             await reader.ReadUntilEofAsync().ConfigureAwait(false);
-            _readEol = (reader as HttpDechunkBucket)?.ReadFinalEol ?? false;
+            _readEol = (reader is HttpDechunkBucket);
 
             if (Request.RequestUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) == newUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped))
             {
