@@ -365,7 +365,7 @@ namespace AmpScm.Git.Objects
                 await OpenPackIfNecessary().ConfigureAwait(false);
 
                 var rdr = _packBucket!.Duplicate(true);
-                await rdr.ReadSkipAsync(offset).ConfigureAwait(false);
+                await rdr.SeekAsync(offset).ConfigureAwait(false);
 
                 GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
 
@@ -452,7 +452,7 @@ namespace AmpScm.Git.Objects
                 long offset = GetOffset(offsets, i);
 
                 var rdr = _packBucket!.Duplicate(true);
-                await rdr.ReadSkipAsync(offset).ConfigureAwait(false);
+                await rdr.SeekAsync(offset).ConfigureAwait(false);
 
                 GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
 
@@ -533,7 +533,7 @@ namespace AmpScm.Git.Objects
             GitId objectId = GitId.FromByteArrayOffset(_idType, oids, 0);
 
             var rdr = _packBucket!.Duplicate(true);
-            await rdr.ReadSkipAsync(GetOffset(offsets, 0)).ConfigureAwait(false);
+            await rdr.SeekAsync(GetOffset(offsets, 0)).ConfigureAwait(false);
 
             GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
 
@@ -652,7 +652,7 @@ namespace AmpScm.Git.Objects
                 await OpenPackIfNecessary().ConfigureAwait(false);
 
                 var rdr = _packBucket!.Duplicate(true);
-                await rdr.ReadSkipAsync(offset).ConfigureAwait(false);
+                await rdr.SeekAsync(offset).ConfigureAwait(false);
 
                 GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
 
