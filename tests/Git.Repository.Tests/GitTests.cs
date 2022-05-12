@@ -610,40 +610,43 @@ namespace GitRepositoryTests
             for (int i = 0; i < gh.ObjectCount; i++)
             {
                 long? offset = b.Position;
-                int crc = 0;
-                using var crcr = b.NoClose().Crc32(c => crc = c);
-                using var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id));
-
-                var type = await pf.ReadTypeAsync();
-
-                var len = await pf.ReadRemainingBytesAsync();
-
-                Assert.AreEqual(0L, pf.Position);
-
                 GitId? checksum = null;
+                int crc = 0;
+                var crcr = b.NoClose().Crc32(c => crc = c);
+                using (var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
+                {
 
-                var hdr = type.CreateHeader(len.Value);
-                var hdrLen = await hdr.ReadRemainingBytesAsync();
+                    var type = await pf.ReadTypeAsync();
 
-                var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
+                    var len = await pf.ReadRemainingBytesAsync();
 
-                var data = await csum.ReadToEnd();
+                    Assert.AreEqual(0L, pf.Position);
 
 
-                TestContext.Write(checksum?.ToString());
 
-                TestContext.Write($" {type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {b.Position - offset} {offset}");
-                int deltaCount = await pf.ReadDeltaCountAsync();
-                if (deltaCount > 0)
-                    TestContext.Write($" {deltaCount} delta (body={len})");
-                else
-                    Assert.AreEqual(pf.BodySize, len);
+                    var hdr = type.CreateHeader(len.Value);
+                    var hdrLen = await hdr.ReadRemainingBytesAsync();
 
-                Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
-                Assert.AreEqual(len.Value, pf.Position, "Expected end position");
+                    var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
 
-                pf.Dispose();
-                TestContext.WriteLine();
+                    var data = await csum.ReadToEnd();
+
+
+                    TestContext.Write(checksum?.ToString());
+
+                    TestContext.Write($" {type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {b.Position - offset} {offset}");
+                    int deltaCount = await pf.ReadDeltaCountAsync();
+                    if (deltaCount > 0)
+                        TestContext.Write($" {deltaCount} delta (body={len})");
+                    else
+                        Assert.AreEqual(pf.BodySize, len);
+
+                    Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
+                    Assert.AreEqual(len.Value, pf.Position, "Expected end position");
+
+                    TestContext.WriteLine();
+                    Assert.AreEqual(0, crc); // Not calculated yet. We didn't get EOF yet
+                }
 
                 hashes.Add(checksum!, (offset!.Value, crc));
             }
@@ -695,14 +698,11 @@ namespace GitRepositoryTests
         [DynamicData(nameof(LocalPacks))]
         public async Task WalkLocalPacks(string packFile)
         {
-            byte[]? fileChecksum = null;
             using var srcFile = FileBucket.OpenRead(packFile, false);
 
             long l = (await srcFile.ReadRemainingBytesAsync()).Value;
 
-            using var b = srcFile.TakeExact(l - 20).SHA1(x => fileChecksum = x);
-
-            var gh = new GitPackHeaderBucket(b.NoClose());
+            using var gh = new GitPackHeaderBucket(srcFile.NoClose());
 
             var r = await gh.ReadAsync();
             Assert.IsTrue(r.IsEof);
@@ -715,49 +715,52 @@ namespace GitRepositoryTests
             var hashes = new SortedList<GitId, (long, int)>();
             for (int i = 0; i < gh.ObjectCount; i++)
             {
-                long? offset = b.Position;
+                long? offset = srcFile.Position;
                 int crc = 0;
-                using var crcr = b.NoClose().Crc32(c => crc = c);
-                using var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id));
-
-                var type = await pf.ReadTypeAsync();
-
-                var len = await pf.ReadRemainingBytesAsync();
-
-                Assert.AreEqual(0L, pf.Position);
-
+                var crcr = srcFile.NoClose().Crc32(c => crc = c);
                 GitId? checksum = null;
 
-                var hdr = type.CreateHeader(len.Value);
-                var hdrLen = await hdr.ReadRemainingBytesAsync();
+                using (var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
+                {
+                    var type = await pf.ReadTypeAsync();
 
-                var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
+                    var len = await pf.ReadRemainingBytesAsync();
 
-                var data = await csum.ReadToEnd();
+                    Assert.AreEqual(0L, pf.Position);
 
 
-                TestContext.Write(checksum?.ToString());
 
-                TestContext.Write($" {type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {b.Position - offset} {offset}");
-                int deltaCount = await pf.ReadDeltaCountAsync();
-                if (deltaCount > 0)
-                    TestContext.Write($" {deltaCount} delta (body={len})");
-                else
-                    Assert.AreEqual(pf.BodySize, len);
+                    var hdr = type.CreateHeader(len.Value);
+                    var hdrLen = await hdr.ReadRemainingBytesAsync();
 
-                Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
-                Assert.AreEqual(len.Value, pf.Position, "Expected end position");
+                    var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
 
-                pf.Dispose();
+                    var data = await csum.ReadToEnd();
+
+
+                    TestContext.Write(checksum?.ToString());
+
+                    TestContext.Write($" {type.ToString().ToLowerInvariant(),-6} {pf.BodySize} {srcFile.Position - offset} {offset}");
+                    int deltaCount = await pf.ReadDeltaCountAsync();
+                    if (deltaCount > 0)
+                        TestContext.Write($" {deltaCount} delta (body={len})");
+                    else
+                        Assert.AreEqual(pf.BodySize, len);
+
+                    Assert.AreEqual(len.Value + hdrLen, data.Length, "Can read provided length bytes");
+                    Assert.AreEqual(len.Value, pf.Position, "Expected end position");
+
+                }
                 TestContext.WriteLine();
 
                 hashes.Add(checksum!, (offset!.Value, crc));
             }
 
-            var eofCheck = await b.ReadAsync();
+            var checksumFromFile = await srcFile.ReadGitIdAsync(GitIdType.Sha1);
+
+            var eofCheck = await srcFile.ReadAsync();
 
             Assert.IsTrue(eofCheck.IsEof);
-            Assert.IsNotNull(fileChecksum);
 
             int[] fanOut = new int[256];
 
@@ -786,6 +789,14 @@ namespace GitRepositoryTests
             // File offsets
             index += new AggregateBucket(hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x.Item1).AsBucket()).ToArray());
 
+            byte[]? fileChecksum = null;
+            {
+                using var b = srcFile.Duplicate(true).TakeExact(l - 20).SHA1(x => fileChecksum = x);
+
+                await b.ReadSkipUntilEofAsync();
+                Assert.IsNotNull(fileChecksum);
+                Assert.AreEqual(checksumFromFile, new GitId(GitIdType.Sha1, fileChecksum));
+            }
             index += fileChecksum.AsBucket();
 
             using var indexFile = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"), false);

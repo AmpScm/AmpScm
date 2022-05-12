@@ -26,7 +26,10 @@ namespace AmpScm.Buckets.Specialized
             base.Dispose(disposing);
 
             if (disposing && !DontDisposeInner)
+            {
+                DontDisposeInner = true;
                 Inner.Dispose();
+            }
         }
 
         protected void NoClose()
