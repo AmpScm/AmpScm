@@ -81,5 +81,21 @@ namespace BucketTests
                 total += t;
             }
         }
+
+        [TestMethod]
+        public void TestConvertWhitespace()
+        {
+            try
+            {
+                Assert.AreEqual(10, Convert.ToInt32("10\r", 10)); // With 'fromBase', no whitespace allowed
+                Assert.Fail();
+            }
+            catch (FormatException)
+            {
+
+            }
+
+            Assert.AreEqual(13, Convert.ToInt32("13\r")); // Without, no problem
+        }
     }
 }
