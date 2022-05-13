@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
@@ -6,35 +8,67 @@ namespace AmpScm.Buckets.Specialized
     public abstract class WrappingBucket : Bucket
     {
         protected Bucket Inner { get; }
-        protected internal bool DontDisposeInner { get; internal set; }
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int _nDispose;
 
         protected WrappingBucket(Bucket inner)
         {
             Inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            _nDispose = 1;
         }
 
         protected WrappingBucket(Bucket inner, bool noDispose)
             : this(inner)
         {
-            DontDisposeInner = noDispose;
+            if (noDispose)
+                NoClose();
         }
 
         public override string Name => base.Name + ">" + Inner.Name;
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
-            if (disposing && !DontDisposeInner)
+            try
             {
-                DontDisposeInner = true;
-                Inner.Dispose();
+                if (disposing)
+                {
+                    int n = Interlocked.Decrement(ref _nDispose);
+
+                    if (n == 0)
+                        try
+                        {
+                            InnerDispose();
+                        }
+                        catch (ObjectDisposedException oe)
+                        {
+                            throw new ObjectDisposedException($"While disposing {SafeName}", oe);
+
+                        }
+#if DEBUG
+                    else if (n < 0)
+                        throw new ObjectDisposedException(SafeName);
+#endif
+                }
             }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
+
+        protected virtual void InnerDispose()
+        {
+            Inner.Dispose();
         }
 
         protected void NoClose()
         {
-            DontDisposeInner = true;
+            Interlocked.Increment(ref _nDispose);
+        }
+
+        protected bool HasMoreClosers()
+        {
+            return _nDispose > 1;
         }
     }
 }

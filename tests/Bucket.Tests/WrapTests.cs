@@ -30,7 +30,8 @@ namespace BucketTests
 #if !NETFRAMEWORK
                 ("Brotli", b => b.Compress(BucketCompressionAlgorithm.Brotli), b=> b.Decompress(BucketCompressionAlgorithm.Brotli)),
 #endif
-                ("Chunk", b => b.HttpChunk(), b => b.HttpDechunk())
+                ("Chunk", b => b.HttpChunk(), b => b.HttpDechunk()),
+                ("AsStream", b => b.AsStream().AsBucket(), b => b.AsStream().AsBucket()),
             }.Select(x => new object[] { x.Item1, x.Item2, x.Item3 });
 
         public static string ConvertDisplayName(MethodInfo method, object[] args)
@@ -54,7 +55,7 @@ namespace BucketTests
 
                 Bucket src = encode(sourceData.AsBucket());
 
-                using var dest = decode(src);
+                var dest = decode(src);
 
                 byte[] resultData = await dest.ToArrayAsync();
 
@@ -67,7 +68,7 @@ namespace BucketTests
 
                 Bucket src = encode(sourceData.AsBucket());
 
-                using var dest = decode(src);
+                var dest = decode(src);
 
                 byte[] resultData = await dest.ToArrayAsync();
 
@@ -80,7 +81,7 @@ namespace BucketTests
 
                 Bucket src = encode(sd);
 
-                using var dest = decode(src);
+                var dest = decode(src);
 
                 byte[] resultData = await dest.ToArrayAsync();
 
@@ -98,36 +99,35 @@ namespace BucketTests
             var sd = Enumerable.Range(0, 30).Select(x => Enumerable.Range(0, 40).Select(y => (byte)y).ToArray().AsBucket()).AsBucket();
             var alt = Enumerable.Range(0, 30).SelectMany(x => Enumerable.Range(0, 40).Select(y => (byte)y)).ToArray();
 
-            Bucket src = encode(sd);
-
             List<byte> save = new List<byte>();
-
-            while ((await src.ReadByteAsync()) is byte b)
             {
-                save.Add(b);
+                Bucket src = encode(sd);
+                while ((await src.ReadByteAsync()) is byte b)
+                {
+                    save.Add(b);
+                }
+
+
+                var bb = await src.ReadAsync();
+                Assert.IsTrue(bb.IsEof);
             }
 
             {
-                using var dest = decode(save.ToArray().AsBucket());
+                var dest = decode(save.ToArray().AsBucket());
 
                 byte[] resultData = await dest.ToArrayAsync();
                 Assert.AreEqual(alt.Length, resultData.Length);
 
                 Assert.IsTrue(resultData.SequenceEqual(alt), "Data was properly converted back");
 
-                var bb = await src.ReadAsync();
-                Assert.IsTrue(bb.IsEof);
             }
             {
-                using var dest = decode(save.AsBucket()).PerByte();
+                var dest = decode(save.AsBucket()).PerByte();
 
                 byte[] resultData = await dest.ToArrayAsync();
                 Assert.AreEqual(alt.Length, resultData.Length);
 
                 Assert.IsTrue(resultData.SequenceEqual(alt), "Data was properly converted back per byte");
-
-                var bb = await src.ReadAsync();
-                Assert.IsTrue(bb.IsEof);
             }
         }
 
@@ -146,7 +146,7 @@ namespace BucketTests
                 save.Add(b);
             }
 
-            using var dest = save.ToArray().AsBucket().Decompress(BucketCompressionAlgorithm.ZLib);
+            var dest = save.AsBucket().Decompress(BucketCompressionAlgorithm.ZLib);
 
             byte[] resultData = await dest.ToArrayAsync();
             Assert.AreEqual(alt.Length, resultData.Length);

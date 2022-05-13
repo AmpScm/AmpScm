@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
@@ -9,18 +10,25 @@ using AmpScm.Buckets.Specialized;
 namespace AmpScm.Buckets
 {
     [DebuggerDisplay("{Name,nq}: BucketCount={BucketCount}, Current={CurrentBucket,nq}, Position={Position}")]
-    public class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers
+    public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers, IBucketNoClose
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         Bucket?[] _buckets;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _n;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly bool _keepOpen;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _position;
-
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         object LockOn => this;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int _nDispose;
 
         public AggregateBucket(params Bucket[] items)
         {
             _buckets = items ?? Array.Empty<Bucket>();
+            _nDispose = 1;
         }
 
         public AggregateBucket(bool keepOpen, params Bucket[] items)
@@ -182,46 +190,78 @@ namespace AmpScm.Buckets
 
         public override BucketBytes Peek()
         {
-            if (CurrentBucket is Bucket cur)
+            while(true)
             {
-                var v = cur.Peek();
-
-                if (!v.IsEof)
-                    return v;
-
-            }
-
-            lock (LockOn)
-            {
-                int n = _n + 1;
-                while (n < _buckets.Length)
+                if (CurrentBucket is Bucket cur)
                 {
-                    var v = _buckets[n]!.Peek();
+                    var v = cur.Peek();
 
                     if (!v.IsEof)
                         return v;
+                }
+                else
+                    return BucketBytes.Eof;
 
-                    n++; // Peek next bucket, but do not dispose. We can do that in the next read
+                lock (LockOn)
+                {
+                    if (!_keepOpen)
+                    {
+                        try
+                        {
+                            _buckets[_n]?.Dispose();
+                        }
+                        finally
+                        {
+                            _buckets[_n] = null;
+                        }
+                    }
+                    _n++;
                 }
             }
-
-            return BucketBytes.Eof;
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            try
             {
-                for (int i = 0; i < _buckets.Length; i++)
+                if (disposing)
                 {
-                    _buckets[i]?.Dispose();
-                    _buckets[i] = null;
-                }
+                    int n = Interlocked.Decrement(ref _nDispose);
 
-                _buckets = Array.Empty<Bucket>();
-                _n = 0;
+                    if (n == 0)
+                    {
+                        try
+                        {
+                            InnerDispose();
+                        }
+                        catch (ObjectDisposedException oe)
+                        {
+                            throw new ObjectDisposedException($"While disposing {SafeName}", oe);
+
+                        }
+                    }
+#if DEBUG
+                    else if (n < 0)
+                        throw new ObjectDisposedException(SafeName);
+#endif
+                }
             }
-            base.Dispose(disposing);
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
+
+        protected virtual void InnerDispose()
+        {
+            for (int i = 0; i < _buckets.Length; i++)
+            {
+                _buckets[i]?.Dispose();
+                _buckets[i] = null;
+            }
+
+            _buckets = Array.Empty<Bucket>();
+            _n = 0;
         }
 
         public override long? Position
@@ -283,6 +323,27 @@ namespace AmpScm.Buckets
             }
 
             return (result.ToArray(), CurrentBucket is null);
+        }
+
+        Bucket IBucketNoClose.NoClose()
+        {
+            NoClose();
+            return this;
+        }
+
+        protected void NoClose()
+        {
+            Interlocked.Increment(ref _nDispose);
+        }
+
+        bool IBucketNoClose.HasMoreClosers()
+        {
+            return HasMoreClosers();
+        }
+
+        protected bool HasMoreClosers()
+        {
+            return _nDispose > 1;
         }
 
         #region DEBUG INFO

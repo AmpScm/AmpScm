@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
@@ -67,10 +68,15 @@ namespace AmpScm.Buckets.Specialized
             return null;
         }
 
-        public new virtual Bucket NoClose()
+        Bucket IBucketNoClose.NoClose()
         {
             base.NoClose();
             return this;
+        }
+
+        bool IBucketNoClose.HasMoreClosers()
+        {
+            return base.HasMoreClosers();
         }
 
         internal abstract class WithPoll : ProxyBucket<TBucket>, IBucketPoll
@@ -92,7 +98,9 @@ namespace AmpScm.Buckets.Specialized
 
     public class ProxyBucket : ProxyBucket<ProxyBucket>
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _name;
+
         public ProxyBucket(Bucket inner) : base(inner)
         {
 
@@ -106,7 +114,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
 
-        internal sealed class Sealed : ProxyBucket, IBucketPoll
+        internal sealed class Sealed : ProxyBucket, IBucketPoll, IBucketNoClose
         {
             public Sealed(Bucket inner) : base(inner)
             {

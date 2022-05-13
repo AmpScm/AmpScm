@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
@@ -16,7 +17,7 @@ namespace AmpScm.Buckets
         long _filePos;
         long _bufStart;
         long _resetPosition;
-        int _noDisposeCount;
+        int _nDispose;
         readonly int _chunkSizeMinus1;
 
         private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 4096)
@@ -31,6 +32,7 @@ namespace AmpScm.Buckets
             _buffer = new byte[bufferSize];
             _chunkSizeMinus1 = chunkSize - 1;
             _bufStart = -bufferSize;
+            _nDispose = 1;
         }
 
         /// <summary>
@@ -48,18 +50,47 @@ namespace AmpScm.Buckets
 
         protected override void Dispose(bool disposing)
         {
-            if (_noDisposeCount > 0)
-                _noDisposeCount--;
-            else
-                try
+            try
+            {
+                if (disposing)
                 {
-                    _holder?.Release();
+                    int n = Interlocked.Decrement(ref _nDispose);
+
+                    if (n == 0)
+                    {
+                        try
+                        {
+                            InnerDispose();
+                        }
+                        catch (ObjectDisposedException oe)
+                        {
+                            throw new ObjectDisposedException($"While disposing {SafeName}", oe);
+
+                        }
+                    }
+#if DEBUG
+                    else if (n < 0)
+                        throw new ObjectDisposedException(SafeName);
+#endif
                 }
-                finally
-                {
-                    _holder = null!;
-                    base.Dispose(disposing);
-                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
+
+        void InnerDispose()
+        {
+            try
+            {
+                _holder?.Release();
+            }
+            finally
+            {
+                _holder = null!;
+
+            }
         }
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
@@ -137,8 +168,13 @@ namespace AmpScm.Buckets
 
         Bucket IBucketNoClose.NoClose()
         {
-            _noDisposeCount++;
+            Interlocked.Increment(ref _nDispose);
             return this;
+        }
+
+        bool IBucketNoClose.HasMoreClosers()
+        {
+            return _nDispose > 1;
         }
 
         Bucket IBucketSkip.Skip(long skipBytes, bool ensure)

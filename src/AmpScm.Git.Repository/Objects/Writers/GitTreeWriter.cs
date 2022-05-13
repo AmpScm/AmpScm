@@ -204,13 +204,13 @@ namespace AmpScm.Git.Objects
                 }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                Bucket b = new AggregateBucket(_items.Values.Select(x =>
+                Bucket b = _items.Values.Select(x =>
                     new GitTreeElementRecord()
                     {
                         Name = x.Name,
                         Type = x.Type,
                         Id = x.Lazy.Id ?? throw new InvalidOperationException("Id not set on entry")
-                    }.AsBucket()).ToArray());
+                    }.AsBucket()).AsBucket();
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
                 Id = await WriteBucketAsObject(b, repository).ConfigureAwait(false);

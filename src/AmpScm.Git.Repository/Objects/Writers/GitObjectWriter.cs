@@ -44,12 +44,11 @@ namespace AmpScm.Git.Objects
                         bucket = FileBucket.OpenRead(innerTmp);                        
                     }
 
-                    using (var wb = Type.CreateHeader(r.Value!).Append(bucket)
-                        .GitHash(repository.InternalConfig.IdType, cs => id = cs)
-                        .Compress(BucketCompressionAlgorithm.ZLib, BucketCompressionLevel.Maximum))
-                    {
-                        await wb.WriteToAsync(f, cancellationToken).ConfigureAwait(false);
-                    }
+                    
+                    await Type.CreateHeader(r.Value!).Append(bucket)
+                            .GitHash(repository.InternalConfig.IdType, cs => id = cs)
+                            .Compress(BucketCompressionAlgorithm.ZLib, BucketCompressionLevel.Maximum)
+                        .WriteToAsync(f, cancellationToken).ConfigureAwait(!false);
                 }                
                 catch
                 {

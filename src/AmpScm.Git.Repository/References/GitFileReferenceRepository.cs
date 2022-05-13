@@ -149,8 +149,7 @@ namespace AmpScm.Git.References
 
         static async IAsyncEnumerable<GitReferenceChange>? GetChangesFromRefLogFile(string fileName)
         {
-            using var fb = FileBucket.OpenRead(fileName);
-
+            var fb = FileBucket.OpenRead(fileName);
             using var gr = new GitReferenceLogBucket(fb);
 
             while (await gr.ReadGitReferenceLogRecordAsync().ConfigureAwait(false) is GitReferenceLogRecord lr)

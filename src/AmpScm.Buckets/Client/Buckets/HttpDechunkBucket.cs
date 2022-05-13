@@ -201,5 +201,10 @@ namespace AmpScm.Buckets.Client.Buckets
             base.NoClose();
             return this;
         }
+
+        bool IBucketNoClose.HasMoreClosers()
+        {
+            return base.HasMoreClosers();
+        }
     }
 }

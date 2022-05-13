@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,9 +10,13 @@ namespace AmpScm.Buckets.Specialized
 {
     public abstract class ConversionBucket : WrappingBucket//, IBucketPoll
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         BucketBytes _remaining;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _skipFirst;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         BucketBytes _readLeft;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _position;
 
         protected ConversionBucket(Bucket inner) : base(inner)

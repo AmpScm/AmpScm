@@ -4,9 +4,9 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets
 {
-    public class MemoryBucket : Bucket, IBucketNoClose, IBucketReadBuffers
+    public sealed class MemoryBucket : Bucket, IBucketNoClose, IBucketReadBuffers
     {
-        BucketBytes _data;
+        readonly BucketBytes _data;
         int _offset;
 
         public MemoryBucket(byte[] data)
@@ -72,6 +72,11 @@ namespace AmpScm.Buckets
 #pragma warning restore CA1033 // Interface methods should be callable by child types
         {
             return this;
+        }
+
+        bool IBucketNoClose.HasMoreClosers()
+        {
+            return false;
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously

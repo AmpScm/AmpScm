@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Specialized;
 
 [assembly: CLSCompliant(true)]
 
@@ -18,15 +20,9 @@ namespace AmpScm.Buckets
     /// the other user is done. Most users will call <see cref="Dispose()"/> on buckets that are handed over, so
     /// wrapping a bucket using <see cref="BucketExtensions.NoClose"/> might be useful.</para>
     /// </remarks>
-    [DebuggerDisplay("{Name}: Position={Position}")]
+    [DebuggerDisplay($"{nameof(SafeName)}: Position={nameof(Position)}")]
     public abstract partial class Bucket : IDisposable
     {
-        /// <summary>
-        /// Static bucket that doesn't contain any data
-        /// </summary>
-        public static readonly Bucket Empty = new EmptyBucket();
-
-
         protected internal static readonly ValueTask<BucketBytes> EofTask = new ValueTask<BucketBytes>(BucketBytes.Eof);
         protected internal static readonly ValueTask<BucketBytes> EmptyTask = new ValueTask<BucketBytes>(BucketBytes.Empty);
 
@@ -47,6 +43,7 @@ namespace AmpScm.Buckets
             get => BaseName;
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal string BaseName
         {
             get
@@ -186,14 +183,6 @@ namespace AmpScm.Buckets
             return default;
         }
 
-        private protected sealed class EmptyBucket : Bucket
-        {
-            public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
-            {
-                return EofTask;
-            }
-        }
-
         /// <summary>
         /// Cleans up resources hold by the bucket, including possibly hold inner buckets
         /// </summary>
@@ -221,26 +210,23 @@ namespace AmpScm.Buckets
             return Name;
         }
 
-        /// <summary>
-        /// If both <paramref name="first"/> and <paramref name="second"/> are not null, return
-        /// a bucket holding both. If either is null, return the other.
-        /// </summary>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
-        /// <returns></returns>
-        /// <remarks>If <paramref name="first"/> or <paramref name="second"/> is an aggregate bucket,
-        /// insert the other in the existing aggregate. Otherwise creates a new aggregate bucket.
-        /// Implemented using <see cref="BucketExtensions.Append(Bucket, Bucket)"/></remarks>
-#pragma warning disable CA2225 // Operator overloads have named alternates
-        public static Bucket operator +(Bucket first, Bucket second)
-#pragma warning restore CA2225 // Operator overloads have named alternates
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        internal string SafeName
         {
-            if (first is null || first is EmptyBucket)
-                return second ?? Bucket.Empty;
-            else if (second is null || second is EmptyBucket)
-                return first;
-            else
-                return first.Append(second);
-        }
+            get
+            {
+#pragma warning disable CA1031 // Do not catch general exception types
+                try
+                {
+                    return Name;
+                }
+                catch
+                {
+                    return BaseName;
+                }
+#pragma warning restore CA1031 // Do not catch general exception types
+            }
+        }        
     }
 }

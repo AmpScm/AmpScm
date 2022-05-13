@@ -99,7 +99,7 @@ namespace AmpScm.Git.Sets.Walker
                 _graphValue = info.Value;
             }
 
-            using var r = await repo.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false);
+            var r = await repo.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false);
             using var cr = new GitCommitObjectBucket(r!);
 
             _parents = new GitAsyncLazy<IEnumerable<GitId>>(await cr.ReadAllParentIdsAsync().ConfigureAwait(false));

@@ -583,15 +583,16 @@ namespace AmpScm.Git.Objects
             }
 
             GitId? sha = null;
-            using (Bucket b = (Encoding.ASCII.GetBytes("RIDX").AsBucket()
-                                + NetBitConverter.GetBytes((int)1 /* Version 1 */).AsBucket()
-                                + NetBitConverter.GetBytes((int)_idType).AsBucket()
-                                + mapBytes.AsBucket()
-                                + GitId.Parse(Path.GetFileNameWithoutExtension(_packFile).Substring(5)).Hash.AsBucket())
-                            .GitHash(Repository.InternalConfig.IdType, r => sha = r))
             using (var fs = File.Create(tmpName))
             {
-                await b.WriteToAsync(fs).ConfigureAwait(false);
+                await (Encoding.ASCII.GetBytes("RIDX").AsBucket()
+                            + NetBitConverter.GetBytes((int)1 /* Version 1 */).AsBucket()
+                            + NetBitConverter.GetBytes((int)_idType).AsBucket()
+                            + mapBytes.AsBucket()
+                            + GitId.Parse(Path.GetFileNameWithoutExtension(_packFile).Substring(5)).Hash.AsBucket())
+                        .GitHash(Repository.InternalConfig.IdType, r => sha = r)
+                    .WriteToAsync(fs).ConfigureAwait(false);
+
                 await fs.WriteAsync(sha!.Hash).ConfigureAwait(false);
             }
 

@@ -70,7 +70,7 @@ namespace AmpScm.Buckets.Git.Objects
 
                 if (eol == BucketEol.None)
                 {
-                    var authorBucket = new AggregateBucket(bb.Slice("author ".Length).ToArray().AsBucket(), Inner).NoClose();
+                    var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Inner);
                     (bb, eol) = await authorBucket.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
                 }
 
@@ -129,7 +129,7 @@ namespace AmpScm.Buckets.Git.Objects
                     // Auch. We overread.
                     if (eol == BucketEol.None)
                     {
-                        var authorBucket = new AggregateBucket(bb.Slice("author ".Length).ToArray().AsBucket(), Inner).NoClose();
+                        var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Inner);
                         (bb, eol) = await authorBucket.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
                     }
 

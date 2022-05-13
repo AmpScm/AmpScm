@@ -27,7 +27,7 @@ namespace AmpScm.Buckets
                 return nl.Prepend(bucket);
             else
             {
-                return new AggregateBucket(bucket, newLast);
+                return new AggregateBucket.Simple(bucket, newLast);
             }
         }
 
@@ -45,7 +45,7 @@ namespace AmpScm.Buckets
                 return nf.Append(bucket);
             else
             {
-                return new AggregateBucket(newFirst, bucket);
+                return new AggregateBucket.Simple(newFirst, bucket);
             }
         }
 
@@ -201,7 +201,7 @@ namespace AmpScm.Buckets
             if (bytes is null || !bytes.Any())
                 return Bucket.Empty;
 
-            return new MemoryBucket(bytes.ToArray());
+            return new MemoryBucket(bytes as byte[] ?? bytes.ToArray());
         }
 
         public static Bucket AsBucket(this byte[] bytes, bool copy)
@@ -256,7 +256,12 @@ namespace AmpScm.Buckets
             if (buckets is null || !buckets.Any())
                 return Bucket.Empty;
 
-            return new AggregateBucket(buckets.ToArray());
+            var arr = buckets.ToArray();
+
+            if (arr.Length == 1)
+                return arr[0];
+            else
+                return new AggregateBucket(arr);
         }
 
         public static Bucket AsBucket(this IEnumerable<ReadOnlyMemory<byte>> buffers)
@@ -264,7 +269,12 @@ namespace AmpScm.Buckets
             if (buffers is null || !buffers.Any())
                 return Bucket.Empty;
 
-            return new AggregateBucket(buffers.Select(x=>x.AsBucket()).ToArray());
+            var arr = buffers.Select(x => x.AsBucket()).ToArray();
+
+            if (arr.Length == 1)
+                return arr[0];
+            else
+                return new AggregateBucket.Simple(arr);
         }
 
         public static Bucket AsBucket(this IEnumerable<ReadOnlyMemory<byte>> buffers, bool keepOpen)
@@ -272,15 +282,29 @@ namespace AmpScm.Buckets
             if (buffers is null || !buffers.Any())
                 return Bucket.Empty;
 
-            return new AggregateBucket(keepOpen, buffers.Select(x => x.AsBucket()).ToArray());
+            var arr = buffers.Select(x => x.AsBucket()).ToArray();
+
+            if (arr.Length == 1)
+                return arr[0];
+            else
+                return new AggregateBucket.Simple(keepOpen, arr);
         }
 
         public static Bucket AsBucket(this IEnumerable<Bucket> buckets, bool keepOpen)
         {
-            if (!buckets.Any())
+            if (buckets is null)
                 return Bucket.Empty;
+            else if (!keepOpen)
+                return Bucket.FromBucketArray(buckets as Bucket[] ?? buckets.ToArray());
 
-            return new AggregateBucket(keepOpen, buckets.ToArray());
+            var arr = buckets.ToArray();
+
+            if (arr.Length == 0)
+                return Bucket.Empty;
+            else if (arr.Length == 1)
+                return arr[0];
+            else
+                return new AggregateBucket.Simple(keepOpen, arr);
         }
 
         public static Bucket Decompress(this Bucket bucket, BucketCompressionAlgorithm algorithm)

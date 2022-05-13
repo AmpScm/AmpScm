@@ -17,12 +17,16 @@ namespace AmpScm.Buckets.Specialized
             Right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void InnerDispose()
         {
-            base.Dispose(disposing);
-
-            if (disposing && !DontDisposeInner)
+            try
+            {
                 Right.Dispose();
+            }
+            finally
+            {
+                base.InnerDispose();
+            }
         }
     }
 }

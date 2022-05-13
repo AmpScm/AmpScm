@@ -590,7 +590,7 @@ namespace GitRepositoryTests
             string packFile = Directory.GetFiles(Path.Combine(GitTestEnvironment.GetRepository(GitTestDir.Packed), ".git/objects/pack"), "*.pack").First();
 
             byte[]? fileChecksum = null;
-            using var srcFile = FileBucket.OpenRead(packFile, false);
+            var srcFile = FileBucket.OpenRead(packFile, false);
 
             long l = (await srcFile.ReadRemainingBytesAsync()).Value;
 
@@ -685,7 +685,7 @@ namespace GitRepositoryTests
 
             index += fileChecksum.AsBucket();
 
-            using var indexFile = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"), false);
+            var indexFile = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"), false);
             long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
 
             byte[]? idxChecksum = null;
@@ -799,7 +799,7 @@ namespace GitRepositoryTests
             }
             index += fileChecksum.AsBucket();
 
-            using var indexFile = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"), false);
+            var indexFile = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"), false);
             long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
 
             byte[]? idxChecksum = null;

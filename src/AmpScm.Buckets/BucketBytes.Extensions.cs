@@ -180,13 +180,14 @@ namespace AmpScm.Buckets
         public BucketBytes[] Split(byte separator, int count)
         {
             int next = IndexOf(separator);
-            count--;
             if (next < 0)
                 return new BucketBytes[] { this };
 
             int start = 0;
 
-            var result = new List<BucketBytes>();
+            var result = new List<BucketBytes>(count);
+            count--;
+
             while (next > 0 && result.Count < count)
             {
                 result.Add(Slice(start, next - start));

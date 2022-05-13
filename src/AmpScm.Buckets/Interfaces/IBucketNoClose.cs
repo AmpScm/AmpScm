@@ -3,5 +3,7 @@
     public interface IBucketNoClose
     {
         Bucket NoClose();
+
+        bool HasMoreClosers();
     }
 }

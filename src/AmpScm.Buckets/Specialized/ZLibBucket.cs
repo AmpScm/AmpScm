@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
@@ -8,15 +9,24 @@ namespace AmpScm.Buckets.Specialized
 {
     public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly ZStream _z;
-        bool _eof, _readEof;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool _eof;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool _readEof;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         BucketBytes read_buffer;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         BucketBytes write_buffer;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         byte[] write_data;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _position;
         readonly BucketCompressionAlgorithm _algorithm;
         readonly BucketCompressionLevel? _level;
         readonly IBucketPoll? _innerPoll;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int? _headerLeft;
 
         internal ZLibBucket(Bucket inner)

@@ -226,9 +226,9 @@ namespace GitRepositoryTests
             using (var f = File.Create(Path.Combine(dir, "fast-export"), 16384, FileOptions.SequentialScan | FileOptions.DeleteOnClose))
             {
                 using (var srcRepo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed)))
-                using (var fastExportData = await srcRepo.GetPorcelain().FastExport(new() { All = true }))
                 {
-                    await fastExportData.WriteToAsync(f);
+                    await (await srcRepo.GetPorcelain().FastExport(new() { All = true }))
+                        .WriteToAsync(f);
                 }
                 f.Position = 0;
 
@@ -265,9 +265,8 @@ namespace GitRepositoryTests
             TestContext.WriteLine($"HEAD: {rp.Head}");
 
             using (var srcRepo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed)))
-            using (var pp = await srcRepo.GetPorcelain().FastExport(new() { All = true }))
             {
-                await rp.FastImportAsync(pp);
+                await rp.FastImportAsync(await srcRepo.GetPorcelain().FastExport(new() { All = true }));
             }
 
             TestContext.WriteLine($"Count after: {rp.Objects.Count()}");

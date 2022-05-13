@@ -108,7 +108,7 @@ namespace AmpScm.Git.Objects
                     long len = Convert.ToInt64(bb.Slice(5).ToASCIIString(eol), 10);
 
                     {
-                        using Bucket body = source.TakeExact(len).NoClose();
+                        Bucket body = source.TakeExact(len).NoClose();
                         GitId? id = null;
 
                         switch (type)
@@ -127,6 +127,7 @@ namespace AmpScm.Git.Objects
                                     break;
                                 }
                             case "commit":
+                                using (body)
                                 {
                                     string message = (await body.ReadFullAsync((int)len).ConfigureAwait(false)).ToUTF8String();
 
@@ -150,6 +151,7 @@ namespace AmpScm.Git.Objects
                                     break;
                                 }
                             case "tag":
+                                using (body)
                                 {
                                     string message = (await body.ReadFullAsync((int)len).ConfigureAwait(false)).ToUTF8String();
 
@@ -169,6 +171,7 @@ namespace AmpScm.Git.Objects
                                     break;
                                 }
                             default:
+                                body.Dispose();
                                 throw new BucketException($"Unexpected object type {type}");
                         }
 

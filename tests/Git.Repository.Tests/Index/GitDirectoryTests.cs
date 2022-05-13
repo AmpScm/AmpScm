@@ -24,9 +24,7 @@ namespace GitRepositoryTests.Index
         {
             using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
 
-            using var index = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
-
-
+            var index = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
             using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1 });
 
             await dc.ReadHeaderAsync();
@@ -67,9 +65,7 @@ namespace GitRepositoryTests.Index
 
             using var repo = GitRepository.Open(path);
 
-            using var index = FileBucket.OpenRead(Path.Combine(repo.FullPath, ".git", "index"));
-
-
+            var index = FileBucket.OpenRead(Path.Combine(repo.FullPath, ".git", "index"));
             using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1, LookForEndOfIndex = optimize });
 
             await dc.ReadHeaderAsync();
@@ -250,8 +246,7 @@ namespace GitRepositoryTests.Index
 
             try
             {
-                using var idx = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
-
+                var idx = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
                 using var dc = new GitDirectoryBucket(idx);
 
                 while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)

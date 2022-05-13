@@ -34,18 +34,15 @@ namespace AmpScm.Buckets.Git
             BaseBucket = baseBucket ?? throw new ArgumentNullException(nameof(baseBucket));
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void InnerDispose()
         {
             try
             {
-                if (disposing && !DontDisposeInner)
-                {
-                    BaseBucket.Dispose();
-                }
+                BaseBucket.Dispose();
             }
             finally
             {
-                base.Dispose(disposing);
+                base.InnerDispose();
             }
         }
 
