@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -86,5 +87,51 @@ namespace AmpScm.Buckets
 
             return new BucketPollBytes(bucket, dataBytes, alreadyRead);
         }
+
+        internal static string AsDebuggerDisplay(this ReadOnlyMemory<byte> Data)
+        {
+            if (Data.Length == 0)
+                return "<Empty>";
+            else
+            {
+                StringBuilder sb = new StringBuilder("\"");
+
+                foreach (var b in Data.Span)
+                {
+                    if (b > 0 && b < 128 && !char.IsControl((char)b))
+                        sb.Append((char)b);
+                    else switch (b)
+                        {
+                            case 0:
+                                sb.Append("\\0");
+                                break;
+                            case (byte)'\n':
+                                sb.Append("\\n");
+                                break;
+                            case (byte)'\t':
+                                sb.Append("\\t");
+                                break;
+                            case (byte)'\r':
+                                sb.Append("\\r");
+                                break;
+                            default:
+                                sb.AppendFormat(CultureInfo.InvariantCulture, "\\x{0:X2}", b);
+                                break;
+                        }
+
+                    if (sb.Length > 120)
+                    {
+                        sb.Append("...");
+                        return sb.ToString();
+                    }
+                }
+                sb.Append('\"');
+                return sb.ToString();
+            }
+        }
+
+        internal static string AsDebuggerDisplay(this BucketBytes bb) => bb.Memory.AsDebuggerDisplay();
+
+        internal static string AsDebuggerDisplay(this Memory<byte> bb) => AsDebuggerDisplay((ReadOnlyMemory<byte>)bb);
     }
 }

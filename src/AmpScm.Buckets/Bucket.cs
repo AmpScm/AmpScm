@@ -20,7 +20,7 @@ namespace AmpScm.Buckets
     /// the other user is done. Most users will call <see cref="Dispose()"/> on buckets that are handed over, so
     /// wrapping a bucket using <see cref="BucketExtensions.NoClose"/> might be useful.</para>
     /// </remarks>
-    [DebuggerDisplay($"{nameof(SafeName)}: Position={nameof(Position)}")]
+    [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}")]
     public abstract partial class Bucket : IDisposable
     {
         protected internal static readonly ValueTask<BucketBytes> EofTask = new ValueTask<BucketBytes>(BucketBytes.Eof);

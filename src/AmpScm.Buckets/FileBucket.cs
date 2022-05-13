@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,16 +9,26 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets
 {
+    [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Next={{{nameof(DebuggerDisplay)},nq}}")]
     public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBucketSkip, IBucketSeekOnReset, IBucketNoClose
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         FileHolder _holder;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly byte[] _buffer;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _size;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _pos;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _filePos;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _bufStart;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _resetPosition;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _nDispose;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly int _chunkSizeMinus1;
 
         private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 4096)
@@ -391,5 +402,8 @@ namespace AmpScm.Buckets
         //
         //    return new FileBucket(fh);
         //}
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        string DebuggerDisplay => ((_size - _pos > 0) ? _buffer.AsMemory(_pos, _size - _pos) : new Memory<byte>()).AsDebuggerDisplay();
     }
 }

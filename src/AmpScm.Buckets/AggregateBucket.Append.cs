@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,17 +10,20 @@ namespace AmpScm.Buckets
 {
     public partial class AggregateBucket
     {
-        internal sealed class Simple : AggregateBucket, IBucketPoll
+        internal sealed class SimpleAggregate : AggregateBucket, IBucketPoll
         {
-            public Simple(params Bucket[] items)
+            public SimpleAggregate(params Bucket[] items)
                 : base(items)
             {
+                if (items.Any(x => x is SimpleAggregate))
+                    throw new InvalidOperationException();
             }
 
-            public Simple(bool keepOpen, params Bucket[] items)
+            public SimpleAggregate(bool keepOpen, params Bucket[] items)
                 : base(keepOpen, items)
             {
-
+                if (!keepOpen && items.Any(x => x is SimpleAggregate))
+                    throw new InvalidOperationException();
             }
 
             public async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
@@ -54,7 +58,48 @@ namespace AmpScm.Buckets
                     }
                 }
             }
+
+            internal Bucket[] GetBuckets()
+            {
+                if (_n > 0 || _buckets.Any(x => x is null))
+                    return _buckets.Skip(_n).Where(x => x is not null).ToArray()!;
+                else
+                    return _buckets!;
+            }
+
+            public new bool HasMoreClosers()
+            {
+                return base.HasMoreClosers();
+            }
+
+            internal void AppendRange(Bucket[] buckets, int start)
+            {
+                lock(LockOn)
+                {
+                    var newBuckets = new Bucket[_buckets.Length + buckets.Length - start];
+                    _buckets.CopyTo(newBuckets, 0);
+
+                    Array.Copy(buckets, start, newBuckets, _buckets.Length, buckets.Length-start);
+                    _buckets = newBuckets;
+                }
+            }
         }
+
+        #region DEBUG INFO
+        int BucketCount => _buckets.Length - _n;
+
+        private sealed class AggregateDebugProxy
+        {
+            readonly AggregateBucket _bucket;
+            public AggregateDebugProxy(AggregateBucket bucket)
+            {
+                _bucket = bucket;
+            }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+            public Bucket?[] Buckets => _bucket?._buckets?.Skip(_bucket._n)?.ToArray() ?? Array.Empty<Bucket>();
+        }
+        #endregion
 
     }
 }

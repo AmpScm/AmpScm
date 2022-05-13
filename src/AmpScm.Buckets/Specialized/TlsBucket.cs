@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
@@ -14,17 +15,30 @@ namespace AmpScm.Buckets.Specialized
 {
     public sealed class TlsBucket : WrappingBucket, IBucketWriter, IBucketWriterStats, IBucketPoll
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly byte[] _inputBuffer;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         BucketBytes _unread;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly SslStream _stream;
-        bool _writeEof, _readEof;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool _writeEof;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool _readEof;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         Task? _writing;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _authenticated;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly string _targetHost;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _bytesRead;
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         IBucketWriter InnerWriter { get; }
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int BufferSize { get; }
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         WaitForDataBucket WriteBucket { get; } = new WaitForDataBucket();
 
         public TlsBucket(Bucket reader, IBucketWriter writer, string targetHost, int bufferSize = 16384)
@@ -37,16 +51,15 @@ namespace AmpScm.Buckets.Specialized
             _targetHost = targetHost;
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void InnerDispose()
         {
             try
             {
-                if (disposing)
-                    _stream.Dispose();
+                _stream.Dispose();
             }
             finally
             {
-                base.Dispose(disposing);
+                base.InnerDispose();
             }
         }
 

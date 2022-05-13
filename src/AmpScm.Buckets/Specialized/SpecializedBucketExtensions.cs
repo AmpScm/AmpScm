@@ -129,7 +129,11 @@ namespace AmpScm.Buckets.Specialized
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            return new CreateHashBucket(bucket, CreateHashBucket.BytesRead.Create(), (v) => bytesRead(BitConverter.ToInt64(v, 0)));
+
+            var wp = bucket.WithPosition();
+            long initialPosition = wp.Position!.Value;
+
+            return wp.AtEof(() => bytesRead(wp.Position.Value - initialPosition));
         }
 
         /// <summary>

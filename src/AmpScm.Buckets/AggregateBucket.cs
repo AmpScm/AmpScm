@@ -9,6 +9,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets
 {
+    [DebuggerTypeProxy(typeof(AggregateDebugProxy))]
     [DebuggerDisplay("{Name,nq}: BucketCount={BucketCount}, Current={CurrentBucket,nq}, Position={Position}")]
     public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers, IBucketNoClose
     {
@@ -343,11 +344,7 @@ namespace AmpScm.Buckets
 
         protected bool HasMoreClosers()
         {
-            return _nDispose > 1;
+            return _nDispose > 1 || _keepOpen;
         }
-
-        #region DEBUG INFO
-        int BucketCount => _buckets.Length - _n;
-        #endregion
     }
 }

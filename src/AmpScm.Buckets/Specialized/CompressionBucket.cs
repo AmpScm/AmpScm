@@ -23,7 +23,7 @@ namespace AmpScm.Buckets.Specialized
 
             _writeCompression = !Processed.CanRead && Processed.CanWrite;
             if (_writeCompression)
-                _written = new AggregateBucket.Simple();
+                _written = new AggregateBucket.SimpleAggregate();
         }
 
         protected override void InnerDispose()

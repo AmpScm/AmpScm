@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
@@ -8,8 +9,11 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class CreateHashBucket : WrappingBucket, IBucketPoll
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         HashAlgorithm? _hasher;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         byte[]? _result;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         Action<byte[]>? _onResult;
 
         public CreateHashBucket(Bucket inner, HashAlgorithm hasher)
@@ -46,7 +50,16 @@ namespace AmpScm.Buckets.Specialized
                 _hasher.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
                 _result = _hasher.Hash;
                 if (_result != null)
-                    _onResult?.Invoke(_result);
+                {
+                    try
+                    {
+                        _onResult?.Invoke(_result);
+                    }
+                    finally
+                    {
+                        _onResult = null;
+                    }
+                }
             }
         }
 
@@ -80,17 +93,22 @@ namespace AmpScm.Buckets.Specialized
             _result = null;
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void InnerDispose()
         {
-            base.Dispose(disposing);
-
-            if (disposing && _hasher != null)
+            try
             {
-                if (_result == null && _onResult != null)
-                    FinishHashing();
+                if (_hasher != null)
+                {
+                    if (_result == null && _onResult != null)
+                        FinishHashing();
 
-                _hasher.Dispose();
+                    _hasher.Dispose();
+                }
+            }
+            finally
+            {
                 _hasher = null;
+                base.InnerDispose();
             }
         }
 
@@ -198,34 +216,6 @@ namespace AmpScm.Buckets.Specialized
             }
 
             public static new Crc32 Create() => new();
-        }
-
-        internal sealed class BytesRead : HashAlgorithm
-        {
-            long _len;
-
-            public BytesRead()
-            {
-            }
-
-            public override void Initialize()
-            {
-                _len = 0;
-            }
-
-            protected override void HashCore(byte[] array, int ibStart, int cbSize)
-            {
-                _len += cbSize;
-            }
-
-            protected override byte[] HashFinal()
-            {
-                return BitConverter.GetBytes(_len);
-            }
-
-            public override int HashSize => sizeof(long) * 8;
-
-            public static new BytesRead Create() => new();
         }
     }
 }

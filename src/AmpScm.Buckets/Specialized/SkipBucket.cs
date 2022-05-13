@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
@@ -6,7 +7,11 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class SkipBucket : PositionBucket, IBucketSkip
     {
-        bool _ensure, _skipped;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool _ensure;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool _skipped;
+
         public long FirstPosition { get; private set; }
 
         public SkipBucket(Bucket inner, long firstPosition, bool ensure) : base(inner)

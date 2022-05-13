@@ -1,70 +1,75 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets
 {
+    [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Next={{{nameof(DebuggerDisplay)},nq}}")]
     public sealed class MemoryBucket : Bucket, IBucketNoClose, IBucketReadBuffers
     {
-        readonly BucketBytes _data;
-        int _offset;
+        internal BucketBytes Data { get; }
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        internal int Offset { get; private set; }
 
         public MemoryBucket(byte[] data)
         {
-            _data = data ?? Array.Empty<byte>();
+            Data = data ?? Array.Empty<byte>();
         }
 
         public MemoryBucket(byte[] data, int start, int length)
         {
-            _data = new ReadOnlyMemory<byte>(data, start, length);
+            Data = new ReadOnlyMemory<byte>(data, start, length);
         }
 
         public MemoryBucket(ReadOnlyMemory<byte> data)
         {
-            _data = data;
+            Data = data;
         }
 
         public override BucketBytes Peek()
         {
-            return _data.Slice(_offset);
+            return Data.Slice(Offset);
         }
 
         public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
-            int canRead = Math.Min(requested, _data.Length - _offset);
+            int canRead = Math.Min(requested, Data.Length - Offset);
 
             if (canRead == 0 && requested > 0)
                 return BucketBytes.Eof;
 
-            var r = _data.Slice(_offset, canRead);
-            _offset += r.Length;
+            var r = Data.Slice(Offset, canRead);
+            Offset += r.Length;
 
             return r;
         }
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
-            return new ValueTask<long?>(_data.Length - _offset);
+            return new ValueTask<long?>(Data.Length - Offset);
         }
 
         public override Bucket Duplicate(bool reset = false)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var mb = new MemoryBucket(_data.Memory);
+            var mb = new MemoryBucket(Data.Memory);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             if (!reset)
-                mb._offset = _offset;
+                mb.Offset = Offset;
 
             return mb;
         }
 
-        public override long? Position => _offset;
+        public override long? Position => Offset;
 
         public override bool CanReset => true;
 
         public override void Reset()
         {
-            _offset = 0;
+            Offset = 0;
         }
 
 #pragma warning disable CA1033 // Interface methods should be callable by child types
@@ -85,25 +90,25 @@ namespace AmpScm.Buckets
 #pragma warning restore CA1033 // Interface methods should be callable by child types
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
-            if (maxRequested >= _data.Length - _offset)
+            if (maxRequested >= Data.Length - Offset)
             {
-                ReadOnlyMemory<byte>[] r = new[] { _data.Memory.Slice(_offset, _data.Length - _offset) };
+                ReadOnlyMemory<byte>[] r = new[] { Data.Memory.Slice(Offset, Data.Length - Offset) };
 
-                _offset = _data.Length;
+                Offset = Data.Length;
 
                 return (r, true);
             }
             else
             {
-                ReadOnlyMemory<byte>[] r = new[] { _data.Memory.Slice(_offset, maxRequested) };
+                ReadOnlyMemory<byte>[] r = new[] { Data.Memory.Slice(Offset, maxRequested) };
 
-                _offset += maxRequested;
+                Offset += maxRequested;
 
                 return (r, false);
             }
         }
 
-        internal BucketBytes Data => _data;
-        internal int Offset => _offset;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        string DebuggerDisplay => Data.Slice(Offset).AsDebuggerDisplay();
     }
 }

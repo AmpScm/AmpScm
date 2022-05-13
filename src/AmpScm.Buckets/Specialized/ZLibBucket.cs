@@ -7,6 +7,7 @@ using Elskom.Generic.Libs;
 
 namespace AmpScm.Buckets.Specialized
 {
+    [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Peek={{{nameof(DebuggerDisplay)},nq}}")]
     public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -367,5 +368,8 @@ namespace AmpScm.Buckets.Specialized
 
             return new ZLibBucket(b, _algorithm, (_level is null) ? CompressionMode.Decompress : CompressionMode.Compress);
         }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        string DebuggerDisplay => read_buffer.AsDebuggerDisplay();
     }
 }

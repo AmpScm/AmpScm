@@ -681,7 +681,7 @@ namespace GitRepositoryTests
             // CRC32 values of packed data
             index += hashes.Values.Select(x => NetBitConverter.GetBytes(x.Item2)).ToArray().AsBucket();
             // File offsets
-            index += new AggregateBucket(hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x.Item1).AsBucket()).ToArray());
+            index += hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x.Item1).AsBucket()).ToArray();
 
             index += fileChecksum.AsBucket();
 

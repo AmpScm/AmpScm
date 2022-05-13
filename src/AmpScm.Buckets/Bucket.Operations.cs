@@ -55,7 +55,19 @@ namespace AmpScm.Buckets
             else if (buckets.Length == 1)
                 return buckets[0];
 
-            return new AggregateBucket.Simple(buckets);
+            if (buckets[0] is AggregateBucket.SimpleAggregate s && !s.HasMoreClosers())
+            {
+                if (buckets[1] is AggregateBucket.SimpleAggregate s2 && !s2.HasMoreClosers())
+                {
+                    s.AppendRange(s2.GetBuckets(), 0);
+                    if (buckets.Length > 2)
+                        s.AppendRange(buckets, 2);
+                }
+                else
+                    s.AppendRange(buckets, 1);
+                return s;
+            }
+            return new AggregateBucket.SimpleAggregate(buckets);
         }
 
         /// <summary>
