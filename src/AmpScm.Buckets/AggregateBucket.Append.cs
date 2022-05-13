@@ -40,22 +40,7 @@ namespace AmpScm.Buckets
                     else
                         return BucketBytes.Eof;
 
-
-                    lock (LockOn)
-                    {
-                        if (!_keepOpen)
-                        {
-                            try
-                            {
-                                _buckets[_n]?.Dispose();
-                            }
-                            finally
-                            {
-                                _buckets[_n] = null;
-                            }
-                        }
-                        _n++;
-                    }
+                    MoveNext();
                 }
             }
 
@@ -71,17 +56,22 @@ namespace AmpScm.Buckets
             {
                 return base.HasMoreClosers();
             }
+        }
 
-            internal void AppendRange(Bucket[] buckets, int start)
+        internal void AppendRange(Bucket[] buckets, int start)
+        {
+            if (buckets is null)
+                throw new ArgumentNullException(nameof(buckets));
+            else if (start >= buckets.Length)
+                return;
+
+            lock (LockOn)
             {
-                lock(LockOn)
-                {
-                    var newBuckets = new Bucket[_buckets.Length + buckets.Length - start];
-                    _buckets.CopyTo(newBuckets, 0);
+                var newBuckets = new Bucket[_buckets.Length + buckets!.Length - start];
+                _buckets.CopyTo(newBuckets, 0);
 
-                    Array.Copy(buckets, start, newBuckets, _buckets.Length, buckets.Length-start);
-                    _buckets = newBuckets;
-                }
+                Array.Copy(buckets, start, newBuckets, _buckets.Length, buckets.Length - start);
+                _buckets = newBuckets;
             }
         }
 

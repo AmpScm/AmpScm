@@ -10,7 +10,7 @@ using AmpScm.Buckets.Specialized;
 namespace AmpScm.Buckets
 {
     [DebuggerTypeProxy(typeof(AggregateDebugProxy))]
-    [DebuggerDisplay("{Name,nq}: BucketCount={BucketCount}, Current={CurrentBucket,nq}, Position={Position}")]
+    [DebuggerDisplay($"{{{nameof(Name)},nq}}: {{{nameof(BucketCount)}}} Buckets, Current={{{nameof(CurrentBucket)},nq}}")]
     public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers, IBucketNoClose
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

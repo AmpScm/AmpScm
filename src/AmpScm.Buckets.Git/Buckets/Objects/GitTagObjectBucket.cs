@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,10 +12,15 @@ namespace AmpScm.Buckets.Git.Objects
 {
     public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitId? _objectId;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitObjectType _type;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _tagName;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitSignatureRecord? _author;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _readHeaders;
 
         public GitTagObjectBucket(Bucket inner)

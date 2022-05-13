@@ -129,10 +129,10 @@ namespace AmpScm.Buckets.Client
 
             if (!Headers.Contains(HttpRequestHeader.AcceptEncoding))
             {
-#if NETFRAMEWORK
-                bucket += enc.GetBytes("Accept-Encoding: gzip, deflate\r\n").AsBucket();
+#if !NETFRAMEWORK
+                bucket += Bucket.Create.FromUTF8("Accept-Encoding: gzip, deflate, br\r\n");
 #else
-                bucket += enc.GetBytes("Accept-Encoding: gzip, deflate, br\r\n").AsBucket();
+                bucket += Bucket.Create.FromUTF8("Accept-Encoding: gzip, deflate\r\n");
 #endif
             }
 

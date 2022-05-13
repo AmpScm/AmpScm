@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,10 +12,15 @@ namespace AmpScm.Buckets.Git.Objects
 {
     public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitId? _treeId;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         IReadOnlyCollection<GitId>? _parents;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitSignatureRecord? _author;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitSignatureRecord? _committer;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _readHeaders;
 
         public GitCommitObjectBucket(Bucket inner)

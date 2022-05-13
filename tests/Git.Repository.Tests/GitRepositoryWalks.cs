@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AmpScm;
 using AmpScm.Buckets.Git.Objects;
+using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;
@@ -291,9 +292,11 @@ namespace GitRepositoryTests
                         break;
                     case GitTreeElementType.SymbolicLink:
 
-                        using (var sr = new StreamReader(((GitBlob)item.GitObject).AsStream()))
+                        using (var b = ((GitBlob)item.GitObject).AsBucket())
                         {
-                            var target = sr.ReadToEnd();
+                            var bb = await b.ReadFullAsync(1024);
+
+                            var target = bb.ToUTF8String();
 
                             Assert.IsTrue(tree.AllItems.TryGet(target, out _), $"Can find {target}");
                         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,7 +28,9 @@ namespace AmpScm.Buckets.Git.Objects
 
     public sealed class GitTreeObjectBucket : GitBucket
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly GitIdType _idType;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _checkedType;
 
         public GitTreeObjectBucket(Bucket inner, GitIdType idType) : base(inner)

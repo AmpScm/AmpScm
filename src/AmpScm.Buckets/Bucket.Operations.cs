@@ -55,16 +55,19 @@ namespace AmpScm.Buckets
             else if (buckets.Length == 1)
                 return buckets[0];
 
+            // HasMoreClosers() handles the keepOpen case for us.
             if (buckets[0] is AggregateBucket.SimpleAggregate s && !s.HasMoreClosers())
             {
-                if (buckets[1] is AggregateBucket.SimpleAggregate s2 && !s2.HasMoreClosers())
+                int n = 1;
+                while (n < buckets.Length && buckets[n] is AggregateBucket.SimpleAggregate s2 && !s2.HasMoreClosers())
                 {
                     s.AppendRange(s2.GetBuckets(), 0);
-                    if (buckets.Length > 2)
-                        s.AppendRange(buckets, 2);
+                    n++;
                 }
-                else
-                    s.AppendRange(buckets, 1);
+
+                if (n < buckets.Length)
+                    s.AppendRange(buckets, n);
+
                 return s;
             }
             return new AggregateBucket.SimpleAggregate(buckets);
