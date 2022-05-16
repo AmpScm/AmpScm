@@ -85,7 +85,7 @@ namespace AmpScm.Buckets.Specialized
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            return new CreateHashBucket(bucket, CreateHashBucket.Crc32.Create(), (v) => created(NetBitConverter.ToInt32(v, 0)));
+            return new CreateHashBucket(bucket, CreateHashBucket.Crc32.Create(), (v) => created(BitConverter.ToInt32(v, 0)));
         }
 
         /// <summary>
@@ -235,7 +235,19 @@ namespace AmpScm.Buckets.Specialized
             else if (encoding is null)
                 throw new ArgumentNullException(nameof(encoding));
 
-            return new TextEncodingToUtf8Bucket(bucket, encoding);
+            return new TextRecoderBucket(bucket, encoding);
+        }
+
+        public static Bucket TextUpdateEncoding(this Bucket bucket, Encoding sourceEncoding, Encoding targetEncoding)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (sourceEncoding is null)
+                throw new ArgumentNullException(nameof(sourceEncoding));
+            else if (targetEncoding is null)
+                throw new ArgumentNullException(nameof(targetEncoding));
+
+            return new TextRecoderBucket(bucket, sourceEncoding, targetEncoding);
         }
 
 

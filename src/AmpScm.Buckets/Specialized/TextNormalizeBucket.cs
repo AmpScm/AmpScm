@@ -92,7 +92,7 @@ namespace AmpScm.Buckets.Specialized
 
                             case (0xFF, 0xFE):
                             case (0xFE, 0xFF):
-                                _inner = new TextEncodingToUtf8Bucket(Inner,
+                                _inner = new TextRecoderBucket(Inner,
                                     bb[0] == 0xFF ? Encoding.Unicode : Encoding.BigEndianUnicode);
 
                                 bb = await Inner.ReadAsync(2).ConfigureAwait(false);
@@ -164,14 +164,14 @@ namespace AmpScm.Buckets.Specialized
                         else if (maybeUnicode > 2 && maybeUnicode > bb.Length / 8)
                         {
                             _state = State.Done;
-                            _inner = new TextEncodingToUtf8Bucket(Inner,
+                            _inner = new TextRecoderBucket(Inner,
                                     odd >= Math.Max(2, (maybeUnicode / 4)) ? Encoding.Unicode : Encoding.BigEndianUnicode);
                             goto case State.Done;
                         }
                         else if (maybeUtf8 < 0)
                         {
                             _state = State.Done;
-                            _inner = new TextEncodingToUtf8Bucket(Inner, _default);
+                            _inner = new TextRecoderBucket(Inner, _default);
                             goto case State.Done;
                         }
                     }
@@ -241,7 +241,7 @@ namespace AmpScm.Buckets.Specialized
                                 // We don't have UTF-8
                                 _position = 0;
                                 _state = State.Done;
-                                _inner = new TextEncodingToUtf8Bucket(new byte[] { 0xEF }.AsBucket() + bb2.ToArray().AsBucket() + Inner, _default);
+                                _inner = new TextRecoderBucket(new byte[] { 0xEF }.AsBucket() + bb2.ToArray().AsBucket() + Inner, _default);
                                 goto case State.Done;
                             }
                             else if (bb2.IsEof)
@@ -283,7 +283,7 @@ namespace AmpScm.Buckets.Specialized
                         else
                             bck = Inner;
 
-                        _inner = new TextEncodingToUtf8Bucket(bck,
+                        _inner = new TextRecoderBucket(bck,
                                 bb[0] == 0xFF ? Encoding.Unicode : Encoding.BigEndianUnicode);
                         _state = State.Done;
 
@@ -298,7 +298,7 @@ namespace AmpScm.Buckets.Specialized
 
                         if (bb.Length == 1 && (bb[0] == 0xFF || bb[0] == 0xFE) && bb[0] != b0)
                         {
-                            _inner = new TextEncodingToUtf8Bucket(Inner,
+                            _inner = new TextRecoderBucket(Inner,
                                 b0 == 0xFF ? Encoding.Unicode : Encoding.BigEndianUnicode);
                             _state = State.Done;
                             goto case State.Done;
@@ -384,7 +384,7 @@ namespace AmpScm.Buckets.Specialized
                 else if (maybeUtf8 < 0)
                 {
                     _position -= bb.Length;
-                    _inner = new TextEncodingToUtf8Bucket(bb.ToArray().AsBucket() + _inner, _default);
+                    _inner = new TextRecoderBucket(bb.ToArray().AsBucket() + _inner, _default);
                     bb = await _inner.ReadAsync(requested).ConfigureAwait(false);
                     _position += bb.Length;
                 }

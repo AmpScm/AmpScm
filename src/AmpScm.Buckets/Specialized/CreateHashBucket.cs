@@ -130,6 +130,41 @@ namespace AmpScm.Buckets.Specialized
         /// </remarks>
         internal sealed class Crc32 : HashAlgorithm
         {
+#if NET6_0_OR_GREATER
+            readonly System.IO.Hashing.Crc32 _crc = new();
+            byte[] _hash = default!;
+
+            public override void Initialize()
+            {
+                //throw new NotImplementedException();
+            }
+
+            public override bool CanReuseTransform => true;
+
+            public override bool CanTransformMultipleBlocks => true;
+
+            public override byte[]? Hash => _hash;
+
+            protected override void HashCore(byte[] array, int ibStart, int cbSize)
+            {
+                _crc.Append(array.AsSpan(ibStart, cbSize));
+            }
+
+            protected override byte[] HashFinal()
+            {
+                byte[] result = new byte[_crc.HashLengthInBytes];
+
+                if (_crc.TryGetHashAndReset(result, out var bw))
+                {
+                    return _hash = result;
+                }
+
+                throw new InvalidOperationException();
+            }
+
+            public override int HashSize => _crc.HashLengthInBytes * 8;
+#else
+
             public const uint DefaultPolynomial = 0xedb88320u;
             public const uint DefaultSeed = 0xffffffffu;
 
@@ -162,7 +197,7 @@ namespace AmpScm.Buckets.Specialized
 
             protected override byte[] HashFinal()
             {
-                var hashBuffer = NetBitConverter.GetBytes(~hash);
+                var hashBuffer = BitConverter.GetBytes(~hash);
                 HashValue = hashBuffer;
                 return hashBuffer;
             }
@@ -214,6 +249,7 @@ namespace AmpScm.Buckets.Specialized
                     hash = (hash >> 8) ^ table[buffer[i] ^ hash & 0xff];
                 return hash;
             }
+#endif
 
             public static new Crc32 Create() => new();
         }

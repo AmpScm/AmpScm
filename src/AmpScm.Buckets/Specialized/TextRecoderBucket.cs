@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal class TextEncodingToUtf8Bucket : WrappingBucket
+    internal class TextRecoderBucket : WrappingBucket
     {
         readonly char[] _charBuffer;
         byte[] _utfBuffer;
         byte[]? _toConvert;
         BucketBytes _remaining;
-        Encoding _encoding;
+        Encoding _sourceEncoding;
+        Encoding _targetEncoding;
         Decoder _decoder;
         Encoder _encoder;
         bool _by2;
@@ -20,19 +21,20 @@ namespace AmpScm.Buckets.Specialized
         long _position;
         bool _preampbleScanned;
 
-        public TextEncodingToUtf8Bucket(Bucket inner, Encoding encoding) : base(inner)
+        public TextRecoderBucket(Bucket inner, Encoding fromEncoding, Encoding? toEncoding=null) : base(inner)
         {
-            if (encoding == null)
-                throw new ArgumentNullException(nameof(encoding));
-            _encoding = encoding;
-            _decoder = encoding.GetDecoder();
-            _encoder = Encoding.UTF8.GetEncoder();
+            if (fromEncoding == null)
+                throw new ArgumentNullException(nameof(fromEncoding));
+            _sourceEncoding = fromEncoding;
+            _targetEncoding = toEncoding ?? Encoding.UTF8;
+            _decoder = fromEncoding.GetDecoder();
+            _encoder = _targetEncoding.GetEncoder();
             _charBuffer = new char[1024];
             _utfBuffer = new byte[1024];
-            _by2 = encoding is UnicodeEncoding;
+            _by2 = fromEncoding is UnicodeEncoding;
         }
 
-        public override string Name => "ToUtf8[" + _encoding.WebName + "]>" + Inner.Name;
+        public override string Name => "ToUtf8[" + _sourceEncoding.WebName + "]>" + Inner.Name;
 
         public override long? Position => _position;
 
@@ -51,7 +53,7 @@ namespace AmpScm.Buckets.Specialized
                     if (bb.IsEof)
                         return bb;
 
-                    if (_position == 0 && !_preampbleScanned && _encoding.GetPreamble() is byte[] preample && preample.Length > 0)
+                    if (_position == 0 && !_preampbleScanned && _sourceEncoding.GetPreamble() is byte[] preample && preample.Length > 0)
                     {
                         _preampbleScanned = true;
 
@@ -146,6 +148,13 @@ namespace AmpScm.Buckets.Specialized
 
             _position = 0;
             _remaining = BucketBytes.Empty;
+        }
+
+        public override Bucket Duplicate(bool reset = false)
+        {
+            var wrapped = Inner.Duplicate(reset);
+
+            return new TextRecoderBucket(wrapped, _sourceEncoding, _targetEncoding);
         }
     }
 }

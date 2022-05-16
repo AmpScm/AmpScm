@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
+using System.IO.Hashing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -32,6 +31,7 @@ namespace BucketTests
 #endif
                 ("Chunk", b => b.HttpChunk(), b => b.HttpDechunk()),
                 ("AsStream", b => b.AsStream().AsBucket(), b => b.AsStream().AsBucket()),
+                ("Utf16-Utf8", b=> b.TextUpdateEncoding(Encoding.UTF8, Encoding.UTF32), b=> b.TextUpdateEncoding(Encoding.UTF32, Encoding.UTF8)),
             }.Select(x => new object[] { x.Item1, x.Item2, x.Item3 });
 
         public static string ConvertDisplayName(MethodInfo method, object[] args)
@@ -213,6 +213,26 @@ namespace BucketTests
         //    }
         //
         //}
+
+        [TestMethod]
+        public async Task CRC32Tests()
+        {
+            string srcText = "Deze banaan wil graag een CRCtje!";
+
+            int hash = 0;
+
+            await Bucket.Create.FromUTF8(srcText).Crc32(x => hash = x).ReadUntilEofAsync();
+
+            Crc32 crc32 = new Crc32();
+
+            crc32.Append(Encoding.UTF8.GetBytes(srcText));
+
+            var d2 = crc32.GetHashAndReset();
+
+            var hash2 = BitConverter.ToInt32(d2, 0);
+
+            Assert.AreEqual(hash, hash2);
+        }
 
     }
 }
