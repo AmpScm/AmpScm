@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Specialized
         bool _waitingForMore;
         bool _readEof;
         TaskCompletionSource<bool>? _waiter;
-        readonly LeaveLock _l = new();
+        readonly object _l = new();
 
         public WaitForDataBucket()
             : base(new AggregateBucket())
@@ -39,34 +39,37 @@ namespace AmpScm.Buckets.Specialized
 
         public void Append(Bucket bucket)
         {
-            using var m = MeLock();
+            lock (_l)
+            {
 
-            var b = Aggregation.Append(bucket);
+                var b = Aggregation.Append(bucket);
 
-            Debug.Assert(b == Aggregation);
+                Debug.Assert(b == Aggregation);
 
-            _waiter?.TrySetResult(true);
+                _waiter?.TrySetResult(true);
+            }
         }
 
         public void Prepend(Bucket bucket)
         {
-            using var m = MeLock();
+            lock (_l)
+            {
 
-            var b = Aggregation.Prepend(bucket);
+                var b = Aggregation.Prepend(bucket);
 
-            Debug.Assert(b == Aggregation);
+                Debug.Assert(b == Aggregation);
 
-            _waiter?.TrySetResult(true);
+                _waiter?.TrySetResult(true);
+            }
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
             while (true)
             {
-                using (MeLock())
+                var bb = await Aggregation.ReadCombinedAsync(4096).ConfigureAwait(false);
+                lock (_l)
                 {
-                    var bb = await Aggregation.ReadCombinedAsync(4096).ConfigureAwait(false);
-
                     if (!bb.IsEof)
                         return bb;
                     else if (_readEof)
@@ -84,7 +87,7 @@ namespace AmpScm.Buckets.Specialized
                 }
                 await _waiter!.Task.ConfigureAwait(false);
 
-                using (MeLock())
+                lock(_l)
                 {
                     _waitingForMore = false;
                     _waiter = null;
@@ -101,21 +104,6 @@ namespace AmpScm.Buckets.Specialized
         {
             _readEof = true;
             return default;
-        }
-
-        LeaveLock MeLock()
-        {
-            Monitor.Enter(_l);
-
-            return _l;
-        }
-
-        sealed class LeaveLock : IDisposable
-        {
-            public void Dispose()
-            {
-                Monitor.Exit(this);
-            }
         }
     }
 }
