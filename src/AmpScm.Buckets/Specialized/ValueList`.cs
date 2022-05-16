@@ -40,10 +40,10 @@ namespace AmpScm.Buckets.Specialized
             }
             else
             {
-                var newArr = new T?[Math.Max(Count + Count / 2, Count + 4)];
+                var newArr = new T?[Math.Max(Count + Count / 2, Count + 8)];
                 if (Count > 0)
-                    Array.Copy(_items, _start, newArr, 0, Count);
-                _start = 0;
+                    Array.Copy(_items, _start, newArr, 4, Count);
+                _start = 4;
                 newArr[_start + Count++] = item;
                 _items = newArr;
             }
@@ -64,7 +64,8 @@ namespace AmpScm.Buckets.Specialized
             }
             else
             {
-                var newArr = new T?[Math.Min(((Count + items.Length) * 3) / 2, Count + items.Length + 4)];
+                int c = _items.Length + items.Length;
+                var newArr = new T?[Math.Min((c * 3) / 2, c + 8)];
 
                 Array.Copy(_items, _start, newArr, 0, Count);
                 Array.Copy(items, 0 + skip, newArr, Count - skip, items.Length);
@@ -100,13 +101,12 @@ namespace AmpScm.Buckets.Specialized
             }
             else
             {
-                var newArr = new T?[Math.Max(Count + Count / 2, Count + 4)];
+                var newArr = new T?[Math.Max(_items.Length + _items.Length / 2, _items.Length + 8)];
 
                 if (index == 0)
                 {
-                    Array.Copy(_items, _start, newArr, 2, Count);
-                    _start = 1;
-                    newArr[1] = item;
+                    Array.Copy(_items, _start, newArr, 4, Count);
+                    newArr[_start = 3] = item;
                 }
                 else
                 {
