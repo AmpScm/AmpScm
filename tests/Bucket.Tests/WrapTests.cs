@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Hashing;
 using System.Linq;
 using System.Reflection;
@@ -31,7 +32,7 @@ namespace BucketTests
 #endif
                 ("Chunk", b => b.HttpChunk(), b => b.HttpDechunk()),
                 ("AsStream", b => b.AsStream().AsBucket(), b => b.AsStream().AsBucket()),
-                ("Utf16-Utf8", b=> b.TextUpdateEncoding(Encoding.UTF8, Encoding.UTF32), b=> b.TextUpdateEncoding(Encoding.UTF32, Encoding.UTF8)),
+                ("Utf16-Utf8", b => b.TextRecode(Encoding.UTF8, Encoding.UTF32),  b=> b.TextRecode(Encoding.UTF32, Encoding.UTF8)),
             }.Select(x => new object[] { x.Item1, x.Item2, x.Item3 });
 
         public static string ConvertDisplayName(MethodInfo method, object[] args)

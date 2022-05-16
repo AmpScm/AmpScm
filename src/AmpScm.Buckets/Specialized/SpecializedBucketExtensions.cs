@@ -238,7 +238,7 @@ namespace AmpScm.Buckets.Specialized
             return new TextRecoderBucket(bucket, encoding);
         }
 
-        public static Bucket TextUpdateEncoding(this Bucket bucket, Encoding sourceEncoding, Encoding targetEncoding)
+        public static Bucket TextRecode(this Bucket bucket, Encoding sourceEncoding, Encoding targetEncoding)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
