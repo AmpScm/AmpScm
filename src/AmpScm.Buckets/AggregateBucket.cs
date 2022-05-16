@@ -14,7 +14,8 @@ namespace AmpScm.Buckets
     public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers, IBucketNoClose
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        Bucket?[] _buckets;
+        ValueList<Bucket> _buckets;
+
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _n;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -28,8 +29,12 @@ namespace AmpScm.Buckets
 
         public AggregateBucket(params Bucket[] items)
         {
-            _buckets = items ?? Array.Empty<Bucket>();
+            if (items is null)
+                throw new ArgumentNullException(nameof(items));
+
+            _buckets = new();
             _nDispose = 1;
+            _buckets.AddRange(items);
         }
 
         public AggregateBucket(bool keepOpen, params Bucket[] items)
@@ -45,24 +50,7 @@ namespace AmpScm.Buckets
 
             lock (LockOn)
             {
-                if (_n >= _buckets.Length && !_keepOpen)
-                {
-                    _buckets = new[] { bucket };
-                    _n = 0;
-                }
-                else if (_keepOpen || _n == 0)
-                    _buckets = _buckets.ArrayAppend(bucket);
-                else
-                {
-                    int nShrink = _n;
-
-                    var newBuckets = new Bucket[_buckets.Length - nShrink + 1];
-                    if (_buckets.Length > nShrink)
-                        Array.Copy(_buckets, _n, newBuckets, 0, _buckets.Length - nShrink);
-                    _buckets = newBuckets;
-                    newBuckets[newBuckets.Length - 1] = bucket;
-                    _n -= nShrink;
-                }
+                _buckets.Add(bucket);
             }
 
             return this;
@@ -73,16 +61,13 @@ namespace AmpScm.Buckets
             if (bucket is null || bucket is EmptyBucket)
                 return this;
 
-            if (!_keepOpen && _n > 0)
-                _buckets[--_n] = bucket;
-            else if (_n > 0)
-                throw new InvalidOperationException();
-            {
-                var newBuckets = new Bucket[_buckets.Length + 1];
-                Array.Copy(_buckets, _n, newBuckets, 1, _buckets.Length);
-                newBuckets[0] = bucket;
-                _buckets = newBuckets;
-            }
+            if (_keepOpen)
+                return new SimpleAggregate(bucket, this);
+            else
+                lock(LockOn)
+                {
+                    _buckets.Insert(0, bucket);
+                }
             return this;
         }
 
@@ -93,8 +78,8 @@ namespace AmpScm.Buckets
             if (!_keepOpen)
                 throw new InvalidOperationException();
 
-            if (_n >= _buckets.Length)
-                _n = _buckets.Length - 1;
+            if (_n >= _buckets.Count)
+                _n = _buckets.Count - 1;
 
             while (_n >= 0)
             {
@@ -111,7 +96,7 @@ namespace AmpScm.Buckets
             {
                 lock (LockOn)
                 {
-                    if (_n < _buckets.Length)
+                    if (_n < _buckets.Count)
                         return _buckets[_n];
                     else
                         return null;
@@ -121,6 +106,20 @@ namespace AmpScm.Buckets
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
         {
+            if (!_keepOpen && _n > 0)
+            {
+                lock (LockOn)
+                {
+                    while (_n > 0)
+                    {
+                        var del = _buckets[0];
+                        _buckets.RemoveAt(0);
+                        _n--;
+                        del?.Dispose();
+                    }
+                }
+            }
+
             while (CurrentBucket is Bucket cur)
             {
                 var r = await cur.ReadAsync(requested).ConfigureAwait(false);
@@ -139,7 +138,6 @@ namespace AmpScm.Buckets
             }
             if (!_keepOpen)
             {
-                _buckets = Array.Empty<Bucket>();
                 _n = 0;
             }
             return BucketBytes.Eof;
@@ -156,7 +154,7 @@ namespace AmpScm.Buckets
                     return;
 
                 if (!_keepOpen && close)
-                    _buckets[_n] = null;
+                    _buckets.RemoveAt(_n--);
                 else
                     del = null;
 
@@ -176,7 +174,7 @@ namespace AmpScm.Buckets
             int n = _n;
             long remaining = 0;
 
-            while (n < _buckets.Length)
+            while (n < _buckets.Count)
             {
                 var r = await _buckets[n]!.ReadRemainingBytesAsync().ConfigureAwait(false);
 
@@ -203,21 +201,7 @@ namespace AmpScm.Buckets
                 else
                     return BucketBytes.Eof;
 
-                lock (LockOn)
-                {
-                    if (!_keepOpen)
-                    {
-                        try
-                        {
-                            _buckets[_n]?.Dispose();
-                        }
-                        finally
-                        {
-                            _buckets[_n] = null;
-                        }
-                    }
-                    _n++;
-                }
+                MoveNext(true);
             }
         }
 
@@ -255,13 +239,11 @@ namespace AmpScm.Buckets
 
         protected virtual void InnerDispose()
         {
-            for (int i = 0; i < _buckets.Length; i++)
+            for (int i = _buckets.Count-1; i >= 0; i--)
             {
                 _buckets[i]?.Dispose();
-                _buckets[i] = null;
+                _buckets.RemoveAt(i);
             }
-
-            _buckets = Array.Empty<Bucket>();
             _n = 0;
         }
 
@@ -295,14 +277,15 @@ namespace AmpScm.Buckets
             IEnumerable<ReadOnlyMemory<byte>>? result = Enumerable.Empty<ReadOnlyMemory<byte>>();
 
             if (!_keepOpen)
-
-                for (int i = _n - 1; i >= 0 && _buckets[i] != null; i--)
+            {
+                while (_n > 0)
                 {
-                    var del = _buckets[i]!;
-                    _buckets[i] = null;
-
-                    del.Dispose();
+                    var del = _buckets[0];
+                    _buckets.RemoveAt(0);
+                    _n--;
+                    del?.Dispose();
                 }
+            }
 
             while (CurrentBucket is IBucketReadBuffers iov)
             {

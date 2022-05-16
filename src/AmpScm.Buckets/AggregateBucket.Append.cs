@@ -49,7 +49,7 @@ namespace AmpScm.Buckets
                 if (_n > 0 || _buckets.Any(x => x is null))
                     return _buckets.Skip(_n).Where(x => x is not null).ToArray()!;
                 else
-                    return _buckets!;
+                    return _buckets.ToArray()!;
             }
 
             public new bool HasMoreClosers()
@@ -67,16 +67,12 @@ namespace AmpScm.Buckets
 
             lock (LockOn)
             {
-                var newBuckets = new Bucket[_buckets.Length + buckets!.Length - start];
-                _buckets.CopyTo(newBuckets, 0);
-
-                Array.Copy(buckets, start, newBuckets, _buckets.Length, buckets.Length - start);
-                _buckets = newBuckets;
+                _buckets.AddRange(buckets, start);
             }
         }
 
         #region DEBUG INFO
-        int BucketCount => _buckets.Length - _n;
+        int BucketCount => _buckets.Count - _n;
 
         private sealed class AggregateDebugProxy
         {
@@ -87,7 +83,7 @@ namespace AmpScm.Buckets
             }
 
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-            public Bucket?[] Buckets => _bucket?._buckets?.Skip(_bucket._n)?.ToArray() ?? Array.Empty<Bucket>();
+            public Bucket?[] Buckets => _bucket?._buckets.Skip(_bucket._n).ToArray() ?? Array.Empty<Bucket>();
         }
         #endregion
 
