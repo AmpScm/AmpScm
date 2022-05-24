@@ -168,9 +168,14 @@ namespace AmpScm.Git.Objects
             uint first = (id[0] == 0) ? 0 : FanOut[id[0] - 1];
             uint count = FanOut[id[0]];
 
+            if (count == 0)
+            {
+                return (false, 0);
+            }
+
             uint c = count;
 
-            while (first < c - 1)
+            while (first + 1 < c)
             {
                 uint mid = (first + c) / 2;
 

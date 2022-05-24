@@ -218,21 +218,26 @@ namespace AmpScm.Buckets
                         waitHandler.ReleaseOne();
                         return new ValueTask<int>((int)read); // Done reading
                     }
-                    else if (Marshal.GetLastWin32Error() == 997 /* Pending IO */)
-                    {
-                        if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, false))
-                        {
-                            // Typical all-data cached in filecache case on Windows 10/11 2022-04
-                            return new ValueTask<int>((int)bytes); // Return succes. Task will release lpOverlapped
-                        }
-                        else
-                            return new ValueTask<int>(tcs.Task); // Wait for task
-                    }
                     else
                     {
-                        waitHandler.ReleaseOne();
+                        int err = Marshal.GetLastWin32Error();
 
-                        throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()) ?? new BucketException("ReadFileEx failed");
+                        if (err == 997 /* Pending IO */)
+                        {
+                            if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, false))
+                            {
+                                // Typical all-data cached in filecache case on Windows 10/11 2022-04
+                                return new ValueTask<int>((int)bytes); // Return succes. Task will release lpOverlapped
+                            }
+                            else
+                                return new ValueTask<int>(tcs.Task); // Wait for task
+                        }
+                        else
+                        {
+                            waitHandler.ReleaseOne();
+
+                            throw new BucketException($"ReadFile failed on {Path}, error={err}", Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()));
+                        }
                     }
                 }
             }

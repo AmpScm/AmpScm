@@ -16,6 +16,10 @@ namespace AmpScm.Git.Client.Plumbing
         public bool WriteMultiPack { get; set; }
         public int? GeometricFactor { get; set; }
 
+        public int? Window { get; set; }
+        public int? Depth { get; set; }
+        public int? Threads { get; set; }
+
         public override void Verify()
         {
             //throw new NotImplementedException();
@@ -50,6 +54,13 @@ namespace AmpScm.Git.Client.Plumbing
                 args.Add("--write-midx");
             if (options.GeometricFactor.HasValue)
                 args.Add($"--geometric={options.GeometricFactor.Value}");
+
+            if (options.Window.HasValue)
+                args.Add($"--window={options.Window.Value}");
+            if (options.Depth.HasValue)
+                args.Add($"--depth={options.Depth.Value}");
+            if (options.Threads.HasValue)
+                args.Add($"--threads={options.Threads.Value}");
 
             await c.Repository.RunGitCommandAsync("repack", args);
         }

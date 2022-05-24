@@ -123,7 +123,13 @@ namespace AmpScm.Git.Objects
             int first = 0, count = oids.Length / sz;
             int c = count;
 
-            while (first < c - 1)
+            if (c == 0)
+            {
+                index = 0;
+                return false;
+            }
+
+            while (first + 1 < c)
             {
                 int mid = (first + c) / 2;
 
