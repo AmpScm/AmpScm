@@ -54,7 +54,7 @@ namespace AmpScm.Git.Implementation
             while (next);
         }
 
-#if NETFRAMEWORK || !NET5_0_OR_GREATER
+#if !NET5_0_OR_GREATER
         /// <summary>
         /// Waits asynchronously for the process to exit.
         /// </summary>

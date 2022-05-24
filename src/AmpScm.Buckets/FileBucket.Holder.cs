@@ -37,6 +37,11 @@ namespace AmpScm.Buckets
                 _disposers = _primary.Dispose;
                 _waitHandlers = default!;
                 _handle = primary.SafeFileHandle;
+
+#if NET6_0_OR_GREATER
+                if (primary.IsAsync)
+                    _length = RandomAccess.GetLength(_handle);
+#endif
             }
 
             public string Path { get; }
@@ -62,7 +67,11 @@ namespace AmpScm.Buckets
                 _disposers = _handle.Dispose;
                 _handle = handle;
 
+#if NET6_0_OR_GREATER
+                _length = RandomAccess.GetLength(_handle);
+#else
                 _length = NativeMethods.GetFileSize(_handle);
+#endif
             }
 
             ~FileHolder()
@@ -131,6 +140,10 @@ namespace AmpScm.Buckets
 #pragma warning disable CA1416 // Validate platform compatibility
                     return AsyncWinReadAsync(fileOffset, buffer, requested);
 #pragma warning restore CA1416 // Validate platform compatibility
+#if NET6_0_OR_GREATER
+                else
+                    return RandomAccess.ReadAsync(_handle, buffer.AsMemory(0, requested), fileOffset);
+#else
                 else if (_primary.IsAsync)
                     return TrueReadAtAsync(fileOffset, buffer, requested);
                 else
@@ -147,6 +160,7 @@ namespace AmpScm.Buckets
                         return new ValueTask<int>(r);
                     }
                 }
+#endif
             }
 
 #if NET5_0_OR_GREATER
@@ -222,6 +236,9 @@ namespace AmpScm.Buckets
                 }
             }
 
+            public long Length => _length ??= _primary.Length;
+
+#if !NET6_0_OR_GREATER
             public async ValueTask<int> TrueReadAtAsync(long offset, byte[] buffer, int readLen)
             {
                 bool primary = false;
@@ -261,10 +278,6 @@ namespace AmpScm.Buckets
 
             private FileStream NewStream()
             {
-#if NET6_0_OR_GREATER
-                if (_primary.IsAsync)
-                    return new FileStream(_primary.SafeFileHandle, FileAccess.Read, 4096, true);
-#endif
                 return new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, true);
             }
 
@@ -277,7 +290,6 @@ namespace AmpScm.Buckets
                 {
                     if (_keep.Count > 4 && (f != _primary))
                     {
-#if NET6_0_OR_GREATER
                         if (_primary.IsAsync) // All file instances share the same handle
                         {
 #pragma warning disable CA1816 // Dispose methods should call SuppressFinalize
@@ -285,7 +297,6 @@ namespace AmpScm.Buckets
 #pragma warning restore CA1816 // Dispose methods should call SuppressFinalize
                         }
                         else
-#endif
                         {
 
                             f.Dispose();
@@ -295,9 +306,6 @@ namespace AmpScm.Buckets
                         _keep.Push(f);
                 }
             }
-
-            public long Length => _length ??= _primary.Length;
-
 
             sealed class Returner : IDisposable
             {
@@ -316,6 +324,7 @@ namespace AmpScm.Buckets
                     _fh = null;
                 }
             }
+#endif
 
 #if NET5_0_OR_GREATER
             [SupportedOSPlatform("windows")]
@@ -459,7 +468,7 @@ namespace AmpScm.Buckets
                 [return: MarshalAs(UnmanagedType.Bool)]
                 public static extern bool GetOverlappedResult(SafeFileHandle hFile, IntPtr lpOverlapped, out uint lpNumberOfBytesTransferred, [MarshalAs(UnmanagedType.Bool)] bool bWait);
 
-
+#if !NET6_0_OR_GREATER
                 [DllImport("kernel32.dll", SetLastError = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
                 static extern bool GetFileSizeEx(SafeFileHandle hFile, out ulong size);
@@ -471,6 +480,7 @@ namespace AmpScm.Buckets
                     else
                         return 0;
                 }
+#endif
             }
 
             internal static SafeFileHandle OpenAsyncWin32(string path)
