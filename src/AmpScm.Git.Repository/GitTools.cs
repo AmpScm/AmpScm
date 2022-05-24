@@ -64,10 +64,10 @@ namespace AmpScm.Git
             if (message.Contains('\r', StringComparison.Ordinal))
                 message = message.Replace("\r", "", StringComparison.Ordinal);
 
-            var lines = message.Split(new char[] { '\n' }, 4);
+            var lines = message.Split(new char[] { '\n' }, 5);
 
             int st;
-            for(st = 0; st < lines.Length; st++)
+            for(st = 0; st < Math.Min(4, lines.Length); st++)
             {
                 if (string.IsNullOrWhiteSpace(lines[st]))
                     break;

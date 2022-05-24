@@ -282,6 +282,7 @@ namespace GitRepositoryTests
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
+        [Timeout(20000)]
         public async Task CreateCommitChain(bool bare)
         {
             var dir = TestContext.PerTestDirectory($"{bare}");
@@ -366,9 +367,10 @@ namespace GitRepositoryTests
                 // Refresh object sources. Here we find the commit graph chain, and other pack file
                 rp.ObjectRepository.Refresh();
 
+                Assert.AreEqual(3, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "info", "commit-graphs"), "*").Count(), "Files on objects/info/commit-graphs");
+
+                // Walk the chained graphs
                 rp.Head.Revisions.ToList();
-
-
             }
         }
     }
