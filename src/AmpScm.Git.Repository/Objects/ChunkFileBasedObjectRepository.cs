@@ -166,15 +166,15 @@ namespace AmpScm.Git.Objects
             }
 
             uint first = (id[0] == 0) ? 0 : FanOut[id[0] - 1];
-            uint count = FanOut[id[0]];
+            uint countAfter = FanOut[id[0]];
 
-            if (count == 0)
+            if (first == countAfter) // Includes countAfter=0, which overflows the loop
             {
+                // No need to check.
                 return (false, 0);
             }
 
-            uint c = count;
-
+            uint c = countAfter;
             while (first + 1 < c)
             {
                 uint mid = (first + c) / 2;
@@ -193,9 +193,9 @@ namespace AmpScm.Git.Objects
                     first = mid + 1;
             }
 
-            if (first >= count)
+            if (first >= countAfter)
             {
-                return (false, count);
+                return (false, countAfter);
             }
 
             var check2 = await GetGitIdByIndexAsync(first).ConfigureAwait(false);
