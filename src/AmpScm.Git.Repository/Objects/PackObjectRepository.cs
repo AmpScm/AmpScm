@@ -111,9 +111,9 @@ namespace AmpScm.Git.Objects
             }
 
             if (_ver == 2)
-                sz = GitId.HashLength(_idType);
+                sz = _idType.HashLength();
             else if (_ver == 1)
-                sz = GitId.HashLength(_idType) + 4;
+                sz = _idType.HashLength() + 4;
             else
             {
                 index = 0;
@@ -131,7 +131,7 @@ namespace AmpScm.Git.Objects
 
             while (first + 1 < c)
             {
-                int mid = (first + c) / 2;
+                int mid = first + (c - first) / 2;
 
                 var check = GitId.FromByteArrayOffset(_idType, oids, sz * mid);
 

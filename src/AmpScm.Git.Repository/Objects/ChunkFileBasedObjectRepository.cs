@@ -177,7 +177,7 @@ namespace AmpScm.Git.Objects
             uint c = countAfter;
             while (first + 1 < c)
             {
-                uint mid = (first + c) / 2;
+                uint mid = first + (c - first) / 2;
 
                 var check = await GetGitIdByIndexAsync(mid).ConfigureAwait(false);
 
