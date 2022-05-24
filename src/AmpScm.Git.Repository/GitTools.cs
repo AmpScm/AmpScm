@@ -27,7 +27,7 @@ namespace AmpScm.Git
                 path = Directory.EnumerateDirectories(dir, Path.GetFileName(path)).Single();
             }
 
-            for(string parent = Path.GetDirectoryName(dir)!; parent != null && parent != dir; parent = Path.GetDirectoryName(parent)!)
+            for (string parent = Path.GetDirectoryName(dir)!; parent != null && parent != dir; parent = Path.GetDirectoryName(parent)!)
             {
                 var p = Directory.GetDirectories(parent!, Path.GetFileName(dir)).FirstOrDefault();
 
@@ -40,7 +40,7 @@ namespace AmpScm.Git
 #endif
                 }
             }
-            while (dir != (dir = Path.GetDirectoryName(dir)));
+            while (dir != (dir = Path.GetDirectoryName(dir))) ;
 
             if (path.Length > 2 && path[1] == ':' && char.IsLower(path, 0))
                 path = char.ToUpperInvariant(path[0]) + path.Substring(1);
@@ -67,13 +67,13 @@ namespace AmpScm.Git
             var lines = message.Split(new char[] { '\n' }, 5);
 
             int st;
-            for(st = 0; st < Math.Min(4, lines.Length); st++)
+            for (st = 0; st < Math.Min(4, lines.Length); st++)
             {
                 if (string.IsNullOrWhiteSpace(lines[st]))
                     break;
             }
 
-            return  string.Join("\n", lines.Take(st));
+            return string.Join("\n", lines.Take(st));
         }
     }
 }

@@ -176,7 +176,7 @@ namespace GitRepositoryTests
         {
             using var repo = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
 
-            await foreach (var c in repo.Commits)
+            await foreach (var c in repo.Commits.Take(20))
             {
                 TestContext.WriteLine($"Commit {c.Id:x10} - {GitTools.FirstLine(c.Message)}");
                 TestContext.WriteLine($"Author: {c.Author?.ToString() ?? "-"}");
@@ -196,7 +196,7 @@ namespace GitRepositoryTests
         {
             using var repo = GitRepository.Open(typeof(GitRepositoryTests).Assembly.Location);
 
-            foreach (var c in repo.Commits)
+            foreach (var c in repo.Commits.Take(20))
             {
                 TestContext.WriteLine($"Commit {c.Id:x8} - {GitTools.FirstLine(c.Message)}");
                 if (c.Parent != null)

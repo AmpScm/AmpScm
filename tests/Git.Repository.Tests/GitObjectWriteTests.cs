@@ -282,7 +282,7 @@ namespace GitRepositoryTests
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        [Timeout(20000)]
+        [Timeout(120000)]
         public async Task CreateCommitChain(bool bare)
         {
             var dir = TestContext.PerTestDirectory($"{bare}");
