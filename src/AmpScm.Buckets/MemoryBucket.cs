@@ -55,7 +55,7 @@ namespace AmpScm.Buckets
         public override Bucket Duplicate(bool reset = false)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var mb = new MemoryBucket(Data.Memory);
+            var mb = new MemoryBucket(Data);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             if (!reset)
                 mb.Offset = Offset;

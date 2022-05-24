@@ -93,11 +93,11 @@ namespace AmpScm.Git.Objects
             string chain = Path.Combine(ObjectsDir, "info", "commit-graph");
             if (File.Exists(chain) && Repository.Configuration.Lazy.CommitGraph)
             {
-                yield return new CommitGraphRepository(Repository, chain);
+                yield return new GitCommitGraph(Repository, chain);
             }
             else if (Directory.Exists(chain += "s") && File.Exists(Path.Combine(chain, "commit-graph-chain")) && Repository.Configuration.Lazy.CommitGraph)
             {
-                yield return new CommitGraphChainRepository(Repository, chain);
+                yield return new CommitGraphChain(Repository, chain);
             }
 
             string multipackFile = Path.Combine(ObjectsDir, "pack", "multi-pack-index");

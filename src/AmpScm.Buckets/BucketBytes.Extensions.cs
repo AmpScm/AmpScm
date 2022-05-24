@@ -225,7 +225,7 @@ namespace AmpScm.Buckets
             if (string.IsNullOrEmpty(value))
                 throw new ArgumentNullException(nameof(value));
 
-            var p = _data.Span;
+            var p = Span;
 
             if (p.Length < value.Length)
                 return false;
@@ -244,7 +244,7 @@ namespace AmpScm.Buckets
             if (string.IsNullOrEmpty(value))
                 throw new ArgumentNullException(nameof(value));
 
-            var p = _data.Span;
+            var p = Span;
 
             if (p.Length != value.Length)
                 return false;

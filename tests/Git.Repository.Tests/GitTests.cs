@@ -849,10 +849,12 @@ namespace GitRepositoryTests
         {
             using var srcFile = FileBucket.OpenRead(packFile);
             var b = new List<Bucket>();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1000; i++)
                 b.Add(srcFile.Duplicate().SkipExact(i * 1024));
 
-            var s = b.Select(async b => await b.ReadAsync(1024)).ToArray();
+            var s = b.Select(b => b.ReadAsync(1024).AsTask()).ToArray();
+
+            Assert.IsTrue(s.Any(x => !(x as IAsyncResult).CompletedSynchronously), "At least one task did not complete synchronously");
             await Task.WhenAll(s);
             foreach (var w in s)
             {

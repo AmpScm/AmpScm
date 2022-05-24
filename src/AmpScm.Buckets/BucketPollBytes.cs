@@ -147,5 +147,5 @@ namespace AmpScm.Buckets
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string DebuggerDisplay => Data.AsDebuggerDisplay();
-    }    
+    }
 }

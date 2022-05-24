@@ -93,6 +93,10 @@ namespace AmpScm.Buckets
                 throw new ArgumentNullException(nameof(stream));
 
             using (bucket)
+            {
+#if NET6_0_OR_GREATER
+                // TODO: Optimize with writev() / RandomAccess.Write(ReadOnlyMemory[], ...)
+#endif
                 while (true)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -104,6 +108,7 @@ namespace AmpScm.Buckets
 
                     await stream.WriteAsync(bb, cancellationToken).ConfigureAwait(false);
                 }
+            }
         }
     }
 

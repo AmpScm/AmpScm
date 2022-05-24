@@ -16,7 +16,9 @@ namespace AmpScm.Buckets
     {
         sealed class FileHolder : IDisposable
         {
+#if !NET6_0_OR_GREATER
             readonly Stack<FileStream> _keep;
+#endif
             readonly FileStream _primary;
             readonly SafeFileHandle _handle;
             readonly bool _asyncWin;
@@ -29,10 +31,13 @@ namespace AmpScm.Buckets
             {
                 _primary = primary ?? throw new ArgumentNullException(nameof(primary));
                 Path = path ?? throw new ArgumentNullException(nameof(path));
+
+#if !NET6_0_OR_GREATER
                 _keep = new();
 
                 if (primary.IsAsync)
                     _keep.Push(primary);
+#endif
 
                 _disposers = _primary.Dispose;
                 _waitHandlers = default!;
@@ -62,7 +67,6 @@ namespace AmpScm.Buckets
                 Path = path ?? throw new ArgumentNullException(nameof(path));
                 _asyncWin = true;
                 _waitHandlers = new Stack<FileWaitHandler>();
-                _keep = default!;
 
                 _disposers = _handle.Dispose;
                 _handle = handle;
@@ -71,6 +75,7 @@ namespace AmpScm.Buckets
                 _length = RandomAccess.GetLength(_handle);
 #else
                 _length = NativeMethods.GetFileSize(_handle);
+                _keep = default!;
 #endif
             }
 
@@ -109,16 +114,12 @@ namespace AmpScm.Buckets
             {
                 try
                 {
+#if !NET6_0_OR_GREATER
                     while (_keep?.Count > 0)
                     {
-                        var r = _keep.Pop();
-#if NET6_0_OR_GREATER
-                        if (!r.IsAsync)
-#endif
-                        {
-                            r.Dispose();
-                        }
+                        _keep.Pop().Dispose();
                     }
+#endif
                     var d = _disposers;
                     _disposers = () => { };
                     d.Invoke();

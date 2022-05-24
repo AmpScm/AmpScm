@@ -6,27 +6,28 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Buckets
 {
-    [DebuggerDisplay("{DebuggerDisplay,nq}", Name = "Bytes")]
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public readonly partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
     {
-        readonly ReadOnlyMemory<byte> _data;
+        public ReadOnlyMemory<byte> Memory { get; }
 
         public BucketBytes(ReadOnlyMemory<byte> data)
         {
-            _data = data;
+            Memory = data;
         }
 
         public BucketBytes(byte[] array, int start, int length)
         {
-            if (array is null)
+            if (array is null && length > 0)
                 throw new ArgumentNullException(nameof(array));
 
-            _data = new ReadOnlyMemory<byte>(array, start, length);
+            Memory = new ReadOnlyMemory<byte>(array, start, length);
         }
 
         public override bool Equals(object? obj)
@@ -39,48 +40,36 @@ namespace AmpScm.Buckets
 
         public bool Equals(BucketBytes other)
         {
-            return _data.Equals(other._data);
+            return Memory.Equals(other.Memory);
         }
 
         public override int GetHashCode()
         {
-            return _data.GetHashCode();
+            return Memory.GetHashCode();
         }
 
-        public int Length => _data.Length;
-        public bool IsEof => Length == 0 && _data.Equals(Eof._data);
-        public bool IsEmpty => _data.IsEmpty;
+        public int Length => Memory.Length;
+        public bool IsEof => Length == 0 && Memory.Equals(Eof.Memory);
+        public bool IsEmpty => Memory.IsEmpty;
 
-        public ReadOnlySpan<byte> Span => _data.Span;
+        public ReadOnlySpan<byte> Span => Memory.Span;
 
-        public ReadOnlyMemory<byte> Memory => _data;
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public BucketBytes Slice(int start)
         {
             if (Length == 0 || start == 0)
                 return this; // Keep EOF
-            else if (start >= Length)
-            {
-                if (start > Length)
-                    throw new ArgumentOutOfRangeException(nameof(start));
-                return default;
-            }
-            else
-                return new BucketBytes(_data.Slice(start));
+
+            return Memory.Slice(start);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public BucketBytes Slice(int start, int length)
         {
-            if (Length == 0)
-            {
-                if (length > 1)
-                    throw new ArgumentOutOfRangeException(nameof(length));
+            if (length == 0 && Length == 0 && start == 0)
                 return this; // Keep EOF
-            }
-            else if (length > 0)
-                return new BucketBytes(_data.Slice(start, length));
-            else
-                return Empty;
+
+            return Memory.Slice(start, length);
         }
 
         public BucketBytes Slice(int start, BucketEol untilEol)
@@ -96,7 +85,7 @@ namespace AmpScm.Buckets
 
         public byte[] ToArray()
         {
-            return _data.ToArray();
+            return Memory.ToArray();
         }
 
 #pragma warning disable CA2225 // Operator overloads have named alternates
@@ -111,6 +100,13 @@ namespace AmpScm.Buckets
 #pragma warning restore CA2225 // Operator overloads have named alternates
         {
             return new BucketBytes(segment);
+        }
+
+#pragma warning disable CA2225 // Operator overloads have named alternates
+        public static implicit operator ReadOnlyMemory<byte>(BucketBytes bytes)
+#pragma warning restore CA2225 // Operator overloads have named alternates
+        {
+            return bytes.Memory;
         }
 
 #pragma warning disable CA2225 // Operator overloads have named alternates
@@ -137,7 +133,7 @@ namespace AmpScm.Buckets
         public void CopyTo(byte[] array, int index) => Span.CopyTo(array.AsSpan(index));
         public void CopyTo(byte[] array) => Span.CopyTo(array.AsSpan());
 
-        public byte this[int index] => _data.Span[index];
+        public byte this[int index] => Memory.Span[index];
 
         /// <summary>
         /// Copies the contents of the readonly-only memory into the destination. If the source
@@ -150,31 +146,31 @@ namespace AmpScm.Buckets
         /// <param name="destination">The span to copy items into.</param>
         public bool TryCopyTo(Memory<byte> destination) => Span.TryCopyTo(destination.Span);
 
-        ReadOnlyMemory<byte> IValueOrEof<ReadOnlyMemory<byte>>.Value => _data;
-
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        ReadOnlyMemory<byte> IValueOrEof<ReadOnlyMemory<byte>>.Value => Memory;
 
         /// <inheritdoc cref="MemoryExtensions.IndexOf{T}(ReadOnlySpan{T}, T)"/>
         public int IndexOf(byte value)
         {
-            return _data.Span.IndexOf(value);
+            return Memory.Span.IndexOf(value);
         }
 
         /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, T, T)"/>
         public int IndexOfAny(byte value0, byte value1)
         {
-            return _data.Span.IndexOfAny(value0, value1);
+            return Memory.Span.IndexOfAny(value0, value1);
         }
 
         /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, ReadOnlySpan{T})"/>
         public int IndexOfAny(ReadOnlySpan<byte> values)
         {
-            return _data.Span.IndexOfAny(values);
+            return Memory.Span.IndexOfAny(values);
         }
 
         /// <inheritdoc cref="MemoryExtensions.IndexOfAny{T}(ReadOnlySpan{T}, ReadOnlySpan{T})"/>
         public int IndexOfAny(params byte[] values)
         {
-            return _data.Span.IndexOfAny(values);
+            return Memory.Span.IndexOfAny(values);
         }
 
         /// <inheritdoc cref="MemoryExtensions.IndexOf{T}(ReadOnlySpan{T}, T)"/>
@@ -238,6 +234,7 @@ namespace AmpScm.Buckets
         }
 
         #region ZLib optimization. Our ZLib doesn't use Span<> and Memory<> yet, but let's reuse byte[] directly instead of copying
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         static Func<ReadOnlyMemory<byte>, (object, int)> ReadOnlyMemoryExpander { get; } = FindReadOnlyMemoryExpander();
 
         static Func<ReadOnlyMemory<byte>, (object, int)> FindReadOnlyMemoryExpander()
@@ -252,6 +249,7 @@ namespace AmpScm.Buckets
             return Expression.Lambda<Func<ReadOnlyMemory<byte>, (object, int)>>(c, p).Compile();
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         static Func<Memory<byte>, (object, int)> MemoryExpander { get; } = FindMemoryExpander();
 
         static Func<Memory<byte>, (object, int)> FindMemoryExpander()
@@ -294,10 +292,10 @@ namespace AmpScm.Buckets
 
         internal (byte[] Bytes, int Index) ExpandToArray()
         {
-            if (_data.Length == 0)
+            if (Memory.Length == 0)
                 return (Array.Empty<byte>(), 0);
 
-            var (ob, index) = ReadOnlyMemoryExpander(_data);
+            var (ob, index) = ReadOnlyMemoryExpander(Memory);
 
             if (ob is byte[] arr)
                 return (arr, index);
@@ -309,7 +307,7 @@ namespace AmpScm.Buckets
 
         internal void Deconstruct(out byte[]? array, out int offset)
         {
-            if (_data.Length == 0)
+            if (Memory.Length == 0)
             {
                 array = null;
                 offset = 0;
@@ -317,7 +315,7 @@ namespace AmpScm.Buckets
             }
 
             object ob;
-            (ob, offset) = ReadOnlyMemoryExpander(_data);
+            (ob, offset) = ReadOnlyMemoryExpander(Memory);
             array = ob as byte[];
         }
 

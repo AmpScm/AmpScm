@@ -240,6 +240,7 @@ static AmpScm.Buckets.Bucket.operator +(AmpScm.Buckets.Bucket! first, AmpScm.Buc
 static AmpScm.Buckets.BucketBytes.implicit operator AmpScm.Buckets.BucketBytes(byte[]! array) -> AmpScm.Buckets.BucketBytes
 static AmpScm.Buckets.BucketBytes.implicit operator AmpScm.Buckets.BucketBytes(System.ArraySegment<byte> segment) -> AmpScm.Buckets.BucketBytes
 static AmpScm.Buckets.BucketBytes.implicit operator AmpScm.Buckets.BucketBytes(System.ReadOnlyMemory<byte> segment) -> AmpScm.Buckets.BucketBytes
+static AmpScm.Buckets.BucketBytes.implicit operator System.ReadOnlyMemory<byte>(AmpScm.Buckets.BucketBytes bytes) -> System.ReadOnlyMemory<byte>
 static AmpScm.Buckets.BucketBytes.implicit operator System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>(AmpScm.Buckets.BucketBytes v) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketBytes.operator !=(AmpScm.Buckets.BucketBytes left, AmpScm.Buckets.BucketBytes right) -> bool
 static AmpScm.Buckets.BucketBytes.operator ==(AmpScm.Buckets.BucketBytes left, AmpScm.Buckets.BucketBytes right) -> bool
