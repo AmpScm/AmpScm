@@ -14,6 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         public bool Quiet { get; set; }
         public bool WriteBitmap { get; set; }
         public bool WriteMultiPack { get; set; }
+        public int? GeometricFactor { get; set; }
 
         public override void Verify()
         {
@@ -24,10 +25,13 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("repack")]
-        public static async ValueTask Repack(this GitPlumbingClient c, GitRepackArgs options)
+        public static async ValueTask Repack(this GitPlumbingClient c, GitRepackArgs? options = null)
         {
-            options.Verify();
             var args = new List<string>();
+
+
+            options?.Verify();
+            options ??= new();
 
             if (options.SinglePack)
             {
@@ -44,7 +48,8 @@ namespace AmpScm.Git.Client.Plumbing
                 args.Add("--write-bitmap-index");
             if (options.WriteMultiPack)
                 args.Add("--write-midx");
-
+            if (options.GeometricFactor.HasValue)
+                args.Add($"--geometric={options.GeometricFactor.Value}");
 
             await c.Repository.RunGitCommandAsync("repack", args);
         }

@@ -39,8 +39,8 @@ namespace AmpScm.Git.Client.Porcelain
                 args.Add("--keep-largest-pack");
             if (options.PruneDate.HasValue)
                 args.Add($"--prune={options.PruneDate.Value.Date.ToString("yyyy-MM-dd")}");
-
             await c.Repository.RunGitCommandAsync("gc", args);
+
         }
     }
 }

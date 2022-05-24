@@ -110,11 +110,11 @@ namespace GitRepositoryTests
             Assert.IsFalse(r.Blobs.Any(), "No blobs");
             Assert.IsFalse(r.Remotes.Any(), "No remotes");
 
-            TestContext.WriteLine(File.ReadAllText(Path.Combine(r.WorktreePath, "config")));
+            TestContext.WriteLine(File.ReadAllText(Path.Combine(r.WorkTreeDirectory, "config")));
 
-            foreach (var f in Directory.GetFileSystemEntries(r.WorktreePath, "*", SearchOption.AllDirectories))
+            foreach (var f in Directory.GetFileSystemEntries(r.WorkTreeDirectory, "*", SearchOption.AllDirectories))
             {
-                string subPath = f.Substring(r.WorktreePath.Length + 1);
+                string subPath = f.Substring(r.WorkTreeDirectory.Length + 1);
                 TestContext.WriteLine(subPath);
 
                 if (Directory.Exists(f))

@@ -278,5 +278,98 @@ namespace GitRepositoryTests
             var fsckOutput = await rp.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
             Assert.AreEqual($"", fsckOutput);
         }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task CreateCommitChain(bool bare)
+        {
+            var dir = TestContext.PerTestDirectory($"{bare}");
+
+            GitCommit A0, A1, A2, A3, B1;
+            {
+                using var rp = GitRepository.Init(dir, new GitRepositoryInitArgs { Bare = true, InitialBranchName = "daisy" });
+
+                GitCommitWriter gcw = GitCommitWriter.Create();
+                gcw.Message = "Initial Commit";
+                A0 = await gcw.WriteAndFetchAsync(rp);
+
+                gcw = GitCommitWriter.Create(A0);
+                gcw.Message = "Minor tweak";
+                A1 = await gcw.WriteAndFetchAsync(rp);
+
+                gcw = GitCommitWriter.Create(A1);
+                gcw.Message = "Further tweak";
+                A2 = await gcw.WriteAndFetchAsync(rp);
+
+                gcw = GitCommitWriter.Create(A0);
+                gcw.Message = "Other minor tweak";
+                B1 = await gcw.WriteAndFetchAsync(rp);
+
+                gcw = GitCommitWriter.Create(A2, B1);
+                gcw.Message = "Merge tweaks together";
+                A3 = await gcw.WriteAndFetchAsync(rp);
+
+                using (var ru = rp.References.CreateUpdateTransaction())
+                {
+                    ru.UpdateHead(A3.Id);
+
+                    await ru.CommitAsync();
+                }
+
+                Assert.AreEqual(0, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Count(), "Files on objects/pack");
+
+                string commitGraphPath = Path.Combine(rp.GitDirectory, "objects", "info", "commit-graph");
+                Assert.IsFalse(File.Exists(commitGraphPath), $"{commitGraphPath} does not exist");
+                // This should get us an initial commit graph
+                await rp.GetPorcelain().GC();
+                Assert.IsTrue(File.Exists(commitGraphPath), $"{commitGraphPath} does exist");
+                Assert.AreEqual(rp.IsBare ? 3 : 2, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Count(), "Files on objects/pack");
+
+                // Doesn't use commit chain yet, as it wasn't detected before
+                rp.Head.Revisions.ToList();
+
+                // Refresh object sources. Here we find the commit graph (and the pack file)
+                rp.ObjectRepository.Refresh();
+
+                rp.Head.Revisions.ToList();
+
+                gcw = GitCommitWriter.Create(A3);
+                gcw.Message = "Next update";
+                var A4 = await gcw.WriteAndFetchAsync(rp);
+
+                gcw = GitCommitWriter.Create(A4);
+                gcw.Message = "Next update";
+                var A5 = await gcw.WriteAndFetchAsync(rp);
+
+                using (var ru = rp.References.CreateUpdateTransaction())
+                {
+                    ru.UpdateHead(A5.Id);
+
+                    await ru.CommitAsync();
+                }
+
+                rp.Head.Revisions.ToList();
+
+                await rp.GetPlumbing().Repack();
+                Assert.AreEqual(rp.IsBare ? 5 : 4, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Count(), "Files on objects/pack");
+
+                await rp.GetPlumbing().CommitGraph(new() { Split = GitCommitGraphSplit.Split });
+
+                Assert.IsFalse(File.Exists(commitGraphPath), $"{commitGraphPath} no longer exists");
+                commitGraphPath += "s";
+                Assert.IsTrue(Directory.Exists(commitGraphPath), $"{commitGraphPath} does exist");
+
+                // We can still list the revisions old way...
+                rp.Head.Revisions.ToList();
+
+                // Refresh object sources. Here we find the commit graph chain, and other pack file
+                rp.ObjectRepository.Refresh();
+
+                rp.Head.Revisions.ToList();
+
+
+            }
+        }
     }
 }

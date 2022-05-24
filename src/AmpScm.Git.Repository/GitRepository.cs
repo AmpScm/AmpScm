@@ -15,13 +15,17 @@ using AmpScm.Git.Sets;
 
 namespace AmpScm.Git
 {
-    [DebuggerDisplay("GitRepository {GitDir}")]
+    [DebuggerDisplay($"GitRepository {{{nameof(GitDirectory)}}}")]
     public partial class GitRepository : IDisposable, IGitQueryRoot, IServiceProvider
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly ServiceContainer _container;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private bool disposedValue;
+
+        /// <summary>
+        /// Full path of working copy root
+        /// </summary>
         public string FullPath { get; }
         public bool IsBare { get; }
         public bool IsLazy => Configuration.Lazy.RepositoryIsLazy;
@@ -31,8 +35,15 @@ namespace AmpScm.Git
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitConfiguration? _gitConfigurationLazy;
 
-        protected internal string GitDir { get; }
-        public string WorktreePath { get; }
+        /// <summary>
+        /// The directory containing the git repository metadata (typically &lt;<see cref="FullPath"/>&gt;/.git)
+        /// </summary>
+        public string GitDirectory { get; }
+
+        /// <summary>
+        /// The directory containing the per worktree metadata (&lt;<see cref="FullPath"/>&gt;/.git or &lt;<see cref="GitDirectory"/>&gt;/worktrees/DIR)
+        /// </summary>
+        public string WorkTreeDirectory { get; }
 
         // Not directly creatable for now
         private GitRepository()
@@ -53,9 +64,9 @@ namespace AmpScm.Git
             Tags = new GitTagsSet(this, () => this.Tags!);
 
             ObjectRepository = null!;
-            GitDir = default!;
+            GitDirectory = default!;
             FullPath = default!;
-            WorktreePath = default!;
+            WorkTreeDirectory = default!;
             ReferenceRepository = null!;
         }
 
@@ -69,7 +80,7 @@ namespace AmpScm.Git
             if ((rootType == GitRootType.Bare || rootType == GitRootType.None)
                 && FullPath.EndsWith(Path.DirectorySeparatorChar + ".git", StringComparison.OrdinalIgnoreCase))
             {
-                GitDir = FullPath;
+                GitDirectory = FullPath;
 
                 if (!(Configuration?.GetBool("core", "bare") ?? false))
                 {
@@ -89,32 +100,32 @@ namespace AmpScm.Git
             {
                 case GitRootType.Normal:
                 case GitRootType.None:
-                    WorktreePath = GitDir = Path.Combine(FullPath, ".git");
+                    WorkTreeDirectory = GitDirectory = Path.Combine(FullPath, ".git");
                     break;
                 case GitRootType.WorkTree:
                     {
                         string wt;
                         if (TryReadRefFile(Path.Combine(FullPath, ".git"), "gitdir: ", out var wtDir)
                             && TryReadRefFile(Path.Combine(wt = GitTools.GetNormalizedFullPath(wtDir), "commondir"), null, out var commonDir)
-                            && Directory.Exists(GitDir = Path.Combine(wt, commonDir))
-                            && File.Exists(Path.Combine(GitDir, "config")))
+                            && Directory.Exists(GitDirectory = Path.Combine(wt, commonDir))
+                            && File.Exists(Path.Combine(GitDirectory, "config")))
                         {
-                            GitDir = GitTools.GetNormalizedFullPath(GitDir);
-                            WorktreePath = wt;
+                            GitDirectory = GitTools.GetNormalizedFullPath(GitDirectory);
+                            WorkTreeDirectory = wt;
                         }
                         else
                             throw new GitRepositoryException($"Unable to read WorkTree configuration for '{FullPath}");
                         break;
                     }
                 case GitRootType.Bare:
-                    WorktreePath = GitDir = FullPath;
+                    WorkTreeDirectory = GitDirectory = FullPath;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(rootType));
             }
 
-            ObjectRepository = new Objects.GitRepositoryObjectRepository(this, Path.Combine(GitDir, "objects"));
-            ReferenceRepository = new References.GitRepositoryReferenceRepository(this, GitDir, WorktreePath);
+            ObjectRepository = new Objects.GitRepositoryObjectRepository(this, Path.Combine(GitDirectory, "objects"));
+            ReferenceRepository = new References.GitRepositoryReferenceRepository(this, GitDirectory, WorkTreeDirectory);
         }
 
         public GitObjectSet<GitObject> Objects { get; }
@@ -133,7 +144,7 @@ namespace AmpScm.Git
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal GitRevisionSet RevisionSetRoot { get; }
 
-        public GitConfiguration Configuration => _gitConfigurationLazy ??= new GitConfiguration(this, GitDir);
+        public GitConfiguration Configuration => _gitConfigurationLazy ??= new GitConfiguration(this, GitDirectory);
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal GitQueryProvider SetQueryProvider { get; }
@@ -222,7 +233,7 @@ namespace AmpScm.Git
         public override string ToString()
         {
             if (IsBare)
-                return $"[Bare Repository] GitDir={GitDir}";
+                return $"[Bare Repository] GitDir={GitDirectory}";
             else
                 return $"[Git Repository] FullPath={FullPath}";
         }

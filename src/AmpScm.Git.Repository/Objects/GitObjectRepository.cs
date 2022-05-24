@@ -117,5 +117,9 @@ namespace AmpScm.Git.Objects
             else
                 throw new InvalidOperationException();
         }
+
+        public virtual void Refresh()
+        {
+        }
     }
 }

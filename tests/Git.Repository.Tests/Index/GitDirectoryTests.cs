@@ -24,7 +24,7 @@ namespace GitRepositoryTests.Index
         {
             using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
 
-            var index = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
+            var index = FileBucket.OpenRead(Path.Combine(repo.WorkTreeDirectory, "index"));
             using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1 });
 
             await dc.ReadHeaderAsync();
@@ -104,7 +104,7 @@ namespace GitRepositoryTests.Index
             using var repo = GitRepository.Open(path);
             Console.WriteLine(path);
 
-            using var dc = new GitDirectoryBucket(repo.WorktreePath);
+            using var dc = new GitDirectoryBucket(repo.WorkTreeDirectory);
 
             await dc.ReadHeaderAsync();
 
@@ -141,7 +141,7 @@ namespace GitRepositoryTests.Index
             using var repo = GitRepository.Open(path);
             Assert.AreEqual(path, repo.FullPath);
             List<GitDirectoryEntry> entries = new List<GitDirectoryEntry>();
-            using (var dc2 = new GitDirectoryBucket(repo.WorktreePath, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
+            using (var dc2 = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
             {
                 while (await dc2.ReadEntryAsync() is GitDirectoryEntry q)
                 {
@@ -162,7 +162,7 @@ namespace GitRepositoryTests.Index
 
 
 
-            using (var dc = new GitDirectoryBucket(repo.WorktreePath, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
+            using (var dc = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
             {
                 await dc.ReadHeaderAsync();
 
@@ -204,7 +204,7 @@ namespace GitRepositoryTests.Index
             using var repo = GitRepository.Open(path);
             await repo.GetPlumbing().UpdateIndex();
 
-            using var dc = new GitDirectoryBucket(repo.WorktreePath);
+            using var dc = new GitDirectoryBucket(repo.WorkTreeDirectory);
 
             await dc.ReadHeaderAsync();
 
@@ -246,7 +246,7 @@ namespace GitRepositoryTests.Index
 
             try
             {
-                var idx = FileBucket.OpenRead(Path.Combine(repo.WorktreePath, "index"));
+                var idx = FileBucket.OpenRead(Path.Combine(repo.WorkTreeDirectory, "index"));
                 using var dc = new GitDirectoryBucket(idx);
 
                 while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)

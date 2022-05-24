@@ -113,15 +113,19 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        private async ValueTask<GitId> GetOidAsync(int i)
+        private async ValueTask<GitId> GetOidAsync(int index)
         {
-            if (i < OidOffset)
-                return await ParentGraph!.GetOidAsync(i).ConfigureAwait(false);
+            int offset = OidOffset;
+
+            if (index < offset)
+                return await ParentGraph!.GetOidAsync(index).ConfigureAwait(false);
+
+            index -= offset;
 
             int hashLength = GitId.HashLength(IdType);
             byte[] oidData = new byte[hashLength];
 
-            if (hashLength != await ReadFromChunkAsync("OIDL", i * hashLength, oidData).ConfigureAwait(false))
+            if (hashLength != await ReadFromChunkAsync("OIDL", index * hashLength, oidData).ConfigureAwait(false))
                 throw new InvalidOperationException();
 
             return new GitId(IdType, oidData);

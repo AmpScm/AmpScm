@@ -24,7 +24,7 @@ namespace AmpScm.Git.Objects
             ObjectsDir = objectsDir;
             _idType = GitIdType.Sha1;
 
-            _repositories = new Lazy<GitObjectRepository[]>(() => GetRepositories().ToArray());
+            _repositories = new(() => GetRepositories().ToArray());
         }
 
         protected override void Dispose(bool disposing)
@@ -49,6 +49,61 @@ namespace AmpScm.Git.Objects
         }
 
         Lazy<GitObjectRepository[]> _repositories;
+
+
+        public override void Refresh()
+        {
+            var rr = _repositories;
+
+            _repositories = new(() => RefreshRepositories(rr.Value).ToArray());
+        }
+
+        private IEnumerable<GitObjectRepository> RefreshRepositories(GitObjectRepository[] previous)
+        {
+            var hs = new HashSet<GitObjectRepository>(previous);
+            GitObjectRepository? r;
+
+            foreach(var v in GetRepositories())
+            {
+                switch(v)
+                {
+                    case PackObjectRepository p:
+                        r = hs.FirstOrDefault(x => x is PackObjectRepository xp && xp.PackFile == p.PackFile) ?? p;
+                        hs.Remove(r);
+                        yield return r;
+                        break;
+                    case FileObjectRepository f:
+                        r = hs.FirstOrDefault(x => x is FileObjectRepository) ?? f;
+                        hs.Remove(r);
+                        yield return r;
+                        break;
+                    case MultiPackObjectRepository:
+                        {
+                            r = hs.FirstOrDefault(x => x is MultiPackObjectRepository);
+                            r?.Refresh();
+
+                            if (r != null)
+                                hs.Remove(r);
+
+                            yield return r ?? v;
+                        }
+                        break;
+                    case GitRepositoryObjectRepository rep:
+                        r = previous.FirstOrDefault(x => x is GitRepositoryObjectRepository xr && xr.ObjectsDir == rep.ObjectsDir) ?? rep;
+                        hs.Remove(r);
+                        yield return r;
+                        break;
+                    default:
+                        yield return v;
+                        break;
+                }
+            }
+
+            foreach(var v in hs)
+            {
+                v.Dispose();
+            }
+        }
 
         private IEnumerable<GitObjectRepository> GetRepositories()
         {

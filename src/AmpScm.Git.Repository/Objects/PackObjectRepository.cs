@@ -12,7 +12,6 @@ namespace AmpScm.Git.Objects
 {
     internal sealed class PackObjectRepository : GitObjectRepository
     {
-        readonly string _packFile;
         readonly GitIdType _idType;
         FileBucket? _fIdx;
         FileBucket? _packBucket;
@@ -25,9 +24,11 @@ namespace AmpScm.Git.Objects
         public PackObjectRepository(GitRepository repository, string packFile, GitIdType idType)
             : base(repository, "Pack:" + packFile)
         {
-            _packFile = packFile ?? throw new ArgumentNullException(nameof(packFile));
+            PackFile = packFile ?? throw new ArgumentNullException(nameof(packFile));
             _idType = idType;
         }
+
+        public string PackFile { get; }
 
         protected override void Dispose(bool disposing)
         {
@@ -51,7 +52,7 @@ namespace AmpScm.Git.Objects
         {
             if (_ver == 0)
             {
-                _fIdx ??= FileBucket.OpenRead(Path.ChangeExtension(_packFile, ".idx"));
+                _fIdx ??= FileBucket.OpenRead(Path.ChangeExtension(PackFile, ".idx"));
 
                 byte[] header = new byte[8];
                 long fanOutOffset = -1;
@@ -94,7 +95,7 @@ namespace AmpScm.Git.Objects
                         }
                     }
 
-                    _hasBitmap = File.Exists(Path.ChangeExtension(_packFile, ".bitmap"));
+                    _hasBitmap = File.Exists(Path.ChangeExtension(PackFile, ".bitmap"));
                 }
             }
         }
@@ -387,7 +388,7 @@ namespace AmpScm.Git.Objects
         {
             if (_packBucket == null)
             {
-                var fb = new FileBucket(_packFile, chunkSize: 2048);
+                var fb = new FileBucket(PackFile, chunkSize: 2048);
 
                 await VerifyPack(fb).ConfigureAwait(false);
 
@@ -408,7 +409,7 @@ namespace AmpScm.Git.Objects
             else if (phr.Version != 2)
                 throw new GitBucketException($"Unexpected pack version '{phr.Version}, expected version 2");
             else if (_fanOut != null && phr.ObjectCount != _fanOut[255])
-                throw new GitBucketException($"Header has {phr.ObjectCount} records, index {_fanOut[255]}, for {Path.GetFileName(_packFile)}");
+                throw new GitBucketException($"Header has {phr.ObjectCount} records, index {_fanOut[255]}, for {Path.GetFileName(PackFile)}");
         }
 
         public override IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
@@ -475,7 +476,7 @@ namespace AmpScm.Git.Objects
 
             if (_bitmapBucket == null)
             {
-                var bmp = FileBucket.OpenRead(Path.ChangeExtension(_packFile, ".bitmap"));
+                var bmp = FileBucket.OpenRead(Path.ChangeExtension(PackFile, ".bitmap"));
 
                 await VerifyBitmap(bmp).ConfigureAwait(false);
                 _bitmapBucket = bmp;
@@ -517,12 +518,12 @@ namespace AmpScm.Git.Objects
         {
             await OpenPackIfNecessary().ConfigureAwait(false);
 
-            if (!File.Exists(Path.ChangeExtension(_packFile, ".rev")))
+            if (!File.Exists(Path.ChangeExtension(PackFile, ".rev")))
             {
                 await CreateReverseIndex().ConfigureAwait(false);
             }
 
-            _revIdxBucket ??= FileBucket.OpenRead(Path.ChangeExtension(_packFile, ".rev"));
+            _revIdxBucket ??= FileBucket.OpenRead(Path.ChangeExtension(PackFile, ".rev"));
             _revIdxBucket.Reset();
             await _revIdxBucket.ReadSkipAsync(12 + sizeof(uint) * v).ConfigureAwait(false);
             var indexOffs = await _revIdxBucket.ReadNetworkUInt32Async().ConfigureAwait(false);
@@ -547,7 +548,7 @@ namespace AmpScm.Git.Objects
             if (_fanOut == null)
                 return;
 
-            var revName = Path.ChangeExtension(_packFile, ".rev")!;
+            var revName = Path.ChangeExtension(PackFile, ".rev")!;
             var tmpName = revName + ".t" + Guid.NewGuid();
 
             // TODO: Use less memory
@@ -589,7 +590,7 @@ namespace AmpScm.Git.Objects
                             + NetBitConverter.GetBytes((int)1 /* Version 1 */).AsBucket()
                             + NetBitConverter.GetBytes((int)_idType).AsBucket()
                             + mapBytes.AsBucket()
-                            + GitId.Parse(Path.GetFileNameWithoutExtension(_packFile).Substring(5)).Hash.AsBucket())
+                            + GitId.Parse(Path.GetFileNameWithoutExtension(PackFile).Substring(5)).Hash.AsBucket())
                         .GitHash(Repository.InternalConfig.IdType, r => sha = r)
                     .WriteToAsync(fs).ConfigureAwait(false);
 

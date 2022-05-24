@@ -62,10 +62,10 @@ namespace AmpScm.Git.Repository
 
                 if (_parseWorkTreeConfig)
                 {
-                    string path = Path.Combine(Repository.WorktreePath, "config.worktree");
+                    string path = Path.Combine(Repository.WorkTreeDirectory, "config.worktree");
 
                     if (File.Exists(path))
-                        await LoadConfigAsync(Path.Combine(Repository.WorktreePath, "config.worktree")).ConfigureAwait(false);
+                        await LoadConfigAsync(Path.Combine(Repository.WorkTreeDirectory, "config.worktree")).ConfigureAwait(false);
                 }
 
                 var v = Environment.GetEnvironmentVariable("GIT_CONFIG_COUNT");
@@ -100,7 +100,7 @@ namespace AmpScm.Git.Repository
             }
             catch (Exception e)
             {
-                throw new GitRepositoryException($"Can't open repository config '{Path.Combine(_gitDir, "config")}', GitDir='{Repository.GitDir}', FullPath='{Repository.FullPath}'", e);
+                throw new GitRepositoryException($"Can't open repository config '{Path.Combine(_gitDir, "config")}', GitDir='{Repository.GitDirectory}', FullPath='{Repository.FullPath}'", e);
             }
         }
 
@@ -156,7 +156,7 @@ namespace AmpScm.Git.Repository
                 if (dir.EndsWith("/", StringComparison.Ordinal))
                     dir += "**";
 
-                if (!GitGlob.Match(dir, Repository.GitDir, GitGlobFlags.ParentPath | (caseInsensitive ? GitGlobFlags.CaseInsensitive : GitGlobFlags.None)))
+                if (!GitGlob.Match(dir, Repository.GitDirectory, GitGlobFlags.ParentPath | (caseInsensitive ? GitGlobFlags.CaseInsensitive : GitGlobFlags.None)))
                     return;
             }
             else if (check.StartsWith("onbranch:", StringComparison.Ordinal))
@@ -480,7 +480,7 @@ namespace AmpScm.Git.Repository
 
             bool GetRepositoryIsShallow()
             {
-                return File.Exists(Path.Combine(Configuration.Repository.GitDir, "shallow"));
+                return File.Exists(Path.Combine(Configuration.Repository.GitDirectory, "shallow"));
             }
 
             bool GetRepositoryCommitGraph()
@@ -597,7 +597,7 @@ namespace AmpScm.Git.Repository
 
         internal async ValueTask<bool> HookExistsAsync(string hookName)
         {
-            string path = await GetPathAsync("core", "hookspath").ConfigureAwait(false) ?? Path.Combine(Repository.GitDir, "hooks");
+            string path = await GetPathAsync("core", "hookspath").ConfigureAwait(false) ?? Path.Combine(Repository.GitDirectory, "hooks");
 
             return File.Exists(Path.Combine(path, hookName));
         }

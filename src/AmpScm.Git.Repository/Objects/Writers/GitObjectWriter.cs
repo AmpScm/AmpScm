@@ -22,7 +22,7 @@ namespace AmpScm.Git.Objects
         private protected async ValueTask<GitId> WriteBucketAsObject(Bucket bucket, GitRepository repository, CancellationToken cancellationToken = default)
         {
             string tmpFile = Guid.NewGuid().ToString() + ".tmp";
-            var di = Directory.CreateDirectory(Path.Combine(repository.GitDir, "objects", "info"));
+            var di = Directory.CreateDirectory(Path.Combine(repository.GitDirectory, "objects", "info"));
             var tmpFilePath = Path.Combine(di.FullName, tmpFile);
             string? tmpFile2 = null;
             GitId? id = null;
@@ -81,7 +81,7 @@ namespace AmpScm.Git.Objects
 
             string idName = id!.ToString();
 
-            var dir = Path.Combine(repository.GitDir, "objects", idName.Substring(0, 2));
+            var dir = Path.Combine(repository.GitDirectory, "objects", idName.Substring(0, 2));
             Directory.CreateDirectory(dir);
 
             string newName = Path.Combine(dir, idName.Substring(2));

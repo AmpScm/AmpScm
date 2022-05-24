@@ -61,6 +61,7 @@ AmpScm.Git.GitRepository.Commits.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.
 AmpScm.Git.GitRepository.Configuration.get -> AmpScm.Git.Repository.GitConfiguration!
 AmpScm.Git.GitRepository.Dispose() -> void
 AmpScm.Git.GitRepository.FullPath.get -> string!
+AmpScm.Git.GitRepository.GitDirectory.get -> string!
 AmpScm.Git.GitRepository.Head.get -> AmpScm.Git.GitReference!
 AmpScm.Git.GitRepository.IsBare.get -> bool
 AmpScm.Git.GitRepository.IsHeadDetached.get -> bool
@@ -74,7 +75,7 @@ AmpScm.Git.GitRepository.Remotes.get -> AmpScm.Git.Sets.GitRemotesSet!
 AmpScm.Git.GitRepository.TagObjects.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.GitTagObject!>!
 AmpScm.Git.GitRepository.Tags.get -> AmpScm.Git.Sets.GitNamedSet<AmpScm.Git.GitTag!>!
 AmpScm.Git.GitRepository.Trees.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.GitTree!>!
-AmpScm.Git.GitRepository.WorktreePath.get -> string!
+AmpScm.Git.GitRepository.WorkTreeDirectory.get -> string!
 AmpScm.Git.GitRepositoryException
 AmpScm.Git.GitRepositoryException.GitRepositoryException() -> void
 AmpScm.Git.GitRepositoryException.GitRepositoryException(string! message) -> void
@@ -325,6 +326,7 @@ virtual AmpScm.Git.GitTreeEntry.EntryName.get -> string!
 virtual AmpScm.Git.Objects.GitObjectRepository.GetAll<TGitObject>(System.Collections.Generic.HashSet<AmpScm.Git.GitId!>! alreadyReturned) -> System.Collections.Generic.IAsyncEnumerable<TGitObject!>!
 virtual AmpScm.Git.Objects.GitObjectRepository.GetByIdAsync<TGitObject>(AmpScm.Git.GitId! id) -> System.Threading.Tasks.ValueTask<TGitObject?>
 virtual AmpScm.Git.Objects.GitObjectRepository.ObjectCount.get -> long
+virtual AmpScm.Git.Objects.GitObjectRepository.Refresh() -> void
 virtual AmpScm.Git.References.GitReferenceRepository.GetChanges(AmpScm.Git.GitReference! reference) -> System.Collections.Generic.IAsyncEnumerable<AmpScm.Git.GitReferenceChange!>?
 virtual AmpScm.Git.References.GitReferenceRepository.ResolveAsync(AmpScm.Git.GitReference! gitReference) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitReference?>
 virtual AmpScm.Git.References.GitReferenceRepository.ResolveByOidAsync(AmpScm.Git.GitId! id, System.Collections.Generic.HashSet<string!>! processed) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IEnumerable<AmpScm.Git.GitReference!>!>

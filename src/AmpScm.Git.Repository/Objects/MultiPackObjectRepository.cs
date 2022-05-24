@@ -22,7 +22,7 @@ namespace AmpScm.Git.Objects
         FileBucket? _bitmapBucket;
         FileBucket? _revIdxBucket;
 
-        public MultiPackObjectRepository(GitRepository repository, string multipackFile) : base(repository, multipackFile, "MultiPack:" + repository.GitDir)
+        public MultiPackObjectRepository(GitRepository repository, string multipackFile) : base(repository, multipackFile, "MultiPack:" + repository.GitDirectory)
         {
             _dir = Path.GetDirectoryName(multipackFile)!;
             HasBitmap = new GitAsyncLazy<bool>(GetHasBitmap);

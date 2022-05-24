@@ -60,7 +60,7 @@ namespace AmpScm.Git.References
                         }
                     }
 
-                    string path = Path.Combine(Repository.GitDir, name);
+                    string path = Path.Combine(Repository.GitDirectory, name);
                     Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
                     string p = path + ".lock";
@@ -143,7 +143,7 @@ namespace AmpScm.Git.References
                         switch (v.Type)
                         {
                             case UpdateType.Create:
-                                using (var fs = new FileStream(Path.Combine(Repository.GitDir, v.TargetName), FileMode.CreateNew))
+                                using (var fs = new FileStream(Path.Combine(Repository.GitDirectory, v.TargetName), FileMode.CreateNew))
                                 using (var sw = new StreamWriter(fs))
                                 {
                                     await sw.WriteLineAsync(v.Id!.ToString()).ConfigureAwait(false);
@@ -157,7 +157,7 @@ namespace AmpScm.Git.References
                                     v.TargetName = (rf as GitSymbolicReference)?.ReferenceName ?? rf.Name ?? v.Name;
                                 }
                                 originalId = rf?.Id;
-                                using (var fs = new FileStream(Path.Combine(Repository.GitDir, v.TargetName), FileMode.Create))
+                                using (var fs = new FileStream(Path.Combine(Repository.GitDirectory, v.TargetName), FileMode.Create))
                                 using (var sw = new StreamWriter(fs))
                                 {
                                     fs.SetLength(0);
@@ -172,7 +172,7 @@ namespace AmpScm.Git.References
                                     v.TargetName = rf.Name ?? v.Name;
                                 }
                                 originalId = rf?.Id;
-                                File.Delete(Path.Combine(Repository.GitDir, v.TargetName));
+                                File.Delete(Path.Combine(Repository.GitDirectory, v.TargetName));
                                 // If failed here, we need to cleanup packed references!!
                                 break;
                             default:
@@ -219,7 +219,7 @@ namespace AmpScm.Git.References
         {
             name = "logs/" + name;
 
-            string path = Path.Combine(Repository.GitDir, name)!;
+            string path = Path.Combine(Repository.GitDirectory, name)!;
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 #if !NETFRAMEWORK
             return File.AppendAllTextAsync(path, log.ToString());
