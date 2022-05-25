@@ -54,6 +54,18 @@ namespace AmpScm.Git.Client.Plumbing
 
             args.Add("--");
 
+
+#if NET5_0_OR_GREATER
+            if (OperatingSystem.IsWindows())
+#endif
+            {
+                string idx = Path.Combine(c.Repository.WorkTreeDirectory, "index");
+                if (File.Exists(idx))
+                {
+                    File.SetAttributes(idx, FileAttributes.Normal);
+                }
+            }
+
             await c.Repository.RunGitCommandAsync("update-index", args);
         }
     }
