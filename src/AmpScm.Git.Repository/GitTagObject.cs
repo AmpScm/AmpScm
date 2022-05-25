@@ -65,14 +65,14 @@ namespace AmpScm.Git
         }
 
 
-        public string? Message
+        public string Message
         {
             get
             {
                 if (_message is null)
                     Read();
 
-                return _message;
+                return _message!;
             }
         }
 
@@ -87,7 +87,7 @@ namespace AmpScm.Git
             }
         }
 
-        public string? Summary
+        public string Summary
         {
             get
             {

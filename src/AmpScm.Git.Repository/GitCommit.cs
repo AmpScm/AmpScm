@@ -141,18 +141,18 @@ namespace AmpScm.Git
 
         public IReadOnlyList<GitCommit> Parents => new ParentList(this);
 
-        public string? Message
+        public string Message
         {
             get
             {
                 if (_message is null)
                     Read(true);
 
-                return _message;
+                return _message!;
             }
         }
 
-        public string? Summary
+        public string Summary
         {
             get
             {

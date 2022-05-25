@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -11,12 +12,13 @@ namespace AmpScm.Buckets
     public struct ByteCollector : IEnumerable<byte>, IEquatable<ByteCollector>, IReadOnlyCollection<byte>
     {
         IEnumerable<byte>? _bytes;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         ushort _expected;
 
         public ByteCollector()
         {
             _bytes = null;
-            Count = 0;
+            Length = 0;
             _expected = 0;
         }
 
@@ -25,14 +27,17 @@ namespace AmpScm.Buckets
             if (expectedSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(expectedSize));
 
-            Count = 0;
+            Length = 0;
             _expected = (ushort)Math.Min(expectedSize, 32768);
             _bytes = null;
         }
 
-        public bool IsEmpty => (Count == 0);
+        public bool IsEmpty => (Length == 0);
 
-        public int Count { get; private set; }
+        public int Length { get; private set; }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<byte>.Count => Length;
 
         public bool SequenceEqual(Span<byte> sq)
         {
@@ -40,7 +45,7 @@ namespace AmpScm.Buckets
                 return sq.Length == 0;
 
             int i = 0;
-            foreach (var v in (_expected > 0) ? _bytes.Take(Count) : _bytes)
+            foreach (var v in (_expected > 0) ? _bytes.Take(Length) : _bytes)
             {
                 if (i >= sq.Length)
                     return false;
@@ -64,20 +69,20 @@ namespace AmpScm.Buckets
                 {
                     _bytes = bb ??= new byte[_expected];
 
-                    bytes.CopyTo(bb.AsSpan(Count));
-                    Count += bytes.Length;
+                    bytes.CopyTo(bb.AsSpan(Length));
+                    Length += bytes.Length;
                     return;
                 }
-                else if (Count == 0)
+                else if (Length == 0)
                 {
                     _bytes = bytes!.ToArray();
-                    Count = bytes.Length;
+                    Length = bytes.Length;
                     _expected = 0;
                     return;
                 }
                 else
                 {
-                    _bytes = _bytes!.Take(Count);
+                    _bytes = _bytes!.Take(Length);
                     _expected = 0;
                     // And fall through
                 }
@@ -88,12 +93,12 @@ namespace AmpScm.Buckets
             else
                 _bytes = _bytes.Concat(bytes.ToArray());
 
-            Count += bytes.Length;
+            Length += bytes.Length;
         }
 
         public void Clear()
         {
-            Count = 0;
+            Length = 0;
 
             if (_expected == 0)
             {
@@ -111,14 +116,14 @@ namespace AmpScm.Buckets
             {
                 byte[]? bb = (byte[]?)_bytes;
 
-                if (bytes.Length + (bb?.Length ?? 0) <= _expected)
+                if (bytes.Length + Length <= _expected)
                 {
                     _bytes = bb ??= new byte[_expected];
 
-                    bytes.CopyTo(bb.AsSpan(Count));
-                    Count += bb.Length;
+                    bytes.CopyTo(bb.AsSpan(Length));
+                    Length += bytes.Length;
 
-                    if (Count == _expected)
+                    if (Length == _expected)
                         _expected = 0;
 
                     return;
@@ -126,14 +131,14 @@ namespace AmpScm.Buckets
 
                 _expected = 0;
                 
-                if (Count == 0)
+                if (Length == 0)
                 {
                     _bytes = bytes;
-                    Count = bytes!.Length;
+                    Length = bytes!.Length;
                     return;
                 }
                 else
-                    _bytes = _bytes!.Take(Count);
+                    _bytes = _bytes!.Take(Length);
             }
 
 
@@ -142,7 +147,7 @@ namespace AmpScm.Buckets
             else
                 _bytes = _bytes.Concat(bytes!.ToArray());
 
-            Count += bytes!.Length;
+            Length += bytes!.Length;
         }
 
         public void Append(byte b)
@@ -155,14 +160,14 @@ namespace AmpScm.Buckets
                 {
                     _bytes = bb ??= new byte[_expected];
 
-                    bb[Count] = b;
-                    Count += 1;
+                    bb[Length] = b;
+                    Length += 1;
                     return;
                 }
 
                 _expected = 0;
 
-                _bytes = _bytes!.Take(Count);
+                _bytes = _bytes!.Take(Length);
             }
 
             if (_bytes is null)
@@ -173,12 +178,12 @@ namespace AmpScm.Buckets
 #else
                 _bytes = _bytes.Concat(new byte[]{b});
 #endif
-            Count += 1;
+            Length += 1;
         }
 
         public byte[] ToArray()
         {
-            if (Count == 0)
+            if (Length == 0)
                 return Array.Empty<byte>();
 
             DropBuffer();
@@ -203,15 +208,15 @@ namespace AmpScm.Buckets
             {
                 _expected = 0;
 
-                if (Count > 0)
+                if (Length > 0)
                 {
                     byte[] bb = (byte[])_bytes!;
 
-                    _bytes = _bytes!.Take(Count);
-                    if (Count + appendBytes.Length <= bb.Length)
+                    _bytes = _bytes!.Take(Length);
+                    if (Length + appendBytes.Length <= bb.Length)
                     {
-                        appendBytes.CopyTo(bb.AsSpan(Count));
-                        return new BucketBytes(bb, 0, Count + appendBytes.Length);
+                        appendBytes.CopyTo(bb.AsSpan(Length));
+                        return new BucketBytes(bb, 0, Length + appendBytes.Length);
                     }
                 }
             }
@@ -249,10 +254,10 @@ namespace AmpScm.Buckets
         {
             if (_expected > 0)
             {
-                if (Count > 0)
+                if (Length > 0)
                 {
-                    if (Count < _expected)
-                        _bytes = _bytes!.Take(Count);
+                    if (Length < _expected)
+                        _bytes = _bytes!.Take(Length);
                 }
                 _expected = 0;
             }
@@ -260,8 +265,8 @@ namespace AmpScm.Buckets
 
         public BucketBytes AsBytes()
         {
-            if (_expected > 0 && Count > 0)
-                return new BucketBytes((byte[])_bytes!, 0, Count);
+            if (_expected > 0 && Length > 0)
+                return new BucketBytes((byte[])_bytes!, 0, Length);
 
             return ToArray();
         }
@@ -276,10 +281,10 @@ namespace AmpScm.Buckets
 
         public IEnumerator<byte> GetEnumerator()
         {
-            if (Count == 0)
+            if (Length == 0)
                 return Enumerable.Empty<byte>().GetEnumerator();
             else if (_expected > 0)
-                return _bytes!.Take(Count).GetEnumerator();
+                return _bytes!.Take(Length).GetEnumerator();
             else
                 return _bytes!.GetEnumerator();
         }
@@ -291,9 +296,9 @@ namespace AmpScm.Buckets
 
         public bool Equals(ByteCollector other)
         {
-            if (Count != other.Count)
+            if (Length != other.Length)
                 return false;
-            else if (Count == 0)
+            else if (Length == 0)
                 return true;
             else
             {
@@ -312,7 +317,7 @@ namespace AmpScm.Buckets
 
         public override int GetHashCode()
         {
-            return Count;
+            return Length;
         }
 
         public static bool operator ==(ByteCollector left, ByteCollector right)

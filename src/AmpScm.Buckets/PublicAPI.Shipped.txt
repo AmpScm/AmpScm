@@ -104,10 +104,10 @@ AmpScm.Buckets.ByteCollector.AsBytes(byte[]! appendBytes) -> AmpScm.Buckets.Buck
 AmpScm.Buckets.ByteCollector.ByteCollector() -> void
 AmpScm.Buckets.ByteCollector.ByteCollector(int expectedSize) -> void
 AmpScm.Buckets.ByteCollector.Clear() -> void
-AmpScm.Buckets.ByteCollector.Count.get -> int
 AmpScm.Buckets.ByteCollector.Equals(AmpScm.Buckets.ByteCollector other) -> bool
 AmpScm.Buckets.ByteCollector.GetEnumerator() -> System.Collections.Generic.IEnumerator<byte>!
 AmpScm.Buckets.ByteCollector.IsEmpty.get -> bool
+AmpScm.Buckets.ByteCollector.Length.get -> int
 AmpScm.Buckets.ByteCollector.SequenceEqual(System.Span<byte> sq) -> bool
 AmpScm.Buckets.ByteCollector.ToArray() -> byte[]!
 AmpScm.Buckets.ByteCollector.ToResultOrEof() -> AmpScm.Buckets.BucketBytes

@@ -48,18 +48,18 @@ namespace AmpScm.Git
             return path;
         }
 
-        public static string? FirstLine(string? message)
+        public static string FirstLine(string? message)
         {
-            if (message == null)
-                return null;
+            if (message is null)
+                return "";
 
             return message.Split(new char[] { '\n' }, 2)[0].Trim();
         }
 
-        internal static string? CreateSummary(string? message)
+        internal static string CreateSummary(string message)
         {
-            if (message == null)
-                return null;
+            if (message is null)
+                return message!; // = null
 
             if (message.Contains('\r', StringComparison.Ordinal))
                 message = message.Replace("\r", "", StringComparison.Ordinal);

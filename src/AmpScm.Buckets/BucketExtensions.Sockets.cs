@@ -95,7 +95,31 @@ namespace AmpScm.Buckets
             using (bucket)
             {
 #if NET6_0_OR_GREATER
-                // TODO: Optimize with writev() / RandomAccess.Write(ReadOnlyMemory[], ...)
+                if (stream is FileStream fs && fs.CanSeek && bucket is IBucketReadBuffers rb)
+                {
+                    var handle = fs.SafeFileHandle;
+                    long pos = fs.Position;
+                    while (true)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var (buffers, done) = await bucket.ReadBuffersAsync().ConfigureAwait(false);
+
+                        if (buffers.Length > 0)
+                        {
+                            var len = buffers.Sum(x => (long)x.Length);
+
+                            await RandomAccess.WriteAsync(handle, buffers, pos, cancellationToken).ConfigureAwait(false);
+                            pos += len;
+                        }
+
+                        if (done)
+                        {
+                            fs.Position = pos;
+                            return;
+                        }
+                    }
+                }
 #endif
                 while (true)
                 {

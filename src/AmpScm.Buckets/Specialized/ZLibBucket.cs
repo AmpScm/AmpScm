@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Specialized
             }
 
             ZSetup();
-            write_data = new byte[8192];
+            _z.NextOut = write_data = System.Buffers.ArrayPool<byte>.Shared.Rent(8192);
             _innerPoll = inner as IBucketPoll;
         }
 
@@ -200,9 +200,17 @@ namespace AmpScm.Buckets.Specialized
                 _z.NextInIndex = rb_offs;
                 _z.AvailIn = read_buffer.Length;
 
-                _z.NextOut = write_data;
-                _z.NextOutIndex = 0;
-                _z.AvailOut = Math.Min(write_data.Length, requested);
+                int wb_start;
+                if (_z.NextOutIndex > 0 && requested < (write_data.Length - _z.NextOutIndex))
+                {
+                    wb_start = _z.NextOutIndex;
+                }
+                else
+                {
+                    _z.NextOutIndex = wb_start = 0;
+                }
+
+                _z.AvailOut = Math.Min(write_data.Length - wb_start, requested);
 
                 int r;
                 if (!_level.HasValue)
@@ -210,7 +218,7 @@ namespace AmpScm.Buckets.Specialized
                 else
                     r = _z.Deflate(_readEof ? ZlibConst.ZFINISH : ZlibConst.ZSYNCFLUSH);
 
-                write_buffer = new BucketBytes(write_data, 0, _z.NextOutIndex);
+                write_buffer = new BucketBytes(write_data, wb_start, _z.NextOutIndex - wb_start);
 
                 if (r == ZlibConst.ZSTREAMEND)
                 {
@@ -309,14 +317,19 @@ namespace AmpScm.Buckets.Specialized
 
             if (newPosition < _position)
             {
-                var (b, i) = write_buffer;
-
-                if (b is not null && _position - newPosition < i)
+                if (!write_buffer.IsEmpty)
                 {
-                    // We are very lucky. We still have this in our output buffer :-)
+                    _position += write_buffer.Length;
+                    write_buffer = BucketBytes.Empty;
+                }
+
+                if (_position + write_buffer.Length - newPosition <= _z.NextOutIndex)
+                {
+                    // The info is still in the zlib buffer
                     int moveBack = (int)(_position - newPosition);
-                    write_buffer = new BucketBytes(b, i - moveBack, write_buffer.Length + moveBack);
+                    write_buffer = new BucketBytes(write_data, _z.NextOutIndex - moveBack, moveBack);
                     _position -= moveBack;
+                    return;
                 }
                 else
                 {
@@ -353,6 +366,9 @@ namespace AmpScm.Buckets.Specialized
 
             if (disposing)
             {
+                if (write_data != null)
+                    System.Buffers.ArrayPool<byte>.Shared.Return(write_data);
+
                 write_data = null!;
                 read_buffer = default;
                 write_buffer = default;

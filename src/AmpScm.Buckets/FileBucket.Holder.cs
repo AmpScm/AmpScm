@@ -452,7 +452,7 @@ namespace AmpScm.Buckets
 
             static class NativeMethods
             {
-                [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+                [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, ExactSpelling = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
                 public static extern SafeFileHandle CreateFileW(
                     [MarshalAs(UnmanagedType.LPWStr)] string filename,
@@ -463,19 +463,19 @@ namespace AmpScm.Buckets
                     uint flagsAndAttributes,
                     IntPtr templateFile);
 
-                [DllImport("kernel32.dll", SetLastError = true)]
+                [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
                 public static extern bool ReadFile(SafeFileHandle hFile, [Out] byte[] lpBuffer,
                     int nNumberOfBytesToRead, out uint pRead, IntPtr pOverlapped);
 
 
-                [DllImport("kernel32.dll", SetLastError = true)]
+                [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
                 [return: MarshalAs(UnmanagedType.Bool)]
                 public static extern bool GetOverlappedResult(SafeFileHandle hFile, IntPtr lpOverlapped, out uint lpNumberOfBytesTransferred, [MarshalAs(UnmanagedType.Bool)] bool bWait);
 
 #if !NET6_0_OR_GREATER
-                [DllImport("kernel32.dll", SetLastError = true)]
+                [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
                 static extern bool GetFileSizeEx(SafeFileHandle hFile, out ulong size);
 

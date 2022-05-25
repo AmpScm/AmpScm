@@ -17,14 +17,14 @@ AmpScm.Git.GitBranch.Reference.get -> AmpScm.Git.GitReference!
 AmpScm.Git.GitCommit
 AmpScm.Git.GitCommit.Author.get -> AmpScm.Git.GitSignature!
 AmpScm.Git.GitCommit.Committer.get -> AmpScm.Git.GitSignature!
-AmpScm.Git.GitCommit.Message.get -> string?
+AmpScm.Git.GitCommit.Message.get -> string!
 AmpScm.Git.GitCommit.Parent.get -> AmpScm.Git.GitCommit?
 AmpScm.Git.GitCommit.ParentCount.get -> int
 AmpScm.Git.GitCommit.ParentId.get -> AmpScm.Git.GitId?
 AmpScm.Git.GitCommit.ParentIds.get -> System.Collections.Generic.IReadOnlyList<AmpScm.Git.GitId!>!
 AmpScm.Git.GitCommit.Parents.get -> System.Collections.Generic.IReadOnlyList<AmpScm.Git.GitCommit!>!
 AmpScm.Git.GitCommit.Revisions.get -> AmpScm.Git.Sets.GitRevisionSet!
-AmpScm.Git.GitCommit.Summary.get -> string?
+AmpScm.Git.GitCommit.Summary.get -> string!
 AmpScm.Git.GitCommit.Tree.get -> AmpScm.Git.GitTree!
 AmpScm.Git.GitCommit.TreeId.get -> AmpScm.Git.GitId!
 AmpScm.Git.GitDirectoryTreeEntry
@@ -92,8 +92,16 @@ AmpScm.Git.GitRepositoryInitArgs.InitialBranchName.set -> void
 AmpScm.Git.GitRepositoryInitArgs.InitialConfiguration.get -> System.Collections.Generic.IEnumerable<(string!, string!)>?
 AmpScm.Git.GitRepositoryInitArgs.InitialConfiguration.set -> void
 AmpScm.Git.GitRevision
+AmpScm.Git.GitRevision.Author.get -> AmpScm.Git.GitSignature!
+AmpScm.Git.GitRevision.ChangedPaths.get -> System.Collections.Generic.IEnumerable<AmpScm.Git.Sets.GitChangedPath!>!
 AmpScm.Git.GitRevision.Commit.get -> AmpScm.Git.GitCommit!
+AmpScm.Git.GitRevision.Committer.get -> AmpScm.Git.GitSignature!
+AmpScm.Git.GitRevision.CommitTime.get -> System.DateTimeOffset
+AmpScm.Git.GitRevision.Id.get -> AmpScm.Git.GitId!
+AmpScm.Git.GitRevision.Message.get -> string!
+AmpScm.Git.GitRevision.ParentIds.get -> System.Collections.Generic.IReadOnlyList<AmpScm.Git.GitId!>!
 AmpScm.Git.GitRevision.ReadAsync() -> System.Threading.Tasks.ValueTask
+AmpScm.Git.GitRevision.Summary.get -> string!
 AmpScm.Git.GitSignature
 AmpScm.Git.GitSignature.Email.get -> string!
 AmpScm.Git.GitSignature.Equals(AmpScm.Git.GitSignature? other) -> bool
@@ -107,10 +115,10 @@ AmpScm.Git.GitTag.Tagger.get -> AmpScm.Git.GitSignature?
 AmpScm.Git.GitTag.TagObject.get -> AmpScm.Git.GitTagObject?
 AmpScm.Git.GitTagObject
 AmpScm.Git.GitTagObject.GitObject.get -> AmpScm.Git.GitObject!
-AmpScm.Git.GitTagObject.Message.get -> string?
+AmpScm.Git.GitTagObject.Message.get -> string!
 AmpScm.Git.GitTagObject.Name.get -> string?
 AmpScm.Git.GitTagObject.ObjectType.get -> AmpScm.Git.GitObjectType
-AmpScm.Git.GitTagObject.Summary.get -> string?
+AmpScm.Git.GitTagObject.Summary.get -> string!
 AmpScm.Git.GitTagObject.Tagger.get -> AmpScm.Git.GitSignature!
 AmpScm.Git.GitTools
 AmpScm.Git.GitTree
@@ -196,6 +204,15 @@ AmpScm.Git.Repository.GitConfiguration.GetPathAsync(string! group, string! key) 
 AmpScm.Git.Repository.GitConfiguration.GetStringAsync(string! group, string! key) -> System.Threading.Tasks.ValueTask<string?>
 AmpScm.Git.Repository.GitConfiguration.GetSubGroups(string! group) -> System.Collections.Generic.IEnumerable<string!>!
 AmpScm.Git.Repository.GitConfiguration.Identity.get -> AmpScm.Git.GitSignature!
+AmpScm.Git.Sets.GitChange
+AmpScm.Git.Sets.GitChange.Added = 1 -> AmpScm.Git.Sets.GitChange
+AmpScm.Git.Sets.GitChange.Deleted = 3 -> AmpScm.Git.Sets.GitChange
+AmpScm.Git.Sets.GitChange.Modified = 2 -> AmpScm.Git.Sets.GitChange
+AmpScm.Git.Sets.GitChange.None = 0 -> AmpScm.Git.Sets.GitChange
+AmpScm.Git.Sets.GitChangedPath
+AmpScm.Git.Sets.GitChangedPath.Change.get -> AmpScm.Git.Sets.GitChange
+AmpScm.Git.Sets.GitChangedPath.Equals(AmpScm.Git.Sets.GitChangedPath? other) -> bool
+AmpScm.Git.Sets.GitChangedPath.Path.get -> string!
 AmpScm.Git.Sets.GitNamedObjectWrapper<TGitObject, TNamedObject>
 AmpScm.Git.Sets.GitNamedSet<T>
 AmpScm.Git.Sets.GitNamedSet<T>.GetAsync(string! name) -> System.Threading.Tasks.ValueTask<T?>
@@ -264,6 +281,8 @@ override AmpScm.Git.References.GitSymbolicReference.GitObject.get -> AmpScm.Git.
 override AmpScm.Git.References.GitSymbolicReference.Id.get -> AmpScm.Git.GitId?
 override AmpScm.Git.References.GitSymbolicReference.ReadAsync() -> System.Threading.Tasks.ValueTask
 override AmpScm.Git.References.GitSymbolicReference.ToString() -> string!
+override AmpScm.Git.Sets.GitChangedPath.Equals(object? obj) -> bool
+override AmpScm.Git.Sets.GitChangedPath.GetHashCode() -> int
 override AmpScm.Git.Sets.GitNamedSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 override AmpScm.Git.Sets.GitObjectSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 override AmpScm.Git.Sets.GitReferenceChangeSet.GetEnumerator() -> System.Collections.Generic.IEnumerator<AmpScm.Git.GitReferenceChange!>!
@@ -290,7 +309,7 @@ static AmpScm.Git.GitRepository.Init(string! path, bool isBare) -> AmpScm.Git.Gi
 static AmpScm.Git.GitRepository.Open(string! path) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.OpenAsync(string! path, System.Threading.CancellationToken cancellation = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitRepository!>
 static AmpScm.Git.GitRepository.TryFindRoot(string! path, out string? rootPath) -> bool
-static AmpScm.Git.GitTools.FirstLine(string? message) -> string?
+static AmpScm.Git.GitTools.FirstLine(string? message) -> string!
 static AmpScm.Git.GitTools.GetNormalizedFullPath(string! path) -> string!
 static AmpScm.Git.GitTreeEntry.operator !=(AmpScm.Git.GitTreeEntry! e1, AmpScm.Git.GitTreeEntry! e2) -> bool
 static AmpScm.Git.GitTreeEntry.operator <(AmpScm.Git.GitTreeEntry! left, AmpScm.Git.GitTreeEntry! right) -> bool

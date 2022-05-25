@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
-using AmpScm.Git.Objects;
+using AmpScm.Git.Objects.Writers;
 
 namespace AmpScm.Git.Objects
 {
@@ -26,41 +24,49 @@ namespace AmpScm.Git.Objects
             var tmpFilePath = Path.Combine(di.FullName, tmpFile);
             string? tmpFile2 = null;
             GitId? id = null;
+            string newName;
+
+            using (var f = GitInstallFile.Create(tmpFilePath))
             {
-                using var f = File.Create(tmpFilePath);
                 try
                 {
                     long? r = await bucket.ReadRemainingBytesAsync().ConfigureAwait(false);
                     if (!r.HasValue)
                     {
-                        string innerTmp = Path.Combine(di.FullName, tmpFile) + ".pre";
+                        string innerTmp = Path.Combine(Path.GetTempPath(), tmpFile) + ".pre";
 
                         using (var tmp = File.Create(innerTmp))
                         {
-                            tmpFile2 = innerTmp; 
+                            tmpFile2 = innerTmp;
                             await bucket.WriteToAsync(tmp, cancellationToken).ConfigureAwait(false);
                             r = tmp.Length;
                         }
-                        bucket = FileBucket.OpenRead(innerTmp);                        
+                        bucket = FileBucket.OpenRead(innerTmp);
                     }
 
-                    
                     await Type.CreateHeader(r.Value!).Append(bucket)
                             .GitHash(repository.InternalConfig.IdType, cs => id = cs)
                             .Compress(BucketCompressionAlgorithm.ZLib, BucketCompressionLevel.Maximum)
                         .WriteToAsync(f, cancellationToken).ConfigureAwait(!false);
-                }                
-                catch
+
+                    string idName = id!.ToString();
+
+                    var dir = Path.Combine(repository.GitDirectory, "objects", idName.Substring(0, 2));
+                    Directory.CreateDirectory(dir);
+
+                    newName = Path.Combine(dir, idName.Substring(2));
+                }
+                catch when (!GitInstallFile.TrySetDeleteOnClose(f, true))
                 {
                     f.Close();
 
                     try
                     {
-                        File.Delete(tmpFilePath);                        
+                        File.Delete(tmpFilePath);
                     }
                     catch (UnauthorizedAccessException)
                     { }
-                    catch(IOException)
+                    catch (IOException)
                     { }
 
                     throw;
@@ -77,14 +83,19 @@ namespace AmpScm.Git.Objects
                     catch (IOException)
                     { }
                 }
+
+                if (!File.Exists(newName))
+                {
+                    if (GitInstallFile.TryMoveFile(f, newName))
+                        return id;
+                }
+                else
+                {
+                    if (GitInstallFile.TrySetDeleteOnClose(f, true))
+                        return id;
+                }
             }
 
-            string idName = id!.ToString();
-
-            var dir = Path.Combine(repository.GitDirectory, "objects", idName.Substring(0, 2));
-            Directory.CreateDirectory(dir);
-
-            string newName = Path.Combine(dir, idName.Substring(2));
             if (File.Exists(newName))
                 File.Delete(tmpFilePath);
             else
