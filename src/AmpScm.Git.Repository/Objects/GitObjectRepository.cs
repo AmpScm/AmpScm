@@ -66,10 +66,10 @@ namespace AmpScm.Git.Objects
         {
             if (string.IsNullOrEmpty(idString))
                 throw new ArgumentNullException(nameof(idString));
-            else if (idString.Length <= 2)
+            else if (idString.Length < 2)
                 throw new ArgumentOutOfRangeException(nameof(idString), "Need at least two characters for id resolving");
 
-            string idBase = idString.PadRight(40, '0');
+            string idBase = idString.PadRight(Repository.InternalConfig.IdType.HashLength() * 2, '0');
 
             if (GitId.TryParse(idBase, out var baseGitId))
                 return (await DoResolveIdString<TGitObject>(idString, baseGitId).ConfigureAwait(false)).Result;

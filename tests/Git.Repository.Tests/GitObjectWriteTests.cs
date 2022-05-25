@@ -329,6 +329,11 @@ namespace GitRepositoryTests
                 // Doesn't use commit chain yet, as it wasn't detected before
                 rp.Head.Revisions.ToList();
 
+                for (int i = 0; i < 256; i++)
+                {
+                    var r = await rp.Objects.ResolveIdAsync(i.ToString("x2"));
+                }
+
                 // Refresh object sources. Here we find the commit graph (and the pack file)
                 rp.ObjectRepository.Refresh();
 
@@ -375,6 +380,23 @@ namespace GitRepositoryTests
 
                 // Walk the chained graphs
                 rp.Head.Revisions.ToList();
+
+                for(int i = 0; i < 256; i++)
+                {
+                    var r = await rp.Objects.ResolveIdAsync(i.ToString("x2"));
+                }
+
+
+                await rp.GetPlumbing().MultiPackIndex();
+
+                // Refresh object sources. Here we find the multipack
+                rp.ObjectRepository.Refresh();
+
+                for (int i = 0; i < 256; i++)
+                {
+                    var r = await rp.Objects.ResolveIdAsync(i.ToString("x2"));
+                }
+
             }
         }
     }

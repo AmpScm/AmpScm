@@ -15,7 +15,7 @@ namespace AmpScm.Git.Client.Plumbing
     }
     public class GitMultiPackIndexArgs : GitPlumbingArgs
     {
-        public GitMultiPackIndexCommand Command { get; set; }
+        public GitMultiPackIndexCommand Command { get; set; } // =Write
 
         public bool? Bitmap { get; set; }
         public override void Verify()
@@ -27,9 +27,11 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("multi-pack-index")]
-        public static async ValueTask MultiPackIndex(this GitPlumbingClient c, GitMultiPackIndexArgs options)
+        public static async ValueTask MultiPackIndex(this GitPlumbingClient c, GitMultiPackIndexArgs? options = null)
         {
-            options.Verify();
+            options?.Verify();
+
+            options ??= new();
 
             List<string> args = new();
 

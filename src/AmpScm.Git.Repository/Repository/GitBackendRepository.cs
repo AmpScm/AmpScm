@@ -37,7 +37,7 @@ namespace AmpScm.Git.Repository
                 if (name.StartsWith("Git", StringComparison.Ordinal))
                     name = name.Substring("Git".Length);
                 if (name.EndsWith("Repository", StringComparison.Ordinal))
-                    name = name.Substring(name.Length - "Repository".Length);
+                    name = name.Substring(0, name.Length - "Repository".Length);
 
                 return $"{name} Repository";
             }
