@@ -128,6 +128,8 @@ namespace AmpScm.Git.Objects
         {
             if (_chunks == null || ChunkReader == null)
                 return new ValueTask<int>(0);
+            else if (length <= 0)
+                throw new ArgumentOutOfRangeException(nameof(length));
 
             Chunk? ch = null;
             foreach (var c in _chunks)
@@ -142,6 +144,9 @@ namespace AmpScm.Git.Objects
                 return new ValueTask<int>(0);
 
             int requested = (int)Math.Min(length, ch.Value.Length - position);
+
+            if (requested <= 0)
+                return new ValueTask<int>(0);
 
             return ChunkReader.ReadAtAsync(ch.Value.Position + position, buffer, requested);
         }
@@ -207,7 +212,7 @@ namespace AmpScm.Git.Objects
             else if (n2 > 0)
                 first++;
 
-            return (true, first);
+            return (false, first);
         }
     }
 }

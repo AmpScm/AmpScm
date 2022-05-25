@@ -9,3 +9,4 @@
 *.user
 /TestResults/
 /src/TestResults/
+coverage.*.xml
