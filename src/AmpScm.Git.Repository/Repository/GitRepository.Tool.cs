@@ -64,7 +64,7 @@ namespace AmpScm.Git
             await Task.WhenAll(p.WaitForExitAsync(), rcv.DoneTask).ConfigureAwait(false);
 
             if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
-                throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation: {rcv.StdErr}");
+                throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation in '{FullPath}': {rcv.StdErr}");
 
             return p.ExitCode;
         }
@@ -104,7 +104,7 @@ namespace AmpScm.Git
             await Task.WhenAll(p.WaitForExitAsync(), rcv.DoneTask).ConfigureAwait(false);
 
             if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
-                throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation: {rcv.StdErr}");
+                throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation in '{FullPath}': {rcv.StdErr}");
 
             return (p.ExitCode, rcv.StdOut);
         }
@@ -144,7 +144,7 @@ namespace AmpScm.Git
             await Task.WhenAll(p.WaitForExitAsync(), rcv.DoneTask).ConfigureAwait(false);
 
             if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
-                throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation");
+                throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation in '{FullPath}'");
 
             return (p.ExitCode, rcv.StdOut, rcv.StdErr);
         }
@@ -186,7 +186,7 @@ namespace AmpScm.Git
                 await Task.WhenAll(p.WaitForExitAsync(), rcv.DoneTask).ConfigureAwait(false);
 
                 if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
-                    throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation");
+                    throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation in '{FullPath}'");
             });
         }
 

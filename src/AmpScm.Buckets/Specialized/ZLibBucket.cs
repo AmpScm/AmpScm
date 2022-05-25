@@ -77,6 +77,7 @@ namespace AmpScm.Buckets.Specialized
             read_buffer = BucketBytes.Empty;
             write_buffer = BucketBytes.Empty;
             _position = 0;
+            _z.NextOutIndex = _z.NextInIndex = 0;
         }
 
         async ValueTask<bool> Refill(bool forPeek, int requested = int.MaxValue)

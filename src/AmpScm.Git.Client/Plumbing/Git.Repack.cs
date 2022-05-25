@@ -63,6 +63,8 @@ namespace AmpScm.Git.Client.Plumbing
                 args.Add($"--threads={options.Threads.Value}");
 
             await c.Repository.RunGitCommandAsync("repack", args);
+
+            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository);
         }
     }
 }

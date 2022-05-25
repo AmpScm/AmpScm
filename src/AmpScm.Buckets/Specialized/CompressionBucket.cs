@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace AmpScm.Buckets.Specialized
     {
         private protected Stream Src { get; }
         protected Stream Processed { get; }
-        byte[]? buffer;
+        byte[]? _buffer;
         bool _eof;
         bool _writeCompression;
         AggregateBucket? _written;
@@ -30,6 +31,11 @@ namespace AmpScm.Buckets.Specialized
         {
             try
             {
+                if (_buffer != null)
+                {
+                    ArrayPool<Byte>.Shared.Return(_buffer);
+                    _buffer = null;
+                }
                 Processed.Close();
             }
             finally
@@ -68,18 +74,18 @@ namespace AmpScm.Buckets.Specialized
         {
             if (!_writeCompression)
             {
-                if (buffer == null)
-                    buffer = new byte[4096];
+                if (_buffer == null)
+                    _buffer = ArrayPool<Byte>.Shared.Rent(4096);
 
 #if !NETFRAMEWORK
-                int nRead = await Processed.ReadAsync(buffer).ConfigureAwait(false);
+                int nRead = await Processed.ReadAsync(_buffer).ConfigureAwait(false);
 #else
-                int nRead = await Processed.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                int nRead = await Processed.ReadAsync(_buffer, 0, _buffer.Length).ConfigureAwait(false);
 #endif
 
                 if (nRead > 0)
                 {
-                    _remaining = new BucketBytes(buffer, 0, nRead);
+                    _remaining = new BucketBytes(_buffer, 0, nRead);
                 }
                 else
                 {

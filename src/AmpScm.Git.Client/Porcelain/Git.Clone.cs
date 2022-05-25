@@ -65,6 +65,8 @@ namespace AmpScm.Git.Client.Porcelain
             args.Add(path);
 
             await c.Repository.RunGitCommandAsync("clone", args);
+
+            RemoveReadOnlyIfNecessary(c.Repository);
         }
 
         [GitCommand("clone")]
@@ -91,6 +93,8 @@ namespace AmpScm.Git.Client.Porcelain
             args.Add(path);
 
             await c.Repository.RunGitCommandAsync("clone", args);
+
+            RemoveReadOnlyIfNecessary(c.Repository);
         }
 
         private static void PrepareCloneArgs(GitCloneArgs options, List<string> args)

@@ -281,6 +281,8 @@ namespace GitRepositoryTests
 
             GitTree tree = repo.Head.Tree!;
 
+            Assert.IsNotNull(tree, "HEAD has tree");
+
             bool hasModules = tree.AllFiles.TryGet(".gitmodules", out _);
             bool foundModule = false;
             foreach (var item in tree)
