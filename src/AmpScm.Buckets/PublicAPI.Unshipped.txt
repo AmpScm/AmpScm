@@ -99,6 +99,7 @@ AmpScm.Buckets.Specialized.BucketFactory.FromUTF8(string! value) -> AmpScm.Bucke
 AmpScm.Buckets.Specialized.ConversionBucket
 AmpScm.Buckets.Specialized.ConversionBucket.ConversionBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Specialized.WrappingBucket.HasMoreClosers() -> bool
+const AmpScm.Buckets.Specialized.ZLibBucket.DefaultBufferSize = 8192 -> int
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentLength.get -> long
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentType.get -> string?
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!

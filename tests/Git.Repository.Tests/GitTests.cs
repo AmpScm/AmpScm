@@ -36,7 +36,7 @@ namespace GitRepositoryTests
             for (int i = 0; i < gh.ObjectCount; i++)
             {
                 long? offset = b.Position;
-                using var pf = new GitPackFrameBucket(b.NoClose(), GitIdType.Sha1, null);
+                using var pf = new GitPackObjectBucket(b.NoClose(), GitIdType.Sha1, null);
 
                 GitObjectType type = await pf.ReadTypeAsync();
 
@@ -613,7 +613,7 @@ namespace GitRepositoryTests
                 GitId? checksum = null;
                 int crc = 0;
                 var crcr = b.NoClose().Crc32(c => crc = c);
-                using (var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
+                using (var pf = new GitPackObjectBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
                 {
 
                     var type = await pf.ReadTypeAsync();
@@ -720,7 +720,7 @@ namespace GitRepositoryTests
                 var crcr = srcFile.NoClose().Crc32(c => crc = c);
                 GitId? checksum = null;
 
-                using (var pf = new GitPackFrameBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
+                using (var pf = new GitPackObjectBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
                 {
                     var type = await pf.ReadTypeAsync();
 

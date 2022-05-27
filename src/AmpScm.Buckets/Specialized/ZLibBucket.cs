@@ -30,14 +30,25 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int? _headerLeft;
 
+
+        /// <summary>
+        /// Default buffer size. (Value may change in the future, but current value is always guaranteed to be supported)
+        /// </summary>
+        public const int DefaultBufferSize = 8192;
+
         internal ZLibBucket(Bucket inner)
             : this(inner, BucketCompressionAlgorithm.ZLib)
         {
         }
 
-        public ZLibBucket(Bucket inner, BucketCompressionAlgorithm algorithm = BucketCompressionAlgorithm.ZLib, CompressionMode mode = CompressionMode.Decompress, BucketCompressionLevel level = BucketCompressionLevel.Default)
+        public ZLibBucket(Bucket inner, BucketCompressionAlgorithm algorithm = BucketCompressionAlgorithm.ZLib, CompressionMode mode = CompressionMode.Decompress, BucketCompressionLevel level = BucketCompressionLevel.Default, int bufferSize = DefaultBufferSize)
             : base(inner)
         {
+            if (bufferSize < 0)
+                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+            else if (bufferSize < 64)
+                bufferSize = 64;
+
             _z = new ZStream();
             if (mode == CompressionMode.Compress)
                 _level = level;
@@ -57,7 +68,7 @@ namespace AmpScm.Buckets.Specialized
             }
 
             ZSetup();
-            _z.NextOut = write_data = System.Buffers.ArrayPool<byte>.Shared.Rent(8192);
+            _z.NextOut = write_data = System.Buffers.ArrayPool<byte>.Shared.Rent(bufferSize); // Rents buffer of at least bufferSize
             _innerPoll = inner as IBucketPoll;
         }
 
@@ -383,7 +394,7 @@ namespace AmpScm.Buckets.Specialized
 
             var b = Inner.Duplicate(reset);
 
-            return new ZLibBucket(b, _algorithm, (_level is null) ? CompressionMode.Decompress : CompressionMode.Compress);
+            return new ZLibBucket(b, _algorithm, (_level is null) ? CompressionMode.Decompress : CompressionMode.Compress, _level ?? BucketCompressionLevel.Default, Math.Min(8192, write_data.Length));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

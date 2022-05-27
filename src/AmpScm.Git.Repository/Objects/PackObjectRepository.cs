@@ -317,7 +317,7 @@ namespace AmpScm.Git.Objects
             var rdr = _packBucket!.Duplicate(true);
             await rdr.SeekAsync(offset).ConfigureAwait(false);
 
-            GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
+            GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
 
             GitObject ob = await GitObject.FromBucketAsync(Repository, pf, id).ConfigureAwait(false);
 
@@ -374,7 +374,7 @@ namespace AmpScm.Git.Objects
                 var rdr = _packBucket!.Duplicate(true);
                 await rdr.SeekAsync(offset).ConfigureAwait(false);
 
-                GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
+                GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
 
                 GitObject ob = await GitObject.FromBucketAsync(Repository, pf, foundId).ConfigureAwait(false);
 
@@ -461,7 +461,7 @@ namespace AmpScm.Git.Objects
                 var rdr = _packBucket!.Duplicate(true);
                 await rdr.SeekAsync(offset).ConfigureAwait(false);
 
-                GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
+                GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
 
                 GitObject ob = await GitObject.FromBucketAsync(Repository, pf, objectId).ConfigureAwait(false);
 
@@ -542,7 +542,7 @@ namespace AmpScm.Git.Objects
             var rdr = _packBucket!.Duplicate(true);
             await rdr.SeekAsync(GetOffset(offsets, 0)).ConfigureAwait(false);
 
-            GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
+            GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
 
             return (TGitObject)(object)await GitObject.FromBucketAsync(Repository, pf, objectId, gitObjectType).ConfigureAwait(false);
         }
@@ -662,7 +662,7 @@ namespace AmpScm.Git.Objects
                 var rdr = _packBucket!.Duplicate(true);
                 await rdr.SeekAsync(offset).ConfigureAwait(false);
 
-                GitPackFrameBucket pf = new GitPackFrameBucket(rdr, _idType, MyResolveByOid);
+                GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
 
                 return pf;
             }

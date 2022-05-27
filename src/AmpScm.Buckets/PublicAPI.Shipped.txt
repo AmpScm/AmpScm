@@ -163,7 +163,7 @@ AmpScm.Buckets.Specialized.WrappingBucket.NoClose() -> void
 AmpScm.Buckets.Specialized.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Specialized.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! inner, bool noDispose) -> void
 AmpScm.Buckets.Specialized.ZLibBucket
-AmpScm.Buckets.Specialized.ZLibBucket.ZLibBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm = AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib, System.IO.Compression.CompressionMode mode = System.IO.Compression.CompressionMode.Decompress, AmpScm.Buckets.Specialized.BucketCompressionLevel level = AmpScm.Buckets.Specialized.BucketCompressionLevel.Default) -> void
+AmpScm.Buckets.Specialized.ZLibBucket.ZLibBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm = AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib, System.IO.Compression.CompressionMode mode = System.IO.Compression.CompressionMode.Decompress, AmpScm.Buckets.Specialized.BucketCompressionLevel level = AmpScm.Buckets.Specialized.BucketCompressionLevel.Default, int bufferSize = 8192) -> void
 AmpScm.Buckets.ValueOrEof
 AmpScm.Buckets.ValueOrEof.Equals(AmpScm.Buckets.ValueOrEof other) -> bool
 AmpScm.Buckets.ValueOrEof.ValueOrEof() -> void

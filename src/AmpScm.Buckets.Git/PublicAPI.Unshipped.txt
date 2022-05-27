@@ -50,7 +50,7 @@ AmpScm.Buckets.Git.GitDirectoryOptions.PreLoadExtensions.set -> void
 AmpScm.Buckets.Git.GitEwahBitmapBucket.AllBits.get -> System.Collections.Generic.IAsyncEnumerable<bool>!
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitEwahBitmapBucket.SetIndexes.get -> System.Collections.Generic.IAsyncEnumerable<int>!
-AmpScm.Buckets.Git.GitPackFrameBucket.ReadDeltaCountAsync() -> System.Threading.Tasks.ValueTask<int>
+AmpScm.Buckets.Git.GitPackObjectBucket.ReadDeltaCountAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadObjectIdAsync() -> System.Threading.Tasks.ValueTask<(AmpScm.Git.GitId!, AmpScm.Git.GitObjectType)>

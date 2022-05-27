@@ -8,7 +8,7 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    public sealed class GitPackFrameBucket : GitObjectBucket, IBucketPoll, IBucketSeek
+    public sealed class GitPackObjectBucket : GitObjectBucket, IBucketPoll, IBucketSeek
     {
         Bucket? reader;
         frame_state state;
@@ -41,7 +41,7 @@ namespace AmpScm.Buckets.Git
         const GitObjectType GitObjectType_DeltaOffset = (GitObjectType)6;
         const GitObjectType GitObjectType_DeltaReference = (GitObjectType)7;
 
-        public GitPackFrameBucket(Bucket inner, GitIdType idType, Func<GitId, ValueTask<GitObjectBucket?>>? fetchBucketById = null)
+        public GitPackObjectBucket(Bucket inner, GitIdType idType, Func<GitId, ValueTask<GitObjectBucket?>>? fetchBucketById = null)
             : base(inner.WithPosition())
         {
             _idType = idType;
@@ -186,7 +186,7 @@ namespace AmpScm.Buckets.Git
                     Bucket deltaSource = Inner.Duplicate(true);
                     await deltaSource.SeekAsync(delta_position).ConfigureAwait(false);
 
-                    base_reader = new GitPackFrameBucket(deltaSource, _idType, _fetchBucketById);
+                    base_reader = new GitPackObjectBucket(deltaSource, _idType, _fetchBucketById);
                 }
                 else
                 {
@@ -210,7 +210,7 @@ namespace AmpScm.Buckets.Git
 
             if (state == frame_state.open_body)
             {
-                var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib);
+                var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib, bufferSize: BodySize >= ZLibBucket.DefaultBufferSize ? ZLibBucket.DefaultBufferSize : (int)BodySize!);
                 if (_deltaCount != 0)
                     reader = new GitDeltaBucket(inner, (GitObjectBucket)reader!);
                 else
@@ -275,7 +275,7 @@ namespace AmpScm.Buckets.Git
             if (_deltaCount >= 0)
                 return _deltaCount.Value;
 
-            if (reader is GitDeltaBucket gdb && gdb.BaseBucket is GitPackFrameBucket fb)
+            if (reader is GitDeltaBucket gdb && gdb.BaseBucket is GitPackObjectBucket fb)
             {
                 var count = await fb.ReadDeltaCountAsync().ConfigureAwait(false) + 1;
                 _deltaCount = count;
