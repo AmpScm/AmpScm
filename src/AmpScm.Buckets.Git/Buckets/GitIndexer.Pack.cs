@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
@@ -11,10 +13,12 @@ namespace AmpScm.Buckets.Git
 {
     public static partial class GitIndexer
     {
-        public static async ValueTask<GitId> IndexPack(string packFile, bool writeReverseIndex = false, bool writeBitmap = false, GitIdType idType = GitIdType.Sha1)
+        public static async ValueTask<GitId> IndexPack(string packFile, bool writeReverseIndex = false, bool writeBitmap = false, GitIdType idType = GitIdType.Sha1, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(packFile))
                 throw new ArgumentNullException(nameof(packFile));
+
+            DateTime start = DateTime.Now;
 
             if (writeBitmap)
                 throw new NotImplementedException();
@@ -34,38 +38,75 @@ namespace AmpScm.Buckets.Git
                 return null;
             }
 
-            using var gh = new GitPackHeaderBucket(srcFile.NoClose());
-            var r = await gh.ReadAsync().ConfigureAwait(false);
+            long objectCount;
+            using (var gh = new GitPackHeaderBucket(srcFile.NoClose()))
+            {
+                var r = await gh.ReadAsync().ConfigureAwait(false);
+                objectCount = (int)gh.ObjectCount!.Value;
+            }
 
             List<long> fixUpLater = new List<long>();
 
-            for (int i = 0; i < gh.ObjectCount; i++)
+            for (int i = 0; i < objectCount; i++)
             {
-                await IndexOne(idType, srcFile, hashes).ConfigureAwait(false);
-            }
+                GitId? oid = null;
+                int crc = 0;
+                long offset = srcFile.Position!.Value;
 
-            var packChecksum = await srcFile.ReadGitIdAsync(idType).ConfigureAwait(false);
-
-            var eofCheck = await srcFile.ReadAsync().ConfigureAwait(false);
-
-            while(fixUpLater.Count > 0)
-            {
-                int n = fixUpLater.Count;
-                for (int i = 0; i < fixUpLater.Count; i++)
+                using (var pf = new GitPackObjectBucket(srcFile.NoClose().Crc32(c => crc = c), idType, id => new(DummyObjectBucket.Instance)))
                 {
-                    long l = fixUpLater[i];
-                    fixUpLater.RemoveAt(i);
 
-                    await srcFile.SeekAsync(l).ConfigureAwait(false);
-                    if (await IndexOne(idType, srcFile, hashes).ConfigureAwait(false))
+                    if (await pf.ReadNeedsBaseAsync().ConfigureAwait(false))
+                        await pf.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
+                    else
                     {
-                        i--;
+                        var type = await pf.ReadTypeAsync().ConfigureAwait(false);
+                        var len = await pf.ReadRemainingBytesAsync().ConfigureAwait(false);
+
+                        using var csum = (type.CreateHeader(len.Value) + pf.NoClose()).GitHash(idType, s => oid = s);
+
+                        await csum.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
                     }
                 }
 
-                if (fixUpLater.Count == n)
-                    throw new InvalidOperationException();
+                if (oid != null)
+                {
+                    hashes[oid] = (offset, crc);
+                }
+                else
+                    fixUpLater.Add(offset);
             }
+
+            Console.WriteLine(DateTime.Now - start);
+
+            var packChecksum = await srcFile.ReadGitIdAsync(idType).ConfigureAwait(false);
+
+            while (fixUpLater.Count > 0)
+            {
+                int n = fixUpLater.Count;
+                Console.WriteLine($"{fixUpLater.Count} / {hashes.Count}");
+
+                List<long> load = new(fixUpLater);
+                fixUpLater.Clear();
+
+                Func<long, CancellationToken, ValueTask> cb = async (offset, c) =>
+                {
+                    using (var b = srcFile.Duplicate(true))
+                    {
+                        await b.SeekAsync(offset).ConfigureAwait(false);
+
+                        await IndexOne(offset, b).ConfigureAwait(false);
+                    }
+                };
+
+#if NET6_0_OR_GREATER
+                await Parallel.ForEachAsync(load, cb).ConfigureAwait(false);
+#else
+                foreach (var v in load)
+                    await cb(v, cancellationToken).ConfigureAwait(false);
+#endif
+            }
+            Console.WriteLine(DateTime.Now - start);
 
             int[] fanOut = new int[256];
 
@@ -111,7 +152,7 @@ namespace AmpScm.Buckets.Git
 
                 mapBytes = new byte[sizeof(uint) * hashes.Count];
                 int n = 0;
-                foreach (var v in hashes.Select((kv, n) => new { kv.Value.Offset, Index = n }).OrderBy(x=>x.Offset))
+                foreach (var v in hashes.Select((kv, n) => new { kv.Value.Offset, Index = n }).OrderBy(x => x.Offset))
                 {
                     Array.Copy(NetBitConverter.GetBytes(v.Index), 0, mapBytes, n, sizeof(uint));
 
@@ -135,30 +176,30 @@ namespace AmpScm.Buckets.Git
 
             return packChecksum;
 
-            async Task<bool> IndexOne(GitIdType idType, FileBucket srcFile, SortedList<GitId, (long Offset, int CRC)> hashes)
+            async Task<bool> IndexOne(long offset, Bucket src)
             {
-                long offset = srcFile.Position.Value;
                 int crc = 0;
                 GitId? checksum = null;
                 bool skipNoHash = false;
 
-                async ValueTask<GitObjectBucket?> FixUp(GitId id)
+                GitObjectBucket FixUp(GitId id)
                 {
                     skipNoHash = true;
-                    return new GitFileObjectBucket(GitObjectType.Blob.CreateHeader(0).Compress(BucketCompressionAlgorithm.ZLib));
+                    return DummyObjectBucket.Instance;
                 }
 
-                var pf = new GitPackObjectBucket(srcFile.NoClose().Crc32(c => crc = c), idType, async id => await GetDeltaSource(id).ConfigureAwait(false) ?? await FixUp(id).ConfigureAwait(false));
+                var pf = new GitPackObjectBucket(src.NoClose().Crc32(c => crc = c), idType, async id => await GetDeltaSource(id).ConfigureAwait(false) ?? FixUp(id));
 
                 var type = await pf.ReadTypeAsync().ConfigureAwait(false);
 
                 if (skipNoHash)
                 {
-                    using(pf)
+                    pf.Dispose();
+                    lock (fixUpLater)
                     {
-                        await pf.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
                         fixUpLater.Add(offset);
                     }
+
                     return false;
                 }
                 else
@@ -169,9 +210,31 @@ namespace AmpScm.Buckets.Git
 
                     await csum.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
 
-                    hashes.Add(checksum!, (offset, crc));
+                    lock (fixUpLater)
+                    {
+                        hashes.Add(checksum!, (offset, crc));
+                    }
                     return true;
                 }
+            }
+        }
+
+        sealed class DummyObjectBucket : GitObjectBucket
+        {
+            private DummyObjectBucket(Bucket inner) : base(inner)
+            {
+            }
+
+            public static DummyObjectBucket Instance { get; } = new(Bucket.Empty);
+
+            public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+            {
+                return Inner.ReadAsync(requested);
+            }
+
+            public override ValueTask<GitObjectType> ReadTypeAsync()
+            {
+                return new(GitObjectType.None);
             }
         }
     }

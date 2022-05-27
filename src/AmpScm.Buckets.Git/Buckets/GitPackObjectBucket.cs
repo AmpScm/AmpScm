@@ -132,6 +132,13 @@ namespace AmpScm.Buckets.Git
             return PrepareState(frame_state.body);
         }
 
+        internal async ValueTask<bool> ReadNeedsBaseAsync()
+        {
+            await PrepareState(frame_state.size_done).ConfigureAwait(false);
+
+            return (_deltaCount != 0);
+        }
+
         async ValueTask PrepareState(frame_state want_state)
         {
             if (state >= frame_state.body)
@@ -174,6 +181,9 @@ namespace AmpScm.Buckets.Git
                     _deltaCount = 0;
                     _fetchBucketById = null;
                 }
+
+                if (want_state == frame_state.size_done)
+                    return;
             }
 
             if (state == frame_state.find_delta)

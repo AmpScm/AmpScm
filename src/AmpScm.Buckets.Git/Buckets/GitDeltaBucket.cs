@@ -281,7 +281,13 @@ namespace AmpScm.Buckets.Git
                 if (_copySize == 0)
                 {
                     if (_position == _length)
+                    {
                         state = delta_state.eof;
+                        var bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+
+                        if (!bb.IsEof)
+                            throw new GitBucketException($"Expected EOF on Source {Name} Bucket but got none");
+                    }
                     else
                         state = delta_state.init;
                 }
