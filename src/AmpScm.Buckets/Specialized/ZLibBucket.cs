@@ -23,9 +23,12 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         byte[] write_data;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _position;
+        long _position; // Zlib read position
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly BucketCompressionAlgorithm _algorithm;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly BucketCompressionLevel? _level;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly IBucketPoll? _innerPoll;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int? _headerLeft;
@@ -231,6 +234,7 @@ namespace AmpScm.Buckets.Specialized
                     r = _z.Deflate(_readEof ? ZlibConst.ZFINISH : ZlibConst.ZSYNCFLUSH);
 
                 write_buffer = new BucketBytes(write_data, wb_start, _z.NextOutIndex - wb_start);
+                _position += write_buffer.Length;
 
                 if (r == ZlibConst.ZSTREAMEND)
                 {
@@ -315,9 +319,6 @@ namespace AmpScm.Buckets.Specialized
 
             var bb = write_buffer.Slice(0, requested);
             write_buffer = write_buffer.Slice(requested);
-            _position += requested;
-
-            System.Diagnostics.Debug.Assert(bb.Length > 0);
 
             return bb;
         }
@@ -327,46 +328,34 @@ namespace AmpScm.Buckets.Specialized
             if (newPosition < 0)
                 throw new ArgumentOutOfRangeException(nameof(newPosition));
 
-            if (newPosition < _position)
+            if (newPosition < Position)
             {
-                if (!write_buffer.IsEmpty)
+                if (_position - newPosition <= _z.NextOutIndex)
                 {
-                    _position += write_buffer.Length;
-                    write_buffer = BucketBytes.Empty;
-                }
+                    // The info is still in the zlib buffer. We can just fix up the position in the buffer
 
-                if (_position + write_buffer.Length - newPosition <= _z.NextOutIndex)
-                {
-                    // The info is still in the zlib buffer
                     int moveBack = (int)(_position - newPosition);
                     write_buffer = new BucketBytes(write_data, _z.NextOutIndex - moveBack, moveBack);
-                    _position -= moveBack;
                     return;
                 }
-                else
-                {
-                    // Reset the world and start reading at the start
-                    Inner.Reset();
 
-                    ZSetup();
-                }
+                // Reset the world and start reading at the start
+                Reset();
             }
 
-            if (newPosition > _position)
+            long pos = Position!.Value;
+            if (newPosition > pos)
             {
-                await ReadSkipAsync(newPosition - _position).ConfigureAwait(false);
+                await ReadSkipAsync(newPosition - pos).ConfigureAwait(false);
             }
         }
 
         public override bool CanReset => Inner.CanReset;
 
-        public override long? Position => _position;
+        public override long? Position => _position - write_buffer.Length;
 
         public override void Reset()
         {
-            if (!CanReset)
-                throw new InvalidOperationException();
-
             Inner.Reset();
 
             ZSetup();
@@ -374,16 +363,21 @@ namespace AmpScm.Buckets.Specialized
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
-            if (disposing)
+            try
             {
-                if (write_data != null)
-                    System.Buffers.ArrayPool<byte>.Shared.Return(write_data);
+                if (disposing)
+                {
+                    if (write_data != null)
+                        System.Buffers.ArrayPool<byte>.Shared.Return(write_data);
 
-                write_data = null!;
-                read_buffer = default;
-                write_buffer = default;
+                    write_data = null!;
+                    read_buffer = default;
+                    write_buffer = default;
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
             }
         }
 
