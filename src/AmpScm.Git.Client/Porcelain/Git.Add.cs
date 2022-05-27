@@ -10,28 +10,32 @@ namespace AmpScm.Git.Client.Porcelain
     {
         public override void Verify()
         {
-            throw new NotImplementedException();
+
         }
     }
 
     partial class GitPorcelain
     {
         [GitCommand("add")]
-        public static async ValueTask Add(this GitPorcelainClient c, string path, GitAddArgs? options=null)
+        public static ValueTask Add(this GitPorcelainClient c, string path, GitAddArgs? options=null)
         {
-            options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
-
-            await c.ThrowNotImplemented();
+            return Add(c, new[] { path }, options);
         }
 
         [GitCommand("add")]
         public static async ValueTask Add(this GitPorcelainClient c, string[] paths, GitAddArgs? options = null)
         {
             options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            options ??= new();
 
-            await c.ThrowNotImplemented();
+            List<string> args = new List<string>();
+
+            args.Add("--");
+            args.AddRange(paths);
+
+            await c.Repository.RunGitCommandAsync("add", args);
+
+            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
         }
     }
 }

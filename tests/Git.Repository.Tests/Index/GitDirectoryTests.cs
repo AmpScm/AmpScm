@@ -158,9 +158,7 @@ namespace GitRepositoryTests.Index
 
             File.AppendAllText(Path.Combine(path, "README.md"), " ");
 
-            await repo.GetPlumbing().RunRawCommand("add", "miota", "A/mu", "README.md");
-
-
+            await repo.GetPorcelain().Add(new[] { "miota", "A/mu", "README.md" });
 
             using (var dc = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
             {

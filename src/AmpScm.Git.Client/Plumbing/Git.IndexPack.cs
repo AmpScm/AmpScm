@@ -42,6 +42,8 @@ namespace AmpScm.Git.Client.Plumbing
 
 #if NET5_0_OR_GREATER
             if (OperatingSystem.IsWindows())
+#else
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
 #endif
             {
                 string idx = Path.ChangeExtension(path, ".idx");

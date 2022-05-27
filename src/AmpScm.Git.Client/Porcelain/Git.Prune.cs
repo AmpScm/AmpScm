@@ -10,7 +10,7 @@ namespace AmpScm.Git.Client.Porcelain
     {
         public override void Verify()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 
@@ -20,9 +20,12 @@ namespace AmpScm.Git.Client.Porcelain
         public static async ValueTask Prune(this GitPorcelainClient c, GitPruneArgs? options = null)
         {
             options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            options ??= new();
 
-            await c.ThrowNotImplemented();
+            List<string> args = new List<string>();
+
+
+            await c.Repository.RunGitCommandAsync("prune", args);
         }
     }
 }

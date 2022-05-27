@@ -7,7 +7,7 @@ using Elskom.Generic.Libs;
 
 namespace AmpScm.Buckets.Specialized
 {
-    [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Peek={{{nameof(DebuggerDisplay)},nq}}")]
+    [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Peek={{{nameof(PeekDisplay)},nq}}")]
     public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -384,7 +384,7 @@ namespace AmpScm.Buckets.Specialized
         public override Bucket Duplicate(bool reset = false)
         {
             if (!reset)
-                throw new InvalidOperationException();
+                throw new NotSupportedException("ZLib buckets can't be duplicated without reset");
 
             var b = Inner.Duplicate(reset);
 
@@ -392,6 +392,6 @@ namespace AmpScm.Buckets.Specialized
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string DebuggerDisplay => read_buffer.AsDebuggerDisplay();
+        string PeekDisplay => read_buffer.AsDebuggerDisplay();
     }
 }

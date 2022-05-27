@@ -41,7 +41,7 @@ namespace AmpScm.Git.Client.Porcelain
                 args.Add($"--prune={options.PruneDate.Value.Date.ToString("yyyy-MM-dd")}");
             await c.Repository.RunGitCommandAsync("gc", args);
 
-            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository);
+            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
         }
     }
 }

@@ -50,6 +50,8 @@ namespace AmpScm.Git.Client.Plumbing
                 args.Add("--no-bitmap");
 
             await c.Repository.RunGitCommandAsync("multi-pack-index", args);
+
+            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
         }
     }
 }

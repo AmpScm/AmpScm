@@ -9,7 +9,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets
 {
-    [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Next={{{nameof(DebuggerDisplay)},nq}}")]
+    [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Next={{{nameof(PeekDisplay)},nq}}")]
     public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBucketSkip, IBucketSeekOnReset, IBucketNoClose
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -369,7 +369,6 @@ namespace AmpScm.Buckets
 #else
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT)
 #endif
-
                     fh = new FileHolder(FileHolder.OpenAsyncWin32(path), path);
                 else
                     primary = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, FileOptions.Asynchronous);
@@ -404,6 +403,6 @@ namespace AmpScm.Buckets
         //}
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string DebuggerDisplay => ((_size - _pos > 0) ? _buffer.AsMemory(_pos, _size - _pos) : new Memory<byte>()).AsDebuggerDisplay();
+        string PeekDisplay => ((_size - _pos > 0) ? _buffer.AsMemory(_pos, _size - _pos) : new Memory<byte>()).AsDebuggerDisplay();
     }
 }

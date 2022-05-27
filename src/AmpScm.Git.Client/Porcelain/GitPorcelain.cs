@@ -20,13 +20,17 @@ namespace AmpScm.Git.Client.Porcelain
         }
 
 
+        internal static bool PerformReadOnlyCleanup { get; } = (AppDomain.CurrentDomain?.FriendlyName?.StartsWith("test", StringComparison.OrdinalIgnoreCase) ?? false);
 
-        internal static void RemoveReadOnlyIfNecessary(GitRepository repository)
+        internal static void RemoveReadOnlyIfNecessary(string gitDirectory)
         {
-            string dir = Path.Combine(repository.GitDirectory, "objects");
+            if (!PerformReadOnlyCleanup)
+                return;
+
+            string dir = Path.Combine(gitDirectory, "objects");
 
             if (Directory.Exists(dir))
-                foreach (var v in Directory.GetFiles(dir, "????*"))
+                foreach (var v in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
                 {
                     switch (Path.GetExtension(v))
                     {

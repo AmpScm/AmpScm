@@ -26,7 +26,7 @@ namespace AmpScm.Git.Client.Plumbing
     partial class GitPlumbing
     {
         [GitCommand("update-index")]
-        public static async ValueTask UpdateIndex(this GitPlumbingClient c, GitUpdateIndexArgs? options=null)
+        public static async ValueTask UpdateIndex(this GitPlumbingClient c, GitUpdateIndexArgs? options = null)
         {
             options ??= new();
             options.Verify();
@@ -57,12 +57,19 @@ namespace AmpScm.Git.Client.Plumbing
 
 #if NET5_0_OR_GREATER
             if (OperatingSystem.IsWindows())
+#else
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
 #endif
             {
                 string idx = Path.Combine(c.Repository.WorkTreeDirectory, "index");
                 if (File.Exists(idx))
                 {
                     File.SetAttributes(idx, FileAttributes.Normal);
+                }
+
+                foreach (var v in Directory.EnumerateFiles(c.Repository.WorkTreeDirectory, "sharedindex.*"))
+                {
+                    File.SetAttributes(v, FileAttributes.Normal);
                 }
             }
 

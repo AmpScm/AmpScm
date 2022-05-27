@@ -56,8 +56,10 @@ namespace AmpScm.Git.Client.Porcelain
                 return;
             }
 
+            path = Path.GetFullPath(path);
+
+            options?.Verify();
             options ??= new();
-            options.Verify();
 
             List<string> args = new();
             PrepareCloneArgs(options, args);
@@ -66,7 +68,10 @@ namespace AmpScm.Git.Client.Porcelain
 
             await c.Repository.RunGitCommandAsync("clone", args);
 
-            RemoveReadOnlyIfNecessary(c.Repository);
+            if (!options.Bare)
+                path = Path.Combine(path, ".git");
+
+            RemoveReadOnlyIfNecessary(path);
         }
 
         [GitCommand("clone")]
@@ -84,8 +89,10 @@ namespace AmpScm.Git.Client.Porcelain
             else if (!Directory.Exists(sourcePath))
                 throw new DirectoryNotFoundException($"Git Directory '{sourcePath}' not found");
 
+            path = Path.GetFullPath(path);
+
+            options?.Verify();
             options ??= new();
-            options.Verify();
 
             List<string> args = new();
             PrepareCloneArgs(options, args);
@@ -94,7 +101,10 @@ namespace AmpScm.Git.Client.Porcelain
 
             await c.Repository.RunGitCommandAsync("clone", args);
 
-            RemoveReadOnlyIfNecessary(c.Repository);
+            if (!options.Bare)
+                path = Path.Combine(path, ".git");
+
+            RemoveReadOnlyIfNecessary(path);
         }
 
         private static void PrepareCloneArgs(GitCloneArgs options, List<string> args)

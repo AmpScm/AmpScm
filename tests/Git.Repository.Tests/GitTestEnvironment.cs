@@ -89,7 +89,7 @@ namespace GitRepositoryTests
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-packed"));
-                    await pp.GetPorcelain().GC();
+                    await pp.GetPorcelain().GC(new() { PruneDate = DateTime.Now + new TimeSpan(1, 0, 0, 0) });
                 }
 
                 {
@@ -224,6 +224,9 @@ namespace GitRepositoryTests
 
                 await rt.CommitAsync();
             }
+
+            //var q = await repo.GetPlumbing().ConsistencyCheck(new() { Full=true});
+            //Assert.AreEqual("", q);
         }
 
         [AssemblyCleanup]

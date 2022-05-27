@@ -38,12 +38,14 @@ namespace AmpScm
         {
             string dir;
             if (!string.IsNullOrEmpty(subPath))
-                dir = Path.Combine(tc.TestResultsDirectory, tc.FullyQualifiedTestClassName, tc.TestName, subPath);
+                dir = Path.Combine(tc.FullyQualifiedTestClassName, tc.TestName, subPath);
             else
-                dir = Path.Combine(tc.TestResultsDirectory, tc.FullyQualifiedTestClassName, tc.TestName);
+                dir = Path.Combine(tc.FullyQualifiedTestClassName, tc.TestName);
 
-            if (dir.Length > 100)
+            if (dir.Length + tc.TestResultsDirectory.Length > 100)
                 dir = Path.Combine(tc.TestResultsDirectory, SHA1String(dir).Substring(0, 10));
+            else
+                dir = Path.Combine(tc.TestResultsDirectory, dir);
 
             if (Path.AltDirectorySeparatorChar != Path.DirectorySeparatorChar)
                 dir = dir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);

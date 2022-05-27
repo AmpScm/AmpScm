@@ -61,7 +61,7 @@ namespace AmpScm.Git.Client.Plumbing
 
             await c.Repository.RunGitCommandAsync("commit-graph", args);
 
-            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository);
+            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
         }
     }
 }

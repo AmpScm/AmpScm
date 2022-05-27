@@ -323,6 +323,7 @@ namespace GitRepositoryTests
                 Assert.IsFalse(File.Exists(commitGraphPath), $"{commitGraphPath} does not exist");
                 // This should get us an initial commit graph
                 await rp.GetPorcelain().GC();
+
                 Assert.IsTrue(File.Exists(commitGraphPath), $"{commitGraphPath} does exist");
                 Assert.AreEqual(rp.IsBare ? 3 : 2, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Count(), "Files on objects/pack");
 
