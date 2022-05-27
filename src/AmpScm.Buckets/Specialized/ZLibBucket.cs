@@ -328,7 +328,7 @@ namespace AmpScm.Buckets.Specialized
             if (newPosition < 0)
                 throw new ArgumentOutOfRangeException(nameof(newPosition));
 
-            if (newPosition < Position)
+            if (newPosition < _position)
             {
                 if (_position - newPosition <= _z.NextOutIndex)
                 {

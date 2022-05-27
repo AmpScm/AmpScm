@@ -89,7 +89,7 @@ namespace GitRepositoryTests
 
                 {
                     using var pp = GitRepository.Open(Path.Combine(ro, "greek-packed"));
-                    await pp.GetPorcelain().GC(new() { PruneDate = DateTime.Now + new TimeSpan(1, 0, 0, 0) });
+                    await pp.GetPorcelain().GC();
                 }
 
                 {

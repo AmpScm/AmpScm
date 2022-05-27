@@ -50,6 +50,7 @@ AmpScm.Buckets.Git.GitDirectoryOptions.PreLoadExtensions.set -> void
 AmpScm.Buckets.Git.GitEwahBitmapBucket.AllBits.get -> System.Collections.Generic.IAsyncEnumerable<bool>!
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitEwahBitmapBucket.SetIndexes.get -> System.Collections.Generic.IAsyncEnumerable<int>!
+AmpScm.Buckets.Git.GitIndexer
 AmpScm.Buckets.Git.GitPackObjectBucket.ReadDeltaCountAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! inner) -> void
@@ -67,6 +68,7 @@ static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDir
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
+static AmpScm.Buckets.Git.GitIndexer.IndexPack(string! packFile, bool writeReverseIndex = false, bool writeBitmap = false, AmpScm.Git.GitIdType idType = AmpScm.Git.GitIdType.Sha1) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 static AmpScm.Buckets.Git.GitReadExtensions.SplitToUtf8String(this AmpScm.Buckets.BucketBytes bytes, byte separator, int count) -> string![]!
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.HighestSupportedFormat -> int
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.LowestSupportedFormat -> int

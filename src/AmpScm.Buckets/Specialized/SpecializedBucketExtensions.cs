@@ -169,8 +169,7 @@ namespace AmpScm.Buckets.Specialized
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            while (0 != await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false))
-            { }
+            await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
         }
 
         /// <summary>

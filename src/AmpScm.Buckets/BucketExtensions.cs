@@ -489,6 +489,48 @@ namespace AmpScm.Buckets
             };
         }
 
+
+        public static async ValueTask<bool> HasSameContentsAsync(this Bucket left, Bucket right)
+        {
+            if (left is null)
+                throw new ArgumentNullException(nameof(left));
+            else if (right is null)
+                throw new ArgumentNullException(nameof(right));
+
+            using (left)
+            using (right)
+
+                while (true)
+                {
+                    BucketBytes bbLeft, bbRight;
+
+                    bbLeft = await left.ReadAsync().ConfigureAwait(false);
+
+                    if (bbLeft.IsEof)
+                    {
+                        bbRight = await right.ReadAsync(1).ConfigureAwait(false);
+
+                        if (!bbRight.IsEof)
+                            return false;
+                        else
+                            return true;
+                    }
+
+                    do
+                    {
+                        bbRight = await right.ReadAsync(bbLeft.Length).ConfigureAwait(false);
+
+                        if (bbRight.IsEof)
+                            return false;
+
+                        if (!bbRight.Span.SequenceEqual(bbLeft.Span.Slice(0, bbRight.Length)))
+                            return false;
+
+                        bbLeft = bbLeft.Slice(bbRight.Length);
+                    }
+                    while (bbLeft.Length > 0);
+                }
+        }
         //public static async ValueTask<BucketBytes> ReadUntilAsync(this Bucket bucket, Func<byte, bool> predicate, int pollSize = 1, int maxRequested = int.MaxValue)
         //{
         //    if (bucket is null)

@@ -805,7 +805,32 @@ namespace GitRepositoryTests
             byte[]? idxChecksum = null;
             using var idxData = indexFile.TakeExact(lIdx - 20).SHA1(x => idxChecksum = x);
 
-            await Assert.That.BucketsEqual(idxData, index);
+            Assert.IsTrue(await idxData.NoClose().HasSameContentsAsync(index.NoClose()));
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(LocalPacks))]
+        public async Task IndexLocalPacks(string packFile)
+        {
+            var dir = TestContext.PerTestDirectory(packFile);
+            var file = Path.Combine(dir, Path.GetFileName(packFile));
+
+            File.Copy(packFile, file);
+
+            await GitIndexer.IndexPack(file, writeReverseIndex: true);
+
+            var idx1 = FileBucket.OpenRead(Path.ChangeExtension(file, ".idx"));
+            var idx2 = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"));
+
+            Assert.IsTrue(await idx1.HasSameContentsAsync(idx2));
+
+            if (File.Exists(Path.ChangeExtension(packFile, ".rev")))
+            {
+                idx1 = FileBucket.OpenRead(Path.ChangeExtension(file, ".rev"));
+                idx2 = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".rev"));
+
+                Assert.IsTrue(await idx1.HasSameContentsAsync(idx2));
+            }
         }
 
         private async ValueTask<GitObjectBucket?> GetDeltaSource(string packFile, GitId id)
