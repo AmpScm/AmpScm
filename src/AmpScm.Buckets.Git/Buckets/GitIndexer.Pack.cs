@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Git
 {
     public static partial class GitIndexer
     {
-        public static async ValueTask<GitId> IndexPack(string packFile, bool writeReverseIndex = false, bool writeBitmap = false, GitIdType idType = GitIdType.Sha1, CancellationToken cancellationToken = default)
+        public static async ValueTask<GitId> IndexPack(string packFile, bool writeReverseIndex = false, bool writeBitmap = false, GitIdType idType = GitIdType.Sha1)
         {
             if (string.IsNullOrEmpty(packFile))
                 throw new ArgumentNullException(nameof(packFile));
@@ -69,7 +69,9 @@ namespace AmpScm.Buckets.Git
                     }
                 }
 
+#pragma warning disable CA1508 // Avoid dead conditional code
                 if (oid != null)
+#pragma warning restore CA1508 // Avoid dead conditional code
                 {
                     hashes[oid] = (offset, crc);
                 }
@@ -77,14 +79,11 @@ namespace AmpScm.Buckets.Git
                     fixUpLater.Add(offset);
             }
 
-            Console.WriteLine(DateTime.Now - start);
-
             var packChecksum = await srcFile.ReadGitIdAsync(idType).ConfigureAwait(false);
 
             while (fixUpLater.Count > 0)
             {
                 int n = fixUpLater.Count;
-                Console.WriteLine($"{fixUpLater.Count} / {hashes.Count}");
 
                 List<long> load = new(fixUpLater);
                 fixUpLater.Clear();
@@ -103,10 +102,9 @@ namespace AmpScm.Buckets.Git
                 await Parallel.ForEachAsync(load, cb).ConfigureAwait(false);
 #else
                 foreach (var v in load)
-                    await cb(v, cancellationToken).ConfigureAwait(false);
+                    await cb(v, default).ConfigureAwait(false);
 #endif
             }
-            Console.WriteLine(DateTime.Now - start);
 
             int[] fanOut = new int[256];
 
@@ -129,7 +127,6 @@ namespace AmpScm.Buckets.Git
             // Hashes
             index += hashes.Keys.Select(x => x.Hash).AsBucket();
 
-            //TestContext.WriteLine($"CRCs start at {await index.ReadRemainingBytesAsync()}");
             // CRC32 values of packed data
             index += hashes.Values.Select(x => NetBitConverter.GetBytes(x.Item2)).AsBucket();
             // File offsets
