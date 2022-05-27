@@ -33,7 +33,7 @@ namespace AmpScm.Git.Objects
             var fileReader = FileBucket.OpenRead(path, false);
             try
             {
-                var rdr = new GitObjectFileBucket(fileReader);
+                var rdr = new GitFileObjectBucket(fileReader);
 
                 GitObject ob = await GitObject.FromBucketAsync(Repository, rdr, id).ConfigureAwait(false);
 
@@ -70,7 +70,7 @@ namespace AmpScm.Git.Objects
                 return default;
 
             var fileReader = FileBucket.OpenRead(path, false);
-            return new ValueTask<GitObjectBucket?>(new GitObjectFileBucket(fileReader));
+            return new ValueTask<GitObjectBucket?>(new GitFileObjectBucket(fileReader));
         }
 
         public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
@@ -88,7 +88,7 @@ namespace AmpScm.Git.Objects
 
                     var fileReader = FileBucket.OpenRead(file, false);
 
-                    var rdr = new GitObjectFileBucket(fileReader);
+                    var rdr = new GitFileObjectBucket(fileReader);
 
                     GitObject ob = await GitObject.FromBucketAsync(Repository, rdr, id).ConfigureAwait(false);
 

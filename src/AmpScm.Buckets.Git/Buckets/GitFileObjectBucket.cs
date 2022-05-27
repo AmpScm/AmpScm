@@ -11,13 +11,13 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    public sealed class GitObjectFileBucket : GitObjectBucket, IBucketPoll
+    public sealed class GitFileObjectBucket : GitObjectBucket, IBucketPoll
     {
         long _startOffset;
         long? _length;
         GitObjectType _type;
 
-        public GitObjectFileBucket(Bucket inner)
+        public GitFileObjectBucket(Bucket inner)
             : base(new ZLibBucket(inner, BucketCompressionAlgorithm.ZLib))
         {
         }

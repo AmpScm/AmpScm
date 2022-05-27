@@ -819,15 +819,18 @@ namespace GitRepositoryTests
 
             await GitIndexer.IndexPack(file, writeReverseIndex: true);
 
-            var idx1 = FileBucket.OpenRead(Path.ChangeExtension(file, ".idx"));
-            var idx2 = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"));
+            if (File.Exists(Path.ChangeExtension(packFile, ".idx")))
+            {
+                var idx1 = FileBucket.OpenRead(Path.ChangeExtension(file, ".idx"));
+                var idx2 = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".idx"));
 
-            Assert.IsTrue(await idx1.HasSameContentsAsync(idx2));
+                Assert.IsTrue(await idx1.HasSameContentsAsync(idx2));
+            }
 
             if (File.Exists(Path.ChangeExtension(packFile, ".rev")))
             {
-                idx1 = FileBucket.OpenRead(Path.ChangeExtension(file, ".rev"));
-                idx2 = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".rev"));
+                var idx1 = FileBucket.OpenRead(Path.ChangeExtension(file, ".rev"));
+                var idx2 = FileBucket.OpenRead(Path.ChangeExtension(packFile, ".rev"));
 
                 Assert.IsTrue(await idx1.HasSameContentsAsync(idx2));
             }
@@ -835,7 +838,6 @@ namespace GitRepositoryTests
 
         private async ValueTask<GitObjectBucket?> GetDeltaSource(string packFile, GitId id)
         {
-            TestContext.WriteLine($"Resolving {id}");
             GitRepository repo = await GitRepository.OpenAsync(Path.GetDirectoryName(packFile)!);
 
             return (await repo.ObjectRepository.FetchGitIdBucketAsync(id)) ?? throw new InvalidOperationException($"Can't obtain object {id} from {packFile}");

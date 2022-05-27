@@ -17,6 +17,8 @@ namespace AmpScm.Buckets.Git
         uint _copyOffset;
         int _copySize;
         delta_state state;
+        long _baseLen;
+        bool _openedBase;
 
         enum delta_state
         {
@@ -154,6 +156,15 @@ namespace AmpScm.Buckets.Git
 
             if (state == delta_state.base_copy)
             {
+                if (!_openedBase)
+                {
+                    _openedBase = true;
+                    long? base_size = await BaseBucket.ReadRemainingBytesAsync().ConfigureAwait(false) + BaseBucket.Position;
+
+                    if (base_size != _baseLen)
+                        throw new GitBucketException($"Expected delta base size {_baseLen} doesn't match source size ({base_size}) on {BaseBucket.Name} Bucket");
+                }
+
                 var data = await BaseBucket.ReadAsync(Math.Min(requested, _copySize)).ConfigureAwait(false);
 
                 if (data.IsEof)
@@ -228,7 +239,7 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<long> ReadSkipAsync(long requested)
         {
-            int skipped = 0;
+            long skipped = 0;
             while (requested > 0)
             {
                 if (state <= delta_state.init && !await AdvanceAsync().ConfigureAwait(false))
@@ -268,7 +279,12 @@ namespace AmpScm.Buckets.Git
                 }
 
                 if (_copySize == 0)
-                    state = delta_state.init;
+                {
+                    if (_position == _length)
+                        state = delta_state.eof;
+                    else
+                        state = delta_state.init;
+                }
 
                 if (r == 0)
                     return skipped;
@@ -294,12 +310,7 @@ namespace AmpScm.Buckets.Git
         {
             if (state == delta_state.start)
             {
-                var base_len = await Inner.ReadGitDeltaSize().ConfigureAwait(false);
-
-                long? base_size = await BaseBucket.ReadRemainingBytesAsync().ConfigureAwait(false);
-
-                if (base_size != base_len)
-                    throw new GitBucketException($"Expected delta base size {_length} doesn't match source size ({base_size}) on {BaseBucket.Name} Bucket");
+                _baseLen = await Inner.ReadGitDeltaSize().ConfigureAwait(false);
 
                 _length = await Inner.ReadGitDeltaSize().ConfigureAwait(false);
                 state = delta_state.init;
@@ -362,6 +373,8 @@ namespace AmpScm.Buckets.Git
             _position = 0;
             _copyOffset = 0;
             _copySize = 0;
+            _baseLen = 0;
+            _openedBase = false;
         }
 
         public override ValueTask<GitObjectType> ReadTypeAsync()

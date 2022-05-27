@@ -37,27 +37,35 @@ namespace AmpScm.Buckets.Git
             using var gh = new GitPackHeaderBucket(srcFile.NoClose());
             var r = await gh.ReadAsync().ConfigureAwait(false);
 
+            List<long> fixUpLater = new List<long>();
+
             for (int i = 0; i < gh.ObjectCount; i++)
             {
-                long? offset = srcFile.Position;
-                int crc = 0;
-                GitId? checksum = null;
-
-                var pf = new GitPackObjectBucket(srcFile.NoClose().Crc32(c => crc = c), idType, id => GetDeltaSource(id));
-                
-                var type = await pf.ReadTypeAsync().ConfigureAwait(false);
-                var len = await pf.ReadRemainingBytesAsync().ConfigureAwait(false);
-
-                using var csum = (type.CreateHeader(len.Value) + pf).GitHash(idType, s => checksum = s);
-
-                await csum.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
-
-                hashes.Add(checksum!, (offset!.Value, crc));
+                await IndexOne(idType, srcFile, hashes).ConfigureAwait(false);
             }
 
             var packChecksum = await srcFile.ReadGitIdAsync(idType).ConfigureAwait(false);
 
             var eofCheck = await srcFile.ReadAsync().ConfigureAwait(false);
+
+            while(fixUpLater.Count > 0)
+            {
+                int n = fixUpLater.Count;
+                for (int i = 0; i < fixUpLater.Count; i++)
+                {
+                    long l = fixUpLater[i];
+                    fixUpLater.RemoveAt(i);
+
+                    await srcFile.SeekAsync(l).ConfigureAwait(false);
+                    if (await IndexOne(idType, srcFile, hashes).ConfigureAwait(false))
+                    {
+                        i--;
+                    }
+                }
+
+                if (fixUpLater.Count == n)
+                    throw new InvalidOperationException();
+            }
 
             int[] fanOut = new int[256];
 
@@ -126,6 +134,45 @@ namespace AmpScm.Buckets.Git
             }
 
             return packChecksum;
+
+            async Task<bool> IndexOne(GitIdType idType, FileBucket srcFile, SortedList<GitId, (long Offset, int CRC)> hashes)
+            {
+                long offset = srcFile.Position.Value;
+                int crc = 0;
+                GitId? checksum = null;
+                bool skipNoHash = false;
+
+                async ValueTask<GitObjectBucket?> FixUp(GitId id)
+                {
+                    skipNoHash = true;
+                    return new GitFileObjectBucket(GitObjectType.Blob.CreateHeader(0).Compress(BucketCompressionAlgorithm.ZLib));
+                }
+
+                var pf = new GitPackObjectBucket(srcFile.NoClose().Crc32(c => crc = c), idType, async id => await GetDeltaSource(id).ConfigureAwait(false) ?? await FixUp(id).ConfigureAwait(false));
+
+                var type = await pf.ReadTypeAsync().ConfigureAwait(false);
+
+                if (skipNoHash)
+                {
+                    using(pf)
+                    {
+                        await pf.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
+                        fixUpLater.Add(offset);
+                    }
+                    return false;
+                }
+                else
+                {
+                    var len = await pf.ReadRemainingBytesAsync().ConfigureAwait(false);
+
+                    using var csum = (type.CreateHeader(len.Value) + pf).GitHash(idType, s => checksum = s);
+
+                    await csum.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
+
+                    hashes.Add(checksum!, (offset, crc));
+                    return true;
+                }
+            }
         }
     }
 }
