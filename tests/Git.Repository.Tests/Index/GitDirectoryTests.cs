@@ -151,7 +151,12 @@ namespace GitRepositoryTests.Index
                 GC.KeepAlive(dc2);
             }
 
+            Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "Has index");
+            Assert.IsFalse(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "Not shared yet");
             await repo.GetPlumbing().UpdateIndex(new() { SplitIndex = true });
+
+            Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "Still has index");
+            Assert.IsTrue(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "Now shared");
 
             File.WriteAllText(Path.Combine(path, "miota"), "QQQ");
             File.WriteAllText(Path.Combine(path, "A", "mu"), "QQQ");
@@ -159,6 +164,9 @@ namespace GitRepositoryTests.Index
             File.AppendAllText(Path.Combine(path, "README.md"), " ");
 
             await repo.GetPorcelain().Add(new[] { "miota", "A/mu", "README.md" });
+
+            Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "After add has index");
+            Assert.IsTrue(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "After add shared");
 
             using (var dc = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
             {
