@@ -85,7 +85,15 @@ namespace AmpScm.Buckets.Git
                 data = await Inner.ReadAsync(1).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new BucketEofException(Inner);
+                {
+                    if (_position != _length)
+                        throw new BucketEofException(Inner);
+                    else
+                    {
+                        state = delta_state.eof;
+                        return false;
+                    }
+                }
 
                 uc = data[0];
 
@@ -174,12 +182,8 @@ namespace AmpScm.Buckets.Git
                 _copySize -= data.Length;
 
                 if (_copySize == 0)
-                {
-                    if (_position == _length)
-                        state = delta_state.eof;
-                    else
-                        state = delta_state.init;
-                }
+                    state = delta_state.init;
+
                 return data;
             }
             else if (state == delta_state.src_copy)
@@ -193,12 +197,8 @@ namespace AmpScm.Buckets.Git
                 _copySize -= data.Length;
 
                 if (_copySize == 0)
-                {
-                    if (_position == _length)
-                        state = delta_state.eof;
-                    else
-                        state = delta_state.init;
-                }
+                    state = delta_state.init;
+
                 return data;
             }
             else if (state == delta_state.eof)
@@ -219,21 +219,14 @@ namespace AmpScm.Buckets.Git
             if (newPosition < 0)
                 throw new ArgumentNullException(nameof(newPosition));
 
-            long curPosition = Position!.Value;
-
-            if (newPosition < curPosition)
+            if (newPosition < _position)
             {
                 Reset();
-                curPosition = 0;
             }
 
-            while (curPosition < newPosition)
+            if (_position < newPosition)
             {
-                long skipped = await ReadSkipAsync(newPosition - curPosition).ConfigureAwait(false);
-                if (skipped == 0)
-                    throw new InvalidOperationException($"Unexpected seek failure on {Name} Bucket position {newPosition} from {curPosition}");
-
-                curPosition += skipped;
+                await ReadSkipAsync(newPosition - _position).ConfigureAwait(false);
             }
         }
 
@@ -303,7 +296,7 @@ namespace AmpScm.Buckets.Git
 
         private async ValueTask SeekBase()
         {
-            while (state == delta_state.base_seek)
+            if (state == delta_state.base_seek)
             {
                 await BaseBucket.SeekAsync(_copyOffset).ConfigureAwait(false);
 

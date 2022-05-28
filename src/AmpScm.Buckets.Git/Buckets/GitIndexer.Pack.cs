@@ -224,6 +224,18 @@ namespace AmpScm.Buckets.Git
             {
             }
 
+            protected override void InnerDispose()
+            {
+                //base.InnerDispose();
+            }
+
+#pragma warning disable CA2215 // Dispose methods should call base class dispose
+            protected override void Dispose(bool disposing)
+#pragma warning restore CA2215 // Dispose methods should call base class dispose
+            {
+                //base.Dispose(disposing);
+            }
+
             public static DummyObjectBucket Instance { get; } = new(Bucket.Empty);
 
             public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
