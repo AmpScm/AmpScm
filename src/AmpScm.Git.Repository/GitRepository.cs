@@ -15,7 +15,7 @@ using AmpScm.Git.Sets;
 
 namespace AmpScm.Git
 {
-    [DebuggerDisplay($"GitRepository {{{nameof(GitDirectory)}}}")]
+    [DebuggerDisplay($"GitRepository \"{{{nameof(FullPath)},nq}}\"")]
     public partial class GitRepository : IDisposable, IGitQueryRoot, IServiceProvider
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
