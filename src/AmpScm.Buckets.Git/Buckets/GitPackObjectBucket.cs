@@ -15,6 +15,7 @@ namespace AmpScm.Buckets.Git
         long delta_position;
         readonly GitIdType _idType;
         Func<GitId, ValueTask<GitObjectBucket?>>? _fetchBucketById;
+        Func<long, ValueTask<GitObjectBucket>>? _fetchBucketByOffset;
         GitId? _deltaId;
         int? _deltaCount;
         GitObjectType _type;
@@ -41,11 +42,12 @@ namespace AmpScm.Buckets.Git
         const GitObjectType GitObjectType_DeltaOffset = (GitObjectType)6;
         const GitObjectType GitObjectType_DeltaReference = (GitObjectType)7;
 
-        public GitPackObjectBucket(Bucket inner, GitIdType idType, Func<GitId, ValueTask<GitObjectBucket?>>? fetchBucketById = null)
+        public GitPackObjectBucket(Bucket inner, GitIdType idType, Func<GitId, ValueTask<GitObjectBucket?>>? fetchBucketById = null, Func<long, ValueTask<GitObjectBucket>>? fetchBucketByOffset = null)
             : base(inner.WithPosition())
         {
             _idType = idType;
             _fetchBucketById = fetchBucketById;
+            _fetchBucketByOffset = fetchBucketByOffset;
         }
 
         protected override void Dispose(bool disposing)
@@ -193,10 +195,15 @@ namespace AmpScm.Buckets.Git
                 if (_type == GitObjectType_DeltaOffset)
                 {
                     // The source needs support for this. Our file and memory buckets have this support
-                    Bucket deltaSource = Inner.Duplicate(true);
-                    await deltaSource.SeekAsync(delta_position).ConfigureAwait(false);
+                    if (_fetchBucketByOffset != null)
+                        base_reader = await _fetchBucketByOffset(delta_position).ConfigureAwait(false);
+                    else
+                    {
+                        Bucket deltaSource = Inner.Duplicate(true);
+                        await deltaSource.SeekAsync(delta_position).ConfigureAwait(false);
 
-                    base_reader = new GitPackObjectBucket(deltaSource, _idType, _fetchBucketById);
+                        base_reader = new GitPackObjectBucket(deltaSource, _idType, _fetchBucketById);
+                    }
                 }
                 else
                 {
@@ -220,7 +227,8 @@ namespace AmpScm.Buckets.Git
 
             if (state == frame_state.open_body)
             {
-                var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib, bufferSize: BodySize >= ZLibBucket.DefaultBufferSize ? ZLibBucket.DefaultBufferSize : (int)BodySize!);
+                const int maxBufSize = ZLibBucket.DefaultBufferSize;
+                var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib, bufferSize: BodySize >= maxBufSize ? maxBufSize : (int)BodySize!);
                 if (_deltaCount != 0)
                     reader = new GitDeltaBucket(inner, (GitObjectBucket)reader!);
                 else
@@ -304,6 +312,6 @@ namespace AmpScm.Buckets.Git
             reader!.Reset();
         }
 
-        public override bool CanReset => Inner.CanReset;
+        public override bool CanReset => reader?.CanReset ?? Inner.CanReset;
     }
 }

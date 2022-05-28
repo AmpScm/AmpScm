@@ -53,7 +53,9 @@ namespace AmpScm.Buckets.Git
                 int crc = 0;
                 long offset = srcFile.Position!.Value;
 
-                using (var pf = new GitPackObjectBucket(srcFile.NoClose().Crc32(c => crc = c), idType, id => new(DummyObjectBucket.Instance)))
+                using (var pf = new GitPackObjectBucket(srcFile.NoClose().Crc32(c => crc = c), idType,
+                    id => new(DummyObjectBucket.Instance),
+                    offset => new(DummyObjectBucket.Instance)))
                 {
 
                     if (await pf.ReadNeedsBaseAsync().ConfigureAwait(false))
@@ -233,6 +235,8 @@ namespace AmpScm.Buckets.Git
             {
                 return new(GitObjectType.None);
             }
+
+            public override long? Position => 0;
         }
     }
 }
