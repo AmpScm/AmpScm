@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 
@@ -24,14 +25,15 @@ namespace AmpScm.Buckets.Git
                 throw new NotImplementedException();
 
             using var srcFile = FileBucket.OpenRead(packFile, false);
-            var hashes = new SortedList<GitId, (long Offset, int CRC)>();
+            var hashes = new SortedList<GitId, long>();
+            var crcs = new SortedList<long, (int CRC, List<long> Deps)>();
 
             async ValueTask<GitObjectBucket?> GetDeltaSource(GitId id)
             {
                 if (hashes.TryGetValue(id, out var v))
                 {
                     var d = srcFile.Duplicate();
-                    await d.SeekAsync(v.Offset).ConfigureAwait(false);
+                    await d.SeekAsync(v).ConfigureAwait(false);
 
                     return new GitPackObjectBucket(d, idType, GetDeltaSource);
                 }
@@ -55,7 +57,7 @@ namespace AmpScm.Buckets.Git
 
                 using (var pf = new GitPackObjectBucket(srcFile.NoClose().Crc32(c => crc = c), idType,
                     id => new(DummyObjectBucket.Instance),
-                    offset => new(DummyObjectBucket.Instance)))
+                    ofs => { crcs[ofs].Deps.Add(offset); return new(DummyObjectBucket.Instance); }))
                 {
 
                     if (await pf.ReadNeedsBaseAsync().ConfigureAwait(false))
@@ -71,11 +73,12 @@ namespace AmpScm.Buckets.Git
                     }
                 }
 
+                crcs[offset] = (crc, new());
 #pragma warning disable CA1508 // Avoid dead conditional code
                 if (oid != null)
 #pragma warning restore CA1508 // Avoid dead conditional code
                 {
-                    hashes[oid] = (offset, crc);
+                    hashes[oid] = offset;
                 }
                 else
                     fixUpLater.Add(offset);
@@ -130,9 +133,9 @@ namespace AmpScm.Buckets.Git
             index += hashes.Keys.Select(x => x.Hash).AsBucket();
 
             // CRC32 values of packed data
-            index += hashes.Values.Select(x => NetBitConverter.GetBytes(x.Item2)).AsBucket();
+            index += hashes.Values.Select(x => NetBitConverter.GetBytes(crcs[x].CRC)).AsBucket();
             // File offsets
-            index += hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x.Item1)).AsBucket();
+            index += hashes.Values.Select(x => NetBitConverter.GetBytes((uint)x)).AsBucket();
 
             index += packChecksum.Hash!.AsBucket();
 
@@ -151,7 +154,7 @@ namespace AmpScm.Buckets.Git
 
                 mapBytes = new byte[sizeof(uint) * hashes.Count];
                 int n = 0;
-                foreach (var v in hashes.Select((kv, n) => new { kv.Value.Offset, Index = n }).OrderBy(x => x.Offset))
+                foreach (var v in hashes.Select((kv, n) => new { Offset = kv.Value, Index = n }).OrderBy(x => x.Offset))
                 {
                     Array.Copy(NetBitConverter.GetBytes(v.Index), 0, mapBytes, n, sizeof(uint));
 
@@ -177,7 +180,6 @@ namespace AmpScm.Buckets.Git
 
             async Task<bool> IndexOne(long offset, Bucket src)
             {
-                int crc = 0;
                 GitId? checksum = null;
                 bool skipNoHash = false;
 
@@ -187,7 +189,17 @@ namespace AmpScm.Buckets.Git
                     return DummyObjectBucket.Instance;
                 }
 
-                var pf = new GitPackObjectBucket(src.NoClose().Crc32(c => crc = c), idType, async id => await GetDeltaSource(id).ConfigureAwait(false) ?? FixUp(id));
+                Func<GitId, ValueTask<GitObjectBucket?>> idCallback = async id => await GetDeltaSource(id).ConfigureAwait(false) ?? FixUp(id);
+                Func<long, ValueTask<GitObjectBucket>> ofsCallback = default!;
+                ofsCallback = async offs =>
+                {
+                    var d = srcFile.Duplicate();
+                    await d.SeekAsync(offs).ConfigureAwait(false);
+
+                    return new BufferObjectBucket(new GitPackObjectBucket(d, idType, idCallback, ofsCallback));
+                };
+
+                var pf = new GitPackObjectBucket(src.NoClose(), idType, idCallback, ofsCallback);
 
                 var type = await pf.ReadTypeAsync().ConfigureAwait(false);
 
@@ -211,7 +223,7 @@ namespace AmpScm.Buckets.Git
 
                     lock (fixUpLater)
                     {
-                        hashes.Add(checksum!, (offset, crc));
+                        hashes.Add(checksum!, offset);
                     }
                     return true;
                 }
@@ -249,6 +261,55 @@ namespace AmpScm.Buckets.Git
             }
 
             public override long? Position => 0;
+        }
+
+        sealed class BufferObjectBucket : GitObjectBucket, IBucketSeek, IBucketPoll
+        {
+            Bucket buffer;
+            public BufferObjectBucket(GitObjectBucket inner)
+                : base(inner)
+            {
+                buffer = Inner.Buffer();
+            }
+
+            public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+            {
+                return buffer.ReadAsync(requested);
+            }
+
+            public override BucketBytes Peek()
+            {
+                return buffer.Peek();
+            }
+
+            public override ValueTask<GitObjectType> ReadTypeAsync()
+            {
+                return ((GitObjectBucket)Inner).ReadTypeAsync();
+            }
+
+            public override long? Position => buffer.Position;
+
+            public override ValueTask<long?> ReadRemainingBytesAsync()
+            {
+                return buffer.ReadRemainingBytesAsync();
+            }
+
+            public override bool CanReset => buffer.CanReset;
+
+            public override void Reset()
+            {
+                buffer.Reset();
+            }
+
+            public ValueTask SeekAsync(long newPosition)
+            {
+                return buffer.SeekAsync(newPosition);
+            }
+
+            public ValueTask<BucketBytes> PollAsync(int minRequested = 1)
+            {
+                return buffer.PollAsync(minRequested);
+            }
         }
     }
 }

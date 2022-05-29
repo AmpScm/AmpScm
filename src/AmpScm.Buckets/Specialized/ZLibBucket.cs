@@ -225,7 +225,7 @@ namespace AmpScm.Buckets.Specialized
                     _z.NextOutIndex = wb_start = 0;
                 }
 
-                _z.AvailOut = Math.Min(write_data.Length - wb_start, requested);
+                _z.AvailOut = Math.Min(write_data.Length - wb_start, Math.Max(requested, 512));
 
                 int r;
                 if (!_level.HasValue)

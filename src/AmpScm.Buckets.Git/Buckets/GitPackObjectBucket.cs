@@ -227,7 +227,7 @@ namespace AmpScm.Buckets.Git
 
             if (state == frame_state.open_body)
             {
-                const int maxBufSize = ZLibBucket.DefaultBufferSize;
+                const int maxBufSize = 65536;
                 var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib, bufferSize: BodySize >= maxBufSize ? maxBufSize : (int)BodySize!);
                 if (_deltaCount != 0)
                     reader = new GitDeltaBucket(inner, (GitObjectBucket)reader!);

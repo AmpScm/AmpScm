@@ -119,6 +119,21 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
+        /// Creates a buffer over <paramref name="bucket"/>, allowing seek, reset, etc.
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="maxMemory">In memory limit. If overflowed, may use other temporary storage</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Bucket Buffer(this Bucket bucket, int maxMemory = 1024 * 1024)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new BufferBucket(bucket, maxMemory);
+        }
+
+        /// <summary>
         /// Wraps the bucket with a counter that counts the number of bytes read and reports that on EOF
         /// </summary>
         /// <param name="bucket"></param>
