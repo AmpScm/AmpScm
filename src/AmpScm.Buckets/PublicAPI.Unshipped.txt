@@ -139,7 +139,6 @@ override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadAsync(int requested = 2
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.Reset() -> void
-override AmpScm.Buckets.Specialized.BufferBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.ConversionBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.ConversionBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.ConversionBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>

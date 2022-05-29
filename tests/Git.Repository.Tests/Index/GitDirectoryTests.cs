@@ -151,6 +151,13 @@ namespace GitRepositoryTests.Index
                 GC.KeepAlive(dc2);
             }
 
+            foreach(var p in new DirectoryInfo(repo.WorkTreeDirectory).EnumerateFileSystemInfos())
+            {
+                TestContext.WriteLine($"{p.Name} - {p.Attributes}");
+            }
+
+            TestContext.WriteLine("");
+
             Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "Has index");
             Assert.IsFalse(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "Not shared yet");
             await repo.GetPlumbing().UpdateIndex(new() { SplitIndex = true });
