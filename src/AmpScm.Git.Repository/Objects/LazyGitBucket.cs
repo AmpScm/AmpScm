@@ -106,5 +106,13 @@ namespace AmpScm.Git.Objects
 
             base.Dispose(disposing);
         }
+
+        public override async ValueTask SeekAsync(long newPosition)
+        {
+            if (_inner == null)
+                _inner = await Repository.ObjectRepository.ResolveById(Id).ConfigureAwait(false) ?? throw new InvalidOperationException($"Can't fetch {Id}");
+
+            await _inner.SeekAsync(newPosition).ConfigureAwait(false);
+        }
     }
 }

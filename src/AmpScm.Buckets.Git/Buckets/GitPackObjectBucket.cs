@@ -50,7 +50,7 @@ namespace AmpScm.Buckets.Git
             _fetchBucketByOffset = fetchBucketByOffset;
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void InnerDispose()
         {
             try
             {
@@ -59,7 +59,7 @@ namespace AmpScm.Buckets.Git
             finally
             {
                 reader = null;
-                base.Dispose(disposing);
+                base.InnerDispose();
             }
         }
 
@@ -79,23 +79,18 @@ namespace AmpScm.Buckets.Git
             return await reader.PollAsync(minRequested).ConfigureAwait(false);
         }
 
-        async ValueTask IBucketSeek.SeekAsync(long newPosition)
+        public override async ValueTask SeekAsync(long newPosition)
         {
             if (newPosition < 0)
                 throw new ArgumentOutOfRangeException(nameof(newPosition));
 
-            if (reader == null || state != frame_state.body)
-            {
-                // Not reading yet. Just skip
-                long np = await ReadSkipAsync(newPosition).ConfigureAwait(false);
+            if (state != frame_state.body)
+                await PrepareState(frame_state.body).ConfigureAwait(false);
 
-                if (np != newPosition)
-                    throw new GitBucketException($"Unable to seek to position {newPosition} on {Name}");
-            }
+            if (reader is IBucketSeek bs)
+                await bs.SeekAsync(newPosition).ConfigureAwait(false);
             else
-            {
-                await reader.SeekAsync(newPosition).ConfigureAwait(false);
-            }
+                await reader!.SeekAsync(newPosition).ConfigureAwait(false);
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
@@ -227,8 +222,14 @@ namespace AmpScm.Buckets.Git
 
             if (state == frame_state.open_body)
             {
-                const int maxBufSize = 65536;
-                var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib, bufferSize: BodySize >= maxBufSize ? maxBufSize : (int)BodySize!);
+                int bufferSize;
+
+                if (BodySize <= 65536)
+                    bufferSize = (int)BodySize;
+                else
+                    bufferSize = ZLibBucket.DefaultBufferSize;
+
+                var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib, bufferSize: bufferSize);
                 if (_deltaCount != 0)
                     reader = new GitDeltaBucket(inner, (GitObjectBucket)reader!);
                 else

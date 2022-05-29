@@ -356,8 +356,16 @@ namespace AmpScm.Buckets.Specialized
 
         public override void Reset()
         {
-            Inner.Reset();
+            if (_position <= _z.NextOutIndex)
+            {
+                // The info is still in the zlib buffer. We can just fix up the position in the buffer
 
+                int moveBack = (int)_position;
+                write_buffer = new BucketBytes(write_data, _z.NextOutIndex - moveBack, moveBack);
+                return;
+            }
+
+            Inner.Reset();
             ZSetup();
         }
 

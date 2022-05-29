@@ -214,7 +214,7 @@ namespace AmpScm.Buckets.Git
             throw new InvalidOperationException();
         }
 
-        async ValueTask IBucketSeek.SeekAsync(long newPosition)
+        public override async ValueTask SeekAsync(long newPosition)
         {
             if (newPosition < 0)
                 throw new ArgumentNullException(nameof(newPosition));

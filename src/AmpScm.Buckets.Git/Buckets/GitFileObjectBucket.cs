@@ -155,5 +155,14 @@ namespace AmpScm.Buckets.Git
             _startOffset = 0; // Handles skip and offset
             _length = 0;
         }
+
+        public override async ValueTask SeekAsync(long newPosition)
+        {
+            if (_startOffset < 4)
+            {
+                await ReadRemainingBytesAsync().ConfigureAwait(false);
+            }
+            await Inner.SeekAsync(newPosition + _startOffset).ConfigureAwait(false);
+        }
     }
 }

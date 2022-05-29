@@ -260,6 +260,11 @@ namespace AmpScm.Buckets.Git
                 return new(GitObjectType.None);
             }
 
+            public override ValueTask SeekAsync(long newPosition)
+            {
+                throw new NotImplementedException();
+            }
+
             public override long? Position => 0;
         }
 
@@ -301,7 +306,7 @@ namespace AmpScm.Buckets.Git
                 buffer.Reset();
             }
 
-            public ValueTask SeekAsync(long newPosition)
+            public override ValueTask SeekAsync(long newPosition)
             {
                 return buffer.SeekAsync(newPosition);
             }
