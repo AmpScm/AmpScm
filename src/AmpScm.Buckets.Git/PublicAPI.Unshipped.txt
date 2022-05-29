@@ -1,4 +1,5 @@
 ﻿#nullable enable
+abstract AmpScm.Buckets.Git.GitObjectBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Git.GitDirectoryBucket
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Git.GitDirectoryOptions? options) -> void
@@ -56,7 +57,6 @@ AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadObjectIdAsync() -> System.Threading.Tasks.ValueTask<(AmpScm.Git.GitId!, AmpScm.Git.GitObjectType)>
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadTaggerAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitSignatureRecord!>
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadTagNameAsync() -> System.Threading.Tasks.ValueTask<string!>
-override AmpScm.Buckets.Git.GitDeltaBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Git.GitDirectoryBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitFileObjectBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Git.GitPackObjectBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask

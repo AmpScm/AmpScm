@@ -9,15 +9,22 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    public sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
+    sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
     {
         internal GitObjectBucket BaseBucket { get; }
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _length;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _position;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         uint _copyOffset;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _copySize;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         delta_state state;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _baseLen;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _openedBase;
 
         enum delta_state
@@ -266,7 +273,7 @@ namespace AmpScm.Buckets.Git
                         _position += r;
                         break;
                     case delta_state.eof:
-                        return 0;
+                        return skipped;
                     default:
                         throw new InvalidOperationException();
                 }
@@ -365,15 +372,13 @@ namespace AmpScm.Buckets.Git
                 throw new InvalidOperationException($"Reset not supported on {Name} bucket");
 
             Inner.Reset(); // Default error text or source reset
-            BaseBucket.Reset();
+            // No need to reset base. We seek on use anyway.
 
             state = delta_state.start;
-            _length = 0;
             _position = 0;
             _copyOffset = 0;
             _copySize = 0;
             _baseLen = 0;
-            _openedBase = false;
         }
 
         public override ValueTask<GitObjectType> ReadTypeAsync()

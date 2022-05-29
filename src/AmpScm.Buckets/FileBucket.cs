@@ -271,6 +271,10 @@ namespace AmpScm.Buckets
                 {
                     // We still have the requested data
                 }
+                else if (_bufStart + _size == Length && basePos == _bufStart)
+                {
+                    // We are at the end of the file, and have that data. No need to peek further
+                }
                 else
                 {
                     _size = await ReadAtAsync(basePos, _buffer, readLen).ConfigureAwait(false);

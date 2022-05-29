@@ -41,9 +41,6 @@ AmpScm.Buckets.Git.GitConfigurationRecord.SubGroup.get -> string?
 AmpScm.Buckets.Git.GitConfigurationRecord.SubGroup.set -> void
 AmpScm.Buckets.Git.GitConfigurationRecord.Value.get -> string?
 AmpScm.Buckets.Git.GitConfigurationRecord.Value.set -> void
-AmpScm.Buckets.Git.GitDeltaBucket
-AmpScm.Buckets.Git.GitDeltaBucket.GitDeltaBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Git.GitObjectBucket! baseBucket) -> void
-AmpScm.Buckets.Git.GitDeltaBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Git.GitEwahBitmapBucket
 AmpScm.Buckets.Git.GitEwahBitmapBucket.GitEwahBitmapBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadBitLengthAsync() -> System.Threading.Tasks.ValueTask<int>
@@ -140,15 +137,6 @@ override AmpScm.Buckets.Git.GitCommitGenerationValue.Equals(object? obj) -> bool
 override AmpScm.Buckets.Git.GitCommitGenerationValue.GetHashCode() -> int
 override AmpScm.Buckets.Git.GitConfigurationBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitConfigurationRecord.ToString() -> string!
-override AmpScm.Buckets.Git.GitDeltaBucket.CanReset.get -> bool
-override AmpScm.Buckets.Git.GitDeltaBucket.Name.get -> string!
-override AmpScm.Buckets.Git.GitDeltaBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Git.GitDeltaBucket.Position.get -> long?
-override AmpScm.Buckets.Git.GitDeltaBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Git.GitDeltaBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
-override AmpScm.Buckets.Git.GitDeltaBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-override AmpScm.Buckets.Git.GitDeltaBucket.ReadTypeAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitObjectType>
-override AmpScm.Buckets.Git.GitDeltaBucket.Reset() -> void
 override AmpScm.Buckets.Git.GitEwahBitmapBucket.CanReset.get -> bool
 override AmpScm.Buckets.Git.GitEwahBitmapBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Git.GitEwahBitmapBucket.Position.get -> long?

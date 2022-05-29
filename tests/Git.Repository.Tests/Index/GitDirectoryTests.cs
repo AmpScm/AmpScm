@@ -139,6 +139,11 @@ namespace GitRepositoryTests.Index
             }
 
             using var repo = GitRepository.Open(path);
+            TestContext.WriteLine(repo.WorkTreeDirectory);
+
+            Assert.AreEqual(Path.Combine(repo.FullPath, ".git"), repo.GitDirectory);
+            Assert.AreEqual(Path.Combine(repo.FullPath, ".git"), repo.WorkTreeDirectory);
+
             Assert.AreEqual(path, repo.FullPath);
             List<GitDirectoryEntry> entries = new List<GitDirectoryEntry>();
             using (var dc2 = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
