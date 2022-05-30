@@ -70,5 +70,10 @@ namespace AmpScm.Buckets.Specialized
         {
             return _nDispose > 1;
         }
+
+        internal Bucket GetInner()
+        {
+            return Inner;
+        }
     }
 }

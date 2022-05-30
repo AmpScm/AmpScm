@@ -310,8 +310,9 @@ namespace AmpScm.Buckets
             {
                 case BucketCompressionAlgorithm.ZLib:
                 case BucketCompressionAlgorithm.Deflate:
-                case BucketCompressionAlgorithm.GZip:
                     return new ZLibBucket(bucket, algorithm, CompressionMode.Decompress);
+                case BucketCompressionAlgorithm.GZip:
+                    return new GZipBucket(bucket, CompressionMode.Decompress);
                 case BucketCompressionAlgorithm.Brotli:
 #if !NETFRAMEWORK
                     // Available starting with .Net Core
@@ -531,21 +532,6 @@ namespace AmpScm.Buckets
                     while (bbLeft.Length > 0);
                 }
         }
-        //public static async ValueTask<BucketBytes> ReadUntilAsync(this Bucket bucket, Func<byte, bool> predicate, int pollSize = 1, int maxrequested = MaxRead)
-        //{
-        //    if (bucket is null)
-        //        throw new ArgumentNullException(nameof(bucket));
-        //
-        //    var bb = await bucket.PollAsync(pollSize).ConfigureAwait(false);
-        //
-        //    if (bb.IsEof)
-        //        return bb;
-        //
-        //    int n = bb.Span.IndexOf(predicate);
-        //
-        //    return await bucket.ReadAsync(n >= 0 ? n + 1 : bb.Length + 1).ConfigureAwait(false);
-        //}
-
 
         public static bool All<T>(this ReadOnlySpan<T> span, Func<T, bool> predicate)
             where T : struct

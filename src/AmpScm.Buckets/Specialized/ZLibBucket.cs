@@ -30,9 +30,6 @@ namespace AmpScm.Buckets.Specialized
         readonly BucketCompressionLevel? _level;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly IBucketPoll? _innerPoll;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int? _headerLeft;
-
 
         /// <summary>
         /// Default buffer size. (Value may change in the future, but current value is always guaranteed to be supported)
@@ -62,10 +59,6 @@ namespace AmpScm.Buckets.Specialized
                 case BucketCompressionAlgorithm.Deflate:
                 case BucketCompressionAlgorithm.ZLib:
                     break;
-                case BucketCompressionAlgorithm.GZip:
-                    if (mode == CompressionMode.Compress)
-                        throw new NotImplementedException();
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(algorithm));
             }
@@ -84,9 +77,6 @@ namespace AmpScm.Buckets.Specialized
             else
                 _z.DeflateInit((int)_level.Value, _algorithm == BucketCompressionAlgorithm.ZLib ? 15 : -15);
 
-            if (_algorithm == BucketCompressionAlgorithm.GZip && !_level.HasValue)
-                _headerLeft = 10;
-
             _eof = _readEof = false;
             read_buffer = BucketBytes.Empty;
             write_buffer = BucketBytes.Empty;
@@ -102,46 +92,8 @@ namespace AmpScm.Buckets.Specialized
                 retry_refill = false;
                 int to_read = 0;
 
-                if (_headerLeft.HasValue && _headerLeft != 0)
-                {
-                    int left = Math.Abs(_headerLeft.Value);
-                    while (left > 0)
-                    {
-                        if (forPeek)
-                            return false;
-
-                        var bb = await Inner.ReadAsync(left).ConfigureAwait(false);
-
-                        if (bb.IsEof)
-                        {
-                            if (_algorithm == BucketCompressionAlgorithm.GZip && _headerLeft == 10)
-                            {
-                                _eof = true;
-                                return true;
-                            }
-                            throw new InvalidOperationException($"Unexpected EOF in GZip header on {Inner.Name}");
-                        }
-
-                        int n = bb.Length;
-                        if (n > 0)
-                        {
-                            left -= n;
-                        }
-                    }
-
-                    if (_headerLeft > 0)
-                        _headerLeft = 0;
-                    else
-                    {
-                        _eof = true;
-                        _headerLeft = null;
-                        return true;
-                    }
-                }
-
                 if (read_buffer.IsEmpty && !_readEof)
                 {
-
                     var bb = ((_innerPoll is null) ? Inner.Peek() : await _innerPoll.PollAsync().ConfigureAwait(false));
 
                     if (bb.IsEmpty)
@@ -238,14 +190,7 @@ namespace AmpScm.Buckets.Specialized
 
                 if (r == ZlibConst.ZSTREAMEND)
                 {
-                    _readEof = true;
-
-                    if (_headerLeft.HasValue)
-                    {
-                        _headerLeft = -8;
-                    }
-                    else
-                        _eof = true;
+                    _eof = _readEof = true;
                 }
                 else if (r == ZlibConst.ZBUFERROR && _readEof && _algorithm == BucketCompressionAlgorithm.Deflate && _z.NextOutIndex == 0)
                 {
