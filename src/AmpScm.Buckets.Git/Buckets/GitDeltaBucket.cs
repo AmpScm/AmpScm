@@ -168,7 +168,7 @@ namespace AmpScm.Buckets.Git
             if (requested <= 0)
                 throw new ArgumentOutOfRangeException(nameof(requested));
 
-            if ((state <= delta_state.init || _copySize == 0) && !await AdvanceAsync().ConfigureAwait(false))
+            if (_copySize == 0 && !await AdvanceAsync().ConfigureAwait(false))
                 return BucketBytes.Eof;
 
             Debug.Assert(state >= delta_state.src_copy && state <= delta_state.eof);
@@ -263,8 +263,7 @@ namespace AmpScm.Buckets.Git
             long skipped = 0;
             while (requested > 0)
             {
-                if ((state <= delta_state.init || _copySize == 0)
-                    && !await AdvanceAsync().ConfigureAwait(false))
+                if (_copySize == 0 && !await AdvanceAsync().ConfigureAwait(false))
                 {
                     return skipped;
                 }
@@ -382,7 +381,7 @@ namespace AmpScm.Buckets.Git
             if (!CanReset)
                 throw new InvalidOperationException($"Reset not supported on {Name} bucket");
 
-            Inner.Reset(); // Default error text or source reset
+            Inner.Reset(); // Will either throw error text or perform the source reset
             // No need to reset base. We seek on use anyway.
 
             state = delta_state.start;
