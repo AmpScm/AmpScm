@@ -106,7 +106,7 @@ override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentType.get -> str
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Position.get -> long?
-override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ReadHeaders() -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.SupportsHeaders.get -> bool
@@ -115,20 +115,20 @@ override AmpScm.Buckets.Specialized.BitwiseAndBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.Position.get -> long?
-override AmpScm.Buckets.Specialized.BitwiseAndBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.BitwiseAndBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.BitwiseAndBucket.Reset() -> void
 override AmpScm.Buckets.Specialized.BitwiseNotBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.BitwiseNotBucket.Position.get -> long?
-override AmpScm.Buckets.Specialized.BitwiseNotBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.BitwiseNotBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.BitwiseNotBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseNotBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.Position.get -> long?
-override AmpScm.Buckets.Specialized.BitwiseOrBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.BitwiseOrBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.BitwiseOrBucket.Reset() -> void
@@ -136,19 +136,19 @@ override AmpScm.Buckets.Specialized.BitwiseXorBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.Position.get -> long?
-override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.BitwiseXorBucket.Reset() -> void
 override AmpScm.Buckets.Specialized.ConversionBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.ConversionBucket.Position.get -> long?
-override AmpScm.Buckets.Specialized.ConversionBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.ConversionBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.ConversionBucket.Reset() -> void
 override AmpScm.Buckets.Specialized.TlsBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
-override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Bucket.Create.get -> AmpScm.Buckets.Specialized.BucketFactory!
 static AmpScm.Buckets.BucketExtensions.HasSameContentsAsync(this AmpScm.Buckets.Bucket! left, AmpScm.Buckets.Bucket! right) -> System.Threading.Tasks.ValueTask<bool>
 static AmpScm.Buckets.Client.BucketHttpClientExtensions.HttpChunk(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!

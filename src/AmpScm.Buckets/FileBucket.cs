@@ -253,9 +253,6 @@ namespace AmpScm.Buckets
 
         private async ValueTask RefillAsync(int requested)
         {
-            if (requested > _buffer.Length)
-                requested = _buffer.Length;
-
             long basePos = _filePos & ~_chunkSizeMinus1; // Current position round back to chunk
             int extra = (int)(_filePos - basePos); // Position in chunk
 

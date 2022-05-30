@@ -1,5 +1,5 @@
 ﻿#nullable enable
-abstract AmpScm.Buckets.Bucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+abstract AmpScm.Buckets.Bucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.AggregateBucket
 AmpScm.Buckets.AggregateBucket.AggregateBucket(bool keepOpen, params AmpScm.Buckets.Bucket![]! items) -> void
 AmpScm.Buckets.AggregateBucket.AggregateBucket(params AmpScm.Buckets.Bucket![]! items) -> void
@@ -117,7 +117,7 @@ AmpScm.Buckets.Interfaces.IBucketNoClose.NoClose() -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Interfaces.IBucketPoll
 AmpScm.Buckets.Interfaces.IBucketPoll.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Interfaces.IBucketReadBuffers
-AmpScm.Buckets.Interfaces.IBucketReadBuffers.ReadBuffersAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
+AmpScm.Buckets.Interfaces.IBucketReadBuffers.ReadBuffersAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
 AmpScm.Buckets.Interfaces.IBucketSeek
 AmpScm.Buckets.Interfaces.IBucketSeek.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Interfaces.IBucketWriter
@@ -179,7 +179,7 @@ override AmpScm.Buckets.AggregateBucket.Dispose(bool disposing) -> void
 override AmpScm.Buckets.AggregateBucket.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
 override AmpScm.Buckets.AggregateBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.AggregateBucket.Position.get -> long?
-override AmpScm.Buckets.AggregateBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.AggregateBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.AggregateBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.AggregateBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.AggregateBucket.Reset() -> void
@@ -193,7 +193,7 @@ override AmpScm.Buckets.FileBucket.Duplicate(bool reset = false) -> AmpScm.Bucke
 override AmpScm.Buckets.FileBucket.Name.get -> string!
 override AmpScm.Buckets.FileBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.FileBucket.Position.get -> long?
-override AmpScm.Buckets.FileBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.FileBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.FileBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.FileBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.FileBucket.Reset() -> void
@@ -201,24 +201,24 @@ override AmpScm.Buckets.MemoryBucket.CanReset.get -> bool
 override AmpScm.Buckets.MemoryBucket.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
 override AmpScm.Buckets.MemoryBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.MemoryBucket.Position.get -> long?
-override AmpScm.Buckets.MemoryBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.MemoryBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.MemoryBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.MemoryBucket.Reset() -> void
 override AmpScm.Buckets.SocketBucket.Dispose(bool disposing) -> void
 override AmpScm.Buckets.SocketBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.SocketBucket.Position.get -> long?
-override AmpScm.Buckets.SocketBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.SocketBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.CombineBucket.InnerDispose() -> void
 override AmpScm.Buckets.Specialized.ProxyBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Position.get -> long?
-override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadBucket<TReadBucket>() -> TReadBucket?
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadUntilEolAsync(AmpScm.Buckets.BucketEol acceptableEols, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
+override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadUntilEolAsync(AmpScm.Buckets.BucketEol acceptableEols, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Reset() -> void
 override AmpScm.Buckets.Specialized.WrappingBucket.Dispose(bool disposing) -> void
 override AmpScm.Buckets.Specialized.WrappingBucket.Name.get -> string!
@@ -227,7 +227,7 @@ override AmpScm.Buckets.Specialized.ZLibBucket.Duplicate(bool reset = false) -> 
 override AmpScm.Buckets.Specialized.ZLibBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.ZLibBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.ZLibBucket.Position.get -> long?
-override AmpScm.Buckets.Specialized.ZLibBucket.ReadAsync(int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Specialized.ZLibBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Specialized.ZLibBucket.Reset() -> void
 override AmpScm.Buckets.ValueOrEof.Equals(object? obj) -> bool
 override AmpScm.Buckets.ValueOrEof.GetHashCode() -> int
@@ -272,10 +272,10 @@ static AmpScm.Buckets.BucketExtensions.NoClose(this AmpScm.Buckets.Bucket! bucke
 static AmpScm.Buckets.BucketExtensions.PollAsync(this AmpScm.Buckets.Bucket! bucket, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketExtensions.PollReadAsync(this AmpScm.Buckets.Bucket! bucket, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketPollBytes!>
 static AmpScm.Buckets.BucketExtensions.Prepend(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Bucket! newFirst) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.ReadBuffersAsync(this AmpScm.Buckets.Bucket! bucket, int maxRequested = 2147483647) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
-static AmpScm.Buckets.BucketExtensions.ReadCombinedAsync(this AmpScm.Buckets.Bucket! bucket, int bufferSize, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.BucketExtensions.ReadBuffersAsync(this AmpScm.Buckets.Bucket! bucket, int maxRequested = 2146435071) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
+static AmpScm.Buckets.BucketExtensions.ReadCombinedAsync(this AmpScm.Buckets.Bucket! bucket, int bufferSize, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketExtensions.ReadUntilAsync(this AmpScm.Buckets.Bucket! bucket, byte b) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.BucketExtensions.ReadUntilEolFullAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
+static AmpScm.Buckets.BucketExtensions.ReadUntilEolFullAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
 static AmpScm.Buckets.BucketExtensions.SeekOnReset(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.Skip(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.SkipExact(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
@@ -367,6 +367,6 @@ virtual AmpScm.Buckets.Bucket.Position.get -> long?
 virtual AmpScm.Buckets.Bucket.ReadBucket<TBucket>() -> TBucket?
 virtual AmpScm.Buckets.Bucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 virtual AmpScm.Buckets.Bucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
-virtual AmpScm.Buckets.Bucket.ReadUntilEolAsync(AmpScm.Buckets.BucketEol acceptableEols, int requested = 2147483647) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
+virtual AmpScm.Buckets.Bucket.ReadUntilEolAsync(AmpScm.Buckets.BucketEol acceptableEols, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
 virtual AmpScm.Buckets.Bucket.Reset() -> void
 virtual AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.WrapDuplicate(AmpScm.Buckets.Bucket! duplicatedInner, bool reset) -> TBucket?
