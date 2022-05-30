@@ -762,7 +762,7 @@ namespace BucketTests
 
             File.WriteAllText(p, "blub");
 
-            using (FileBucket fb = new FileBucket(p))
+            using (FileBucket fb = FileBucket.OpenRead(p))
             {
                 Assert.AreEqual(4, await fb.ReadAtAsync(0, new byte[25]));
             }
@@ -772,7 +772,7 @@ namespace BucketTests
 
             File.WriteAllText(p, "blub2");
 
-            using (FileBucket fb = new FileBucket(p))
+            using (FileBucket fb = FileBucket.OpenRead(p))
             {
                 Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
 

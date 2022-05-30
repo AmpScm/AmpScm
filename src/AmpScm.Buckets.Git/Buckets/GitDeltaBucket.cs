@@ -21,6 +21,8 @@ namespace AmpScm.Buckets.Git
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         int _copySize;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int _origCopySize;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         delta_state state;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         long _baseLen;
@@ -107,7 +109,7 @@ namespace AmpScm.Buckets.Git
                 if (0 == (uc & 0x80))
                 {
                     state = delta_state.src_copy;
-                    _copySize = (uc & 0x7F);
+                    _origCopySize = _copySize = (uc & 0x7F);
 
                     if (_copySize == 0)
                         throw new GitBucketException("0 operation is reserved");
@@ -146,6 +148,8 @@ namespace AmpScm.Buckets.Git
 
                     if (_copySize == 0)
                         _copySize = 0x10000;
+
+                    _origCopySize = _copySize;
 
                     if (_copyOffset == BaseBucket.Position!.Value)
                         state = delta_state.base_copy;
@@ -226,8 +230,28 @@ namespace AmpScm.Buckets.Git
             if (newPosition < 0)
                 throw new ArgumentNullException(nameof(newPosition));
 
-            if (newPosition < _position)
+            long wantReverse = _position - newPosition;
+            if (wantReverse >= 0)
             {
+                if (state == delta_state.base_seek || state == delta_state.src_copy)
+                {
+                    // Are we lucky enough that we can just seek back in the current block?
+
+                    if (wantReverse <= (_origCopySize - _copySize))
+                    {
+                        int rev = (int)wantReverse;
+
+                        if (state == delta_state.base_seek)
+                            await BaseBucket.SeekAsync(BaseBucket.Position!.Value - rev).ConfigureAwait(false);
+                        else
+                            await Inner.SeekAsync(Inner.Position!.Value - rev).ConfigureAwait(false);
+
+                        _position -= rev;
+                        _copySize += rev;
+                        return;
+                    }
+                }
+
                 Reset();
             }
 
@@ -377,7 +401,7 @@ namespace AmpScm.Buckets.Git
             state = delta_state.start;
             _position = 0;
             _copyOffset = 0;
-            _copySize = 0;
+            _origCopySize = _copySize = 0;
             _baseLen = 0;
         }
 

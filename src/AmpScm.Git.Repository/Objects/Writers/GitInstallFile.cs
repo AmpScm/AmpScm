@@ -71,7 +71,7 @@ namespace AmpScm.Git.Objects.Writers
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 SafeFileHandle handle = NativeMethods.CreateFileW(path,
-                    access: 0x80000000 /* GENERIC_READ */ | 0x40000000 /* GENERIC_WRITER */ | 0x00010000 /* DELETE */, // We want to read
+                    access: 0x80000000 /* GENERIC_READ */ | 0x40000000 /* GENERIC_WRITE */ | 0x00010000 /* DELETE */, // We want to read
                     share: 0x00000004 /* FILE_SHARE_DELETE */ | 0x00000001 /* FILE_SHARE_READ */, // Others can read, delete, rename, but we keep our file open
                     securityAttributes: IntPtr.Zero,
                     creationDisposition: 1 /* CREATE_NEW */,

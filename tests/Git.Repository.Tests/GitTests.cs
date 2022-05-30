@@ -816,6 +816,7 @@ namespace GitRepositoryTests
             var file = Path.Combine(dir, Path.GetFileName(packFile));
 
             File.Copy(packFile, file);
+            File.SetAttributes(file, FileAttributes.Normal);
 
             await GitIndexer.IndexPack(file, writeReverseIndex: true);
 

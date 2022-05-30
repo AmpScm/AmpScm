@@ -102,47 +102,48 @@ namespace AmpScm.Buckets.Specialized
                 retry_refill = false;
                 int to_read = 0;
 
-                if (_headerLeft.HasValue && _headerLeft != 0)
+                if (read_buffer.IsEmpty && !_readEof)
                 {
-                    int left = Math.Abs(_headerLeft.Value);
-                    while (left > 0)
+                    BucketBytes bb;
+
+                    if (_headerLeft.HasValue && _headerLeft != 0)
                     {
-                        if (forPeek)
-                            return false;
-
-                        var bb = await Inner.ReadAsync(left).ConfigureAwait(false);
-
-                        if (bb.IsEof)
+                        int left = Math.Abs(_headerLeft.Value);
+                        while (left > 0)
                         {
-                            if (_algorithm == BucketCompressionAlgorithm.GZip && _headerLeft == 10)
+                            if (forPeek)
+                                return false;
+
+                            bb = await Inner.ReadAsync(left).ConfigureAwait(false);
+
+                            if (bb.IsEof)
                             {
-                                _eof = true;
-                                return true;
+                                if (_algorithm == BucketCompressionAlgorithm.GZip && _headerLeft == 10)
+                                {
+                                    _eof = true;
+                                    return true;
+                                }
+                                throw new InvalidOperationException($"Unexpected EOF in GZip header on {Inner.Name}");
                             }
-                            throw new InvalidOperationException($"Unexpected EOF in GZip header on {Inner.Name}");
+
+                            int n = bb.Length;
+                            if (n > 0)
+                            {
+                                left -= n;
+                            }
                         }
 
-                        int n = bb.Length;
-                        if (n > 0)
+                        if (_headerLeft > 0)
+                            _headerLeft = 0;
+                        else
                         {
-                            left -= n;
+                            _eof = true;
+                            _headerLeft = null;
+                            return true;
                         }
                     }
 
-                    if (_headerLeft > 0)
-                        _headerLeft = 0;
-                    else
-                    {
-                        _eof = true;
-                        _headerLeft = null;
-                        return true;
-                    }
-                }
-
-
-                if (!_readEof && read_buffer.IsEmpty)
-                {
-                    var bb = ((_innerPoll is null) ? Inner.Peek() : await _innerPoll.PollAsync().ConfigureAwait(false));
+                    bb = ((_innerPoll is null) ? Inner.Peek() : await _innerPoll.PollAsync().ConfigureAwait(false));
 
                     if (bb.IsEmpty)
                     {
