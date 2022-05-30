@@ -52,7 +52,7 @@ namespace AmpScm.Buckets.Specialized
             if (_state == State.Done)
                 return _inner.PollAsync(minRequested);
             else
-                return new ValueTask<BucketBytes>(BucketBytes.Empty);
+                return new (BucketBytes.Empty);
         }
 
         public static Encoding DefaultEncoding { get; } = (Encoding.Default is UTF8Encoding)

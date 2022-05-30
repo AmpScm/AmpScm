@@ -229,7 +229,7 @@ namespace AmpScm.Git
             if (repository != Repository && !repository.Commits.ContainsId(Id))
                 return this.AsWriter().WriteToAsync(repository);
             else
-                return new ValueTask<GitId>(Id);
+                return new (Id);
         }
 
         public GitRevisionSet Revisions => new GitRevisionSet(Repository).AddCommit(this);

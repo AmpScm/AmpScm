@@ -80,7 +80,7 @@ namespace AmpScm.Git.Objects
         internal virtual ValueTask<(T? Result, bool Success)> DoResolveIdString<T>(string idString, GitId baseGitId)
             where T : GitObject
         {
-            return new ValueTask< (T? Result, bool Success)>((null, true));
+            return new ((null, true));
         }
 
         internal virtual bool ProvidesCommitInfo => true;

@@ -135,7 +135,7 @@ namespace AmpScm.Buckets
                 if (requested <= 0)
                     throw new ArgumentOutOfRangeException(nameof(requested), requested, "Requested bytes must be at least 1");
                 else if (fileOffset > 0 && fileOffset >= Length)
-                    return new ValueTask<int>(0);
+                    return new (0);
 
                 if (_asyncWin)
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -158,7 +158,7 @@ namespace AmpScm.Buckets
                         int r = p.Read(buffer, 0, requested);
 #pragma warning restore CA1849 // Call async methods when in an async method
 
-                        return new ValueTask<int>(r);
+                        return new (r);
                     }
                 }
 #endif
@@ -180,7 +180,7 @@ namespace AmpScm.Buckets
                     long rl = (_length.Value - offset);
 
                     if (rl < 1)
-                        return new ValueTask<int>(0);
+                        return new (0);
                     readLen = (int)rl;
                 }
 
@@ -216,7 +216,7 @@ namespace AmpScm.Buckets
                     {
                         // Unlikely direct succes case. No result queued
                         waitHandler.ReleaseOne();
-                        return new ValueTask<int>((int)read); // Done reading
+                        return new ((int)read); // Done reading
                     }
                     else
                     {
@@ -227,10 +227,10 @@ namespace AmpScm.Buckets
                             if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, false))
                             {
                                 // Typical all-data cached in filecache case on Windows 10/11 2022-04
-                                return new ValueTask<int>((int)bytes); // Return succes. Task will release lpOverlapped
+                                return new ((int)bytes); // Return succes. Task will release lpOverlapped
                             }
                             else
-                                return new ValueTask<int>(tcs.Task); // Wait for task
+                                return new (tcs.Task); // Wait for task
                         }
                         else
                         {

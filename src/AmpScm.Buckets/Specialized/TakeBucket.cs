@@ -93,7 +93,7 @@ namespace AmpScm.Buckets.Specialized
         {
             long pos = Position!.Value;
 
-            if (pos >= Limit) return new ValueTask<long>(0);
+            if (pos >= Limit) return new (0);
 
             if (Limit - pos < requested)
                 requested = (long)(Limit - pos);

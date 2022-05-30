@@ -20,7 +20,7 @@ namespace AmpScm.Buckets
             if (bucket is IBucketPoll bp)
                 return bp.PollAsync(minRequested);
             else
-                return new ValueTask<BucketBytes>(bucket.Peek());
+                return new (bucket.Peek());
         }
 
         public static async ValueTask<BucketPollBytes> PollReadAsync(this Bucket bucket, int minRequested = 1)

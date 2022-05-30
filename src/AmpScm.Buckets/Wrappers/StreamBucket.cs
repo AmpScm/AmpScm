@@ -93,7 +93,7 @@ namespace AmpScm.Buckets.Wrappers
 
             try
             {
-                return new ValueTask<long?>(_stream.Length - _stream.Position + _remaining.Length);
+                return new (_stream.Length - _stream.Position + _remaining.Length);
             }
             catch (NotSupportedException)
             { }

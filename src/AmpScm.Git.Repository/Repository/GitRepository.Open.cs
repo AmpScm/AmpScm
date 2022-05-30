@@ -33,7 +33,7 @@ namespace AmpScm.Git
             var g = GitRepository.Open(path);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-            return new ValueTask<GitRepository>(g);
+            return new (g);
         }
 
         /// <summary>

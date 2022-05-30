@@ -112,18 +112,7 @@ namespace AmpScm.Buckets.Specialized
         {
             while(newPosition > _buffered && !_readEof)
             {
-                var bb = await Inner.ReadAsync().ConfigureAwait(false);
-
-                if (!bb.IsEmpty)
-                {
-                    _buffered += bb.Length;
-                    _writer.Write(bb.ToArray().AsBucket());
-                }
-                else
-                {
-                    InnerDispose();
-                    _readEof = true;
-                }
+                await BufferSomeMore().ConfigureAwait(false);
             }
 
             await readBucket.SeekAsync(newPosition).ConfigureAwait(false);

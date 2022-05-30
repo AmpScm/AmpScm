@@ -49,7 +49,7 @@ namespace AmpScm.Buckets
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
-            return new ValueTask<long?>(Data.Length - Offset);
+            return new (Data.Length - Offset);
         }
 
         public override Bucket Duplicate(bool reset = false)

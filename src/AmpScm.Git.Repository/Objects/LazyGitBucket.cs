@@ -94,7 +94,7 @@ namespace AmpScm.Git.Objects
             if (_inner != null)
                 return _inner.PollAsync(minRequested);
 
-            return new ValueTask<BucketBytes>(Peek());
+            return new (Peek());
         }
 
         public override string Name => _inner?.Name ?? base.Name;

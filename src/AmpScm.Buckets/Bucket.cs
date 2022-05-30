@@ -23,8 +23,8 @@ namespace AmpScm.Buckets
     [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}")]
     public abstract partial class Bucket : IDisposable
     {
-        protected internal static readonly ValueTask<BucketBytes> EofTask = new ValueTask<BucketBytes>(BucketBytes.Eof);
-        protected internal static readonly ValueTask<BucketBytes> EmptyTask = new ValueTask<BucketBytes>(BucketBytes.Empty);
+        protected internal static readonly ValueTask<BucketBytes> EofTask = new (BucketBytes.Eof);
+        protected internal static readonly ValueTask<BucketBytes> EmptyTask = new (BucketBytes.Empty);
 
 
 
@@ -145,7 +145,7 @@ namespace AmpScm.Buckets
         /// unavailable/unknown.</returns>
         public virtual ValueTask<long?> ReadRemainingBytesAsync()
         {
-            return new ValueTask<long?>((long?)null);
+            return new((long?)null);
         }
 
         /// <summary>

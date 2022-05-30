@@ -127,7 +127,7 @@ namespace AmpScm.Git.Objects
         protected ValueTask<int> ReadFromChunkAsync(string chunkType, long position, byte[] buffer, int length)
         {
             if (_chunks == null || ChunkReader == null)
-                return new ValueTask<int>(0);
+                return new (0);
             else if (length <= 0)
                 throw new ArgumentOutOfRangeException(nameof(length));
 
@@ -141,12 +141,12 @@ namespace AmpScm.Git.Objects
                 }
             }
             if (ch == null)
-                return new ValueTask<int>(0);
+                return new (0);
 
             int requested = (int)Math.Min(length, ch.Value.Length - position);
 
             if (requested <= 0)
-                return new ValueTask<int>(0);
+                return new (0);
 
             return ChunkReader.ReadAtAsync(ch.Value.Position + position, buffer, requested);
         }

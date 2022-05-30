@@ -334,7 +334,7 @@ namespace AmpScm.Buckets
 
                 int skipped = (int)(newPos - _filePos);
                 _filePos = newPos;
-                return new ValueTask<long>(skipped);
+                return new (skipped);
             }
         }
 

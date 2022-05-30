@@ -70,7 +70,7 @@ namespace AmpScm.Git.Objects
                 return default;
 
             var fileReader = FileBucket.OpenRead(path, false);
-            return new ValueTask<GitObjectBucket?>(new GitFileObjectBucket(fileReader));
+            return new (new GitFileObjectBucket(fileReader));
         }
 
         public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)

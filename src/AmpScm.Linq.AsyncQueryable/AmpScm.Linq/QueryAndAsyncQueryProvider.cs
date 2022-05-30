@@ -51,7 +51,7 @@ namespace AmpScm.Linq
 
         public virtual ValueTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken token)
         {
-            return new ValueTask<TResult>(Execute<TResult>(expression));
+            return new (Execute<TResult>(expression));
         }
     }
 }
