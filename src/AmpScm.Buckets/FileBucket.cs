@@ -224,7 +224,7 @@ namespace AmpScm.Buckets
 
         const int MinCache = 16; // Only use the existing cache instead of seek when at least this many bytes are available
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested <= 0)
                 throw new ArgumentOutOfRangeException(nameof(requested));

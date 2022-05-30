@@ -138,7 +138,7 @@ namespace AmpScm.Buckets.Git
             return Inner.PollAsync(minRequested);
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (_length is null)
                 await ReadRemainingBytesAsync().ConfigureAwait(false);

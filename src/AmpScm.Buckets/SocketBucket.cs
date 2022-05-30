@@ -49,7 +49,7 @@ namespace AmpScm.Buckets
 #endif
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             Task<BucketBytes> reading = DoRead(requested);
             Task ready;

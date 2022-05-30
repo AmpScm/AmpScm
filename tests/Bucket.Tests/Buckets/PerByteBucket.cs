@@ -20,7 +20,7 @@ namespace AmpScm.BucketTests.Buckets
                 return b;
         }
 
-        public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             return base.ReadAsync(1);
         }

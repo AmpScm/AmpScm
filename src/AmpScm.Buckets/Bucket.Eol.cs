@@ -38,7 +38,7 @@ namespace AmpScm.Buckets
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
 #endif
-        public virtual async ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = int.MaxValue)
+        public virtual async ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
             if ((acceptableEols & ~BucketEol.EolMask) != 0)
                 throw new ArgumentOutOfRangeException(nameof(acceptableEols));

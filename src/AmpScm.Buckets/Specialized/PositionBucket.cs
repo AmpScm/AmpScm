@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Specialized
         {
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             var v = await Inner.ReadAsync(requested).ConfigureAwait(false);
 

@@ -34,7 +34,7 @@ namespace AmpScm.Buckets
             return Data.Slice(Offset);
         }
 
-        public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             int canRead = Math.Min(requested, Data.Length - Offset);
 

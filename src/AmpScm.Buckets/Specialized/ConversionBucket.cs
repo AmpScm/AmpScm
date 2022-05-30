@@ -60,7 +60,7 @@ namespace AmpScm.Buckets.Specialized
 
         protected abstract BucketBytes ConvertData(ref BucketBytes sourceData, bool final);
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (!_remaining.IsEmpty)
             {

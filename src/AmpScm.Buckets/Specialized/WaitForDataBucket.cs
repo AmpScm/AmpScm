@@ -63,7 +63,7 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             while (true)
             {

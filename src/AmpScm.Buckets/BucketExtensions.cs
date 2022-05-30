@@ -531,7 +531,7 @@ namespace AmpScm.Buckets
                     while (bbLeft.Length > 0);
                 }
         }
-        //public static async ValueTask<BucketBytes> ReadUntilAsync(this Bucket bucket, Func<byte, bool> predicate, int pollSize = 1, int maxRequested = int.MaxValue)
+        //public static async ValueTask<BucketBytes> ReadUntilAsync(this Bucket bucket, Func<byte, bool> predicate, int pollSize = 1, int maxrequested = MaxRead)
         //{
         //    if (bucket is null)
         //        throw new ArgumentNullException(nameof(bucket));

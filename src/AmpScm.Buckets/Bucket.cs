@@ -26,12 +26,25 @@ namespace AmpScm.Buckets
         protected internal static readonly ValueTask<BucketBytes> EofTask = new ValueTask<BucketBytes>(BucketBytes.Eof);
         protected internal static readonly ValueTask<BucketBytes> EmptyTask = new ValueTask<BucketBytes>(BucketBytes.Empty);
 
+
+
+#if NET6_0_OR_GREATER
+        /// <summary>
+        /// Maximum amount of bytes to be read in a single call. Explicitly &lt;=<see cref="Array.MaxLength"/>
+        /// </summary>
+        public const int MaxRead = 0x7FEFFFFF; // = .Net 6.0 Array.MaxLength's magic value.
+#else
+        /// <summary>
+        /// Maximum amount of bytes to be read in a single call. Explicitly &lt;= .Net's implicit Array.MaxLength
+        /// </summary>
+        public const int MaxRead = 0x7FEFFFFF; // = .Net 6.0 Array.MaxLength's magic value.
+#endif
+
         /// <summary>
         /// When inherited creates a new bucket
         /// </summary>
         protected Bucket()
         {
-
         }
 
         /// <summary>
@@ -65,7 +78,7 @@ namespace AmpScm.Buckets
         /// <param name="requested">The maximum number of bytes acceptable to caller</param>
         /// <returns></returns>
         /// <remarks>This function and any inherited variant MUST NEVER return 0 bytes, and success</remarks>
-        public abstract ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue);
+        public abstract ValueTask<BucketBytes> ReadAsync(int requested = MaxRead);
 
         /// <summary>
         /// If implemented by the bucket provides a peek into the next data that can be read from the bucket

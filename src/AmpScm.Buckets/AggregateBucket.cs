@@ -104,7 +104,7 @@ namespace AmpScm.Buckets
             }
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = Bucket.MaxRead)
         {
             if (!_keepOpen && _n > 0)
             {

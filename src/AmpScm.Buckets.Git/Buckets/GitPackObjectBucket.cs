@@ -93,7 +93,7 @@ namespace AmpScm.Buckets.Git
                 await reader!.SeekAsync(newPosition).ConfigureAwait(false);
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (reader == null || state != frame_state.body)
             {

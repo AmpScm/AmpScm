@@ -28,7 +28,7 @@ namespace AmpScm.Buckets.Specialized
             _writer = new MyWriter(this);
         }
 
-        public async override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public async override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             var bb = await readBucket.ReadAsync(requested).ConfigureAwait(false);
             if (!bb.IsEof || _readEof)

@@ -17,7 +17,7 @@ namespace AmpScm.Buckets.Specialized
         {
         }
 
-        public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             return Inner.ReadAsync(requested);
         }
@@ -52,7 +52,7 @@ namespace AmpScm.Buckets.Specialized
             return WrapDuplicate(r, reset) ?? r;
         }
 
-        public override ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = int.MaxValue)
+        public override ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
             return Inner.ReadUntilEolAsync(acceptableEols, requested);
         }

@@ -22,7 +22,7 @@ namespace AmpScm.Git.Objects
             _type = type;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (_inner == null)
                 _inner = await Repository.ObjectRepository.ResolveById(Id).ConfigureAwait(false) ?? throw new InvalidOperationException($"Can't fetch {Id}");
@@ -81,7 +81,7 @@ namespace AmpScm.Git.Objects
             return base.ReadSkipAsync(requested);
         }
 
-        public override ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = int.MaxValue)
+        public override ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
             if (_inner != null)
                 return _inner.ReadUntilEolAsync(acceptableEols, requested);

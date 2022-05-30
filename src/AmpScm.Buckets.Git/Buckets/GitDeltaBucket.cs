@@ -85,6 +85,9 @@ namespace AmpScm.Buckets.Git
                 await ReadRemainingBytesAsync().ConfigureAwait(false);
             }
 
+            if (_copySize == 0 && state >= delta_state.src_copy && state <= delta_state.base_copy)
+                state = delta_state.init;
+
             if (state == delta_state.init)
             {
                 BucketBytes data;
@@ -160,12 +163,12 @@ namespace AmpScm.Buckets.Git
             return true;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested <= 0)
                 throw new ArgumentOutOfRangeException(nameof(requested));
 
-            if (state <= delta_state.init && !await AdvanceAsync().ConfigureAwait(false))
+            if ((state <= delta_state.init || _copySize == 0) && !await AdvanceAsync().ConfigureAwait(false))
                 return BucketBytes.Eof;
 
             Debug.Assert(state >= delta_state.src_copy && state <= delta_state.eof);
@@ -192,9 +195,6 @@ namespace AmpScm.Buckets.Git
                 _position += data.Length;
                 _copySize -= data.Length;
 
-                if (_copySize == 0)
-                    state = delta_state.init;
-
                 return data;
             }
             else if (state == delta_state.src_copy)
@@ -206,9 +206,6 @@ namespace AmpScm.Buckets.Git
 
                 _position += data.Length;
                 _copySize -= data.Length;
-
-                if (_copySize == 0)
-                    state = delta_state.init;
 
                 return data;
             }
@@ -233,7 +230,7 @@ namespace AmpScm.Buckets.Git
             long wantReverse = _position - newPosition;
             if (wantReverse >= 0)
             {
-                if (state == delta_state.base_seek || state == delta_state.src_copy)
+                if (state == delta_state.base_copy || state == delta_state.src_copy)
                 {
                     // Are we lucky enough that we can just seek back in the current block?
 
@@ -241,7 +238,7 @@ namespace AmpScm.Buckets.Git
                     {
                         int rev = (int)wantReverse;
 
-                        if (state == delta_state.base_seek)
+                        if (state == delta_state.base_copy)
                             await BaseBucket.SeekAsync(BaseBucket.Position!.Value - rev).ConfigureAwait(false);
                         else
                             await Inner.SeekAsync(Inner.Position!.Value - rev).ConfigureAwait(false);
@@ -266,8 +263,11 @@ namespace AmpScm.Buckets.Git
             long skipped = 0;
             while (requested > 0)
             {
-                if (state <= delta_state.init && !await AdvanceAsync().ConfigureAwait(false))
+                if ((state <= delta_state.init || _copySize == 0)
+                    && !await AdvanceAsync().ConfigureAwait(false))
+                {
                     return skipped;
+                }
 
                 Debug.Assert(state >= delta_state.src_copy && state <= delta_state.eof);
 
@@ -300,20 +300,6 @@ namespace AmpScm.Buckets.Git
                         return skipped;
                     default:
                         throw new InvalidOperationException();
-                }
-
-                if (_copySize == 0)
-                {
-                    if (_position == _length)
-                    {
-                        state = delta_state.eof;
-                        var bb = await Inner.ReadAsync(1).ConfigureAwait(false);
-
-                        if (!bb.IsEof)
-                            throw new GitBucketException($"Expected EOF on Source {Name} Bucket but got none");
-                    }
-                    else
-                        state = delta_state.init;
                 }
 
                 if (r == 0)
@@ -375,10 +361,11 @@ namespace AmpScm.Buckets.Git
 
         public async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
         {
-            if (state == delta_state.base_copy || state == delta_state.src_copy)
+            if ((state == delta_state.base_copy || state == delta_state.src_copy) && _copySize > 0)
                 return Peek();
 
-            await AdvanceAsync().ConfigureAwait(false);
+            if (!await AdvanceAsync().ConfigureAwait(false))
+                return BucketBytes.Eof;
 
             if (state == delta_state.base_seek)
                 await SeekBase().ConfigureAwait(false);

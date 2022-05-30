@@ -85,7 +85,7 @@ namespace AmpScm.Buckets.Specialized
             return Peek();
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested < 0)
                 throw new ArgumentOutOfRangeException(nameof(requested), requested, "Must be positive");

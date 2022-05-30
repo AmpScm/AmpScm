@@ -63,7 +63,7 @@ namespace AmpScm.Buckets.Specialized
 #endif
             : Encoding.Default;
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             BucketBytes bb;
             switch (_state)

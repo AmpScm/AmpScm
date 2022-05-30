@@ -79,7 +79,7 @@ namespace AmpScm.Buckets.Specialized
                 return BucketBytes.Empty;
         }
 
-        public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (_skipped)
                 return base.ReadAsync(requested);

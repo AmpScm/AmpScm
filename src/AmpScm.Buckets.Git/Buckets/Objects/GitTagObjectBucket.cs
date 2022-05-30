@@ -167,7 +167,7 @@ namespace AmpScm.Buckets.Git.Objects
             return base.ReadRemainingBytesAsync();
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             await ReadOtherHeadersAsync().ConfigureAwait(false);
 

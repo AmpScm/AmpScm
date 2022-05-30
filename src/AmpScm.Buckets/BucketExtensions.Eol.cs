@@ -22,7 +22,7 @@ namespace AmpScm.Buckets
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
 #endif
-        public static async ValueTask<(BucketBytes, BucketEol)> ReadUntilEolFullAsync(this Bucket bucket, BucketEol acceptableEols, BucketEolState? eolState = null, int requested = int.MaxValue)
+        public static async ValueTask<(BucketBytes, BucketEol)> ReadUntilEolFullAsync(this Bucket bucket, BucketEol acceptableEols, BucketEolState? eolState = null, int requested = Bucket.MaxRead)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -189,7 +189,7 @@ namespace AmpScm.Buckets
         /// <param name="requested"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static async ValueTask<BucketBytes> ReadCombinedAsync(this Bucket bucket, int bufferSize, int requested = int.MaxValue)
+        public static async ValueTask<BucketBytes> ReadCombinedAsync(this Bucket bucket, int bufferSize, int requested = Bucket.MaxRead)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -217,7 +217,7 @@ namespace AmpScm.Buckets
             return await bucket.ReadAsync(requested).ConfigureAwait(false);
         }
 
-        public static async ValueTask<(ReadOnlyMemory<byte>[] Buffers, bool Done)> ReadBuffersAsync(this Bucket bucket, int maxRequested = int.MaxValue)
+        public static async ValueTask<(ReadOnlyMemory<byte>[] Buffers, bool Done)> ReadBuffersAsync(this Bucket bucket, int maxRequested = Bucket.MaxRead)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));

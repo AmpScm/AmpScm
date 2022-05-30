@@ -36,7 +36,7 @@ namespace AmpScm.Buckets.Git
             _buffer = new byte[512];
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             while (true)
             {

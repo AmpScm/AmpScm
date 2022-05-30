@@ -250,7 +250,7 @@ namespace AmpScm.Buckets.Git
 
             public static DummyObjectBucket Instance { get; } = new(Bucket.Empty);
 
-            public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+            public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
             {
                 return Inner.ReadAsync(requested);
             }
@@ -277,7 +277,7 @@ namespace AmpScm.Buckets.Git
                 buffer = Inner.Buffer();
             }
 
-            public override ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+            public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
             {
                 return buffer.ReadAsync(requested);
             }

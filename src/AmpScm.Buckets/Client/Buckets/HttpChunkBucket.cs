@@ -28,7 +28,7 @@ namespace AmpScm.Buckets.Client.Buckets
             return _remaining;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (_remaining.IsEmpty)
             {

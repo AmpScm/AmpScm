@@ -94,7 +94,7 @@ namespace AmpScm.Buckets.Specialized
             _z.NextOutIndex = _z.NextInIndex = 0;
         }
 
-        async ValueTask<bool> Refill(bool forPeek, int requested = int.MaxValue)
+        async ValueTask<bool> Refill(bool forPeek, int requested = MaxRead)
         {
             bool retry_refill;
             do
@@ -102,48 +102,47 @@ namespace AmpScm.Buckets.Specialized
                 retry_refill = false;
                 int to_read = 0;
 
-                if (read_buffer.IsEmpty && !_readEof)
+                if (_headerLeft.HasValue && _headerLeft != 0)
                 {
-                    BucketBytes bb;
-
-                    if (_headerLeft.HasValue && _headerLeft != 0)
+                    int left = Math.Abs(_headerLeft.Value);
+                    while (left > 0)
                     {
-                        int left = Math.Abs(_headerLeft.Value);
-                        while (left > 0)
+                        if (forPeek)
+                            return false;
+
+                        var bb = await Inner.ReadAsync(left).ConfigureAwait(false);
+
+                        if (bb.IsEof)
                         {
-                            if (forPeek)
-                                return false;
-
-                            bb = await Inner.ReadAsync(left).ConfigureAwait(false);
-
-                            if (bb.IsEof)
+                            if (_algorithm == BucketCompressionAlgorithm.GZip && _headerLeft == 10)
                             {
-                                if (_algorithm == BucketCompressionAlgorithm.GZip && _headerLeft == 10)
-                                {
-                                    _eof = true;
-                                    return true;
-                                }
-                                throw new InvalidOperationException($"Unexpected EOF in GZip header on {Inner.Name}");
+                                _eof = true;
+                                return true;
                             }
-
-                            int n = bb.Length;
-                            if (n > 0)
-                            {
-                                left -= n;
-                            }
+                            throw new InvalidOperationException($"Unexpected EOF in GZip header on {Inner.Name}");
                         }
 
-                        if (_headerLeft > 0)
-                            _headerLeft = 0;
-                        else
+                        int n = bb.Length;
+                        if (n > 0)
                         {
-                            _eof = true;
-                            _headerLeft = null;
-                            return true;
+                            left -= n;
                         }
                     }
 
-                    bb = ((_innerPoll is null) ? Inner.Peek() : await _innerPoll.PollAsync().ConfigureAwait(false));
+                    if (_headerLeft > 0)
+                        _headerLeft = 0;
+                    else
+                    {
+                        _eof = true;
+                        _headerLeft = null;
+                        return true;
+                    }
+                }
+
+                if (read_buffer.IsEmpty && !_readEof)
+                {
+
+                    var bb = ((_innerPoll is null) ? Inner.Peek() : await _innerPoll.PollAsync().ConfigureAwait(false));
 
                     if (bb.IsEmpty)
                     {
@@ -301,7 +300,7 @@ namespace AmpScm.Buckets.Specialized
             return write_buffer;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested <= 0)
                 throw new ArgumentOutOfRangeException(nameof(requested));

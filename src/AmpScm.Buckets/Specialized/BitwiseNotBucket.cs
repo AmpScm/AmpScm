@@ -17,7 +17,7 @@ namespace AmpScm.Buckets.Specialized
             _buffer = new byte[bufferSize];
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested > _buffer.Length)
                 requested = _buffer.Length;

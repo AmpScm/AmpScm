@@ -38,7 +38,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override long? Position => _position;
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             int rq = _by2 ? (requested + 1) & ~1 : requested;
 

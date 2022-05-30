@@ -71,7 +71,7 @@ namespace AmpScm.Buckets.Specialized
             return poll;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             long pos = Position!.Value;
 

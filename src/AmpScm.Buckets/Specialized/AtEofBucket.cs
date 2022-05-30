@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Specialized
             _atEof = atEof;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             var bb = await base.ReadAsync(requested).ConfigureAwait(false);
 

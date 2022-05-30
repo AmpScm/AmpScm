@@ -37,7 +37,7 @@ namespace AmpScm.Buckets.Client.Buckets
 
         public new HttpBucketWebRequest Request => (HttpBucketWebRequest)base.Request;
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (_responseHeaders is null)
                 await ReadHeaders().ConfigureAwait(false);

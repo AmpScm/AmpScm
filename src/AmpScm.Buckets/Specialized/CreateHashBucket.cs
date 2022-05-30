@@ -28,7 +28,7 @@ namespace AmpScm.Buckets.Specialized
             _onResult = hashCreated;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = int.MaxValue)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             var r = await Inner.ReadAsync(requested).ConfigureAwait(false);
 
