@@ -110,13 +110,13 @@ namespace AmpScm.Buckets.Specialized
 
         public override Bucket Duplicate(bool reset = false)
         {
-            var b = Inner.Duplicate(reset);
+            if (_readHeader)
+                throw new InvalidOperationException();
 
+            var b = Inner.Duplicate(reset);
             var gz = new GZipBucket(b);
-            if (!reset)
-            {
-                throw new NotImplementedException();
-            }
+
+            gz._readHeader = false;
 
             return gz;
         }
