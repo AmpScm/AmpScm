@@ -166,9 +166,13 @@ namespace GitRepositoryTests.Index
 
             foreach(Process p in Process.GetProcesses())
             {
-                string name = p.ProcessName;
-                if (name.Contains("git") || name.Contains('-'))
-                    Console.WriteLine(p.ProcessName);
+                try
+                {
+                    string name = p.ProcessName;
+                    if (name.Contains("git") || name.Contains('-'))
+                        Console.WriteLine(p.ProcessName);
+                }
+                catch { }
             }
 
             Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "Has index");
@@ -249,9 +253,13 @@ namespace GitRepositoryTests.Index
 
             foreach (Process p in Process.GetProcesses())
             {
-                string name = p.ProcessName;
-                if (name.Contains("git") || name.Contains('-'))
-                    Console.WriteLine(p.ProcessName);
+                try
+                {
+                    string name = p.ProcessName;
+                    if (name.Contains("git") || name.Contains('-'))
+                        Console.WriteLine(p.ProcessName);
+                }
+                catch { }
             }
 
             Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "Has index");
