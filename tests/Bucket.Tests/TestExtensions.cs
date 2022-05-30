@@ -93,6 +93,11 @@ namespace AmpScm
             TestContext.WriteLine("");
         }
 
+        public static void WriteLine(this TestContext TestContext, object value)
+        {
+            TestContext.WriteLine(value?.ToString() ?? "");
+        }
+
 
         public static byte[] ReverseInPlaceIfLittleEndian(this byte[] array)
         {

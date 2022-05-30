@@ -156,7 +156,7 @@ namespace GitRepositoryTests.Index
                 GC.KeepAlive(dc2);
             }
 
-            foreach(var p in new DirectoryInfo(repo.WorkTreeDirectory).EnumerateFileSystemInfos())
+            foreach (var p in new DirectoryInfo(repo.WorkTreeDirectory).EnumerateFileSystemInfos())
             {
                 TestContext.WriteLine($"{p.Name} - {p.Attributes}");
             }
@@ -195,6 +195,11 @@ namespace GitRepositoryTests.Index
                 }
 
                 Assert.AreEqual(entries.Count + 2, n);
+            }
+
+            await foreach (var v in await repo.GetPorcelain().Status(new() { Untracked = GitStatusUntrackedMode.Normal }))
+            {
+                TestContext.WriteLine(v);
             }
         }
 

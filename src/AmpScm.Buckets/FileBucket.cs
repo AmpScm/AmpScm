@@ -246,13 +246,15 @@ namespace AmpScm.Buckets
             _pos += result.Length;
             _filePos += result.Length;
 
-            System.Diagnostics.Debug.Assert(result.Length > 0);
+            Debug.Assert(result.Length > 0);
 
             return result;
         }
 
         private async ValueTask RefillAsync(int requested)
         {
+            Debug.Assert(requested <= MaxRead);
+
             long basePos = _filePos & ~_chunkSizeMinus1; // Current position round back to chunk
             int extra = (int)(_filePos - basePos); // Position in chunk
 
