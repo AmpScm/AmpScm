@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -162,6 +163,13 @@ namespace GitRepositoryTests.Index
             }
 
             TestContext.WriteLine("");
+
+            foreach(Process p in Process.GetProcesses())
+            {
+                string name = p.ProcessName;
+                if (name.Contains("git") || name.Contains('-'))
+                    Console.WriteLine(p.ProcessName);
+            }
 
             Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "Has index");
             Assert.IsFalse(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "No shared index yet");
