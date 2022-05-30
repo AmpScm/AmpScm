@@ -165,6 +165,7 @@ namespace GitRepositoryTests.Index
 
             Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "Has index");
             Assert.IsFalse(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "No shared index yet");
+            Assert.IsFalse(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index.lock")), "Has no index lockfile");
 
             File.WriteAllText(Path.Combine(path, "miota"), "QQQ");
             File.WriteAllText(Path.Combine(path, "A", "mu"), "QQQ");
@@ -204,6 +205,7 @@ namespace GitRepositoryTests.Index
         }
 
         [TestMethod]
+        [Ignore]
         public async Task CheckWithFsMonitor()
         {
             var path = TestContext.PerTestDirectory();
