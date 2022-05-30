@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -330,7 +331,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
-        /// Reads a whole integer using <see cref="NetBitConverter.FromNetwork(int)"/>
+        /// Reads a whole integer using <see cref="BinaryPrimitives.ReadInt32BigEndian"/>
         /// </summary>
         /// <param name="bucket"></param>
         /// <returns></returns>
@@ -350,7 +351,7 @@ namespace AmpScm.Buckets.Specialized
                     throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
             }
 
-            return NetBitConverter.ToInt32(bb, 0);
+            return BinaryPrimitives.ReadInt32BigEndian(bb.Span);
         }
 
 
@@ -379,7 +380,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
-        /// Reads a whole integer using <see cref="NetBitConverter.FromNetwork(uint)"/>
+        /// Reads a whole integer using <see cref="BinaryPrimitives.ReadUInt32BigEndian"/>
         /// </summary>
         /// <param name="bucket"></param>
         /// <returns></returns>
@@ -400,11 +401,11 @@ namespace AmpScm.Buckets.Specialized
                     throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
             }
 
-            return NetBitConverter.ToUInt32(bb, 0);
+            return BinaryPrimitives.ReadUInt32BigEndian(bb.Span);
         }
 
         /// <summary>
-        /// Reads a whole long integer using <see cref="NetBitConverter.FromNetwork(long)"/>
+        /// Reads a whole long integer using <see cref="BinaryPrimitives.ReadInt64BigEndian"/>
         /// </summary>
         /// <param name="bucket"></param>
         /// <returns></returns>
@@ -424,11 +425,11 @@ namespace AmpScm.Buckets.Specialized
                     throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
             }
 
-            return NetBitConverter.ToInt64(bb, 0);
+            return BinaryPrimitives.ReadInt64BigEndian(bb.Span);
         }
 
         /// <summary>
-        /// Reads a whole unsigned long integer using <see cref="NetBitConverter.FromNetwork(ulong)"/>
+        /// Reads a whole unsigned long integer using <see cref="BinaryPrimitives.ReadUInt64BigEndian"/>
         /// </summary>
         /// <param name="bucket"></param>
         /// <returns></returns>
@@ -449,7 +450,7 @@ namespace AmpScm.Buckets.Specialized
                     throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
             }
 
-            return NetBitConverter.ToUInt64(bb, 0);
+            return BinaryPrimitives.ReadUInt64BigEndian(bb.Span);
         }
 
         /// <summary>

@@ -52,18 +52,18 @@ namespace AmpScm.Buckets.Specialized
                 throw new BucketEofException(this);
 
             // Handle endiannes agnostic
-            var expectedLen = BinaryPrimitives.ReverseEndianness(NetBitConverter.ToUInt32(bb, 4));
+            var expectedLen = BinaryPrimitives.ReadInt32LittleEndian(bb.Span.Slice(4));
 
             if (expectedLen != (Inner.Position!.Value & uint.MaxValue))
                 throw new BucketException($"GZip error: Expected {expectedLen} bytes, but read {Inner.Position}");
-            
+
             _atEof = true;
             return BucketBytes.Eof;
         }
 
         private async ValueTask ReadHeader()
         {
-            var bb = await((ZLibBucket)Inner).GetInner().ReadFullAsync(10).ConfigureAwait(false);
+            var bb = await ((ZLibBucket)Inner).GetInner().ReadFullAsync(10).ConfigureAwait(false);
 
             if (bb.Length == 0)
             {
@@ -105,7 +105,7 @@ namespace AmpScm.Buckets.Specialized
                 await ReadHeader().ConfigureAwait(false);
 
             await ((IBucketSeek)Inner).SeekAsync(newPosition).ConfigureAwait(false);
-            _atEof = false;            
+            _atEof = false;
         }
 
         public override Bucket Duplicate(bool reset = false)
@@ -137,6 +137,6 @@ namespace AmpScm.Buckets.Specialized
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
             return Inner.ReadRemainingBytesAsync();
-        }        
+        }
     }
 }

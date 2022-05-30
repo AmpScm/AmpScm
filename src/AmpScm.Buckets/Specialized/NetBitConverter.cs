@@ -62,8 +62,7 @@ namespace AmpScm.Buckets.Specialized
         {
             if (BitConverter.IsLittleEndian)
             {
-                ushort val = unchecked((ushort)value);
-                value = unchecked((short)((val >> 8) | (val << 8)));
+                value = BinaryPrimitives.ReverseEndianness(value);
             }
             return value;
         }
@@ -240,109 +239,79 @@ namespace AmpScm.Buckets.Specialized
         /// <inheritdoc cref="BitConverter.ToInt16(byte[], int)" />
         public static short ToInt16(byte[] value, int startOffset)
         {
-            return FromNetwork(BitConverter.ToInt16(value, startOffset));
+            return BinaryPrimitives.ReadInt16BigEndian(value.AsSpan(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToInt16(byte[], int)"/>
         public static short ToInt16(BucketBytes value, int startOffset)
         {
-#if NETFRAMEWORK
-            var b = value.Span.Slice(startOffset, sizeof(short)).ToArray();
-            return FromNetwork(BitConverter.ToInt16(b, 0));
-#else
-            return FromNetwork(BitConverter.ToInt16(value.Span.Slice(startOffset)));
-#endif
+            return BinaryPrimitives.ReadInt16BigEndian(value.Span.Slice(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToInt32(byte[], int)"/>
         public static int ToInt32(byte[] value, int startOffset)
         {
-            return FromNetwork(BitConverter.ToInt32(value, startOffset));
+            return BinaryPrimitives.ReadInt32BigEndian(value.AsSpan(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToInt32(byte[], int)"/>
         public static int ToInt32(BucketBytes value, int startOffset)
         {
-#if NETFRAMEWORK
-            var b = value.Span.Slice(startOffset, sizeof(int)).ToArray();
-            return FromNetwork(BitConverter.ToInt32(b, 0));
-#else
-            return FromNetwork(BitConverter.ToInt32(value.Span.Slice(startOffset)));
-#endif
+            return BinaryPrimitives.ReadInt32BigEndian(value.Span.Slice(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToInt64(byte[], int)"/>
         public static long ToInt64(byte[] value, int startOffset)
         {
-            return FromNetwork(BitConverter.ToInt64(value, startOffset));
+            return BinaryPrimitives.ReadInt64BigEndian(value.AsSpan(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToInt64(byte[], int)"/>
         public static long ToInt64(BucketBytes value, int startOffset)
         {
-#if NETFRAMEWORK
-            var b = value.Span.Slice(startOffset, sizeof(ulong)).ToArray();
-            return FromNetwork(BitConverter.ToInt64(b, 0));
-#else
-            return FromNetwork(BitConverter.ToInt64(value.Span[startOffset..]));
-#endif
+            return BinaryPrimitives.ReadInt64BigEndian(value.Span.Slice(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToUInt16(byte[], int)"/>
         [CLSCompliant(false)]
         public static ushort ToUInt16(byte[] value, int startOffset)
         {
-            return FromNetwork(BitConverter.ToUInt16(value, startOffset));
+            return BinaryPrimitives.ReadUInt16BigEndian(value.AsSpan(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToUInt16(byte[], int)"/>
         [CLSCompliant(false)]
         public static ushort ToUInt16(BucketBytes value, int startOffset)
         {
-#if NETFRAMEWORK
-            var b = value.Span.Slice(startOffset, sizeof(ushort)).ToArray();
-            return FromNetwork(BitConverter.ToUInt16(b, 0));
-#else
-            return FromNetwork(BitConverter.ToUInt16(value.Span.Slice(startOffset)));
-#endif
+            return BinaryPrimitives.ReadUInt16BigEndian(value.Span.Slice(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToUInt32(byte[], int)"/>
         [CLSCompliant(false)]
         public static uint ToUInt32(byte[] value, int startOffset)
         {
-            return FromNetwork(BitConverter.ToUInt32(value, startOffset));
+            return BinaryPrimitives.ReadUInt32BigEndian(value.AsSpan(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToUInt32(byte[], int)"/>
         [CLSCompliant(false)]
         public static uint ToUInt32(BucketBytes value, int startOffset)
         {
-#if NETFRAMEWORK
-            var b = value.Span.Slice(startOffset, sizeof(uint)).ToArray();
-            return FromNetwork(BitConverter.ToUInt32(b, 0));
-#else
-            return FromNetwork(BitConverter.ToUInt32(value.Span.Slice(startOffset)));
-#endif
+            return BinaryPrimitives.ReadUInt32BigEndian(value.Span.Slice(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToUInt64(byte[], int)"/>
         [CLSCompliant(false)]
         public static ulong ToUInt64(byte[] value, int startOffset)
         {
-            return FromNetwork(BitConverter.ToUInt64(value, startOffset));
+            return BinaryPrimitives.ReadUInt64BigEndian(value.AsSpan(startOffset));
         }
 
         /// <inheritdoc cref="BitConverter.ToUInt64(byte[], int)"/>
         [CLSCompliant(false)]
         public static ulong ToUInt64(BucketBytes value, int startOffset)
         {
-#if NETFRAMEWORK
-            var b = value.Span.Slice(startOffset, sizeof(ulong)).ToArray();
-            return FromNetwork(BitConverter.ToUInt64(b, 0));
-#else
-            return FromNetwork(BitConverter.ToUInt64(value.Span[startOffset..]));
-#endif
+            return BinaryPrimitives.ReadUInt64BigEndian(value.Span.Slice(startOffset));
         }
     }
 }
