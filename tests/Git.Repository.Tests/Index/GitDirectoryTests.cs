@@ -213,6 +213,87 @@ namespace GitRepositoryTests.Index
         }
 
         [TestMethod]
+        [DataRow(false, true)]
+        [DataRow(false, false)]
+        [DataRow(true, true)]
+        [DataRow(true, false)]
+        public async Task CheckCreateSplit(bool optimize, bool lookFor)
+        {
+            var path = TestContext.PerTestDirectory($"{optimize}{lookFor}");
+            {
+                using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
+                await gc.GetPorcelain().Clone(gc.FullPath, path, new()
+                {
+                    Shared = true,
+                    InitialConfiguration = new[]
+                    {
+                        ("core.splitIndex", "true"),
+                        ("index.recordEndOfIndexEntries", $"{optimize}"),
+                        ("index.version", "4")
+                    }
+                });
+            }
+
+            using var repo = GitRepository.Open(path);
+            TestContext.WriteLine(repo.WorkTreeDirectory);
+
+            Assert.AreEqual(Path.Combine(repo.FullPath, ".git"), repo.GitDirectory);
+            Assert.AreEqual(Path.Combine(repo.FullPath, ".git"), repo.WorkTreeDirectory);
+
+            foreach (var p in new DirectoryInfo(repo.WorkTreeDirectory).EnumerateFileSystemInfos())
+            {
+                TestContext.WriteLine($"{p.Name} - {p.Attributes}");
+            }
+
+            TestContext.WriteLine("");
+
+            foreach (Process p in Process.GetProcesses())
+            {
+                string name = p.ProcessName;
+                if (name.Contains("git") || name.Contains('-'))
+                    Console.WriteLine(p.ProcessName);
+            }
+
+            Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "Has index");
+            Assert.IsFalse(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "No shared index yet");
+            Assert.IsFalse(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index.lock")), "Has no index lockfile");
+
+            File.WriteAllText(Path.Combine(path, "miota"), "QQQ");
+            File.WriteAllText(Path.Combine(path, "A", "mu"), "QQQ");
+            File.AppendAllText(Path.Combine(path, "README.md"), " ");
+
+            await repo.GetPorcelain().Add(new[] { "miota", "A/mu", "README.md" });
+
+            Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "After add has index");
+            Assert.IsTrue(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "After add has shared index");
+
+            using (var dc = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
+            {
+                await dc.ReadHeaderAsync();
+
+                TestContext.WriteLine($"Version: {dc.IndexVersion}");
+
+                int n = 0;
+                string? ln = null;
+                while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
+                {
+                    TestContext.WriteLine($"{entry.Name} - {entry}");
+                    if (ln is not null)
+                    {
+                        Assert.IsTrue(string.CompareOrdinal(entry.Name, ln) >= 0);
+                    }
+                    ln = entry.Name;
+                    n++;
+                }
+            }
+
+            await foreach (var v in await repo.GetPorcelain().Status(new() { Untracked = GitStatusUntrackedMode.Normal }))
+            {
+                TestContext.WriteLine(v);
+            }
+        }
+
+        [TestMethod]
         [Ignore]
         public async Task CheckWithFsMonitor()
         {
