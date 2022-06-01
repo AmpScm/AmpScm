@@ -267,7 +267,7 @@ namespace AmpScm.Buckets.Client.Buckets
                 {
                     if (hlrs[i] is MulticastDelegate md2)
                     {
-                        var p = md.GetInvocationList();
+                        var p = md2.GetInvocationList();
 
                         if (p.Length != 1 || p[0] != md2)
                         {
