@@ -330,6 +330,14 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
+        public static Bucket SeekOnReset(this Bucket bucket)
+        {
+            if (bucket is IBucketSeekOnReset sr)
+                return sr.SeekOnReset();
+            else
+                return SkipBucket.SeekOnReset(bucket);
+        }
+
         /// <summary>
         /// Reads a whole integer using <see cref="BinaryPrimitives.ReadInt32BigEndian"/>
         /// </summary>

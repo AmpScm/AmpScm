@@ -216,8 +216,6 @@ namespace AmpScm.Buckets.Specialized
                     var now_read = await Inner.ReadAsync(to_read).ConfigureAwait(false);
                     if (now_read.Length != to_read)
                         throw new BucketException($"Read on {Inner.Name} did not complete as promised by peek");
-
-
                 }
                 else
                 {
@@ -314,24 +312,18 @@ namespace AmpScm.Buckets.Specialized
             ZSetup();
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void InnerDispose()
         {
-            try
-            {
-                if (disposing)
-                {
-                    if (write_data != null)
-                        System.Buffers.ArrayPool<byte>.Shared.Return(write_data);
+            base.InnerDispose();
 
-                    write_data = null!;
-                    read_buffer = default;
-                    write_buffer = default;
-                }
-            }
-            finally
-            {
-                base.Dispose(disposing);
-            }
+            read_buffer = default;
+            write_buffer = default;
+            _z.NextOut = _z.NextIn = null;
+
+            if (write_data != null)
+                System.Buffers.ArrayPool<byte>.Shared.Return(write_data);
+
+            write_data = null!;
         }
 
         public override Bucket Duplicate(bool reset = false)

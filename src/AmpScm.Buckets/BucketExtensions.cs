@@ -169,14 +169,6 @@ namespace AmpScm.Buckets
                 return new NoCloseBucket(bucket);
         }
 
-        public static Bucket SeekOnReset(this Bucket bucket)
-        {
-            if (bucket is IBucketSeekOnReset sr)
-                return sr.SeekOnReset();
-            else
-                return SkipBucket.SeekOnReset(bucket);
-        }
-
         public static Bucket Wrap(this Bucket bucket)
         {
             return new ProxyBucket.Sealed(bucket);

@@ -33,7 +33,7 @@ namespace AmpScm.Buckets.Specialized
             _position = 0;
         }
 
-        protected override PositionBucket? WrapDuplicate(Bucket duplicatedInner, bool reset)
+        protected override sealed PositionBucket? WrapDuplicate(Bucket duplicatedInner, bool reset)
         {
             var p = NewPositionBucket(duplicatedInner);
             if (!reset)

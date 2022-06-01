@@ -173,8 +173,19 @@ namespace AmpScm.Buckets
 
         Bucket IBucketSeekOnReset.SeekOnReset()
         {
-            _resetPosition = Position!.Value;
-            return this;
+            if (_nDispose > 1)
+            {
+                var b = (FileBucket)Duplicate();
+                b._resetPosition = Position!.Value;
+                this.Dispose();
+
+                return b;
+            }
+            else
+            {
+                _resetPosition = Position!.Value;
+                return this;
+            }
         }
 
         Bucket IBucketNoClose.NoClose()
