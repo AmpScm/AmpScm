@@ -24,15 +24,15 @@ namespace BucketTests
             new ValueTuple<string, Func<Bucket, Bucket>, Func<Bucket, Bucket>>[]
             {
                 ("Base64", b => b.Base64Encode(), b => b.Base64Decode()),
-                ("ZLib", b => b.Compress(BucketCompressionAlgorithm.ZLib), b=> b.Decompress(BucketCompressionAlgorithm.ZLib)),
-                ("deflate", b => b.Compress(BucketCompressionAlgorithm.Deflate), b=> b.Decompress(BucketCompressionAlgorithm.Deflate)),
-                ("GZip", b => b.Compress(BucketCompressionAlgorithm.GZip), b=> b.Decompress(BucketCompressionAlgorithm.GZip)),
+                ("ZLib", b => b.Compress(BucketCompressionAlgorithm.ZLib), b => b.Decompress(BucketCompressionAlgorithm.ZLib)),
+                ("deflate", b => b.Compress(BucketCompressionAlgorithm.Deflate), b => b.Decompress(BucketCompressionAlgorithm.Deflate)),
+                ("GZip", b => b.Compress(BucketCompressionAlgorithm.GZip), b => b.Decompress(BucketCompressionAlgorithm.GZip)),
 #if !NETFRAMEWORK
-                ("Brotli", b => b.Compress(BucketCompressionAlgorithm.Brotli), b=> b.Decompress(BucketCompressionAlgorithm.Brotli)),
+                ("Brotli", b => b.Compress(BucketCompressionAlgorithm.Brotli), b => b.Decompress(BucketCompressionAlgorithm.Brotli)),
 #endif
                 ("Chunk", b => b.HttpChunk(), b => b.HttpDechunk()),
                 ("AsStream", b => b.AsStream().AsBucket(), b => b.AsStream().AsBucket()),
-                ("Utf16-Utf8", b => b.TextRecode(Encoding.UTF8, Encoding.UTF32),  b=> b.TextRecode(Encoding.UTF32, Encoding.UTF8)),
+                ("Utf16-Utf8", b => b.TextRecode(Encoding.UTF8, Encoding.UTF32),  b => b.TextRecode(Encoding.UTF32, Encoding.UTF8)),
             }.Select(x => new object[] { x.Item1, x.Item2, x.Item3 });
 
         public static string ConvertDisplayName(MethodInfo method, object[] args)
