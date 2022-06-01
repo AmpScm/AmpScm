@@ -2,13 +2,14 @@
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Git
 {
     [DebuggerDisplay("{GitType}, Version={Version}, ObjectCount={ObjectCount}")]
     public class GitPackHeaderBucket : GitBucket
     {
-        BucketStructCollector<GitPackHeader> _header = new BucketStructCollector<GitPackHeader>();
+        GitPackHeader? _header;
 
         public GitPackHeaderBucket(Bucket inner) : base(inner)
         {
@@ -16,29 +17,34 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            if (!_header.HasResult)
+            if (!_header.HasValue)
             {
-                await _header.ReadAsync(Inner).ConfigureAwait(false);
+                var bb = await Inner.ReadFullAsync(12).ConfigureAwait(false);
 
-                // Can fall through for EOF in OK and error case
+                if (bb.Length != 12)
+                    throw new BucketEofException(Inner);
+
+                GitPackHeader gph = new GitPackHeader
+                {
+                    GitType = bb.ToASCIIString(0, 4),
+                    Version = NetBitConverter.ToInt32(bb, 4),
+                    ObjectCount = NetBitConverter.ToUInt32(bb, 8),
+                };
+
+                _header = gph;
             }
 
             return BucketBytes.Eof;
         }
 
-        public string? GitType => _header.HasResult ? new string(_header.Result?.GitType!) : null;
-        public int? Version => _header.Result?.Version;
-        public long? ObjectCount => _header.Result?.ObjectCount;
+        public string? GitType => _header.HasValue ? _header.Value.GitType : null;
+        public int? Version => _header.HasValue ? _header.Value.Version : null;
+        public long? ObjectCount => _header.HasValue ? _header.Value.ObjectCount : null;
 
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
         struct GitPackHeader
         {
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-            public char[] GitType;
-            [NetworkOrder]
+            public string GitType;
             public int Version;
-            [NetworkOrder]
             public uint ObjectCount;
         }
     }

@@ -5,50 +5,51 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Specialized;
+using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
     [DebuggerDisplay("{BitmapType}, Version={Version}, Flags={Flags}, ObjectCount={ObjectCount}")]
     public class GitBitmapHeaderBucket : GitBucket
     {
-        BucketStructCollector<GitPackHeader> _header = new BucketStructCollector<GitPackHeader>();
+        GitIdType _idType;
+        bool _readHeader;
+        string? _type;
+        short _version;
+        short _flags;
+        int _objCount;
+        GitId? _checksum;
 
-        public GitBitmapHeaderBucket(Bucket inner) : base(inner)
+        public GitBitmapHeaderBucket(Bucket inner, GitIdType idType) : base(inner)
         {
+            _idType = idType;
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            if (!_header.HasResult)
+            if (!_readHeader)
             {
-                await _header.ReadAsync(Inner).ConfigureAwait(false);
+                var bb = await Inner.ReadFullAsync(12).ConfigureAwait(false);
 
-                // Can fall through for EOF in OK and error case
+                if (bb.Length != 12)
+                    throw new BucketEofException(Inner);
+
+                _type = bb.ToASCIIString(0, 4);
+                _version = NetBitConverter.ToInt16(bb, 4);
+                _flags = NetBitConverter.ToInt16(bb, 6);
+                _objCount = NetBitConverter.ToInt32(bb, 8);
+
+                _checksum = await Inner.ReadGitIdAsync(_idType).ConfigureAwait(false);
+                _readHeader = true;
             }
 
             return BucketBytes.Eof;
         }
 
-        public string? BitmapType => _header.HasResult ? new string(_header.Result?.BitmapType!) : null;
-        public int? Version => _header.Result?.Version;
-        public int? Flags => _header.Result?.Flags;
-        public int? ObjectCount => _header.Result?.ObjectCount;
-
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        struct GitPackHeader
-        {
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-            public char[] BitmapType;
-            [NetworkOrder]
-            public short Version;
-            [NetworkOrder]
-            public short Flags;
-            [NetworkOrder]
-            public int ObjectCount;
-
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
-            public byte[] Checksum;
-        }
+        public string? BitmapType => _type;
+        public int? Version => _readHeader ? _version : null;
+        public int? Flags => _readHeader ? _flags : null;
+        public int? ObjectCount => _readHeader ? _objCount : null;
     }
 }

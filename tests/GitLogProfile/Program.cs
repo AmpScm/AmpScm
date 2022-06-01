@@ -19,7 +19,7 @@ namespace MyApp
             if (repo.IsShallow)
                 return -1;
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 100; i++)
             {
                 foreach (var v in Directory.GetFiles(@"f:\", "*.pack"))
                 {

@@ -20,6 +20,7 @@ namespace AmpScm.Git.Objects
         int _ver;
         uint[]? _fanOut;
         bool _hasBitmap;
+        int _bmpHdrSize;
 
         public PackObjectRepository(GitRepository repository, string packFile, GitIdType idType)
             : base(repository, "Pack:" + packFile)
@@ -485,10 +486,11 @@ namespace AmpScm.Git.Objects
                 var bmp = FileBucket.OpenRead(Path.ChangeExtension(PackFile, ".bitmap"));
 
                 await VerifyBitmap(bmp).ConfigureAwait(false);
+                _bmpHdrSize = (int)bmp.Position!.Value;
                 _bitmapBucket = bmp;
+
             }
-            _bitmapBucket.Reset();
-            await _bitmapBucket.ReadSkipAsync(32).ConfigureAwait(false);
+            await _bitmapBucket.SeekAsync(_bmpHdrSize).ConfigureAwait(false);
 
             GitEwahBitmapBucket? ewahBitmap = null;
 
@@ -609,9 +611,9 @@ namespace AmpScm.Git.Objects
                 File.Delete(tmpName);
         }
 
-        static async ValueTask VerifyBitmap(FileBucket bmp)
+        async ValueTask VerifyBitmap(FileBucket bmp)
         {
-            using var bhr = new GitBitmapHeaderBucket(bmp.NoClose());
+            using var bhr = new GitBitmapHeaderBucket(bmp.NoClose(), Repository.InternalConfig.IdType);
 
             var bb = await bhr.ReadAsync().ConfigureAwait(false);
 

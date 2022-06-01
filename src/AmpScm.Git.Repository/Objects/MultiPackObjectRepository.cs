@@ -15,10 +15,11 @@ namespace AmpScm.Git.Objects
     internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
     {
         readonly string _dir;
-        private string[]? _packNames;
+        string[]? _packNames;
         PackObjectRepository[]? _packs;
         string? _multiPackBitmapPath;
         Lazy<bool> HasBitmap;
+        int _bmpHdrSize;
         FileBucket? _bitmapBucket;
         FileBucket? _revIdxBucket;
 
@@ -210,9 +211,10 @@ namespace AmpScm.Git.Objects
                 var bmp = FileBucket.OpenRead(_multiPackBitmapPath!);
 
                 await VerifyBitmap(bmp).ConfigureAwait(false);
+                _bmpHdrSize = (int)bmp.Position!.Value;
                 _bitmapBucket = bmp;
             }
-            await _bitmapBucket.SeekAsync(32).ConfigureAwait(false);
+            await _bitmapBucket.SeekAsync(_bmpHdrSize).ConfigureAwait(false);
 
             GitEwahBitmapBucket? ewahBitmap = null;
 
@@ -341,9 +343,9 @@ namespace AmpScm.Git.Objects
                 File.Delete(tmpName);
         }
 
-        static async ValueTask VerifyBitmap(FileBucket bmp)
+        async ValueTask VerifyBitmap(FileBucket bmp)
         {
-            using var bhr = new GitBitmapHeaderBucket(bmp.NoClose());
+            using var bhr = new GitBitmapHeaderBucket(bmp.NoClose(), Repository.InternalConfig.IdType);
 
             var bb = await bhr.ReadAsync().ConfigureAwait(false);
 
