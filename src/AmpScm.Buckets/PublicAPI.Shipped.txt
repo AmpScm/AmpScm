@@ -328,6 +328,7 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.AtEof(this AmpScm.
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.AtEof(this AmpScm.Buckets.Bucket! bucket, System.Func<System.Threading.Tasks.Task!>! action) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Base64Decode(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Base64Encode(this AmpScm.Buckets.Bucket! bucket, bool wrapLines = false, bool addPadding = true) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Buffer(this AmpScm.Buckets.Bucket! bucket, int maxMemory = 1048576) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ConvertToUtf8(this AmpScm.Buckets.Bucket! bucket, System.Text.Encoding! encoding) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Crc32(this AmpScm.Buckets.Bucket! bucket, System.Action<int>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.MD5(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
@@ -343,11 +344,11 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt32A
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt64Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<ulong>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEofAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SeekAsync(this AmpScm.Buckets.Bucket! bucket, long newPosition) -> System.Threading.Tasks.ValueTask
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.
-SeekOnReset(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SeekOnReset(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA1(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA256(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA512(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.TextRecode(this AmpScm.Buckets.Bucket! bucket, System.Text.Encoding! sourceEncoding, System.Text.Encoding! targetEncoding) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.ValueOrEof.Eof.get -> AmpScm.Buckets.ValueOrEof
 static AmpScm.Buckets.ValueOrEof.operator !=(AmpScm.Buckets.ValueOrEof left, AmpScm.Buckets.ValueOrEof right) -> bool
 static AmpScm.Buckets.ValueOrEof.operator ==(AmpScm.Buckets.ValueOrEof left, AmpScm.Buckets.ValueOrEof right) -> bool

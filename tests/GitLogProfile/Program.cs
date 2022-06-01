@@ -1,8 +1,10 @@
 ﻿
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Git;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
 
@@ -17,13 +19,23 @@ namespace MyApp
             if (repo.IsShallow)
                 return -1;
 
+            for (int i = 0; i < 1; i++)
+            {
+                foreach (var v in Directory.GetFiles(@"f:\", "*.pack"))
+                {
+                    File.Delete(Path.ChangeExtension(v, ".idx"));
+                    File.Delete(Path.ChangeExtension(v, ".rev"));
+                    await GitIndexer.IndexPack(v, true);
+                }
+            }
+
             //var r = await repo.GetPlumbing().RevisionList(new GitRevisionListArgs { MaxCount = 32, FirstParentOnly = true }).ToListAsync();
 
             //Assert.AreEqual(32, r.Count);
             //Assert.AreEqual(32, r.Count(x => x != null));
             //Assert.AreEqual(32, r.Distinct().Count());
 
-            var revs = repo.Head.Revisions.Take(32).Select(x => x.Commit.Id).ToList();
+            //var revs = repo.Head.Revisions.Take(32).Select(x => x.Commit.Id).ToList();
 
             //if (!r.SequenceEqual(revs))
             //{
