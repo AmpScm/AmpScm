@@ -12,11 +12,11 @@ namespace AmpScm.Git.Objects
 {
     public sealed class GitTreeWriter : GitObjectWriter<GitTree>, IEnumerable<KeyValuePair<string, IGitLazy<GitObject>>>
     {
-        readonly SortedList<string, Item> _items = new SortedList<string, Item>(StringComparer.Ordinal);
+        readonly SortedList<string, TWItem> _items = new SortedList<string, TWItem>(StringComparer.Ordinal);
 
         public override GitObjectType Type => GitObjectType.Tree;
 
-        private GitTreeWriter()
+        public GitTreeWriter()
         {
 
         }
@@ -52,7 +52,7 @@ namespace AmpScm.Git.Objects
                 if (_items.ContainsKey(name))
                     throw new ArgumentOutOfRangeException(nameof(name), $"Entry with name '{name}' already exists");
 
-                _items.Add(name, new Item<TGitObject>(name, item, setType));
+                _items.Add(name, new TWItem<TGitObject>(name, item, setType));
             }
             else if (name.Contains('/', StringComparison.Ordinal))
             {
@@ -93,6 +93,13 @@ namespace AmpScm.Git.Objects
             Id = null;
         }
 
+
+        public IGitLazy<GitObject> this[string key]
+        {
+            get => _items[key].Lazy;
+            set => Add(key, value);
+        }
+
         public void Replace<TGitObject>(string name, IGitLazy<TGitObject> item, GitTreeElementType? setType = null)
             where TGitObject : GitObject
         {
@@ -112,7 +119,7 @@ namespace AmpScm.Git.Objects
                 if (_items.ContainsKey(name))
                     throw new ArgumentOutOfRangeException(nameof(name));
 
-                _items[name] = new Item<TGitObject>(name, item, setType);
+                _items[name] = new TWItem<TGitObject>(name, item, setType);
             }
             else if (name.Contains('/', StringComparison.Ordinal))
             {
@@ -219,9 +226,9 @@ namespace AmpScm.Git.Objects
             return Id;
         }
 
-        abstract class Item
+        abstract class TWItem
         {
-            protected Item(string name)
+            protected TWItem(string name)
             {
                 Name = name;
             }
@@ -237,13 +244,13 @@ namespace AmpScm.Git.Objects
             public abstract IGitLazy<GitObject> Lazy { get; }
         }
 
-        sealed class Item<TGitObject> : Item
+        sealed class TWItem<TGitObject> : TWItem
             where TGitObject : GitObject
         {
             IGitLazy<TGitObject> _lazy;
             private GitObjectWriter? _writer;
 
-            public Item(string name, IGitLazy<TGitObject> lazy, GitTreeElementType? setType)
+            public TWItem(string name, IGitLazy<TGitObject> lazy, GitTreeElementType? setType)
                 : base(name)
             {
                 if (typeof(TGitObject) == typeof(GitObject))

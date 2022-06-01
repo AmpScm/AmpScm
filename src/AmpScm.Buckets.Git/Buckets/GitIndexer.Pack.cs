@@ -30,14 +30,17 @@ namespace AmpScm.Buckets.Git
 
             async ValueTask<GitObjectBucket?> GetDeltaSource(GitId id)
             {
-                if (hashes.TryGetValue(id, out var v))
+                long offset;
+                lock (hashes)
                 {
-                    var d = srcFile.Duplicate();
-                    await d.SeekAsync(v).ConfigureAwait(false);
-
-                    return new GitPackObjectBucket(d, idType, GetDeltaSource);
+                    if (!hashes.TryGetValue(id, out offset))
+                        return null;
                 }
-                return null;
+
+                var d = srcFile.Duplicate();
+                await d.SeekAsync(offset).ConfigureAwait(false);
+
+                return new GitPackObjectBucket(d, idType, GetDeltaSource);
             }
 
             long objectCount;
@@ -95,12 +98,11 @@ namespace AmpScm.Buckets.Git
 
                 Func<long, CancellationToken, ValueTask> cb = async (offset, c) =>
                 {
-                    using (var b = srcFile.Duplicate(true))
-                    {
-                        await b.SeekAsync(offset).ConfigureAwait(false);
+                    var b = srcFile.Duplicate(true);
 
-                        await IndexOne(offset, b).ConfigureAwait(false);
-                    }
+                    await b.SeekAsync(offset).ConfigureAwait(false);
+
+                    await IndexOne(offset, b).ConfigureAwait(false);
                 };
 
 #if NET6_0_OR_GREATER
@@ -191,22 +193,23 @@ namespace AmpScm.Buckets.Git
 
                 Func<GitId, ValueTask<GitObjectBucket?>> idCallback = async id => await GetDeltaSource(id).ConfigureAwait(false) ?? FixUp(id);
                 Func<long, ValueTask<GitObjectBucket>> ofsCallback = default!;
-                ofsCallback = async offs =>
+                ofsCallback = async itemOffset =>
                 {
                     var d = srcFile.Duplicate();
-                    await d.SeekAsync(offs).ConfigureAwait(false);
+                    await d.SeekAsync(itemOffset).ConfigureAwait(false);
 
                     return new BufferObjectBucket(new GitPackObjectBucket(d, idType, idCallback, ofsCallback));
                 };
 
-                var pf = new GitPackObjectBucket(src.NoClose(), idType, idCallback, ofsCallback);
+                var pf = new GitPackObjectBucket(src, idType, idCallback, ofsCallback);
 
+                Debug.Assert(offset == src.Position);
                 var type = await pf.ReadTypeAsync().ConfigureAwait(false);
 
                 if (skipNoHash)
                 {
                     pf.Dispose();
-                    lock (fixUpLater)
+                    lock (hashes)
                     {
                         fixUpLater.Add(offset);
                     }
@@ -221,7 +224,7 @@ namespace AmpScm.Buckets.Git
 
                     await csum.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
 
-                    lock (fixUpLater)
+                    lock (hashes)
                     {
                         hashes.Add(checksum!, offset);
                     }

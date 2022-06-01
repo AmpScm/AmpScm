@@ -228,7 +228,10 @@ namespace AmpScm.Buckets.Git
                 throw new ArgumentNullException(nameof(newPosition));
 
             long wantReverse = _position - newPosition;
-            if (wantReverse >= 0)
+
+            if (wantReverse == 0)
+                return;
+            else if (wantReverse > 0)
             {
                 if (state == delta_state.base_copy || state == delta_state.src_copy)
                 {

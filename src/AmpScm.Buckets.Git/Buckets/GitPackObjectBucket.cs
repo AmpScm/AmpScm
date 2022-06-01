@@ -54,12 +54,11 @@ namespace AmpScm.Buckets.Git
         {
             try
             {
-                reader?.Dispose();
+                (reader ?? Inner)?.Dispose();
             }
             finally
             {
-                reader = null;
-                base.InnerDispose();
+                reader = Bucket.Empty;
             }
         }
 
@@ -229,7 +228,7 @@ namespace AmpScm.Buckets.Git
                 else
                     bufferSize = ZLibBucket.DefaultBufferSize;
 
-                var inner = new ZLibBucket(Inner.SeekOnReset().NoClose(), BucketCompressionAlgorithm.ZLib, bufferSize: bufferSize);
+                var inner = new ZLibBucket(Inner.SeekOnReset(), BucketCompressionAlgorithm.ZLib, bufferSize: bufferSize);
                 if (_deltaCount != 0)
                     reader = new GitDeltaBucket(inner, (GitObjectBucket)reader!);
                 else

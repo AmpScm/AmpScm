@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AmpScm;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Git;
+using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;
@@ -382,7 +384,7 @@ namespace GitRepositoryTests
                 // Walk the chained graphs
                 rp.Head.Revisions.ToList();
 
-                for(int i = 0; i < 256; i++)
+                for (int i = 0; i < 256; i++)
                 {
                     var r = await rp.Objects.ResolveIdAsync(i.ToString("x2"));
                 }
@@ -398,6 +400,105 @@ namespace GitRepositoryTests
                     var r = await rp.Objects.ResolveIdAsync(i.ToString("x2"));
                 }
 
+            }
+        }
+
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(1)]
+        [DataRow(2)]
+        [DataRow(3)]
+        public async Task DeltaOffsetTest(int seed)
+        {
+            var dir = TestContext.PerTestDirectory($"{seed}");
+            using var repo = GitRepository.Init(dir);
+
+            List<string> lines = new List<string>();
+
+            var cw = GitCommitWriter.CreateFromTree(new GitTreeWriter()
+            {
+                ["iota"] = GitBlobWriter.CreateFrom(Bucket.Empty)
+            });
+            var c = await cw.WriteAndFetchAsync(repo);
+
+            Random r = new Random(seed);
+
+            for (int i = 1; i < 40; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                    switch (r.Next(20))
+                    {
+                        case 0 when (lines.Count > 0):
+                            lines.RemoveAt(r.Next(lines.Count));
+                            break;
+
+                        case 1 when (lines.Count > 5):
+                            var from = r.Next(lines.Count);
+                            var s = lines[from];
+                            lines.RemoveAt(from);
+                            lines.Insert(r.Next(lines.Count + 1), s);
+                            break;
+
+                        default:
+                            lines.Insert(r.Next(lines.Count + 1), Guid.NewGuid().ToString());
+                            break;
+                    }
+
+                cw = GitCommitWriter.CreateFromTree(new GitTreeWriter()
+                {
+                    ["iota"] = GitBlobWriter.CreateFrom(Bucket.Create.FromUTF8(string.Join("\n", lines)))
+                });
+                cw.Parents = new[] { c };
+
+                c = await cw.WriteAndFetchAsync(repo);
+            }
+
+            using (var sh = repo.References.CreateUpdateTransaction())
+            {
+                sh.UpdateHead(c.Id);
+                await sh.CommitAsync();
+            }
+
+            await repo.GetPorcelain().GC(new() { Aggressive = true });
+
+            repo.ObjectRepository.Refresh(); // Find packs
+
+
+            List<(int depth, GitId id)> depths = new();
+
+            foreach (var blob in repo.Blobs)
+            {
+                using var b = blob.AsBucket();
+
+                if (b is GitPackObjectBucket gob)
+                {
+                    depths.Add((await gob.ReadDeltaCountAsync(), blob.Id));
+                }
+            }
+
+            Assert.IsTrue(depths.Max(x => x.depth) > 18, "Have depth > 18");
+
+            foreach (var (_, id) in depths.OrderByDescending(x => x.depth).Take(5))
+            {
+                int sz;
+                {
+                    var b = repo.Blobs[id]!.AsBucket();
+                    sz = (int)await b.ReadRemainingBytesAsync();
+
+                    using var q = (GitObjectType.Blob.CreateHeader(sz) + b).GitHash(GitIdType.Sha1, x => { if (x != id) throw new InvalidOperationException("Id mismatch"); });
+
+                    await q.ReadSkipAsync(long.MaxValue);
+                }
+
+                for (int i = 0; i < 10; i++)
+                {
+                    using var b = repo.Blobs[id]!.AsBucket();
+
+                    await b.SeekAsync(r.Next(sz));
+
+                    await b.ReadFullAsync(Bucket.MaxRead);
+                }
             }
         }
     }

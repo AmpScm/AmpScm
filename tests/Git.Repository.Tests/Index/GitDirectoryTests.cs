@@ -129,7 +129,6 @@ namespace GitRepositoryTests.Index
                 using var gc = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
                 await gc.GetPorcelain().Clone(gc.FullPath, path, new()
                 {
-                    Shared = true,
                     InitialConfiguration = new[]
                     {
                         ("core.splitIndex", "true"),

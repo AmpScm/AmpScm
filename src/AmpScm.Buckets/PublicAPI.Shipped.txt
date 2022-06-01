@@ -343,7 +343,8 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt32A
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt64Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<ulong>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEofAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SeekAsync(this AmpScm.Buckets.Bucket! bucket, long newPosition) -> System.Threading.Tasks.ValueTask
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SeekOnReset(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.
+SeekOnReset(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA1(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA256(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA512(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
