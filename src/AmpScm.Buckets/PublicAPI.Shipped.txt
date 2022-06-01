@@ -112,7 +112,16 @@ AmpScm.Buckets.ByteCollector.SequenceEqual(System.Span<byte> sq) -> bool
 AmpScm.Buckets.ByteCollector.ToArray() -> byte[]!
 AmpScm.Buckets.ByteCollector.ToResultOrEof() -> AmpScm.Buckets.BucketBytes
 AmpScm.Buckets.FileBucket
+AmpScm.Buckets.FileBucket.DuplicateSeekedAsync(long newPosition) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.FileBucket!>
+AmpScm.Buckets.FileBucket.FileBucket(string! path, int bufferSize = 8192, int chunkSize = 4096) -> void
+AmpScm.Buckets.FileBucket.Length.get -> long
+AmpScm.Buckets.FileBucket.ReadAtAsync(long fileOffset, byte[]! buffer) -> System.Threading.Tasks.ValueTask<int>
+AmpScm.Buckets.FileBucket.ReadAtAsync(long fileOffset, byte[]! buffer, int requested) -> System.Threading.Tasks.ValueTask<int>
+AmpScm.Buckets.FileBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Interfaces.IBucketDuplicateSeekedAsync
+AmpScm.Buckets.Interfaces.IBucketDuplicateSeekedAsync.DuplicateSeekedAsync(long newPosition) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Bucket!>
 AmpScm.Buckets.Interfaces.IBucketNoClose
+AmpScm.Buckets.Interfaces.IBucketNoClose.HasMoreClosers() -> bool
 AmpScm.Buckets.Interfaces.IBucketNoClose.NoClose() -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Interfaces.IBucketPoll
 AmpScm.Buckets.Interfaces.IBucketPoll.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
@@ -120,9 +129,13 @@ AmpScm.Buckets.Interfaces.IBucketReadBuffers
 AmpScm.Buckets.Interfaces.IBucketReadBuffers.ReadBuffersAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
 AmpScm.Buckets.Interfaces.IBucketSeek
 AmpScm.Buckets.Interfaces.IBucketSeek.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Interfaces.IBucketSeekOnReset
+AmpScm.Buckets.Interfaces.IBucketSeekOnReset.SeekOnReset() -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Interfaces.IBucketWriter
 AmpScm.Buckets.Interfaces.IBucketWriter.ShutdownAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Interfaces.IBucketWriter.Write(AmpScm.Buckets.Bucket! bucket) -> void
+AmpScm.Buckets.Interfaces.IBucketWriterStats
+AmpScm.Buckets.Interfaces.IBucketWriterStats.BytesWritten.get -> long
 AmpScm.Buckets.MemoryBucket
 AmpScm.Buckets.MemoryBucket.MemoryBucket(byte[]! data) -> void
 AmpScm.Buckets.MemoryBucket.MemoryBucket(byte[]! data, int start, int length) -> void
@@ -331,6 +344,7 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Base64Encode(this 
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Buffer(this AmpScm.Buckets.Bucket! bucket, int maxMemory = 1048576) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ConvertToUtf8(this AmpScm.Buckets.Bucket! bucket, System.Text.Encoding! encoding) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Crc32(this AmpScm.Buckets.Bucket! bucket, System.Action<int>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.DuplicateSeekedAsync(this AmpScm.Buckets.Bucket! bucket, long newPosition) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Bucket!>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.MD5(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeEols(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptedEols, AmpScm.Buckets.BucketEol producedEol = AmpScm.Buckets.BucketEol.LF) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeToUtf8(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!

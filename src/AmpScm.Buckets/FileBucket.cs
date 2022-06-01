@@ -10,7 +10,7 @@ using AmpScm.Buckets.Interfaces;
 namespace AmpScm.Buckets
 {
     [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Next={{{nameof(PeekDisplay)},nq}}")]
-    public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBucketSkip, IBucketSeekOnReset, IBucketNoClose
+    public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBucketSkip, IBucketSeekOnReset, IBucketNoClose, IBucketDuplicateSeekedAsync
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         FileHolder _holder;
@@ -150,7 +150,7 @@ namespace AmpScm.Buckets
             _filePos = _resetPosition;
         }
 
-        ValueTask IBucketSeek.SeekAsync(long newPosition)
+        public ValueTask SeekAsync(long newPosition)
         {
             if (newPosition < 0)
                 throw new ArgumentOutOfRangeException(nameof(newPosition));
@@ -169,6 +169,20 @@ namespace AmpScm.Buckets
             }
 
             return default;
+        }
+
+        async ValueTask<Bucket> IBucketDuplicateSeekedAsync.DuplicateSeekedAsync(long newPosition)
+        {
+            return await DuplicateSeekedAsync(newPosition).ConfigureAwait(false);
+        }
+
+        public async ValueTask<FileBucket> DuplicateSeekedAsync(long newPosition)
+        {
+            var b = (FileBucket)Duplicate(Math.Abs(_pos - newPosition) > 8192);
+
+            await b.SeekAsync(newPosition).ConfigureAwait(false);
+
+            return b;
         }
 
         Bucket IBucketSeekOnReset.SeekOnReset()
@@ -229,6 +243,14 @@ namespace AmpScm.Buckets
                 fbNew._filePos = _resetPosition;
             else
                 fbNew._filePos = _filePos;
+
+            if (!reset && fbNew._buffer.Length == _buffer.Length)
+            {
+                _buffer.AsSpan().CopyTo(fbNew._buffer);
+                fbNew._bufStart = _bufStart;
+                fbNew._size = _size;
+                fbNew._pos = _pos;
+            }
 
             return fbNew;
         }
@@ -345,7 +367,7 @@ namespace AmpScm.Buckets
 
                 int skipped = (int)(newPos - _filePos);
                 _filePos = newPos;
-                return new (skipped);
+                return new(skipped);
             }
         }
 

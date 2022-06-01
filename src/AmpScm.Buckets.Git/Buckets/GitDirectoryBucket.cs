@@ -504,9 +504,7 @@ namespace AmpScm.Buckets.Git
                 reader = Inner.NoClose(true);
             else
             {
-                reader = Inner.Duplicate(true);
-
-                await reader.SeekAsync(_endOfIndex.Value).ConfigureAwait(false);
+                reader = await Inner.DuplicateSeekedAsync(_endOfIndex.Value).ConfigureAwait(false);
             }
 
             using (reader)

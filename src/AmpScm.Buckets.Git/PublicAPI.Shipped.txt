@@ -46,6 +46,7 @@ AmpScm.Buckets.Git.GitEwahBitmapBucket.GitEwahBitmapBucket(AmpScm.Buckets.Bucket
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadBitLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitFileObjectBucket
 AmpScm.Buckets.Git.GitFileObjectBucket.GitFileObjectBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.GitIndexer
 AmpScm.Buckets.Git.GitObjectBucket
 AmpScm.Buckets.Git.GitObjectBucket.GitObjectBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitPacketBucket
@@ -142,6 +143,7 @@ override AmpScm.Buckets.Git.GitCommitGenerationValue.Equals(object? obj) -> bool
 override AmpScm.Buckets.Git.GitCommitGenerationValue.GetHashCode() -> int
 override AmpScm.Buckets.Git.GitConfigurationBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitConfigurationRecord.ToString() -> string!
+override AmpScm.Buckets.Git.GitDirectoryBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitEwahBitmapBucket.CanReset.get -> bool
 override AmpScm.Buckets.Git.GitEwahBitmapBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Git.GitEwahBitmapBucket.Position.get -> long?
@@ -155,6 +157,7 @@ override AmpScm.Buckets.Git.GitFileObjectBucket.ReadAsync(int requested = 214643
 override AmpScm.Buckets.Git.GitFileObjectBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Git.GitFileObjectBucket.ReadTypeAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitObjectType>
 override AmpScm.Buckets.Git.GitFileObjectBucket.Reset() -> void
+override AmpScm.Buckets.Git.GitFileObjectBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Git.GitPacketBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitPackHeaderBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitPackObjectBucket.CanReset.get -> bool
@@ -166,6 +169,7 @@ override AmpScm.Buckets.Git.GitPackObjectBucket.ReadRemainingBytesAsync() -> Sys
 override AmpScm.Buckets.Git.GitPackObjectBucket.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Git.GitPackObjectBucket.ReadTypeAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitObjectType>
 override AmpScm.Buckets.Git.GitPackObjectBucket.Reset() -> void
+override AmpScm.Buckets.Git.GitPackObjectBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Git.GitReferenceLogBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitReferenceLogRecord.ToString() -> string!
 override AmpScm.Buckets.Git.GitSignatureRecord.ToString() -> string!
@@ -186,9 +190,11 @@ static AmpScm.Buckets.Git.GitConfigurationRecord.operator <(AmpScm.Buckets.Git.G
 static AmpScm.Buckets.Git.GitConfigurationRecord.operator <=(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
 static AmpScm.Buckets.Git.GitConfigurationRecord.operator >(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
 static AmpScm.Buckets.Git.GitConfigurationRecord.operator >=(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
+static AmpScm.Buckets.Git.GitIndexer.IndexPack(string! packFile, bool writeReverseIndex = false, bool writeBitmap = false, AmpScm.Git.GitIdType idType = AmpScm.Git.GitIdType.Sha1) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitDeltaOffsetAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitDeltaSize(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitIdAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
+static AmpScm.Buckets.Git.GitReadExtensions.SplitToUtf8String(this AmpScm.Buckets.BucketBytes bytes, byte separator, int count) -> string![]!
 static AmpScm.Buckets.Git.GitSignatureRecord.TryReadFromBucket(AmpScm.Buckets.BucketBytes bucketBytes, out AmpScm.Buckets.Git.GitSignatureRecord? record) -> bool
 static AmpScm.Git.GitBucketExtensions.CreateHeader(this AmpScm.Git.GitObjectType type, long length) -> AmpScm.Buckets.Bucket!
 static AmpScm.Git.GitBucketExtensions.GitHash(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type, System.Action<AmpScm.Git.GitId!>! created) -> AmpScm.Buckets.Bucket!

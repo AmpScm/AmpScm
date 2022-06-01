@@ -71,20 +71,11 @@ AmpScm.Buckets.Client.WebHeaderDictionary.KeysCollection.IsReadOnly.get -> bool
 AmpScm.Buckets.Client.WebHeaderDictionary.KeysCollection.Remove(string! item) -> bool
 AmpScm.Buckets.Client.WebHeaderDictionary.KeysCollection.this[int index].get -> string!
 AmpScm.Buckets.Client.WebHeaderDictionary.WebHeaderDictionary() -> void
-AmpScm.Buckets.FileBucket.FileBucket(string! path, int bufferSize = 8192, int chunkSize = 4096) -> void
-AmpScm.Buckets.FileBucket.Length.get -> long
-AmpScm.Buckets.FileBucket.ReadAtAsync(long fileOffset, byte[]! buffer) -> System.Threading.Tasks.ValueTask<int>
-AmpScm.Buckets.FileBucket.ReadAtAsync(long fileOffset, byte[]! buffer, int requested) -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.HttpBucketException
 AmpScm.Buckets.HttpBucketException.HttpBucketException() -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(string! message) -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(string? message, System.Exception? innerException) -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
-AmpScm.Buckets.Interfaces.IBucketNoClose.HasMoreClosers() -> bool
-AmpScm.Buckets.Interfaces.IBucketSeekOnReset
-AmpScm.Buckets.Interfaces.IBucketSeekOnReset.SeekOnReset() -> AmpScm.Buckets.Bucket!
-AmpScm.Buckets.Interfaces.IBucketWriterStats
-AmpScm.Buckets.Interfaces.IBucketWriterStats.BytesWritten.get -> long
 AmpScm.Buckets.Specialized.BitwiseAndBucket
 AmpScm.Buckets.Specialized.BitwiseAndBucket.BitwiseAndBucket(AmpScm.Buckets.Bucket! left, AmpScm.Buckets.Bucket! right) -> void
 AmpScm.Buckets.Specialized.BitwiseNotBucket

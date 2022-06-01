@@ -15,4 +15,9 @@ namespace AmpScm.Buckets.Interfaces
     {
         Bucket SeekOnReset();
     }
+
+    public interface IBucketDuplicateSeekedAsync : IBucketSeek
+    {
+        ValueTask<Bucket> DuplicateSeekedAsync(long newPosition);
+    }
 }

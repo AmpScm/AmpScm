@@ -37,8 +37,7 @@ namespace AmpScm.Buckets.Git
                         return null;
                 }
 
-                var d = srcFile.Duplicate();
-                await d.SeekAsync(offset).ConfigureAwait(false);
+                var d = await SpecializedBucketExtensions.DuplicateSeekedAsync(srcFile, offset).ConfigureAwait(false);
 
                 return new GitPackObjectBucket(d, idType, GetDeltaSource);
             }
@@ -98,9 +97,7 @@ namespace AmpScm.Buckets.Git
 
                 Func<long, CancellationToken, ValueTask> cb = async (offset, c) =>
                 {
-                    var b = srcFile.Duplicate(true);
-
-                    await b.SeekAsync(offset).ConfigureAwait(false);
+                    var b = await SpecializedBucketExtensions.DuplicateSeekedAsync(srcFile, offset).ConfigureAwait(false);
 
                     await IndexOne(offset, b).ConfigureAwait(false);
                 };
@@ -195,8 +192,7 @@ namespace AmpScm.Buckets.Git
                 Func<long, ValueTask<GitObjectBucket>> ofsCallback = default!;
                 ofsCallback = async itemOffset =>
                 {
-                    var d = srcFile.Duplicate();
-                    await d.SeekAsync(itemOffset).ConfigureAwait(false);
+                    var d = await SpecializedBucketExtensions.DuplicateSeekedAsync(srcFile, itemOffset).ConfigureAwait(false);
 
                     return new BufferObjectBucket(new GitPackObjectBucket(d, idType, idCallback, ofsCallback));
                 };

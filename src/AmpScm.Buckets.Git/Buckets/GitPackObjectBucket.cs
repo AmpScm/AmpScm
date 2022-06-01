@@ -193,8 +193,7 @@ namespace AmpScm.Buckets.Git
                         base_reader = await _fetchBucketByOffset(delta_position).ConfigureAwait(false);
                     else
                     {
-                        Bucket deltaSource = Inner.Duplicate(true);
-                        await deltaSource.SeekAsync(delta_position).ConfigureAwait(false);
+                        Bucket deltaSource = await Inner.DuplicateSeekedAsync(delta_position).ConfigureAwait(false);
 
                         base_reader = new GitPackObjectBucket(deltaSource, _idType, _fetchBucketById);
                     }

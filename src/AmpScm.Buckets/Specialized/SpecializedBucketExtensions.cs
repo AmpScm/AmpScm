@@ -330,6 +330,29 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
+        public static async ValueTask<Bucket> DuplicateSeekedAsync(this Bucket bucket, long newPosition)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            if (bucket is IBucketDuplicateSeekedAsync ds)
+                return await ds.DuplicateSeekedAsync(newPosition).ConfigureAwait(false);
+            else
+            {
+                var b = bucket.Duplicate();
+                try
+                {
+                    await b.SeekAsync(newPosition).ConfigureAwait(false);
+                    return b;
+                }
+                catch
+                {
+                    b.Dispose();
+                    throw;
+                }
+            }
+        }
+
         public static Bucket SeekOnReset(this Bucket bucket)
         {
             if (bucket is IBucketSeekOnReset sr)
