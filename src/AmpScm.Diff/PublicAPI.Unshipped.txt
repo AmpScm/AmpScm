@@ -1,0 +1,13 @@
+﻿AmpScm.Diff.Differences
+AmpScm.Diff.Differences.HasChanges.get -> bool
+AmpScm.Diff.Differences.HasConflicts.get -> bool
+AmpScm.Diff.Differences.Similarity.get -> float
+AmpScm.Diff.DiffTokenRange
+AmpScm.Diff.DiffTokenRange.DiffTokenRange() -> void
+AmpScm.Diff.DiffTokenRange.DiffTokenRange(int start, int length) -> void
+AmpScm.Diff.DiffTokenRange.End.get -> int
+AmpScm.Diff.DiffTokenRange.Length.get -> int
+AmpScm.Diff.DiffTokenRange.Start.get -> int
+AmpScm.Diff.DiffTokenRange.ToRange() -> System.Range
+override AmpScm.Diff.DiffTokenRange.ToString() -> string!
+static AmpScm.Diff.DiffTokenRange.implicit operator System.Range(AmpScm.Diff.DiffTokenRange cr) -> System.Range
