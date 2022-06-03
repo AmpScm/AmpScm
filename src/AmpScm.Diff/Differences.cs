@@ -32,7 +32,7 @@ namespace AmpScm.Diff
             get
             {
                 int same = 0;
-                int different = 0;
+                int maxDifferent = 0;
 
                 //TODO: Tune to be more similar to the value calculated by git
                 foreach (var h in Ranges)
@@ -40,13 +40,13 @@ namespace AmpScm.Diff
                     if (h.Type == HunkType.Same)
                         same += h.Original.Length;
                     else
-                        different += Math.Max(h.Original.Length, h.Modified.Length);
+                        maxDifferent += Math.Max(h.Original.Length, h.Modified.Length);
                 }
 
-                if (different == 0)
+                if (maxDifferent == 0)
                     return 1.0f;
 
-                return (float)same / (float)(same + different);
+                return (float)same / (float)(same + maxDifferent);
             }
         }
 

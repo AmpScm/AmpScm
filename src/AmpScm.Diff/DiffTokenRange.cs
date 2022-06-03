@@ -10,10 +10,10 @@ namespace AmpScm.Diff
         public int Length { get; }
         public int End => Start + Length-1;
 
-        public DiffTokenRange(int start, int length)
+        public DiffTokenRange(int start, int end)
         {
             Start = start;
-            Length = length;
+            Length = end-start;
         }
 
         public static implicit operator Range(DiffTokenRange cr)

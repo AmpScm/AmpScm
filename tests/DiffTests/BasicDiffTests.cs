@@ -14,7 +14,7 @@ namespace DiffTests
         [TestMethod]
         public void DiffSame()
         {
-            var diff = Differences.Calculate(new StringTokenizer(), new[] { "A", "B", "C" }, new[] { "A", "B", "C" });
+            var diff = Differences.Calculate(StringComparer.Ordinal, new[] { "A", "B", "C" }, new[] { "A", "B", "C" });
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsFalse(diff.HasChanges);
@@ -22,13 +22,13 @@ namespace DiffTests
             Assert.AreEqual(3, diff.Sum(x => x.Original.Length));
             Assert.AreEqual(3, diff.Sum(x => x.Modified.Length));
 
-            diff = Differences.Calculate(new StringTokenizer(), Array.Empty<string>(), Enumerable.Empty<string>());
+            diff = Differences.Calculate(StringComparer.Ordinal, Array.Empty<string>(), Enumerable.Empty<string>());
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsFalse(diff.HasChanges);
             Assert.IsFalse(diff.Any());
 
-            diff = Differences.Calculate(new StringTokenizer(), new[] { "" }, new[] { "" });
+            diff = Differences.Calculate(StringComparer.Ordinal, new[] { "" }, new[] { "" });
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsFalse(diff.HasChanges);
@@ -39,7 +39,7 @@ namespace DiffTests
         [TestMethod]
         public void DiffSame3()
         {
-            var diff = Differences.Calculate(new StringTokenizer(), new[] { "A", "B", "C" }, new[] { "A", "B", "C" }, new[] {"A", "B", "C"});
+            var diff = Differences.Calculate(StringComparer.Ordinal, new[] { "A", "B", "C" }, new[] { "A", "B", "C" }, new[] {"A", "B", "C"});
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsFalse(diff.HasChanges);
@@ -48,13 +48,13 @@ namespace DiffTests
             Assert.AreEqual(3, diff.Sum(x => x.Modified.Length));
             Assert.AreEqual(3, diff.Sum(x => x.Latest!.Value.Length));
 
-            diff = Differences.Calculate(new StringTokenizer(), Array.Empty<string>(), Enumerable.Empty<string>(), Array.Empty<string>());
+            diff = Differences.Calculate(StringComparer.Ordinal, Array.Empty<string>(), Enumerable.Empty<string>(), Array.Empty<string>());
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsFalse(diff.HasChanges);
             Assert.IsFalse(diff.Any());
 
-            diff = Differences.Calculate(new StringTokenizer(), new[] { "" }, new[] { "" }, new[] {""});
+            diff = Differences.Calculate(StringComparer.Ordinal, new[] { "" }, new[] { "" }, new[] {""});
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsFalse(diff.HasChanges);
@@ -66,8 +66,7 @@ namespace DiffTests
         [TestMethod]
         public void DiffDifferent()
         {
-            var t = new StringTokenizer();
-            var diff = Differences.Calculate(t, new[] { "A", "B", "C" }, new[] { "A", "B", "B'", "C" });
+            var diff = Differences.Calculate(StringComparer.Ordinal, new[] { "A", "B", "C" }, new[] { "A", "B", "B'", "C" });
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsTrue(diff.HasChanges);
@@ -75,19 +74,31 @@ namespace DiffTests
             Assert.AreEqual(4, diff.Sum(x => x.Modified.Length));
             Assert.IsTrue(diff.Similarity >= 0.75, $"Similarity > 75% ({diff.Similarity})");
 
-            diff = Differences.Calculate(t, new string[] { }, new[] { "A" });
+            diff = Differences.Calculate(StringComparer.Ordinal, new string[] { }, new[] { "A" });
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsTrue(diff.HasChanges);
             Assert.AreEqual(0, diff.Sum(x => x.Original.Length));
             Assert.AreEqual(1, diff.Sum(x => x.Modified.Length));
+
+
+
+
+            diff = Differences.Calculate(StringComparer.Ordinal, 
+                new[] { "A", "B", "C", "D", "E", "F", "G", "H" },
+                new[] { "A", "B", "Z", "A", "C", "D", "E", "V", "V", "Q", "F", "G", "H" });
+            Assert.IsNotNull(diff);
+            Assert.IsFalse(diff.HasConflicts);
+            Assert.IsTrue(diff.HasChanges);
+            Assert.AreEqual(8, diff.Sum(x => x.Original.Length));
+            Assert.AreEqual(13, diff.Sum(x => x.Modified.Length));
+            Assert.IsTrue(diff.Similarity >= 0.60, $"Similarity > 60% ({diff.Similarity})");
         }
 
         [TestMethod]
         public void DiffDifferent3()
         {
-            var t = new StringTokenizer();
-            var diff = Differences.Calculate(t, new[] { "A", "B", "C" }, new[] { "A", "B", "B'", "C" }, new[] {"A", "B", "D", "C"});
+            var diff = Differences.Calculate(StringComparer.Ordinal, new[] { "A", "B", "C" }, new[] { "A", "B", "B'", "C" }, new[] {"A", "B", "D", "C"});
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsTrue(diff.HasChanges);
@@ -165,7 +176,7 @@ namespace DiffTests
 
         private DiffRange[] DiffText(string a, string b)
         {
-            var d = Differences.Calculate(StringComparer.OrdinalIgnoreCase, a.Split('\n'), b.Split('\n'));
+            var d = Differences.Calculate(StringComparer.Ordinal, a.Split('\n'), b.Split('\n'));
 
             return d.ToArray();
         }

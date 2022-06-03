@@ -10,4 +10,5 @@ AmpScm.Diff.DiffTokenRange.Length.get -> int
 AmpScm.Diff.DiffTokenRange.Start.get -> int
 AmpScm.Diff.DiffTokenRange.ToRange() -> System.Range
 override AmpScm.Diff.DiffTokenRange.ToString() -> string!
+static AmpScm.Diff.Differences.Calculate<TTokenizer, TToken>(TTokenizer tokenizer, System.Collections.Generic.IEnumerable<TToken>! original, System.Collections.Generic.IEnumerable<TToken>! modified) -> AmpScm.Diff.Differences!
 static AmpScm.Diff.DiffTokenRange.implicit operator System.Range(AmpScm.Diff.DiffTokenRange cr) -> System.Range
