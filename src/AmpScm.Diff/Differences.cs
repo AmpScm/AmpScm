@@ -10,22 +10,22 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Diff
 {
-    public enum HunkType
+    public enum DifferenceType
     {
-        Same,
-        Different,
+        None,
+        Modified,
         Conflict,        
     }
 
-    public sealed partial class Differences : IReadOnlyCollection<DiffRange>
+    public sealed partial class Differences : IReadOnlyCollection<DiffChunk>
     {
-        Differences(IEnumerable<DiffRange> range)
+        Differences(IEnumerable<DiffChunk> range)
         {
             Ranges = range;
         }
 
-        public bool HasConflicts => Ranges.Any(x => x.Type == HunkType.Conflict);
-        public bool HasChanges => Ranges.Any(x=>x.Type != HunkType.Same);
+        public bool HasConflicts => Ranges.Any(x => x.Type == DifferenceType.Conflict);
+        public bool HasChanges => Ranges.Any(x=>x.Type != DifferenceType.None);
 
         public float Similarity
         {
@@ -37,7 +37,7 @@ namespace AmpScm.Diff
                 //TODO: Tune to be more similar to the value calculated by git
                 foreach (var h in Ranges)
                 {
-                    if (h.Type == HunkType.Same)
+                    if (h.Type == DifferenceType.None)
                         same += h.Original.Length;
                     else
                         maxDifferent += Math.Max(h.Original.Length, h.Modified.Length);
@@ -50,11 +50,11 @@ namespace AmpScm.Diff
             }
         }
 
-        IEnumerable<DiffRange> Ranges { get; }
+        IEnumerable<DiffChunk> Ranges { get; }
 
-        int IReadOnlyCollection<DiffRange>.Count => Ranges.Count();
+        int IReadOnlyCollection<DiffChunk>.Count => Ranges.Count();
 
-        IEnumerator<DiffRange> IEnumerable<DiffRange>.GetEnumerator()
+        IEnumerator<DiffChunk> IEnumerable<DiffChunk>.GetEnumerator()
         {
             return Ranges.GetEnumerator();
         }

@@ -18,10 +18,10 @@ namespace AmpScm.Diff
             var mod = modified.ToArray();
 
             if (orig.Length == 0 && mod.Length == 0)
-                return new Differences(Array.Empty<DiffRange>());
+                return new Differences(Array.Empty<DiffChunk>());
 
-            var origMod = new bool[orig.Length];
-            var modMod = new bool[mod.Length];
+            var origMod = new BitArray(orig.Length);
+            var modOrig = new BitArray(mod.Length);
 
             int MAX = orig.Length + mod.Length;
             // vector for the (0,0) to (x,y) search
@@ -29,74 +29,89 @@ namespace AmpScm.Diff
             // vector for the (u,v) to (N,M) search
             int[] upVector = new int[2 * MAX];
 
-            LCS(tokenizer, orig, origMod,0, orig.Length, mod, modMod, 0, mod.Length, downVector, upVector);
+            LCS(tokenizer, orig, origMod, 0, orig.Length, mod, modOrig, 0, mod.Length, downVector, upVector);
 
             Optimize(tokenizer, orig, origMod);
-            Optimize(tokenizer, mod, modMod);
+            Optimize(tokenizer, mod, modOrig);
 
-            return new Differences(CreateDiffs(orig, origMod, mod, modMod));
+            return new Differences(CreateDiffs(CreateChanges(origMod, modOrig), orig.Length, mod.Length, 0));
         }
 
-        private static IEnumerable<DiffRange> CreateDiffs<TToken>(TToken[] orig, bool[] origMod, TToken[] mod, bool[] modMod) where TToken : notnull
+        private static IEnumerable<DiffChunk> CreateChanges(BitArray origMod, BitArray modMod, BitArray? lastMod = null)
         {
-            int StartA, StartB;
-            int LineA, LineB;
+            int lineA = 0;
+            int lineB = 0;
+            int LineC = 0;
 
-            DiffRange last = new DiffRange();
-
-            LineA = 0;
-            LineB = 0;
-            while (LineA < orig.Length || LineB < mod.Length)
+            while (lineA < origMod.Length || lineB < modMod.Length || LineC < lastMod?.Length)
             {
-                if ((LineA < orig.Length) && !origMod[LineA]
-                  && (LineB < mod.Length) && !modMod[LineB])
+                if ((lineA < origMod.Length) && !origMod[lineA]
+                  && (lineB < modMod.Length) && !modMod[lineB]
+                  && (lastMod is null || (LineC < modMod.Length) && !lastMod[LineC]))
                 {
                     // equal lines
-                    LineA++;
-                    LineB++;
-
+                    lineA++;
+                    lineB++;
+                    LineC++;
                 }
                 else
                 {
                     // maybe deleted and/or inserted lines
-                    StartA = LineA;
-                    StartB = LineB;
+                    int startA = lineA;
+                    int startB = lineB;
+                    int startC = LineC;
 
-                    while (LineA < orig.Length && (LineB >= mod.Length || origMod[LineA]))
-                        LineA++;
+                    while (lineA < origMod.Length && origMod[lineA])
+                        lineA++;
 
-                    while (LineB < mod.Length && (LineA >= orig.Length || modMod[LineB]))
-                        LineB++;
+                    while (lineB < modMod.Length && modMod[lineB])
+                        lineB++;
 
-                    if ((StartA < LineA) || (StartB < LineB))
+                    while (lastMod != null && LineC < lastMod.Length && lastMod[LineC])
+                        LineC++;
+
+                    if ((startA < lineA) || (startB < lineB) || (startC < LineC))
                     {
-                        if (last.Original.End < StartA || last.Modified.End <StartB)
-                        {
-                            yield return new DiffRange
-                            {
-                                Type = HunkType.Same,
-                                Original = new(last.Original.End + 1, StartA),
-                                Modified = new(last.Modified.End + 1, StartB),
-                            };
-                        }
                         // store a new difference-item
-                        yield return last = new DiffRange
+                        yield return new DiffChunk
                         {
-                            Type = HunkType.Different,
-                            Original = new(StartA, LineA),
-                            Modified = new(StartB, LineB)
+                            Type = DifferenceType.Modified,
+                            Original = new(startA, lineA),
+                            Modified = new(startB, lineB)
                         };
                     }
                 }
             }
+        }
 
-            if (last.Original.End < orig.Length || last.Modified.End < mod.Length)
+        private static IEnumerable<DiffChunk> CreateDiffs(IEnumerable<DiffChunk> src, int origLen, int modLen, int lastLen)
+        {
+            DiffChunk last = new();
+
+            foreach (var v in src)
             {
-                yield return new DiffRange
+                if (last.Original.End < v.Original.Start || last.Modified.End < v.Modified.Start || (last.Latest?.End < v.Latest?.Start))
                 {
-                    Type = HunkType.Same,
-                    Original = new(last.Original.End + 1, orig.Length),
-                    Modified = new(last.Modified.End + 1, mod.Length),
+                    yield return new DiffChunk
+                    {
+                        Type = DifferenceType.None,
+                        Original = new(last.Original.End, v.Original.Start),
+                        Modified = new(last.Modified.End, v.Modified.Start),
+                        Latest = v.Latest.HasValue ? new(last.Latest?.End ?? 0, v.Latest.Value.Start) : null
+                    };
+                }
+
+                yield return last = v;
+            }
+
+            if (last.Original.End <= origLen || last.Modified.End <= modLen || last.Latest?.End <= lastLen)
+            {
+                yield return new DiffChunk
+                {
+                    Type = DifferenceType.None,
+                    Original = new(last.Original.End, origLen),
+                    Modified = new(last.Modified.End, modLen),
+                    Latest = last.Latest.HasValue ? new DiffRange(last.Latest.Value.End, lastLen) : null
                 };
             }
         }
@@ -111,10 +126,84 @@ namespace AmpScm.Diff
             int start;
 
             if (orig.Length == 0 && mod.Length == 0 && last.Length == 0)
-                return new Differences(Enumerable.Empty<DiffRange>());
+                return new Differences(Enumerable.Empty<DiffChunk>());
 
             start = Math.Min(orig.Length, mod.Length);
 
+#if NOT_YET
+            var origMod = new BitArray(orig.Length);
+            var modOrig = new BitArray(mod.Length);
+            var origLast = new BitArray(orig.Length);
+            var lastOrig = new BitArray(last.Length);
+
+
+            int MAX = orig.Length + mod.Length;
+            LCS(tokenizer, orig, origMod, 0, orig.Length, mod, modOrig, 0, mod.Length, new int[2 * MAX], new int[2 * MAX]);
+
+            MAX = orig.Length + mod.Length;
+            LCS(tokenizer, orig, origLast, 0, orig.Length, last, lastOrig, 0, last.Length, new int[2 * MAX], new int[2 * MAX]);
+
+            Optimize(tokenizer, orig, origMod);
+            Optimize(tokenizer, mod, modOrig);
+            Optimize(tokenizer, orig, origLast);
+            Optimize(tokenizer, last, lastOrig);
+
+            List<DiffChunk> chunks = new();
+            {
+                using var baseLeft = CreateChanges(origMod, modOrig).GetEnumerator();
+                using var baseRight = CreateChanges(origLast, lastOrig).GetEnumerator();
+
+                bool haveLeft = baseLeft.MoveNext();
+                var left = haveLeft ? baseLeft.Current : null;
+
+                void NextLeft()
+                {
+                    haveLeft = baseLeft!.MoveNext();
+                    left = haveLeft ? baseLeft.Current : null;
+                }
+
+                bool haveRight = baseRight.MoveNext();
+                var right = haveRight ? baseRight.Current : null;
+                void NextRight()
+                {
+                    haveRight = baseRight!.MoveNext();
+                    right = haveRight ? baseRight.Current : null;
+                }
+
+                while (haveLeft || haveRight)
+                {
+                    if (haveLeft && (!haveRight || left!.Original.End < right!.Original.Start))
+                    {
+                        if (!haveRight || right!.Original.Start > left!.Original.End)
+                        {
+                            chunks.Add(left!);
+                            NextLeft();
+                            continue;
+                        }
+
+                        // We have a conflict. Combine chunks to one huge conflict
+                    }
+                    else
+                    {
+                        if (!haveLeft || right!.Original.End < left!.Original.Start)
+                        {
+                            chunks.Add(right!);
+                            NextRight();
+                            continue;
+                        }
+
+                        // We have a conflict. Combine chunks to one huge conflict
+                    }
+
+                    Debug.Assert(haveLeft && haveRight);
+
+                    throw new InvalidOperationException();
+                }
+            }
+
+
+
+#endif
             // Drop common head
             for (int i = 0; i < orig.Length && i < mod.Length && i < last.Length; i++)
             {
@@ -131,7 +220,7 @@ namespace AmpScm.Diff
             int commonTail = 0;
 
             if (origLength == 0 && modLength == 0 && lastLength == 0)
-                return new Differences(new DiffRange[] { new() { Type = HunkType.Same, Original = new(0, start), Modified = new(0, start), Latest = new(0, start) } });
+                return new Differences(new DiffChunk[] { new() { Type = DifferenceType.None, Original = new(0, start), Modified = new(0, start), Latest = new(0, start) } });
 
             // Drop common tail
             while (origLength > 0 && modLength > 0 && lastLength > 0)
@@ -149,20 +238,20 @@ namespace AmpScm.Diff
             }
 
             // Ok now we have changes between orig[start..start+origLenth] and mod[start...start+modLength]
-            List<DiffRange> diffs = new List<DiffRange>();
+            List<DiffChunk> diffs = new List<DiffChunk>();
 
             if (start > 0)
-                diffs.Add(new() { Type = HunkType.Same, Original = new(0, start), Modified = new(0, start), Latest = new(0, start) });
+                diffs.Add(new() { Type = DifferenceType.None, Original = new(0, start), Modified = new(0, start), Latest = new(0, start) });
 
             // TODO: Perform reall diff!
-            diffs.Add(new DiffRange { Type = HunkType.Different, Original = new(start, origLength+start), Modified = new(start, modLength+start), Latest = new(start, lastLength + start) });
+            diffs.Add(new DiffChunk { Type = DifferenceType.Modified, Original = new(start, origLength + start), Modified = new(start, modLength + start), Latest = new(start, lastLength + start) });
 
             if (commonTail > 0)
-                diffs.Add(new() { Type = HunkType.Same, Original = new(orig.Length - commonTail, orig.Length), Modified = new(mod.Length - commonTail, mod.Length), Latest = new(last.Length - commonTail, last.Length) });
+                diffs.Add(new() { Type = DifferenceType.None, Original = new(orig.Length - commonTail, orig.Length), Modified = new(mod.Length - commonTail, mod.Length), Latest = new(last.Length - commonTail, last.Length) });
 
             return new Differences(diffs);
         }
-  
+
         /// <summary>
         /// If a sequence of modified lines starts with a line that contains the same content
         /// as the line that appends the changes, the difference sequence is modified so that the
@@ -172,7 +261,7 @@ namespace AmpScm.Diff
         /// <param name="cmp"></param>
         /// <param name="data">A Diff data buffer containing the identified changes.</param>
         /// <param name="mod"></param>
-        private static void Optimize<TToken>(IEqualityComparer<TToken> cmp, TToken[] data, bool[] mod)
+        private static void Optimize<TToken>(IEqualityComparer<TToken> cmp, TToken[] data, BitArray mod)
             where TToken : notnull
         {
             int StartPos, EndPos;
@@ -252,7 +341,7 @@ namespace AmpScm.Diff
                     y = x - k;
 
                     // find the end of the furthest reaching forward D-path in diagonal k.
-                    while ((x < upperA) && (y < upperB) && cmp.Equals(dataA[x],dataB[y]))
+                    while ((x < upperA) && (y < upperB) && cmp.Equals(dataA[x], dataB[y]))
                     {
                         x++; y++;
                     }
@@ -324,8 +413,8 @@ namespace AmpScm.Diff
         /// <param name="upperB">upper bound of the actual range in DataB (exclusive)</param>
         /// <param name="downVector">a vector for the (0,0) to (x,y) search. Passed as a parameter for speed reasons.</param>
         /// <param name="upVector">a vector for the (u,v) to (N,M) search. Passed as a parameter for speed reasons.</param>
-        static void LCS<TToken>(IEqualityComparer<TToken> cmp, TToken[] dataA, bool[] modA, int lowerA, int upperA, TToken[] dataB, bool[] modB, int lowerB, int upperB, int[] downVector, int[] upVector)
-            where TToken :notnull
+        static void LCS<TToken>(IEqualityComparer<TToken> cmp, TToken[] dataA, BitArray modA, int lowerA, int upperA, TToken[] dataB, BitArray modB, int lowerB, int upperB, int[] downVector, int[] upVector)
+            where TToken : notnull
         {
             // Fast walkthrough equal lines at the start
             while (lowerA < upperA && lowerB < upperB && cmp.Equals(dataA[lowerA], dataB[lowerB]))
@@ -362,6 +451,6 @@ namespace AmpScm.Diff
                 LCS(cmp, dataA, modA, lowerA, smsrd.x, dataB, modB, lowerB, smsrd.y, downVector, upVector);
                 LCS(cmp, dataA, modA, smsrd.x, upperA, dataB, modB, smsrd.y, upperB, downVector, upVector);
             }
-        } 
+        }
     }
 }
