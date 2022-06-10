@@ -56,6 +56,10 @@ AmpScm.Buckets.Git.GitLineIndentBucket.GitLineIndentBucket(AmpScm.Buckets.Bucket
 AmpScm.Buckets.Git.GitLineUnindentBucket
 AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
 AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitCommitSubBucket, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket = null) -> void
+AmpScm.Buckets.Git.Objects.GitCommitSubBucket
+AmpScm.Buckets.Git.Objects.GitCommitSubBucket.GpgSignature = 1 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
+AmpScm.Buckets.Git.Objects.GitCommitSubBucket.GpgSignatureSha256 = 2 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
+AmpScm.Buckets.Git.Objects.GitCommitSubBucket.MergeTag = 0 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
 override AmpScm.Buckets.Git.GitLineIndentBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Git.GitLineIndentBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitLineUnindentBucket.Peek() -> AmpScm.Buckets.BucketBytes

@@ -19,13 +19,17 @@ namespace GitRepositoryTests
             return await CreateCloneAsync(self, GitTestEnvironment.GetRepository(testDir), shareOdb);
         }
 
-        public static async ValueTask<string> CreateCloneAsync(this TestContext self, string? repos = null, bool shareOdb=true)
+        public static async ValueTask<string> CreateCloneAsync(this TestContext self, string? repos = null, bool shareOdb = true)
         {
             using var repo = GitRepository.Open(repos ?? GitTestEnvironment.GetRepository(GitTestDir.Default));
 
             var dir = self.PerTestDirectory("repo");
 
-            await repo.GetPorcelain().Clone(repo.FullPath, dir, new() { Shared = shareOdb });
+            await repo.GetPorcelain().Clone(repo.FullPath, dir, new()
+            {
+                Shared = shareOdb,
+                InitialConfiguration = new[] { ("user.email", "me@myself.and.i"), ("user.name", "Me") }
+            });
 
             return dir;
         }
