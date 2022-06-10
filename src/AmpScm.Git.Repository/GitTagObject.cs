@@ -31,13 +31,24 @@ namespace AmpScm.Git
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _name;
 
-        internal GitTagObject(GitRepository repository, GitObjectBucket rdr, GitId id)
+        internal GitTagObject(GitRepository repository, Bucket rdr, GitId id)
             : base(repository, id)
         {
             _rb = new GitTagObjectBucket(rdr);
         }
 
         public override GitObjectType Type => GitObjectType.Tag;
+
+        public GitId GitObjectId
+        {
+            get
+            {
+                if (_obj is null)
+                    Read();
+
+                return (_obj as GitObject)?.Id ?? (GitId)_obj!;
+            }
+        }
 
         public GitObject GitObject
         {

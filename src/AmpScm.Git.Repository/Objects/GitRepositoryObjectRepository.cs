@@ -207,8 +207,6 @@ namespace AmpScm.Git.Objects
         public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
             where TGitObject : class
         {
-            HashSet<GitId> returned = new HashSet<GitId>();
-
             if (typeof(TGitObject) == typeof(GitTagObject))
             {
                 // Tag is such an uncommon object that finding it globally is very
@@ -219,21 +217,20 @@ namespace AmpScm.Git.Objects
 
                 await foreach (var v in Repository.References.Where(x => x.IsTag))
                 {
-                    if (v.GitObject is GitTagObject tag && v.Id is not null && !returned.Contains(v.Id))
+                    if (v.GitObject is GitTagObject tag && !alreadyReturned.Contains(tag.Id))
                     {
                         yield return (TGitObject)(object)tag;
-
-                        returned.Add(tag.Id);
+                        alreadyReturned.Add(tag.Id);
                     }
                 }
             }
 
             foreach (var p in Sources)
             {
-                await foreach (var v in p.GetAll<TGitObject>(returned))
+                await foreach (var v in p.GetAll<TGitObject>(alreadyReturned))
                 {
                     yield return v;
-                    returned.Add(v.Id);
+                    alreadyReturned.Add(v.Id);
                 }
             }
         }

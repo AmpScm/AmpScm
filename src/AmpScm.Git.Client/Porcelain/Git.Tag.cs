@@ -8,21 +8,33 @@ namespace AmpScm.Git.Client.Porcelain
 {
     public class GitTagArgs : GitPorcelainArgs
     {
+        public string? Message { get; set; }
+
         public override void Verify()
         {
-            throw new NotImplementedException();
         }
     }
 
     partial class GitPorcelain
     {
         [GitCommand("tag")]
-        public static async ValueTask Tag(this GitPorcelainClient c, GitTagArgs? options = null)
+        public static async ValueTask Tag(this GitPorcelainClient c, string name, GitTagArgs? options = null)
         {
             options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            options ??= new();
 
-            await c.ThrowNotImplemented();
+            List<string> args = new();
+
+            if (!string.IsNullOrEmpty(options.Message))
+            {
+                args.Add("-m");
+                args.Add(options.Message);
+            }
+
+            args.Add("--");
+            args.Add(name);
+
+            await c.Repository.RunGitCommandAsync("tag", args);
         }
     }
 }

@@ -8,21 +8,59 @@ namespace AmpScm.Git.Client.Porcelain
 {
     public class GitCommitArgs : GitPorcelainArgs
     {
+        public bool All { get; set; }
+        public bool Amend { get; set; }
+        public string? Message { get; set; }
+        public bool Only { get; set; }
+
         public override void Verify()
         {
-            throw new NotImplementedException();
         }
     }
 
     partial class GitPorcelain
     {
         [GitCommand("commit")]
-        public static async ValueTask Commit(this GitPorcelainClient c, GitCommitArgs? options = null)
+        public static async ValueTask Commit(this GitPorcelainClient c, GitCommitArgs? options)
+        {
+            await Commit(c, Array.Empty<string>(), options);
+        }
+
+        [GitCommand("commit")]
+        public static async ValueTask Commit(this GitPorcelainClient c, string[] paths, GitCommitArgs? options)
         {
             options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            options ??= new();
 
-            await c.ThrowNotImplemented();
+            List<string> args = new();
+
+            if (options.All)
+                args.Add("--all");
+            if (options.Amend)
+                args.Add("--amend");
+
+            // TODO: Allow configuring these
+            args.Add("--no-edit");
+            args.Add("--allow-empty-message");
+
+            if (!string.IsNullOrEmpty(options.Message))
+            {
+                args.Add("-m");
+                args.Add(options.Message);
+            }
+
+            if (paths?.Any() ?? false || (options.Only))
+            {
+                args.Add("--only");
+
+                if (paths?.Any() ?? false)
+                {
+                    args.Add("--");
+                    args.AddRange(paths);
+                }
+            }
+
+            await c.Repository.RunGitCommandAsync("commit", args);
         }
     }
 }

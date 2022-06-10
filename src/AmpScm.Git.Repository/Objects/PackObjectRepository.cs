@@ -474,7 +474,7 @@ namespace AmpScm.Git.Objects
         }
 
         async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(HashSet<GitId> alreadyReturned)
-            where TGitObject : class
+            where TGitObject : GitObject
         {
             await OpenPackIfNecessary().ConfigureAwait(false);
 
@@ -517,11 +517,14 @@ namespace AmpScm.Git.Objects
 
             await foreach (int index in ewahBitmap.SetIndexes)
             {
-                yield return await GetOneViaPackIndex<TGitObject>(index, gitObjectType).ConfigureAwait(false);
+                var v = await GetOneViaPackIndex<TGitObject>(index, gitObjectType, alreadyReturned.Contains).ConfigureAwait(false);
+
+                if (v is not null)
+                    yield return v;
             }
         }
 
-        internal async ValueTask<TGitObject> GetOneViaPackIndex<TGitObject>(int v, GitObjectType gitObjectType)
+        async ValueTask<TGitObject?> GetOneViaPackIndex<TGitObject>(int v, GitObjectType gitObjectType, Predicate<GitId> skip)
             where TGitObject : class
         {
             await OpenPackIfNecessary().ConfigureAwait(false);
@@ -540,6 +543,9 @@ namespace AmpScm.Git.Objects
             byte[] offsets = await GetOffsetArrayAsync(indexOffs, 1, oids).ConfigureAwait(false);
 
             GitId objectId = GitId.FromByteArrayOffset(_idType, oids, 0);
+
+            if (skip(objectId))
+                return null;
 
             var rdr = _packBucket!.Duplicate(true);
             await rdr.SeekAsync(GetOffset(offsets, 0)).ConfigureAwait(false);

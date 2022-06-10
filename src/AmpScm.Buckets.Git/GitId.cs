@@ -54,6 +54,18 @@ namespace AmpScm.Git
             _bytes = hash;
         }
 
+        static readonly GitId[] _zeros = new GitId[(int)GitIdType.Sha256];
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static GitId Zero(GitIdType type)
+        {
+            int n = (int)type;
+            return _zeros[n] ??= new GitId(type, new byte[HashLength(type)]);
+        }
+
         /// <summary>
         /// Creates a new <see cref="GitId"/> of type <see cref="GitIdType.Sha1"/> when a 40 character string is provided, or
         /// a new <see cref="GitId"/> of type <see cref="GitIdType.Sha256"/> when a 64 character string is provided.

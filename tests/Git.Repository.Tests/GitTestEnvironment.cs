@@ -137,7 +137,7 @@ namespace GitRepositoryTests
 
             var items = new RepoItem[]
             {
-                new RepoItem { Name = "iota", Content="This is dthe file 'iota'.\n" },
+                new RepoItem { Name = "iota", Content="This is the file 'iota'.\n" },
                 new RepoItem { Name = "A" },
                 new RepoItem { Name = "A/mu", Content="This is the file 'mu'.\n" },
                 new RepoItem { Name = "A/B" },

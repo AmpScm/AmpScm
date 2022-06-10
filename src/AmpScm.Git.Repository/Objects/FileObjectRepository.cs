@@ -83,7 +83,7 @@ namespace AmpScm.Git.Objects
                 {
                     string idString = prefix + Path.GetFileName(file);
 
-                    if (!GitId.TryParse(idString, out var id))
+                    if (!GitId.TryParse(idString, out var id) || alreadyReturned.Contains(id))
                         continue;
 
                     var fileReader = FileBucket.OpenRead(file, false);

@@ -10,6 +10,12 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git.Objects
 {
+    public enum GitCommitSubBucket
+    {
+        MergeTag,
+        GpgSignature,
+        GpgSignatureSha256
+    }
     public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -22,10 +28,13 @@ namespace AmpScm.Buckets.Git.Objects
         GitSignatureRecord? _committer;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _readHeaders;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        readonly Func<GitCommitSubBucket, Bucket, ValueTask>? _handleSubBucket;
 
-        public GitCommitObjectBucket(Bucket inner)
+        public GitCommitObjectBucket(Bucket inner, Func<GitCommitSubBucket, Bucket, ValueTask>? handleSubBucket = null)
             : base(inner)
         {
+            _handleSubBucket = handleSubBucket;
         }
 
         const BucketEol AcceptedEols = BucketEol.LF;
@@ -188,7 +197,6 @@ namespace AmpScm.Buckets.Git.Objects
             return _committer = cm;
         }
 
-
         async ValueTask ReadOtherHeadersAsync()
         {
             if (_readHeaders)
@@ -206,13 +214,37 @@ namespace AmpScm.Buckets.Git.Objects
                 bb = bb.Slice(eol);
 
                 var parts = bb.SplitToUtf8String((byte)' ', 2);
+                Bucket sub;
                 switch (parts[0])
                 {
                     case "mergetag":
-                        break;
+                        sub = new GitLineUnindentBucket(bb.Slice("mergetag".Length).ToArray().AsBucket() + new byte[] { (byte)'\n' }.AsBucket() + Inner.NoClose());
 
-                    case "encoding":
+                        if (_handleSubBucket is not null)
+                            await _handleSubBucket(GitCommitSubBucket.MergeTag, sub).ConfigureAwait(false);
+                        else
+                            using (sub)
+                                await sub.ReadUntilEofAsync().ConfigureAwait(false);
+                        break;
                     case "gpgsig":
+                        sub = new GitLineUnindentBucket(bb.Slice("gpgsig".Length).ToArray().AsBucket() + new byte[] { (byte)'\n' }.AsBucket() + Inner.NoClose());
+
+                        if (_handleSubBucket is not null)
+                            await _handleSubBucket(GitCommitSubBucket.GpgSignature, sub).ConfigureAwait(false);
+                        else
+                            using (sub)
+                                await sub.ReadUntilEofAsync().ConfigureAwait(false);
+                        break;
+                    case "gpgsig-sha256":
+                        sub = new GitLineUnindentBucket(bb.Slice("gpgsig-sha256".Length).ToArray().AsBucket() + new byte[] { (byte)'\n' }.AsBucket() + Inner.NoClose());
+
+                        if (_handleSubBucket is not null)
+                            await _handleSubBucket(GitCommitSubBucket.GpgSignatureSha256, sub).ConfigureAwait(false);
+                        else
+                            using (sub)
+                                await sub.ReadUntilEofAsync().ConfigureAwait(false);
+                        break;
+                    case "encoding":
                         break; // Ignored for now
 
                     default:

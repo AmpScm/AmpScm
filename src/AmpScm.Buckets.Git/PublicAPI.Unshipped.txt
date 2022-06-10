@@ -51,10 +51,20 @@ AmpScm.Buckets.Git.GitDirectoryOptions.PreLoadExtensions.set -> void
 AmpScm.Buckets.Git.GitEwahBitmapBucket.AllBits.get -> System.Collections.Generic.IAsyncEnumerable<bool>!
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitEwahBitmapBucket.SetIndexes.get -> System.Collections.Generic.IAsyncEnumerable<int>!
+AmpScm.Buckets.Git.GitLineIndentBucket
+AmpScm.Buckets.Git.GitLineIndentBucket.GitLineIndentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
+AmpScm.Buckets.Git.GitLineUnindentBucket
+AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitCommitSubBucket, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket = null) -> void
+override AmpScm.Buckets.Git.GitLineIndentBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Git.GitLineIndentBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.GitLineUnindentBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Git.GitLineUnindentBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
+static AmpScm.Git.GitId.Zero(AmpScm.Git.GitIdType type) -> AmpScm.Git.GitId!
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.HighestSupportedFormat -> int
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.LowestSupportedFormat -> int

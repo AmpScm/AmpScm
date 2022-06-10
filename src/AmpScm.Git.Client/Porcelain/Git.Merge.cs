@@ -8,21 +8,49 @@ namespace AmpScm.Git.Client.Porcelain
 {
     public class GitMergeArgs : GitPorcelainArgs
     {
+        public string? Message { get; set; }
+        public bool AppendLog { get; set; }
+
         public override void Verify()
         {
-            throw new NotImplementedException();
         }
     }
 
     partial class GitPorcelain
     {
         [GitCommand("merge")]
-        public static async ValueTask Merge(this GitPorcelainClient c, GitMergeArgs? options = null)
+        public static async ValueTask Merge(this GitPorcelainClient c, string source, GitMergeArgs? options = null)
         {
-            options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            if (string.IsNullOrEmpty(source))
+                throw new ArgumentNullException(nameof(source));
 
-            await c.ThrowNotImplemented();
+            await Merge(c, new[] { source }, options);
+        }
+
+        [GitCommand("merge")]
+        public static async ValueTask Merge(this GitPorcelainClient c, string[] source, GitMergeArgs? options = null)
+        {
+            if (!(source?.Any() ?? false))
+                throw new ArgumentOutOfRangeException(nameof(source));
+
+            options?.Verify();
+            options ??= new();
+
+            List<string> args = new();
+
+            if (options.AppendLog)
+                args.Add("--log");
+
+            if (!string.IsNullOrEmpty(options.Message))
+            {
+                args.Add("-m");
+                args.Add(options.Message);
+            }
+
+            args.Add("--");
+            args.AddRange(source);
+
+            await c.Repository.RunGitCommandAsync("merge", args);
         }
     }
 }

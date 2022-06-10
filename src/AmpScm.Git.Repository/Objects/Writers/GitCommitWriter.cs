@@ -4,12 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Git;
+using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Git.Objects
 {
     public sealed class GitCommitWriter : GitObjectWriter<GitCommit>
     {
         IReadOnlyList<IGitLazy<GitCommit>>? _parents;
+        IReadOnlyList<IGitLazy<GitTagObject>>? _mergeTags;
         GitSignature? _committer;
         GitSignature? _author;
         GitTreeWriter? _tree;
@@ -38,6 +41,16 @@ namespace AmpScm.Git.Objects
                     throw new ArgumentOutOfRangeException(nameof(value));
                 else
                     _parents = value.ToArray();
+                Id = null;
+            }
+        }
+
+        public IReadOnlyList<IGitLazy<GitTagObject>> MergeTags
+        {
+            get => _mergeTags ?? Array.Empty<IGitLazy<GitTagObject>>();
+            set
+            {
+                _mergeTags = value;
                 Id = null;
             }
         }
@@ -106,16 +119,21 @@ namespace AmpScm.Git.Objects
 
             if (Id is null || !repository.Commits.ContainsId(Id))
             {
+                Bucket result;
+
                 StringBuilder sb = new StringBuilder();
 
                 var id = await Tree.WriteToAsync(repository).ConfigureAwait(false);
 
                 sb.Append((string)$"tree {id}\n");
 
+                HashSet<GitId> parentIds = new(); ;
                 foreach (var p in Parents)
                 {
                     id = await p.WriteToAsync(repository).ConfigureAwait(false);
                     sb.Append((string)$"parent {id}\n");
+
+                    parentIds.Add(id);
                 }
 
                 var committer = Committer ?? repository.Configuration.Identity;
@@ -123,6 +141,40 @@ namespace AmpScm.Git.Objects
 
                 sb.Append((string)$"author {author.AsRecord()}\n");
                 sb.Append((string)$"committer {committer.AsRecord()}\n");
+
+                result = Bucket.Create.FromUTF8(sb.ToString());
+
+                foreach(var mt in MergeTags)
+                {
+                    IGitLazy<GitTagObject> tag = mt;
+                    GitId tagId;
+
+                    if (mt is GitTagObjectWriter tagWriter)
+                    {
+                        tagId = await mt.WriteToAsync(repository).ConfigureAwait(false);
+                        tag = await repository.TagObjects.GetAsync(tagId).ConfigureAwait(false) ?? throw new InvalidOperationException();
+                    }
+
+                    if (tag is GitTagObject tagOb)
+                    {
+                        if (tagOb.ObjectType != GitObjectType.Commit)
+                            throw new InvalidOperationException($"Mergetag {id} doesn't refer to a Commit");
+
+                        if (!parentIds.Contains(tagOb.GitObjectId))
+                            throw new InvalidOperationException($"Mergetag {id} doesn't refer to a Parent");
+
+                        tagId = tagOb.Id;
+                    }
+                    else
+                        throw new NotImplementedException();
+
+                    Bucket obBucket = await repository.ObjectRepository.ResolveById(tagId).ConfigureAwait(false) ?? throw new InvalidOperationException();
+
+                    result += Bucket.Create.FromUTF8("mergetag")
+                        + new GitLineIndentBucket(obBucket);
+                }
+
+                sb = new StringBuilder();
                 // "encoding " // if not UTF-8
                 // -extra headers-
                 sb.Append('\n');
@@ -131,9 +183,9 @@ namespace AmpScm.Git.Objects
                 if (!string.IsNullOrWhiteSpace(msg))
                     sb.Append(msg.Replace("\r", "", StringComparison.Ordinal));
 
-                var b = Bucket.Create.FromUTF8(sb.ToString());
+                result += Bucket.Create.FromUTF8(sb.ToString());
 
-                Id = await WriteBucketAsObject(b, repository).ConfigureAwait(false);
+                Id = await WriteBucketAsObject(result, repository).ConfigureAwait(false);
             }
             return Id;
         }

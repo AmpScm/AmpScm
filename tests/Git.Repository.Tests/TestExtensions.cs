@@ -14,6 +14,11 @@ namespace GitRepositoryTests
 {
     public static class TestExtensions
     {
+        public static async ValueTask<string> CreateCloneAsync(this TestContext self, GitTestDir testDir, bool shareOdb = true)
+        {
+            return await CreateCloneAsync(self, GitTestEnvironment.GetRepository(testDir), shareOdb);
+        }
+
         public static async ValueTask<string> CreateCloneAsync(this TestContext self, string? repos = null, bool shareOdb=true)
         {
             using var repo = GitRepository.Open(repos ?? GitTestEnvironment.GetRepository(GitTestDir.Default));

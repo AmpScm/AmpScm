@@ -501,5 +501,93 @@ namespace GitRepositoryTests
                 }
             }
         }
+
+        [TestMethod]
+        public async Task VerifyMergeTag()
+        {
+            var dir = await TestContext.CreateCloneAsync();
+            using var repo = GitRepository.Open(dir);
+
+            var iota = Path.Combine(dir, "iota");
+            File.WriteAllText(iota, "This is the updated IOTA");
+
+            GitId id = repo.Head.Id!;
+
+            await repo.GetPorcelain().Commit(new[] { iota }, new() { Message = "Updated IOTA" });
+
+            Assert.AreNotEqual(id, repo.Head.Id);
+
+            await repo.GetPorcelain().Tag("v0.2", new() { Message = "Tag IOTA" });
+
+            Assert.AreEqual(2, repo.TagObjects.Count());
+
+            using (var t = repo.References.CreateUpdateTransaction())
+            {
+                t.Create("refs/base", id);
+                await t.CommitAsync();
+            }
+
+            await repo.GetPorcelain().CheckOut("base");
+
+            var mu = Path.Combine(dir, "A/mu");
+            File.WriteAllText(mu, "This is the updated MU");
+
+            await repo.GetPorcelain().Commit(new[] { mu }, new() { Message = "Updated MU" });
+            await repo.GetPorcelain().Merge("v0.2", new() { Message = "Merge v0.2" });
+
+            var fsckOutput = await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
+            Assert.AreEqual($"", fsckOutput);
+
+            GitId newHead = repo.References.Head.Id!;
+
+            Assert.AreNotEqual(id, newHead);
+
+            var cc = await repo.Commits.GetAsync(newHead);
+
+            Assert.AreEqual("Merge v0.2\n", cc.Message);
+            Assert.AreEqual(2, cc!.ParentCount);
+            Console.WriteLine($"{cc.Parents[0].Id:x12} - {cc.Parents[0].Summary}");
+            Console.WriteLine($"{cc.Parents[1].Id:x12} - {cc.Parents[1].Summary}");
+
+            Assert.IsNull(cc.MergeTags[1], "No mergetag created by git");
+
+
+            var tag = repo.TagObjects.FirstOrDefault(x => x.Name == "v0.2");
+
+            Assert.IsNotNull(tag, "Found tag");
+
+            GitCommitWriter gcw = cc.AsWriter();
+
+            gcw.MergeTags = new[] { tag };
+            gcw.Message = "Rewritten";
+
+            var rewritten = await gcw.WriteToAsync(repo);
+
+            using (var t = repo.References.CreateUpdateTransaction())
+            {
+                t.Create("refs/rewritten", rewritten);
+                await t.CommitAsync();
+            }
+
+
+            Console.WriteLine($"Rewritten: {rewritten}");
+
+
+            var (_, outTxt) = await repo.GetPlumbing().RunRawCommand("cat-file", "-p", rewritten.ToString());
+            Console.WriteLine("--");
+            Console.WriteLine(outTxt);
+            Console.WriteLine("--");
+
+            fsckOutput = await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
+            Assert.AreEqual($"", fsckOutput);
+
+            GitCommit? rc = await repo.Commits.GetAsync(rewritten);
+            Assert.IsNotNull(rc);
+            Assert.AreEqual("Rewritten", rc.Message);
+
+            Assert.AreEqual(2, rc.ParentCount);
+            Assert.IsNull(rc.MergeTags[0]);
+            Assert.IsNotNull(rc.MergeTags[1]);
+        }
     }
 }

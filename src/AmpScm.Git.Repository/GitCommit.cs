@@ -33,11 +33,32 @@ namespace AmpScm.Git
         GitSignature? _author;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitSignature? _committer;
+        GitTagObject[]? _mergeTags;
 
         internal GitCommit(GitRepository repository, GitObjectBucket objectReader, GitId id)
             : base(repository, id)
         {
-            _rb = new GitCommitObjectBucket(objectReader);
+            _rb = new GitCommitObjectBucket(objectReader, HandleCommitBucket);
+        }
+
+        private async ValueTask HandleCommitBucket(GitCommitSubBucket type, Bucket bucket)
+        {
+            switch (type)
+            {
+                case GitCommitSubBucket.MergeTag:
+                    GitTagObject tagOb = new GitTagObject(Repository, bucket, GitId.Zero(Id.Type));
+                    await tagOb.ReadAsync().ConfigureAwait(false);
+                    if (_mergeTags is null)
+                        _mergeTags = new[] { tagOb };
+                    else
+                        _mergeTags.ArrayAppend(tagOb);
+
+                    break;
+                default:
+                    using (bucket)
+                        await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                    break;
+            }
         }
 
         public sealed override GitObjectType Type => GitObjectType.Commit;
@@ -141,6 +162,8 @@ namespace AmpScm.Git
 
         public IReadOnlyList<GitCommit> Parents => new ParentList(this);
 
+        public IReadOnlyList<GitTagObject?> MergeTags => new MergeTagList(this);
+
         public string Message
         {
             get
@@ -229,7 +252,7 @@ namespace AmpScm.Git
             if (repository != Repository && !repository.Commits.ContainsId(Id))
                 return this.AsWriter().WriteToAsync(repository);
             else
-                return new (Id);
+                return new(Id);
         }
 
         public GitRevisionSet Revisions => new GitRevisionSet(Repository).AddCommit(this);
@@ -323,6 +346,32 @@ namespace AmpScm.Git
                         yield return v;
                 }
             }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+        private sealed class MergeTagList : IReadOnlyList<GitTagObject?>
+        {
+            GitCommit Commit { get; }
+
+            public MergeTagList(GitCommit commit)
+            {
+                Commit = commit;
+                Commit.Read(false);
+            }
+
+            public GitTagObject? this[int index] => FindMergeTag(Commit.ParentIds[index]);
+
+            private GitTagObject? FindMergeTag(GitId gitId)
+                => Commit._mergeTags?.FirstOrDefault(t => t.GitObjectId == gitId);
+
+            public int Count => Commit.ParentCount;
+
+            public IEnumerator<GitTagObject?> GetEnumerator()
+                => Commit.ParentIds.Select(x => FindMergeTag(x)).GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator()
             {

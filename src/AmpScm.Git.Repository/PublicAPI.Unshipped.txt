@@ -17,6 +17,7 @@ AmpScm.Git.GitBranch.Reference.get -> AmpScm.Git.GitReference!
 AmpScm.Git.GitCommit
 AmpScm.Git.GitCommit.Author.get -> AmpScm.Git.GitSignature!
 AmpScm.Git.GitCommit.Committer.get -> AmpScm.Git.GitSignature!
+AmpScm.Git.GitCommit.MergeTags.get -> System.Collections.Generic.IReadOnlyList<AmpScm.Git.GitTagObject?>!
 AmpScm.Git.GitCommit.Message.get -> string!
 AmpScm.Git.GitCommit.Parent.get -> AmpScm.Git.GitCommit?
 AmpScm.Git.GitCommit.ParentCount.get -> int
@@ -115,6 +116,7 @@ AmpScm.Git.GitTag.Tagger.get -> AmpScm.Git.GitSignature?
 AmpScm.Git.GitTag.TagObject.get -> AmpScm.Git.GitTagObject?
 AmpScm.Git.GitTagObject
 AmpScm.Git.GitTagObject.GitObject.get -> AmpScm.Git.GitObject!
+AmpScm.Git.GitTagObject.GitObjectId.get -> AmpScm.Git.GitId!
 AmpScm.Git.GitTagObject.Message.get -> string!
 AmpScm.Git.GitTagObject.Name.get -> string?
 AmpScm.Git.GitTagObject.ObjectType.get -> AmpScm.Git.GitObjectType
@@ -143,6 +145,8 @@ AmpScm.Git.Objects.GitCommitWriter.Author.get -> AmpScm.Git.GitSignature?
 AmpScm.Git.Objects.GitCommitWriter.Author.set -> void
 AmpScm.Git.Objects.GitCommitWriter.Committer.get -> AmpScm.Git.GitSignature?
 AmpScm.Git.Objects.GitCommitWriter.Committer.set -> void
+AmpScm.Git.Objects.GitCommitWriter.MergeTags.get -> System.Collections.Generic.IReadOnlyList<AmpScm.Git.Objects.IGitLazy<AmpScm.Git.GitTagObject!>!>!
+AmpScm.Git.Objects.GitCommitWriter.MergeTags.set -> void
 AmpScm.Git.Objects.GitCommitWriter.Message.get -> string?
 AmpScm.Git.Objects.GitCommitWriter.Message.set -> void
 AmpScm.Git.Objects.GitCommitWriter.Parents.get -> System.Collections.Generic.IReadOnlyList<AmpScm.Git.Objects.IGitLazy<AmpScm.Git.GitCommit!>!>!

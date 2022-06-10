@@ -171,6 +171,8 @@ namespace AmpScm.Git
                 {
                     case '\\':
                     case '~':
+                    case ':':
+                    case '^':
                     case '[':
                         return false;
                     case '.' when (last == '/' || last == '\0'):
@@ -183,6 +185,8 @@ namespace AmpScm.Git
                         if (("/" + name + "/").Contains("/@/", StringComparison.Ordinal))
                             return false;
                         continue;
+                    case '.' when (i + 1 < name.Length && name[i + 1] == '.'):
+                        return false;
                     case '/':
                     case '.':
                         continue;
@@ -192,7 +196,7 @@ namespace AmpScm.Git
                         break;
                 }
             }
-            return (name.Length > 1) && (allowSpecialSymbols || !AllUpper(name)) && !name.EndsWith(".lock", StringComparison.OrdinalIgnoreCase);
+            return (name.Length > 1) && (name.Contains('/', StringComparison.Ordinal) || (allowSpecialSymbols && AllUpper(name))) && !name.EndsWith(".lock", StringComparison.OrdinalIgnoreCase);
         }
 
         internal GitReference SetPeeled(GitId? peeled)
