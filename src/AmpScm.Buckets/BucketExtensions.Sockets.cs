@@ -99,25 +99,29 @@ namespace AmpScm.Buckets
                 {
                     var handle = fs.SafeFileHandle;
                     long pos = fs.Position;
-                    while (true)
+                    try
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        var (buffers, done) = await bucket.ReadBuffersAsync().ConfigureAwait(false);
-
-                        if (buffers.Length > 0)
+                        while (true)
                         {
-                            var len = buffers.Sum(x => (long)x.Length);
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                            await RandomAccess.WriteAsync(handle, buffers, pos, cancellationToken).ConfigureAwait(false);
-                            pos += len;
-                        }
+                            var (buffers, done) = await bucket.ReadBuffersAsync().ConfigureAwait(false);
 
-                        if (done)
-                        {
-                            fs.Position = pos;
-                            return;
+                            if (buffers.Length > 0)
+                            {
+                                var len = buffers.Sum(x => (long)x.Length);
+
+                                await RandomAccess.WriteAsync(handle, buffers, pos, cancellationToken).ConfigureAwait(false);
+                                pos += len;
+                            }
+
+                            if (done)
+                                return;
                         }
+                    }
+                    finally
+                    {
+                        fs.Position = pos;
                     }
                 }
 #endif

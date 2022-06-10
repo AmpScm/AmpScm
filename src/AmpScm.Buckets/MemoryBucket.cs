@@ -31,6 +31,9 @@ namespace AmpScm.Buckets
 
         public override BucketBytes Peek()
         {
+            if (Offset == Data.Length)
+                return BucketBytes.Eof;
+
             return Data.Slice(Offset);
         }
 

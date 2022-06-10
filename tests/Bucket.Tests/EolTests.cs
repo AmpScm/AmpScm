@@ -63,7 +63,7 @@ namespace BucketTests
             }
 
             Assert.AreEqual("abc\0abcd\0abc\0a", total.Replace("|", "").Replace("!", ""));
-            Assert.AreEqual("|a|bc|\0!|a|bc|d\0!|a|bc|\0!|a", total);
+            Assert.AreEqual("|a|b|c|\0!|a|bc|d\0!|a|b|c|\0!|a", total);
 
             r = MakeBucket("a", "b", "c", "\0");
             total = "";
@@ -81,7 +81,7 @@ namespace BucketTests
             }
 
             Assert.AreEqual("abc\0", total.Replace("|", "").Replace("!", ""));
-            Assert.AreEqual("|a|bc|\0!", total);
+            Assert.AreEqual("|a|b|c|\0!", total);
 
 
             r = MakeBucket("a\r\nb\rcd\r", "\nefg\rhi\r\n", "j\r", "\rk");
@@ -129,7 +129,7 @@ namespace BucketTests
                 total += "|" + bb.ToASCIIString(eol) + $"[{eol}]";
             }
 
-            Assert.AreEqual("|H[None]|TT[None]|P/[None]|1.[None]|1[CRSplit]|[LF]|a[None]",
+            Assert.AreEqual("|H[None]|T[None]|T[None]|P[None]|/[None]|1[None]|.[None]|1[None]|[CRSplit]|[LF]|a[None]",
                             total.Replace("\r", "/r/"));
 
 
@@ -146,7 +146,7 @@ namespace BucketTests
                 total += "|" + bb.ToASCIIString(eol) + $"[{eol}]";
             }
 
-            Assert.AreEqual("|H[None]|TT[None]|P/[None]|1.[None]|1[CRSplit]|[LF]|[LF]|[CRSplit]|\0a[None]",
+            Assert.AreEqual("|H[None]|T[None]|T[None]|P[None]|/[None]|1[None]|.[None]|1[None]|[CRSplit]|[LF]|[LF]|[CRSplit]|\0a[None]",
                             total.Replace("\r", "/r/"));
         }
 

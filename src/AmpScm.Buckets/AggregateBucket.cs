@@ -306,6 +306,21 @@ namespace AmpScm.Buckets
                 }
             }
 
+            if (!result.Any())
+            {
+                while (!result.Any() && CurrentBucket is not null)
+                {
+                    var bb = await CurrentBucket.ReadAsync(maxRequested).ConfigureAwait(false);
+
+                    if (bb.IsEof)
+                        MoveNext();
+                    else
+                    {
+                        return (new[] { bb.Memory }, false);
+                    }
+                }
+            }
+
             return (result.ToArray(), CurrentBucket is null);
         }
 
