@@ -55,7 +55,7 @@ AmpScm.Buckets.Git.GitLineIndentBucket
 AmpScm.Buckets.Git.GitLineIndentBucket.GitLineIndentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
 AmpScm.Buckets.Git.GitLineUnindentBucket
 AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
-AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitCommitSubBucket, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket = null) -> void
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitCommitSubBucket, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitCommitSubBucket
 AmpScm.Buckets.Git.Objects.GitCommitSubBucket.GpgSignature = 1 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
 AmpScm.Buckets.Git.Objects.GitCommitSubBucket.GpgSignatureSha256 = 2 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket

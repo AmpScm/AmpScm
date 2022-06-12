@@ -31,7 +31,12 @@ namespace AmpScm.Buckets.Git.Objects
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly Func<GitCommitSubBucket, Bucket, ValueTask>? _handleSubBucket;
 
-        public GitCommitObjectBucket(Bucket inner, Func<GitCommitSubBucket, Bucket, ValueTask>? handleSubBucket = null)
+        public GitCommitObjectBucket(Bucket inner)
+            : this(inner, null)
+        {
+        }
+
+        public GitCommitObjectBucket(Bucket inner, Func<GitCommitSubBucket, Bucket, ValueTask>? handleSubBucket)
             : base(inner)
         {
             _handleSubBucket = handleSubBucket;
@@ -211,40 +216,25 @@ namespace AmpScm.Buckets.Git.Objects
                 if (bb.IsEof || bb.Length <= eol.CharCount())
                     break;
 
-                bb = bb.Slice(eol);
+                // parts[1] contains the EOL!
 
                 var parts = bb.SplitToUtf8String((byte)' ', 2);
                 Bucket sub;
                 switch (parts[0])
                 {
                     case "mergetag":
-                        sub = new GitLineUnindentBucket(bb.Slice("mergetag".Length).ToArray().AsBucket() + new byte[] { (byte)'\n' }.AsBucket() + Inner.NoClose());
-
-                        if (_handleSubBucket is not null)
-                            await _handleSubBucket(GitCommitSubBucket.MergeTag, sub).ConfigureAwait(false);
-                        else
-                            using (sub)
-                                await sub.ReadUntilEofAsync().ConfigureAwait(false);
-                        break;
                     case "gpgsig":
-                        sub = new GitLineUnindentBucket(bb.Slice("gpgsig".Length).ToArray().AsBucket() + new byte[] { (byte)'\n' }.AsBucket() + Inner.NoClose());
-
-                        if (_handleSubBucket is not null)
-                            await _handleSubBucket(GitCommitSubBucket.GpgSignature, sub).ConfigureAwait(false);
-                        else
-                            using (sub)
-                                await sub.ReadUntilEofAsync().ConfigureAwait(false);
-                        break;
                     case "gpgsig-sha256":
-                        sub = new GitLineUnindentBucket(bb.Slice("gpgsig-sha256".Length).ToArray().AsBucket() + new byte[] { (byte)'\n' }.AsBucket() + Inner.NoClose());
+                        sub = new GitLineUnindentBucket(bb.Slice(parts[0].Length).ToArray().AsBucket() + Inner.NoClose());
 
                         if (_handleSubBucket is not null)
-                            await _handleSubBucket(GitCommitSubBucket.GpgSignatureSha256, sub).ConfigureAwait(false);
+                            await _handleSubBucket(GetEvent(parts[0]), sub).ConfigureAwait(false);
                         else
                             using (sub)
                                 await sub.ReadUntilEofAsync().ConfigureAwait(false);
                         break;
                     case "encoding":
+
                         break; // Ignored for now
 
                     default:
@@ -262,6 +252,15 @@ namespace AmpScm.Buckets.Git.Objects
 
             _readHeaders = true;
         }
+
+        static GitCommitSubBucket GetEvent(string key) =>
+            key switch
+            {
+                "mergetag" => GitCommitSubBucket.MergeTag,
+                "gpgsig" => GitCommitSubBucket.GpgSignature,
+                "gpgsig-sha256" => GitCommitSubBucket.GpgSignatureSha256,
+                _ => throw new NotImplementedException()
+            };
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {

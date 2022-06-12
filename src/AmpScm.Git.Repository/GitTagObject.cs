@@ -117,6 +117,13 @@ namespace AmpScm.Git
             }
         }
 
+        /// <summary>
+        /// Gets a boolean indicating whether this tag is signed by the creator.
+        /// </summary>
+        public bool IsSigned
+            // TODO: Really check the tag
+            => Message?.Contains("\n-----BEGIN PGP ", StringComparison.Ordinal) ?? false;
+
         public GitObjectType ObjectType
         {
             get
@@ -166,7 +173,7 @@ namespace AmpScm.Git
             if (repository != Repository && !repository.Blobs.ContainsId(Id))
                 return this.AsWriter().WriteToAsync(repository);
             else
-                return new (Id);
+                return new(Id);
         }
     }
 }

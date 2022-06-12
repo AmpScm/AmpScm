@@ -33,7 +33,10 @@ namespace AmpScm.Git
         GitSignature? _author;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitSignature? _committer;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         GitTagObject[]? _mergeTags;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool _hasSignature;
 
         internal GitCommit(GitRepository repository, GitObjectBucket objectReader, GitId id)
             : base(repository, id)
@@ -54,6 +57,10 @@ namespace AmpScm.Git
                         _mergeTags.ArrayAppend(tagOb);
 
                     break;
+                case GitCommitSubBucket.GpgSignature:
+                case GitCommitSubBucket.GpgSignatureSha256:
+                    _hasSignature = true;
+                    goto default;
                 default:
                     using (bucket)
                         await bucket.ReadUntilEofAsync().ConfigureAwait(false);
@@ -164,6 +171,21 @@ namespace AmpScm.Git
 
         public IReadOnlyList<GitTagObject?> MergeTags => new MergeTagList(this);
 
+        /// <summary>
+        /// Gets a boolean indicating whether the signature has at least one GPG signature
+        /// </summary>
+        public bool IsSigned
+        {
+            get
+            {
+                if (_rb is not null)
+                    Read(true);
+
+                return _hasSignature;
+            }
+        }
+
+
         public string Message
         {
             get
@@ -269,8 +291,10 @@ namespace AmpScm.Git
             }
         }
 
+        [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
         private sealed class IdList : IReadOnlyList<GitId>
         {
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             GitCommit Commit { get; }
 
             public IdList(GitCommit commit)
@@ -310,10 +334,17 @@ namespace AmpScm.Git
             {
                 return GetEnumerator();
             }
+
+            string DebuggerDisplay()
+            {
+                return $"Count = {Count}";
+            }
         }
 
+        [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
         private sealed class ParentList : IReadOnlyList<GitCommit>
         {
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             GitCommit Commit { get; }
 
             public ParentList(GitCommit commit)
@@ -351,10 +382,17 @@ namespace AmpScm.Git
             {
                 return GetEnumerator();
             }
+
+            string DebuggerDisplay()
+            {
+                return $"Count = {Count}";
+            }
         }
 
+        [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
         private sealed class MergeTagList : IReadOnlyList<GitTagObject?>
         {
+            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             GitCommit Commit { get; }
 
             public MergeTagList(GitCommit commit)
@@ -377,8 +415,12 @@ namespace AmpScm.Git
             {
                 return GetEnumerator();
             }
-        }
 
+            string DebuggerDisplay()
+            {
+                return $"Count = {Count}";
+            }
+        }
     }
 
 }
