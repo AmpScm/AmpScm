@@ -291,7 +291,7 @@ namespace AmpScm.Git
             }
         }
 
-        [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
+        [DebuggerDisplay($"Count={{{nameof(Count)}}}")]
         private sealed class IdList : IReadOnlyList<GitId>
         {
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -334,14 +334,9 @@ namespace AmpScm.Git
             {
                 return GetEnumerator();
             }
-
-            string DebuggerDisplay()
-            {
-                return $"Count = {Count}";
-            }
         }
 
-        [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
+        [DebuggerDisplay($"Count={{{nameof(Count)}}}")]
         private sealed class ParentList : IReadOnlyList<GitCommit>
         {
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -382,14 +377,9 @@ namespace AmpScm.Git
             {
                 return GetEnumerator();
             }
-
-            string DebuggerDisplay()
-            {
-                return $"Count = {Count}";
-            }
         }
 
-        [DebuggerDisplay($"{{{nameof(DebuggerDisplay)}(),nq}}")]
+        [DebuggerDisplay($"Count={{{nameof(Count)}}}")]
         private sealed class MergeTagList : IReadOnlyList<GitTagObject?>
         {
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -414,11 +404,6 @@ namespace AmpScm.Git
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return GetEnumerator();
-            }
-
-            string DebuggerDisplay()
-            {
-                return $"Count = {Count}";
             }
         }
     }

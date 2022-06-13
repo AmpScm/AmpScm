@@ -81,7 +81,7 @@ namespace AmpScm.Buckets.Git.Objects
             var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, null, MaxHeader).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tag "))
-                throw new GitBucketException($"Expected 'name' record in '{Inner.Name}'");
+                throw new GitBucketException($"Expected 'tag' record in '{Inner.Name}'");
 
             return _tagName = bb.ToUTF8String("tag ".Length, eol);
         }
