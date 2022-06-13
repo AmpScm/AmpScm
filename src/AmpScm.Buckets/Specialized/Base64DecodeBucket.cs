@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
 {
@@ -8,10 +9,13 @@ namespace AmpScm.Buckets.Specialized
         byte[]? buffer;
         uint bits;
         int state;
+        readonly bool _lineMode;
+        bool _eof;
 
-        public Base64DecodeBucket(Bucket bucket)
+        public Base64DecodeBucket(Bucket bucket, bool lineMode)
             : base(bucket)
         {
+            _lineMode = lineMode;
         }
 
         static readonly sbyte[] base64Reversemap = new sbyte[]
@@ -31,7 +35,7 @@ namespace AmpScm.Buckets.Specialized
             /* '0': */     52, /* '1': */     53, /* '2': */     54, /* '3': */     55,
             /* '4': */     56, /* '5': */     57, /* '6': */     58, /* '7': */     59,
             /* '8': */     60, /* '9': */     61, /* ':': */     -3, /* ';': */     -3,
-            /* '<': */     -3, /* '=': */     -1, /* '>': */     -3, /* '?': */     -3,
+            /* '<': */     -3, /* '=': */     -4, /* '>': */     -3, /* '?': */     -3,
             /* '@': */     -3, /* 'A': */      0, /* 'B': */      1, /* 'C': */      2,
             /* 'D': */      3, /* 'E': */      4, /* 'F': */      5, /* 'G': */      6,
             /* 'H': */      7, /* 'I': */      8, /* 'J': */      9, /* 'K': */     10,
@@ -49,22 +53,51 @@ namespace AmpScm.Buckets.Specialized
             /* 'x': */     49, /* 'y': */     50, /* 'z': */     51, /* '{': */     -3,
         };
 
+        protected override async ValueTask<BucketBytes> InnerReadAsync(int requested = MaxRead)
+        {
+            if (_lineMode)
+            {
+                if (_eof)
+                    return BucketBytes.Eof;
+
+                var (bb, _) = await Inner.ReadUntilEolAsync(BucketEol.LF, requested).ConfigureAwait(false);
+
+                return bb;
+            }
+            else
+                return await base.InnerReadAsync(requested).ConfigureAwait(false);
+        }
+
         protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
         {
             buffer ??= new byte[1024];
             int i;
             int nb = 0;
 
-            for (i = 0; i < sourceData.Length && nb + 4 < buffer.Length; i++)
+            var sd = sourceData.Span;
+
+            for (i = 0; i < sd.Length && nb + 4 < buffer.Length; i++)
             {
-                byte b = sourceData[i];
+                byte b = sd[i];
 
                 sbyte sb = (b < base64Reversemap.Length) ? base64Reversemap[b] : (sbyte)-3;
 
                 if (sb < 0)
                 {
                     if (sb == -1 || char.IsWhiteSpace((char)b))
-                        continue; // Newlines, Whitespace and '=' are skipped
+                        continue; // Newlines and Whitespace are skipped
+                    else if (sb == -4) // '='
+                    {
+                        if (_lineMode && sourceData.Slice(i + 1).All(x => char.IsWhiteSpace((char)x) || x == '='))
+                            _eof = true;
+                        else if (_lineMode && i == 0)
+                        {
+                            _eof = true;
+                            sourceData = BucketBytes.Empty;
+                            return BucketBytes.Eof;
+                        }
+                        continue;
+                    }
                     else
                         throw new BucketException($"Unexpected base64 character 0x{b:x} '{(char)b}' in {Name} bucket");
                 }

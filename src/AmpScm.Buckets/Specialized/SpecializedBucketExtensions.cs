@@ -89,6 +89,14 @@ namespace AmpScm.Buckets.Specialized
             return new CreateHashBucket(bucket, CreateHashBucket.Crc32.Create(), (v) => created(BitConverter.ToInt32(v, 0)));
         }
 
+        public static Bucket Crc24(this Bucket bucket, Action<int> created)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new CreateHashBucket(bucket, CreateHashBucket.Crc24.Create(), (v) => created(BitConverter.ToInt32(v, 0)));
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -109,14 +117,15 @@ namespace AmpScm.Buckets.Specialized
         /// 
         /// </summary>
         /// <param name="bucket"></param>
+        /// <param name="lineMode"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static Bucket Base64Decode(this Bucket bucket)
+        public static Bucket Base64Decode(this Bucket bucket, bool lineMode=false)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            return new Base64DecodeBucket(bucket);
+            return new Base64DecodeBucket(bucket, lineMode);
         }
 
         /// <summary>
@@ -186,6 +195,20 @@ namespace AmpScm.Buckets.Specialized
                 throw new ArgumentNullException(nameof(bucket));
 
             await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Reads from the bucket until EOF using <see cref="Bucket.ReadSkipAsync(long)"/>
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static async ValueTask ReadUntilEofAndCloseAsync(this Bucket bucket)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            using (bucket)
+                await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
         }
 
         /// <summary>

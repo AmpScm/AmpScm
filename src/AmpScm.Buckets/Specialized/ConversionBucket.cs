@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Specialized
             do
             {
                 if (_readLeft.IsEmpty)
-                    _readLeft = await Inner.ReadAsync(ConvertRequested(requested)).ConfigureAwait(false);
+                    _readLeft = await InnerReadAsync(ConvertRequested(requested)).ConfigureAwait(false);
 
                 _remaining = ConvertData(ref _readLeft, _readLeft.IsEof);
 
@@ -94,6 +94,9 @@ namespace AmpScm.Buckets.Specialized
 
             return BucketBytes.Eof;
         }
+
+        protected virtual ValueTask<BucketBytes> InnerReadAsync(int requested = MaxRead)
+            => Inner.ReadAsync(requested);
 
         protected virtual int ConvertRequested(int requested)
         {

@@ -118,6 +118,7 @@ AmpScm.Git.GitTag.TagObject.get -> AmpScm.Git.GitTagObject?
 AmpScm.Git.GitTagObject
 AmpScm.Git.GitTagObject.GitObject.get -> AmpScm.Git.GitObject!
 AmpScm.Git.GitTagObject.GitObjectId.get -> AmpScm.Git.GitId!
+AmpScm.Git.GitTagObject.IsSigned.get -> bool
 AmpScm.Git.GitTagObject.Message.get -> string!
 AmpScm.Git.GitTagObject.Name.get -> string?
 AmpScm.Git.GitTagObject.ObjectType.get -> AmpScm.Git.GitObjectType

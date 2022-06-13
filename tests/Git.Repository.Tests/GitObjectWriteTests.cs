@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
+using AmpScm.Buckets.Git.Objects;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
@@ -515,9 +516,12 @@ namespace GitRepositoryTests
 
             await repo.GetPorcelain().Commit(new[] { iota }, new() { Message = "Updated IOTA" });
 
+            int n = repo.Objects.Count();
             Assert.AreNotEqual(id, repo.Head.Id);
 
             await repo.GetPorcelain().Tag("v0.2", new() { Message = "Tag IOTA" });
+
+            Assert.AreEqual(n + 1, repo.Objects.Count());
 
             Assert.AreEqual(2, repo.TagObjects.Count());
 
@@ -533,7 +537,7 @@ namespace GitRepositoryTests
             File.WriteAllText(mu, "This is the updated MU");
 
             await repo.GetPorcelain().Commit(new[] { mu }, new() { Message = "Updated MU" });
-            await repo.GetPorcelain().Merge("v0.2", new() { Message = "Merge v0.2" });
+            await repo.GetPorcelain().Merge("refs/tags/v0.2", new() { Message = "Merge v0.2", FastForward = AllowAlwaysNever.Never });
 
             var fsckOutput = await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
             Assert.AreEqual($"", fsckOutput);
@@ -543,6 +547,7 @@ namespace GitRepositoryTests
             Assert.AreNotEqual(id, newHead);
 
             var cc = await repo.Commits.GetAsync(newHead);
+            Assert.IsNotNull(cc);
 
             Assert.AreEqual("Merge v0.2\n", cc.Message);
             Assert.AreEqual(2, cc!.ParentCount);
@@ -588,6 +593,7 @@ namespace GitRepositoryTests
             Assert.AreEqual(2, rc.ParentCount);
             Assert.IsNull(rc.MergeTags[0]);
             Assert.IsNotNull(rc.MergeTags[1]);
+            Assert.AreEqual(tag.Id, rc.MergeTags[1]!.Id);
         }
     }
 }

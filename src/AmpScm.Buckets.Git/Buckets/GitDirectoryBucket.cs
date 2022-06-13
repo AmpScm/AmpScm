@@ -495,7 +495,7 @@ namespace AmpScm.Buckets.Git
             }
 
             if (!_endOfIndex.HasValue)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("EndOfIndex not set at end of reading");
 
             _processedExtensions = true;
 

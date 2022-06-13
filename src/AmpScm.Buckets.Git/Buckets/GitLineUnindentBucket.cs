@@ -59,6 +59,52 @@ namespace AmpScm.Buckets.Git
             return bb;
         }
 
+        public override async ValueTask<long?> ReadRemainingBytesAsync()
+        {
+            var bb = await Inner.PollAsync().ConfigureAwait(false);
+
+            return CalcLen(bb, _cont);
+
+            static long? CalcLen(BucketBytes bb, bool cont)
+            {
+                var span = bb.Span;
+                long len = 0;
+
+                if (!cont)
+                {
+                    if (span.Length > 0 && span[0] == ' ')
+                    {
+                        span = span.Slice(1);
+                    }
+                    else
+                        return null;
+                }
+
+                int n = span.IndexOf((byte)'\n');
+                while (n >= 0)
+                {
+                    len += n + 1;
+
+                    if (n + 1 < span.Length)
+                    {
+                        if (span[n + 1] == ' ')
+                            span = span.Slice(n + 2);
+                        else
+                            break;
+                    }
+                    else
+                        return null;
+
+                    n = span.IndexOf((byte)'\n');
+                }
+
+                if (n < 0)
+                    return null;
+
+                return len;
+            }
+        }
+
         public override BucketBytes Peek()
         {
             if (_eof)

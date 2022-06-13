@@ -339,7 +339,7 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend(this b
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ArrayAppend<T>(this T[]! array, T item) -> T[]!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.AtEof(this AmpScm.Buckets.Bucket! bucket, System.Action! action) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.AtEof(this AmpScm.Buckets.Bucket! bucket, System.Func<System.Threading.Tasks.Task!>! action) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Base64Decode(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Base64Decode(this AmpScm.Buckets.Bucket! bucket, bool lineMode = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Base64Encode(this AmpScm.Buckets.Bucket! bucket, bool wrapLines = false, bool addPadding = true) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Buffer(this AmpScm.Buckets.Bucket! bucket, int maxMemory = 1048576) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ConvertToUtf8(this AmpScm.Buckets.Bucket! bucket, System.Text.Encoding! encoding) -> AmpScm.Buckets.Bucket!

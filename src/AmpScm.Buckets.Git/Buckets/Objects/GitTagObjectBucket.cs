@@ -22,6 +22,8 @@ namespace AmpScm.Buckets.Git.Objects
         GitSignatureRecord? _author;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _readHeaders;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        byte[] _signature;
 
         public GitTagObjectBucket(Bucket inner)
             : base(inner)
@@ -136,22 +138,7 @@ namespace AmpScm.Buckets.Git.Objects
                 var parts = bb.SplitToUtf8String((byte)' ', 2);
                 switch (parts[0])
                 {
-                    case "mergetag":
-                        break;
-
-                    case "encoding":
-                    case "gpgsig":
-                        break; // Ignored for now
-
                     default:
-                        //if (!char.IsWhiteSpace((char)bb[0]))
-                        //{
-                        //    _headers ??= new Dictionary<string, string>();
-                        //    if (_headers.TryGetValue(parts[0], out var v))
-                        //        _headers[parts[0]] = v + "\n" + parts[1];
-                        //    else
-                        //        _headers[parts[0]] = parts[1];
-                        //}
                         break;
                 }
             }
@@ -169,9 +156,28 @@ namespace AmpScm.Buckets.Git.Objects
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            await ReadOtherHeadersAsync().ConfigureAwait(false);
+            if (!_readHeaders)
+            {
+                await ReadOtherHeadersAsync().ConfigureAwait(false);
+            }
 
-            return await Inner.ReadAsync(requested).ConfigureAwait(false);
+            while (true)
+            {
+                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
+
+                if (GpgLikeSignatureBucket.IsHeader(bb, eol))
+                {
+                    using var sig = new GpgLikeSignatureBucket(bb.ToArray().AsBucket() + Inner.NoClose());
+
+                    bb = await sig.ReadFullAsync(8192).ConfigureAwait(false);
+
+                    _signature = bb.ToArray();
+
+                    continue;
+                }
+                else
+                    return bb;
+            }
         }
 
         public override BucketBytes Peek()
@@ -188,6 +194,11 @@ namespace AmpScm.Buckets.Git.Objects
                 return await Inner.PollAsync(minRequested).ConfigureAwait(false);
 
             return BucketBytes.Empty;
+        }
+
+        public async ValueTask<BucketBytes> ReadSignatureAsync()
+        {
+            return _signature;
         }
     }
 }

@@ -94,7 +94,16 @@ namespace AmpScm.Buckets.Specialized
                 if (_size.HasValue)
                     _size += _buffered;
                 else
-                    _size = -1;
+                {
+                    do
+                    {
+                        await BufferSomeMore().ConfigureAwait(false);
+                    }
+                    while (!_size.HasValue && !_readEof);
+
+                    if (!_size.HasValue)
+                        _size = -1;
+                }
             }
 
             if (_size < 0)

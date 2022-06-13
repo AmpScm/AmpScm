@@ -30,6 +30,8 @@ namespace AmpScm.Git
         GitObjectType? _objType;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         string? _name;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool _signed;
 
         internal GitTagObject(GitRepository repository, Bucket rdr, GitId id)
             : base(repository, id)
@@ -121,8 +123,9 @@ namespace AmpScm.Git
         /// Gets a boolean indicating whether this tag is signed by the creator.
         /// </summary>
         public bool IsSigned
-            // TODO: Really check the tag
-            => Message?.Contains("\n-----BEGIN PGP ", StringComparison.Ordinal) ?? false;
+        {
+            get => Message is not null && _signed;
+        }
 
         public GitObjectType ObjectType
         {
@@ -156,13 +159,16 @@ namespace AmpScm.Git
 
             while (true)
             {
-                var (bb, _) = await _rb.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
+                var (bb, eol) = await _rb.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     break;
 
                 _message += bb.ToUTF8String(); // Includes EOL
             }
+
+            if (!(await _rb.ReadSignatureAsync().ConfigureAwait(false)).IsEmpty)
+                _signed = true;
 
             _rb.Dispose();
             _rb = null;

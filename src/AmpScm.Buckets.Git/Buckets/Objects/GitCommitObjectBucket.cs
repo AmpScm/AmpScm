@@ -234,7 +234,7 @@ namespace AmpScm.Buckets.Git.Objects
                                 await sub.ReadUntilEofAsync().ConfigureAwait(false);
                         break;
                     case "encoding":
-
+                        //throw new NotImplementedException("Encoding not used yet");
                         break; // Ignored for now
 
                     default:
@@ -246,6 +246,7 @@ namespace AmpScm.Buckets.Git.Objects
                         //    else
                         //        _headers[parts[0]] = parts[1];
                         //}
+                        //throw new NotImplementedException($"Unknown '{parts[0]}' header found");
                         break;
                 }
             }

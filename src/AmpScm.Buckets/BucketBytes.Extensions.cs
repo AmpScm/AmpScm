@@ -239,6 +239,24 @@ namespace AmpScm.Buckets
             return true;
         }
 
+        public bool EndsWithASCII(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                throw new ArgumentNullException(nameof(value));
+            else if (Length < value.Length)
+                return false;
+
+            var p = Memory.Slice(Length - value.Length).Span;
+
+            for(int i = 0; i < value.Length; i++)
+            {
+                if (p[i] != value[i])
+                    return false;
+            }
+
+            return true;
+        }
+
         public bool EqualsASCII(string value)
         {
             if (string.IsNullOrEmpty(value))

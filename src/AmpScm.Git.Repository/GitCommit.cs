@@ -49,8 +49,19 @@ namespace AmpScm.Git
             switch (type)
             {
                 case GitCommitSubBucket.MergeTag:
-                    GitTagObject tagOb = new GitTagObject(Repository, bucket, GitId.Zero(Id.Type));
+                    bucket = bucket.Buffer();
+                    long len = (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false)).Value;
+                    GitId? id = GitId.Zero(Id.Type);
+
+                    await (GitObjectType.Tag.CreateHeader(len) + bucket.NoClose())
+                        .GitHash(Repository.InternalConfig.IdType, v => id = v)
+                        .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                    bucket.Reset();
+
+                    GitTagObject tagOb = new GitTagObject(Repository, bucket, id);
+
                     await tagOb.ReadAsync().ConfigureAwait(false);
+
                     if (_mergeTags is null)
                         _mergeTags = new[] { tagOb };
                     else
@@ -59,8 +70,10 @@ namespace AmpScm.Git
                     break;
                 case GitCommitSubBucket.GpgSignature:
                 case GitCommitSubBucket.GpgSignatureSha256:
+                    using (var sig = new GpgLikeSignatureBucket(bucket))
+                        await sig.ReadUntilEofAsync().ConfigureAwait(false);
                     _hasSignature = true;
-                    goto default;
+                    break;
                 default:
                     using (bucket)
                         await bucket.ReadUntilEofAsync().ConfigureAwait(false);

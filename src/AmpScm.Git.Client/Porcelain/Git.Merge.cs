@@ -6,10 +6,18 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Git.Client.Porcelain
 {
+    public enum AllowAlwaysNever
+    {
+        Allow,
+        Always,
+        Never,
+    }
     public class GitMergeArgs : GitPorcelainArgs
     {
         public string? Message { get; set; }
         public bool AppendLog { get; set; }
+
+        public AllowAlwaysNever FastForward { get; set; }
 
         public override void Verify()
         {
@@ -41,10 +49,15 @@ namespace AmpScm.Git.Client.Porcelain
             if (options.AppendLog)
                 args.Add("--log");
 
+            if (options.FastForward == AllowAlwaysNever.Never)
+                args.Add("--no-ff");
+            else if (options.FastForward == AllowAlwaysNever.Always)
+                args.Add("--ff-only");
+
             if (!string.IsNullOrEmpty(options.Message))
             {
                 args.Add("-m");
-                args.Add(options.Message);
+                args.Add(options.Message!);
             }
 
             args.Add("--");

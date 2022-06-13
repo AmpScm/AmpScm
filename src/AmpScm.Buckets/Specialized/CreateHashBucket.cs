@@ -165,29 +165,23 @@ namespace AmpScm.Buckets.Specialized
             public override int HashSize => _crc.HashLengthInBytes * 8;
 #else
 
-            public const uint DefaultPolynomial = 0xedb88320u;
-            public const uint DefaultSeed = 0xffffffffu;
+            const uint DefaultPolynomial = 0xedb88320u;
+            const uint DefaultSeed = 0xffffffffu;
 
             static uint[]? defaultTable;
 
-            readonly uint seed;
             readonly uint[] table;
             uint hash;
 
             public Crc32()
-                : this(DefaultPolynomial, DefaultSeed)
             {
-            }
-
-            public Crc32(uint polynomial, uint seed)
-            {
-                table = InitializeTable(polynomial);
-                this.seed = hash = seed;
+                table = InitializeTable(DefaultPolynomial);
+                hash = DefaultSeed;
             }
 
             public override void Initialize()
             {
-                hash = seed;
+                hash = DefaultSeed;
             }
 
             protected override void HashCore(byte[] array, int ibStart, int cbSize)
@@ -203,21 +197,6 @@ namespace AmpScm.Buckets.Specialized
             }
 
             public override int HashSize => sizeof(int) * 8;
-
-            public static uint Compute(byte[] buffer)
-            {
-                return Compute(DefaultSeed, buffer);
-            }
-
-            public static uint Compute(uint seed, byte[] buffer)
-            {
-                return Compute(DefaultPolynomial, seed, buffer);
-            }
-
-            public static uint Compute(uint polynomial, uint seed, byte[] buffer)
-            {
-                return ~CalculateHash(InitializeTable(polynomial), seed, buffer, 0, buffer.Length);
-            }
 
             static uint[] InitializeTable(uint polynomial)
             {
@@ -252,6 +231,57 @@ namespace AmpScm.Buckets.Specialized
 #endif
 
             public static new Crc32 Create() => new();
+        }
+
+        internal sealed class Crc24 : HashAlgorithm
+        {
+            const uint DefaultPolynomial = 0x1864cfb;
+            const uint DefaultSeed = 0xb704ce;
+
+            uint hash;
+
+            public Crc24()
+            {
+                hash = DefaultSeed;
+            }
+
+            public override void Initialize()
+            {
+                hash = DefaultSeed;
+            }
+
+            protected override void HashCore(byte[] array, int ibStart, int cbSize)
+            {
+                hash = CalculateHash(hash, array, ibStart, cbSize);
+            }
+
+            protected override byte[] HashFinal()
+            {
+                var hashBuffer = BitConverter.GetBytes(hash);
+                HashValue = hashBuffer;
+                return hashBuffer;
+            }
+
+            public override int HashSize => sizeof(int) * 8;
+
+            static uint CalculateHash(uint seed, IList<byte> buffer, int start, int size)
+            {
+                var hash = seed;
+                for (var n = start; n < start + size; n++)
+                {
+                    hash ^= (uint)(buffer[n] << 16);
+                    for (int i = 0; i < 8; i++)
+                    {
+                        hash <<= 1;
+                        if (0 != (hash & 0x1000000))
+                            hash ^= DefaultPolynomial;
+                    }
+                }
+
+                return hash & 0xFFFFFF;
+            }
+
+            public static new Crc24 Create() => new();
         }
     }
 }

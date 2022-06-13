@@ -46,7 +46,7 @@ namespace AmpScm.Git.Client.Porcelain
             if (!string.IsNullOrEmpty(options.Message))
             {
                 args.Add("-m");
-                args.Add(options.Message);
+                args.Add(options.Message!);
             }
 
             if (paths?.Any() ?? false || (options.Only))
