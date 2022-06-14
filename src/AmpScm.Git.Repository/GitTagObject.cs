@@ -159,7 +159,7 @@ namespace AmpScm.Git
 
             while (true)
             {
-                var (bb, eol) = await _rb.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
+                var (bb, eol) = await _rb.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     break;
@@ -167,7 +167,7 @@ namespace AmpScm.Git
                 _message += bb.ToUTF8String(); // Includes EOL
             }
 
-            if (!(await _rb.ReadSignatureAsync().ConfigureAwait(false)).IsEmpty)
+            if (!(await _rb.ReadSignatureBytesAsync().ConfigureAwait(false)).IsEmpty)
                 _signed = true;
 
             _rb.Dispose();

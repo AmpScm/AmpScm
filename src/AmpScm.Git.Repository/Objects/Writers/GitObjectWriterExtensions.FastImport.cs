@@ -39,7 +39,7 @@ namespace AmpScm.Git.Objects
                     string follow;
                     while (true)
                     {
-                        (bb, eol) = await source.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
+                        (bb, eol) = await source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                         if (bb.IsEof)
                             return;
@@ -119,7 +119,7 @@ namespace AmpScm.Git.Objects
 
                                     id = await bw.WriteToAsync(repository).ConfigureAwait(false);
 
-                                    (bb, eol) = await source.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
+                                    (bb, eol) = await source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                                     if (bb.IsEof)
                                         return;
@@ -129,7 +129,7 @@ namespace AmpScm.Git.Objects
                             case "commit":
                                 using (body)
                                 {
-                                    string message = (await body.ReadFullAsync((int)len).ConfigureAwait(false)).ToUTF8String();
+                                    string message = (await body.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToUTF8String();
 
                                     var cw = await FillCommit(message, source, marks, repository).ConfigureAwait(false);
 
@@ -153,7 +153,7 @@ namespace AmpScm.Git.Objects
                             case "tag":
                                 using (body)
                                 {
-                                    string message = (await body.ReadFullAsync((int)len).ConfigureAwait(false)).ToUTF8String();
+                                    string message = (await body.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToUTF8String();
 
                                     string from = headers.Single(x => x.StartsWith("from ", StringComparison.Ordinal)).Substring(5);
                                     string tagger = headers.Single(x => x.StartsWith("tagger ", StringComparison.Ordinal)).Substring(7);
@@ -205,7 +205,7 @@ namespace AmpScm.Git.Objects
             GitTree? tree = null;
             while (true)
             {
-                var (bb, eol) = await source.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
+                var (bb, eol) = await source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     return gcw;

@@ -19,7 +19,7 @@ namespace AmpScm.Buckets.Git
         {
             if (!_header.HasValue)
             {
-                var bb = await Inner.ReadFullAsync(12).ConfigureAwait(false);
+                var bb = await Inner.ReadExactlyAsync(12).ConfigureAwait(false);
 
                 if (bb.Length != 12)
                     throw new BucketEofException(Inner);

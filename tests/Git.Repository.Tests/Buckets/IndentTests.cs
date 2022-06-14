@@ -22,11 +22,11 @@ namespace GitRepositoryTests.Buckets
 
             long l = (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false)).Value;
 
-            var bb = await bucket.ReadFullAsync(8192);
+            var bb = await bucket.ReadExactlyAsync(8192);
 
             Assert.AreEqual(bb.Length, (int)l);
 
-            bb = await innerBucket.ReadFullAsync(8192);
+            bb = await innerBucket.ReadExactlyAsync(8192);
 
             Assert.AreEqual(4, bb.Length);
         }

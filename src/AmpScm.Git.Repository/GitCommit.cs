@@ -70,13 +70,16 @@ namespace AmpScm.Git
                     break;
                 case GitCommitSubBucket.GpgSignature:
                 case GitCommitSubBucket.GpgSignatureSha256:
-                    using (var sig = new GpgLikeSignatureBucket(bucket))
+#if DEBUG
+                    using (var sig = new OpenPgpArmorBucket(bucket))
                         await sig.ReadUntilEofAsync().ConfigureAwait(false);
+#else
+                    await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+#endif
                     _hasSignature = true;
                     break;
                 default:
-                    using (bucket)
-                        await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                    await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                     break;
             }
         }
@@ -270,7 +273,7 @@ namespace AmpScm.Git
 
             while (true)
             {
-                var (bb, _) = await _rb.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
+                var (bb, _) = await _rb.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     break;

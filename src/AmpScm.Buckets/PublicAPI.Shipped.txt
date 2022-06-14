@@ -287,8 +287,8 @@ static AmpScm.Buckets.BucketExtensions.PollReadAsync(this AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.Prepend(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Bucket! newFirst) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.ReadBuffersAsync(this AmpScm.Buckets.Bucket! bucket, int maxRequested = 2146435071) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
 static AmpScm.Buckets.BucketExtensions.ReadCombinedAsync(this AmpScm.Buckets.Bucket! bucket, int bufferSize, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.BucketExtensions.ReadExactlyUntilEolAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
 static AmpScm.Buckets.BucketExtensions.ReadUntilAsync(this AmpScm.Buckets.Bucket! bucket, byte b) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.BucketExtensions.ReadUntilEolFullAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
 static AmpScm.Buckets.BucketExtensions.Skip(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.SkipExact(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.Take(this AmpScm.Buckets.Bucket! bucket, long limit, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
@@ -350,7 +350,7 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeEols(this
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeToUtf8(this AmpScm.Buckets.Bucket! bucket) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.NormalizeToUtf8(this AmpScm.Buckets.Bucket! bucket, System.Text.Encoding! fallbackEncoding) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadByteAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<byte?>
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadFullAsync(this AmpScm.Buckets.Bucket! bucket, int requested) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadExactlyAsync(this AmpScm.Buckets.Bucket! bucket, int requested) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadLength(this AmpScm.Buckets.Bucket! bucket, System.Action<long>! bytesRead) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkInt32Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<int>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkInt64Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>

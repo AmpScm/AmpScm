@@ -89,6 +89,13 @@ namespace AmpScm.Buckets.Specialized
             return new CreateHashBucket(bucket, CreateHashBucket.Crc32.Create(), (v) => created(BitConverter.ToInt32(v, 0)));
         }
 
+        /// <summary>
+        /// Wraps the bucket with a CRC24 calculator (RFC 4880) that reports the result on EOF
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="created"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static Bucket Crc24(this Bucket bucket, Action<int> created)
         {
             if (bucket is null)
@@ -289,7 +296,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
 
-        public static async ValueTask<BucketBytes> ReadFullAsync(this Bucket bucket, int requested)
+        public static async ValueTask<BucketBytes> ReadExactlyAsync(this Bucket bucket, int requested)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -395,7 +402,7 @@ namespace AmpScm.Buckets.Specialized
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            var bb = await bucket.ReadFullAsync(sizeof(int)).ConfigureAwait(false);
+            var bb = await bucket.ReadExactlyAsync(sizeof(int)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(int))
             {
@@ -445,7 +452,7 @@ namespace AmpScm.Buckets.Specialized
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            var bb = await bucket.ReadFullAsync(sizeof(uint)).ConfigureAwait(false);
+            var bb = await bucket.ReadExactlyAsync(sizeof(uint)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(uint))
             {
@@ -469,7 +476,7 @@ namespace AmpScm.Buckets.Specialized
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            var bb = await bucket.ReadFullAsync(sizeof(long)).ConfigureAwait(false);
+            var bb = await bucket.ReadExactlyAsync(sizeof(long)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(long))
             {
@@ -494,7 +501,7 @@ namespace AmpScm.Buckets.Specialized
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            var bb = await bucket.ReadFullAsync(sizeof(ulong)).ConfigureAwait(false);
+            var bb = await bucket.ReadExactlyAsync(sizeof(ulong)).ConfigureAwait(false);
 
             if (bb.Length != sizeof(ulong))
             {

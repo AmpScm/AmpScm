@@ -99,7 +99,7 @@ namespace AmpScm.Buckets.Git
 
             if (_lengthBits is null)
             {
-                var bb = await Inner.ReadFullAsync(4 + 4).ConfigureAwait(false);
+                var bb = await Inner.ReadExactlyAsync(4 + 4).ConfigureAwait(false);
                 _lengthBits = NetBitConverter.ToUInt32(bb, 0);
                 _compressedSize = NetBitConverter.ToInt32(bb, 4);
 
@@ -157,7 +157,7 @@ namespace AmpScm.Buckets.Git
                             return true;
                         }
 
-                        var bb = await Inner.ReadFullAsync(sizeof(ulong)).ConfigureAwait(false);
+                        var bb = await Inner.ReadExactlyAsync(sizeof(ulong)).ConfigureAwait(false);
 
                         if (bb.Length != sizeof(ulong))
                             throw new BucketEofException(Inner);

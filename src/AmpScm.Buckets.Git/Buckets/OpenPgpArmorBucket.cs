@@ -7,7 +7,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Git
 {
-    public class GpgLikeSignatureBucket : WrappingBucket
+    public class OpenPgpArmorBucket : WrappingBucket
     {
         SState _state;
         Bucket? _base64Decode;
@@ -22,7 +22,7 @@ namespace AmpScm.Buckets.Git
             Trailer,
             Eof
         }
-        public GpgLikeSignatureBucket(Bucket inner) : base(inner)
+        public OpenPgpArmorBucket(Bucket inner) : base(inner)
         {
         }
 
@@ -31,7 +31,7 @@ namespace AmpScm.Buckets.Git
             if (_state >= SState.Body)
                 return BucketBytes.Eof;
 
-            var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
 
             if (_state == SState.Init)
             {
@@ -40,7 +40,7 @@ namespace AmpScm.Buckets.Git
 
                 _state = SState.Headers;
 
-                (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
+                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
             }
 
             if (bb.IsEmpty || bb.TrimEnd(eol).IsEmpty)
@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Git
 
             while (_state > SState.Body && _state < SState.Eof)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     throw new BucketEofException(Inner);
@@ -114,13 +114,6 @@ namespace AmpScm.Buckets.Git
                 return false;
 
             bb = bb.Slice(11, bb.Length - 11 - 5 - eol.CharCount());
-
-            if (!bb.StartsWithASCII("PGP ")
-                && !bb.StartsWithASCII("SIGNED ")
-                && !bb.StartsWithASCII("SSH "))
-            {
-                return false;
-            }
 
             if (!bb.EndsWithASCII(" SIGNATURE")
                 && !bb.EndsWithASCII(" MESSAGE"))

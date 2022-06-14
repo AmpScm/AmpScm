@@ -53,7 +53,7 @@ namespace AmpScm.Git.References
                 GitRefPeel? last = null;
                 while(true)
                 {
-                    var (bb, eol) = await sr.ReadUntilEolFullAsync(BucketEol.LF).ConfigureAwait(false);
+                    var (bb, eol) = await sr.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                     if (bb.IsEof)
                         return;

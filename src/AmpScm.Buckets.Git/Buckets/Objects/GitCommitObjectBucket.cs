@@ -50,7 +50,7 @@ namespace AmpScm.Buckets.Git.Objects
             if (_treeId is not null)
                 return _treeId;
 
-            var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, null, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, null, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tree "))
                 throw new GitBucketException($"Expected 'tree' record at start of commit in '{Inner.Name}'");
@@ -77,7 +77,7 @@ namespace AmpScm.Buckets.Git.Objects
             }
 
             // Typically every commit has a parent, so optimize for that case
-            var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: ParentLineReadLength).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: ParentLineReadLength).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("parent "))
             {
@@ -91,7 +91,7 @@ namespace AmpScm.Buckets.Git.Objects
                 if (eol == BucketEol.None)
                 {
                     var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Inner);
-                    (bb, eol) = await authorBucket.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                    (bb, eol) = await authorBucket.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
                 }
 
                 _author = GitSignatureRecord.TryReadFromBucket(bb.Slice(eol), out var author) ? author : throw new GitBucketException($"Invalid author line in {Name} Bucket");
@@ -126,7 +126,7 @@ namespace AmpScm.Buckets.Git.Objects
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     return _parents = parents.Count > 0 ? parents.AsReadOnly() : Array.Empty<GitId>();
@@ -150,7 +150,7 @@ namespace AmpScm.Buckets.Git.Objects
                     if (eol == BucketEol.None)
                     {
                         var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Inner);
-                        (bb, eol) = await authorBucket.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                        (bb, eol) = await authorBucket.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
                     }
 
                     _author = GitSignatureRecord.TryReadFromBucket(bb.Slice(eol), out var author) ? author : throw new GitBucketException($"Invalid author line in {Name} Bucket");
@@ -168,7 +168,7 @@ namespace AmpScm.Buckets.Git.Objects
                 if (_parents is null || _parents is List<GitId>)
                     await ReadAllParentIdsAsync().ConfigureAwait(false);
 
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
                 if (bb.StartsWithASCII("author ")
                     && GitSignatureRecord.TryReadFromBucket(bb.Slice("author ".Length, eol), out var author))
@@ -189,7 +189,7 @@ namespace AmpScm.Buckets.Git.Objects
             else if (_author is null)
                 await ReadAuthorAsync().ConfigureAwait(false);
 
-            var (bb, eol) = await Inner.ReadUntilEolFullAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
             if (bb.IsEof
                 || eol == BucketEol.None
@@ -211,7 +211,7 @@ namespace AmpScm.Buckets.Git.Objects
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.LF, null).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, null).ConfigureAwait(false);
 
                 if (bb.IsEof || bb.Length <= eol.CharCount())
                     break;
@@ -230,23 +230,12 @@ namespace AmpScm.Buckets.Git.Objects
                         if (_handleSubBucket is not null)
                             await _handleSubBucket(GetEvent(parts[0]), sub).ConfigureAwait(false);
                         else
-                            using (sub)
-                                await sub.ReadUntilEofAsync().ConfigureAwait(false);
+                            await sub.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                         break;
                     case "encoding":
-                        //throw new NotImplementedException("Encoding not used yet");
                         break; // Ignored for now
 
                     default:
-                        //if (!char.IsWhiteSpace((char)bb[0]))
-                        //{
-                        //    _headers ??= new Dictionary<string, string>();
-                        //    if (_headers.TryGetValue(parts[0], out var v))
-                        //        _headers[parts[0]] = v + "\n" + parts[1];
-                        //    else
-                        //        _headers[parts[0]] = parts[1];
-                        //}
-                        //throw new NotImplementedException($"Unknown '{parts[0]}' header found");
                         break;
                 }
             }

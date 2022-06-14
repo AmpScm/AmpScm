@@ -504,7 +504,7 @@ namespace BucketTests
 
 
             var inner = compressedData.AsBucket();
-            var bb = await inner.Decompress(alg).ReadFullAsync(4096);
+            var bb = await inner.Decompress(alg).ReadExactlyAsync(4096);
 
             Assert.AreEqual(baseData.Length, bb.Length);
 
@@ -512,7 +512,7 @@ namespace BucketTests
 
             Assert.IsTrue(decompressed.SequenceEqual(baseData), "Same data after decompression");
 
-            bb = await inner.ReadFullAsync(4096);
+            bb = await inner.ReadExactlyAsync(4096);
             Assert.AreEqual(finishData.Length, bb.Length);
             Assert.IsTrue(bb.ToArray().SequenceEqual(finishData));
 

@@ -17,7 +17,7 @@ namespace AmpScm.Buckets.Git
                 throw new ArgumentNullException(nameof(bucket));
 
             int hl = type.HashLength();
-            var bb = await bucket.ReadFullAsync(hl).ConfigureAwait(false);
+            var bb = await bucket.ReadExactlyAsync(hl).ConfigureAwait(false);
 
             if (bb.Length == hl)
                 return new GitId(type, bb.ToArray());

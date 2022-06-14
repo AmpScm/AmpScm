@@ -30,7 +30,7 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
         {
             var b = Bucket.Create.FromASCII(sig1);
 
-            using var sr = new GpgLikeSignatureBucket(b);
+            using var sr = new OpenPgpArmorBucket(b);
 
             while(true)
             {
@@ -39,7 +39,7 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
                     break;
             }
 
-            var dt = await sr.ReadFullAsync(Bucket.MaxRead);
+            var dt = await sr.ReadExactlyAsync(Bucket.MaxRead);
         }
 
         [TestMethod]
@@ -47,7 +47,7 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
         {
             var b = Bucket.Create.FromASCII(sig1 + Environment.NewLine + "TAIL!");
 
-            using var sr = new GpgLikeSignatureBucket(b);
+            using var sr = new OpenPgpArmorBucket(b);
 
             while (true)
             {
@@ -56,9 +56,9 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
                     break;
             }
 
-            var dt = await sr.ReadFullAsync(Bucket.MaxRead);
+            var dt = await sr.ReadExactlyAsync(Bucket.MaxRead);
 
-            var bt = await b.ReadFullAsync(1024);
+            var bt = await b.ReadExactlyAsync(1024);
             Assert.AreEqual("TAIL!", bt.ToASCIIString());
         }
     }

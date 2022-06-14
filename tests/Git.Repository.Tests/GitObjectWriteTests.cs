@@ -498,7 +498,7 @@ namespace GitRepositoryTests
 
                     await b.SeekAsync(r.Next(sz));
 
-                    await b.ReadFullAsync(Bucket.MaxRead);
+                    await b.ReadExactlyAsync(Bucket.MaxRead);
                 }
             }
         }

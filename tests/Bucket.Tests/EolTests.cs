@@ -153,14 +153,14 @@ namespace BucketTests
         [TestMethod]
         public async Task ReadEolsFull()
         {
-            var (bb, eol) = await MakeBucket("abc\nabc").ReadUntilEolFullAsync(BucketEol.LF, new BucketEolState());
+            var (bb, eol) = await MakeBucket("abc\nabc").ReadExactlyUntilEolAsync(BucketEol.LF, new BucketEolState());
 
             Assert.AreEqual(4, bb.Length);
             Assert.AreEqual("abc\n", bb.ToASCIIString());
             Assert.AreEqual("abc", bb.ToASCIIString(eol));
             Assert.AreEqual(BucketEol.LF, eol);
 
-            (bb, eol) = await MakeBucket("abc\0abc").ReadUntilEolFullAsync(BucketEol.Zero, new BucketEolState());
+            (bb, eol) = await MakeBucket("abc\0abc").ReadExactlyUntilEolAsync(BucketEol.Zero, new BucketEolState());
 
             Assert.AreEqual(4, bb.Length);
             Assert.AreEqual("abc", bb.ToASCIIString(eol));
@@ -168,18 +168,18 @@ namespace BucketTests
 
             var b = MakeBucket("a", "b", "c", "\0a", "bc", "d\0a", "b", "c", "\0", "a");
 
-            (bb, eol) = await b.ReadUntilEolFullAsync(BucketEol.Zero, new BucketEolState());
+            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, new BucketEolState());
 
             Assert.AreEqual(4, bb.Length);
             Assert.AreEqual("abc", bb.ToASCIIString(eol));
             Assert.AreEqual(BucketEol.Zero, eol);
 
-            (bb, eol) = await b.ReadUntilEolFullAsync(BucketEol.Zero, new BucketEolState());
+            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, new BucketEolState());
             Assert.AreEqual(5, bb.Length);
             Assert.AreEqual("abcd", bb.ToASCIIString(eol));
             Assert.AreEqual(BucketEol.Zero, eol);
 
-            (bb, eol) = await b.ReadUntilEolFullAsync(BucketEol.Zero, new BucketEolState());
+            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, new BucketEolState());
 
             Assert.AreEqual(4, bb.Length);
             Assert.AreEqual("abc", bb.ToASCIIString(eol));
@@ -190,7 +190,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.Zero, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.Zero, state);
 
                 if (bb.IsEof)
                     break;
@@ -210,7 +210,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.AnyEol, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
 
                 if (bb.IsEof)
                     break;
@@ -225,7 +225,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.AnyEol, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
 
                 if (bb.IsEof)
                     break;
@@ -243,7 +243,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.AnyEol, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
 
                 if (bb.IsEof)
                     break;
@@ -261,7 +261,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.AnyEol, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
 
                 if (bb.IsEof)
                     break;
@@ -279,7 +279,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.AnyEol | BucketEol.Zero, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol | BucketEol.Zero, state);
 
                 if (bb.IsEof)
                     break;
@@ -305,7 +305,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                var (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.AnyEol, state);
+                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
 
                 if (bb.IsEof)
                     break;
@@ -324,7 +324,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                var (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.AnyEol, state);
+                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
 
                 if (bb.IsEof)
                     break;
@@ -343,7 +343,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                var (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.CRLF | BucketEol.Zero, state);
+                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.Zero, state);
 
                 if (bb.IsEof)
                     break;
@@ -362,7 +362,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                var (bb, eol) = await r.ReadUntilEolFullAsync(BucketEol.CR, state);
+                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.CR, state);
 
                 if (bb.IsEof)
                     break;
@@ -396,7 +396,7 @@ namespace BucketTests
                                     var expected = Escape(tst.Insert(n2, "|").Insert(n1, "|"));
                                     while (true)
                                     {
-                                        var (bb, eol) = await r.ReadUntilEolFullAsync(acceptableEols, state);
+                                        var (bb, eol) = await r.ReadExactlyUntilEolAsync(acceptableEols, state);
 
                                         if (bb.IsEof)
                                             break;
@@ -500,7 +500,7 @@ namespace BucketTests
             string Apply(string tst, BucketEol acceptedEols = BucketEol.AnyEol)
             {
                 var r = MakeBucket(tst).NormalizeEols(acceptedEols);
-                var bb = r.ReadFullAsync(256).AsTask().Result;
+                var bb = r.ReadExactlyAsync(256).AsTask().Result;
 
                 return bb.ToUTF8String();
             }
@@ -508,7 +508,7 @@ namespace BucketTests
             string Apply2(string[] tst, BucketEol acceptedEols = BucketEol.AnyEol)
             {
                 var r = MakeBucket(tst).NormalizeEols(acceptedEols);
-                var bb = r.ReadFullAsync(256).AsTask().Result;
+                var bb = r.ReadExactlyAsync(256).AsTask().Result;
 
                 return bb.ToUTF8String();
             }
@@ -589,7 +589,7 @@ namespace BucketTests
             using var b = encodedBytes.AsBucket();
 
             // This wil test the peaking
-            var bb = await b.NormalizeToUtf8().ReadFullAsync(1024);
+            var bb = await b.NormalizeToUtf8().ReadExactlyAsync(1024);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
 
             if (enc is UnicodeEncoding u && !u.GetPreamble().Any())
@@ -597,7 +597,7 @@ namespace BucketTests
 
             // This will check the byte reading
             BucketBytes ec = encodedBytes;
-            bb = await (ec.Slice(0, 1).ToArray().AsBucket() + ec.Slice(1).ToArray().AsBucket()).NormalizeToUtf8().ReadFullAsync(1024);
+            bb = await (ec.Slice(0, 1).ToArray().AsBucket() + ec.Slice(1).ToArray().AsBucket()).NormalizeToUtf8().ReadExactlyAsync(1024);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
         }
 
@@ -609,7 +609,7 @@ namespace BucketTests
             var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
             using var b = encodedBytes.AsBucket();
 
-            var bb = await b.ConvertToUtf8(enc).ReadFullAsync(1024);
+            var bb = await b.ConvertToUtf8(enc).ReadExactlyAsync(1024);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
         }
 
@@ -627,14 +627,14 @@ namespace BucketTests
 
                 var b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
 
-                BucketBytes bb = await b.ConvertToUtf8(enc).ReadFullAsync(1024);
+                BucketBytes bb = await b.ConvertToUtf8(enc).ReadExactlyAsync(1024);
                 Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Convert Iteration {i}");
 
                 if (enc is UnicodeEncoding u && !u.GetPreamble().Any())
                     continue; // Unicode without preamble not detectable without scan via .Peek()
 
                 b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
-                bb = await b.NormalizeToUtf8().ReadFullAsync(1024);
+                bb = await b.NormalizeToUtf8().ReadExactlyAsync(1024);
                 Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Normalize Iteration {i}");
             }
         }
@@ -652,11 +652,11 @@ namespace BucketTests
 
                 var b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
 
-                BucketBytes bb = await b.ConvertToUtf8(enc).ReadFullAsync(1024);
+                BucketBytes bb = await b.ConvertToUtf8(enc).ReadExactlyAsync(1024);
                 Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Convert Iteration {i}");
 
                 b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
-                bb = await b.NormalizeToUtf8().ReadFullAsync(1024);
+                bb = await b.NormalizeToUtf8().ReadExactlyAsync(1024);
                 Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Normalize Iteration {i}");
             }
         }

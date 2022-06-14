@@ -160,7 +160,7 @@ namespace AmpScm.Buckets.Client.Buckets
         private async ValueTask<WebHeaderDictionary> ReadHeaderSet()
         {
             WebHeaderDictionary whc = new WebHeaderDictionary();
-            var (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(ResponseEol).ConfigureAwait(false);
             while (bb.Length - eol.CharCount() > 0)
             {
                 var parts = bb.Split((byte)':', 2);
@@ -173,7 +173,7 @@ namespace AmpScm.Buckets.Client.Buckets
 
                 whc[key] = value;
 
-                (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
+                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(ResponseEol).ConfigureAwait(false);
             }
 
             return whc;
@@ -186,11 +186,11 @@ namespace AmpScm.Buckets.Client.Buckets
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(ResponseEol).ConfigureAwait(false);
 
                 if (_readEol && bb.IsEmpty(eol) && eol == BucketEol.CRLF)
                 {
-                    (bb, eol) = await Inner.ReadUntilEolFullAsync(ResponseEol).ConfigureAwait(false);
+                    (bb, eol) = await Inner.ReadExactlyUntilEolAsync(ResponseEol).ConfigureAwait(false);
                 }
 
                 var parts = bb.Split((byte)' ', 3);
@@ -347,8 +347,7 @@ namespace AmpScm.Buckets.Client.Buckets
 
             var (reader, noClose) = GetBodyReader(headers);
 
-            using (reader)
-                await reader.ReadUntilEofAsync().ConfigureAwait(false);
+            await reader.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
 
             _readEol = (reader is HttpDechunkBucket);
 

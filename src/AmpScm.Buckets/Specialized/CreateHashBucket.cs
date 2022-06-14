@@ -130,52 +130,14 @@ namespace AmpScm.Buckets.Specialized
         /// </remarks>
         internal sealed class Crc32 : HashAlgorithm
         {
-#if NET6_0_OR_GREATER
-            readonly System.IO.Hashing.Crc32 _crc = new();
-            byte[] _hash = default!;
-
-            public override void Initialize()
-            {
-                //throw new NotImplementedException();
-            }
-
-            public override bool CanReuseTransform => true;
-
-            public override bool CanTransformMultipleBlocks => true;
-
-            public override byte[]? Hash => _hash;
-
-            protected override void HashCore(byte[] array, int ibStart, int cbSize)
-            {
-                _crc.Append(array.AsSpan(ibStart, cbSize));
-            }
-
-            protected override byte[] HashFinal()
-            {
-                byte[] result = new byte[_crc.HashLengthInBytes];
-
-                if (_crc.TryGetHashAndReset(result, out var bw))
-                {
-                    return _hash = result;
-                }
-
-                throw new InvalidOperationException();
-            }
-
-            public override int HashSize => _crc.HashLengthInBytes * 8;
-#else
-
             const uint DefaultPolynomial = 0xedb88320u;
             const uint DefaultSeed = 0xffffffffu;
 
-            static uint[]? defaultTable;
-
-            readonly uint[] table;
+            static readonly uint[] _table = InitializeTable();
             uint hash;
 
             public Crc32()
             {
-                table = InitializeTable(DefaultPolynomial);
                 hash = DefaultSeed;
             }
 
@@ -186,7 +148,7 @@ namespace AmpScm.Buckets.Specialized
 
             protected override void HashCore(byte[] array, int ibStart, int cbSize)
             {
-                hash = CalculateHash(table, hash, array, ibStart, cbSize);
+                hash = CalculateHash(hash, array, ibStart, cbSize);
             }
 
             protected override byte[] HashFinal()
@@ -198,37 +160,30 @@ namespace AmpScm.Buckets.Specialized
 
             public override int HashSize => sizeof(int) * 8;
 
-            static uint[] InitializeTable(uint polynomial)
+            static uint[] InitializeTable()
             {
-                if (polynomial == DefaultPolynomial && defaultTable != null)
-                    return defaultTable;
-
                 var createTable = new uint[256];
                 for (var i = 0; i < 256; i++)
                 {
                     var entry = (uint)i;
                     for (var j = 0; j < 8; j++)
                         if ((entry & 1) == 1)
-                            entry = (entry >> 1) ^ polynomial;
+                            entry = (entry >> 1) ^ DefaultPolynomial;
                         else
                             entry >>= 1;
                     createTable[i] = entry;
                 }
 
-                if (polynomial == DefaultPolynomial)
-                    defaultTable = createTable;
-
                 return createTable;
             }
 
-            static uint CalculateHash(uint[] table, uint seed, IList<byte> buffer, int start, int size)
+            static uint CalculateHash(uint seed, Span<byte> buffer, int start, int size)
             {
                 var hash = seed;
                 for (var i = start; i < start + size; i++)
-                    hash = (hash >> 8) ^ table[buffer[i] ^ hash & 0xff];
+                    hash = (hash >> 8) ^ _table[buffer[i] ^ hash & 0xff];
                 return hash;
             }
-#endif
 
             public static new Crc32 Create() => new();
         }
@@ -262,9 +217,9 @@ namespace AmpScm.Buckets.Specialized
                 return hashBuffer;
             }
 
-            public override int HashSize => sizeof(int) * 8;
+            public override int HashSize => 3 * 8;
 
-            static uint CalculateHash(uint seed, IList<byte> buffer, int start, int size)
+            static uint CalculateHash(uint seed, Span<byte> buffer, int start, int size)
             {
                 var hash = seed;
                 for (var n = start; n < start + size; n++)

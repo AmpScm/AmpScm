@@ -125,7 +125,7 @@ namespace AmpScm.Buckets.Git
 
                     if (want > 0)
                     {
-                        data = await Inner.ReadFullAsync(want).ConfigureAwait(false);
+                        data = await Inner.ReadExactlyAsync(want).ConfigureAwait(false);
 
                         if (data.Length < want)
                             throw new BucketEofException(Inner);

@@ -46,7 +46,7 @@ namespace AmpScm.Buckets.Specialized
             if (!bb.IsEof)
                 return bb;
 
-            bb = await ((ZLibBucket)Inner).GetInner().ReadFullAsync(8).ConfigureAwait(false);
+            bb = await ((ZLibBucket)Inner).GetInner().ReadExactlyAsync(8).ConfigureAwait(false);
 
             if (bb.Length != 8)
                 throw new BucketEofException(this);
@@ -63,7 +63,7 @@ namespace AmpScm.Buckets.Specialized
 
         private async ValueTask ReadHeader()
         {
-            var bb = await ((ZLibBucket)Inner).GetInner().ReadFullAsync(10).ConfigureAwait(false);
+            var bb = await ((ZLibBucket)Inner).GetInner().ReadExactlyAsync(10).ConfigureAwait(false);
 
             if (bb.Length == 0)
             {

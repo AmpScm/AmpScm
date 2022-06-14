@@ -160,7 +160,7 @@ namespace AmpScm.Buckets.Git
         {
             if (_version > 0)
                 return;
-            var bb = await Inner.ReadFullAsync(12).ConfigureAwait(false);
+            var bb = await Inner.ReadExactlyAsync(12).ConfigureAwait(false);
 
             if (!bb.StartsWithASCII("DIRC"))
                 throw new GitBucketException($"No Directory cache in {Name} bucket");
@@ -246,7 +246,7 @@ namespace AmpScm.Buckets.Git
 
             int hashLen = _idType.HashLength();
             int readLen = 40 + 2 + hashLen;
-            var bb = await Inner.ReadFullAsync(readLen).ConfigureAwait(false);
+            var bb = await Inner.ReadExactlyAsync(readLen).ConfigureAwait(false);
 
             if (bb.Length != readLen)
                 throw new BucketEofException(Inner);
@@ -278,7 +278,7 @@ namespace AmpScm.Buckets.Git
             int FullFlags = src.Flags;
             if ((src.Flags & 0x4000) != 0 && _version >= 3) // Must be 0 in version 2
             {
-                bb = await Inner.ReadFullAsync(2).ConfigureAwait(false);
+                bb = await Inner.ReadExactlyAsync(2).ConfigureAwait(false);
 
                 if (bb.Length != 2)
                     throw new BucketEofException(Inner);
@@ -288,7 +288,7 @@ namespace AmpScm.Buckets.Git
 
             if (_version < 4)
             {
-                var (name, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero).ConfigureAwait(false);
+                var (name, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
                     throw new BucketEofException(Inner);
@@ -313,7 +313,7 @@ namespace AmpScm.Buckets.Git
             else
             {
                 int drop = (int)await Inner.ReadGitDeltaOffsetAsync().ConfigureAwait(false);
-                var (name, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero).ConfigureAwait(false);
+                var (name, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
                     throw new BucketEofException(Inner);
@@ -513,7 +513,7 @@ namespace AmpScm.Buckets.Git
 
                 while (reader.Position < bucketEnd)
                 {
-                    var bb = await reader.ReadFullAsync(4 + 4).ConfigureAwait(false);
+                    var bb = await reader.ReadExactlyAsync(4 + 4).ConfigureAwait(false);
 
                     if (bb.Length != 4 + 4)
                         throw new BucketEofException(Inner);

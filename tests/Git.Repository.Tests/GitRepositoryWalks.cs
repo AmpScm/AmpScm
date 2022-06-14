@@ -296,7 +296,7 @@ namespace GitRepositoryTests
 
                         using (var b = ((GitBlob)item.GitObject).AsBucket())
                         {
-                            var bb = await b.ReadFullAsync(1024);
+                            var bb = await b.ReadExactlyAsync(1024);
 
                             var target = bb.ToUTF8String();
 

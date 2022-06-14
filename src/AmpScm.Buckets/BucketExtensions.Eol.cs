@@ -22,7 +22,7 @@ namespace AmpScm.Buckets
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
 #endif
-        public static async ValueTask<(BucketBytes, BucketEol)> ReadUntilEolFullAsync(this Bucket bucket, BucketEol acceptableEols, BucketEolState? eolState = null, int requested = Bucket.MaxRead)
+        public static async ValueTask<(BucketBytes, BucketEol)> ReadExactlyUntilEolAsync(this Bucket bucket, BucketEol acceptableEols, BucketEolState? eolState = null, int requested = Bucket.MaxRead)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));

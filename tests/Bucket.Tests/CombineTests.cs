@@ -107,12 +107,12 @@ namespace BucketTests
         [TestMethod]
         public async Task TakeSkipTests()
         {
-            var bb = await new byte[128].AsBucket().Take(130).ReadFullAsync(200);
+            var bb = await new byte[128].AsBucket().Take(130).ReadExactlyAsync(200);
             Assert.AreEqual(128, bb.Length);
 
             try
             {
-                bb = await new byte[128].AsBucket().TakeExact(130).ReadFullAsync(200);
+                bb = await new byte[128].AsBucket().TakeExact(130).ReadExactlyAsync(200);
                 Assert.Fail("Expected eof exception");
             }
             catch(BucketEofException)
@@ -120,14 +120,14 @@ namespace BucketTests
             }
 
 
-            bb = await new byte[128].AsBucket().Skip(130).ReadFullAsync(200);
+            bb = await new byte[128].AsBucket().Skip(130).ReadExactlyAsync(200);
             Assert.AreEqual(0, bb.Length);
             Assert.IsTrue(bb.IsEof);
             Assert.IsTrue(bb.IsEmpty);
 
             try
             {
-                bb = await new byte[128].AsBucket().SkipExact(130).ReadFullAsync(200);
+                bb = await new byte[128].AsBucket().SkipExact(130).ReadExactlyAsync(200);
                 Assert.Fail("Expected eof exception");
             }
             catch (BucketEofException)

@@ -103,7 +103,7 @@ namespace AmpScm.Buckets.Git
 
             if (!_length.HasValue)
             {
-                var (bb, eol) = await Inner.ReadUntilEolFullAsync(BucketEol.Zero, requested: MaxReadForHeader).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero, requested: MaxReadForHeader).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
                     throw new BucketException($"Expected '\\0' within first {MaxReadForHeader} characters of '{Inner.Name}'");

@@ -38,10 +38,6 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
   </ItemGroup>
   
-  <ItemGroup Condition=" '$(TargetFramework)' != 'net47' and '$(TargetFramework)' != 'net48' and '$(TargetFramework)' != 'netcoreapp3.1' ">
-    <PackageReference Include="System.IO.Hashing" Version="6.0.1" />
-  </ItemGroup>
-  
   <ItemGroup>
     <PackageReference Include="zlib.managed" Version="1.1.4" />
   </ItemGroup>

@@ -25,7 +25,7 @@ namespace GitRepositoryTests
             var fb = FileBucket.OpenRead(bmpFile);
 
 
-            var headers = await fb.ReadFullAsync(32); // Skip headers
+            var headers = await fb.ReadExactlyAsync(32); // Skip headers
 
             uint count = NetBitConverter.ToUInt32(headers, 8);
 
@@ -77,7 +77,7 @@ namespace GitRepositoryTests
 
                 Assert.AreEqual(expectedBytes, (int)p, "ReadRemaining returned expected value");
 
-                var bb = await ewah.ReadFullAsync(65536);
+                var bb = await ewah.ReadExactlyAsync(65536);
 
                 Assert.AreEqual(expectedBytes, bb.Length, $"Read {bb.Length}, expected {bitLengths[i]} bits, what would be {(bitLengths[i] + 7) / 8} bytes, or {expectedBytes} bytes when reading longs");
 
@@ -103,7 +103,7 @@ namespace GitRepositoryTests
             var fb = FileBucket.OpenRead(bmpFile);
 
 
-            var headers = await fb.ReadFullAsync(32); // Skip headers
+            var headers = await fb.ReadExactlyAsync(32); // Skip headers
 
             uint count = NetBitConverter.ToUInt32(headers, 8);
 
@@ -129,7 +129,7 @@ namespace GitRepositoryTests
             int maxBits = buckets.Max(x => x.ReadBitLengthAsync().AsTask().Result);
 
             Assert.AreEqual(2369, maxBits);
-            var bb = await allXor.ReadFullAsync((maxBits + 7) / 8);
+            var bb = await allXor.ReadExactlyAsync((maxBits + 7) / 8);
 
             for (int i = 0; i < bb.Length - 1; i++)
             {
