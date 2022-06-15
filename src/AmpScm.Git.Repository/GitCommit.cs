@@ -44,11 +44,11 @@ namespace AmpScm.Git
             _rb = new GitCommitObjectBucket(objectReader, HandleCommitBucket);
         }
 
-        private async ValueTask HandleCommitBucket(GitCommitSubBucket type, Bucket bucket)
+        private async ValueTask HandleCommitBucket(GitSubBucketType type, Bucket bucket)
         {
             switch (type)
             {
-                case GitCommitSubBucket.MergeTag:
+                case GitSubBucketType.MergeTag:
                     bucket = bucket.Buffer();
                     long len = (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false)).Value;
                     GitId? id = GitId.Zero(Id.Type);
@@ -68,8 +68,8 @@ namespace AmpScm.Git
                         _mergeTags.ArrayAppend(tagOb);
 
                     break;
-                case GitCommitSubBucket.GpgSignature:
-                case GitCommitSubBucket.GpgSignatureSha256:
+                case GitSubBucketType.Signature:
+                case GitSubBucketType.SignatureSha256:
 #if DEBUG
                     using (var sig = new Radix64ArmorBucket(bucket))
                         await sig.ReadUntilEofAsync().ConfigureAwait(false);

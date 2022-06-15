@@ -24,10 +24,18 @@ namespace AmpScm.Buckets.Git.Objects
         bool _readHeaders;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         byte[]? _signature;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        readonly Func<GitSubBucketType, Bucket, ValueTask>? _handleSubBucket;
 
         public GitTagObjectBucket(Bucket inner)
+            : this(inner, null)
+        {
+        }
+
+        public GitTagObjectBucket(Bucket inner, Func<GitSubBucketType, Bucket, ValueTask>? handleSubBucket)
             : base(inner)
         {
+            _handleSubBucket = handleSubBucket;
         }
 
         const BucketEol AcceptedEols = BucketEol.LF;
@@ -167,12 +175,19 @@ namespace AmpScm.Buckets.Git.Objects
 
                 if (Radix64ArmorBucket.IsHeader(bb, eol))
                 {
-                    using var sig = new Radix64ArmorBucket(bb.ToArray().AsBucket() + Inner.NoClose());
+                    var src = bb.ToArray().AsBucket() + Inner.NoClose();
+                    if (_handleSubBucket != null)
+                    {
+                        await _handleSubBucket(GitSubBucketType.Signature, src).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        using var sig = new Radix64ArmorBucket(src);
 
-                    bb = await sig.ReadExactlyAsync(8192).ConfigureAwait(false);
+                        bb = await sig.ReadExactlyAsync(8192).ConfigureAwait(false);
 
-                    _signature = bb.ToArray();
-
+                        _signature = bb.ToArray();
+                    }
                     continue;
                 }
                 else

@@ -9,13 +9,7 @@ using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git.Objects
-{
-    public enum GitCommitSubBucket
-    {
-        MergeTag,
-        GpgSignature,
-        GpgSignatureSha256
-    }
+{    
     public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -29,14 +23,14 @@ namespace AmpScm.Buckets.Git.Objects
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _readHeaders;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly Func<GitCommitSubBucket, Bucket, ValueTask>? _handleSubBucket;
+        readonly Func<GitSubBucketType, Bucket, ValueTask>? _handleSubBucket;
 
         public GitCommitObjectBucket(Bucket inner)
             : this(inner, null)
         {
         }
 
-        public GitCommitObjectBucket(Bucket inner, Func<GitCommitSubBucket, Bucket, ValueTask>? handleSubBucket)
+        public GitCommitObjectBucket(Bucket inner, Func<GitSubBucketType, Bucket, ValueTask>? handleSubBucket)
             : base(inner)
         {
             _handleSubBucket = handleSubBucket;
@@ -243,12 +237,12 @@ namespace AmpScm.Buckets.Git.Objects
             _readHeaders = true;
         }
 
-        static GitCommitSubBucket GetEvent(string key) =>
+        static GitSubBucketType GetEvent(string key) =>
             key switch
             {
-                "mergetag" => GitCommitSubBucket.MergeTag,
-                "gpgsig" => GitCommitSubBucket.GpgSignature,
-                "gpgsig-sha256" => GitCommitSubBucket.GpgSignatureSha256,
+                "mergetag" => GitSubBucketType.MergeTag,
+                "gpgsig" => GitSubBucketType.Signature,
+                "gpgsig-sha256" => GitSubBucketType.SignatureSha256,
                 _ => throw new NotImplementedException()
             };
 

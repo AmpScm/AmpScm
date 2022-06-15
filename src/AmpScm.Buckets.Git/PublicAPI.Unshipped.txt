@@ -1,5 +1,6 @@
 ﻿#nullable enable
 abstract AmpScm.Buckets.Git.GitObjectBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Git.Buckets.GitSubObjectType
 AmpScm.Buckets.Git.GitDirectoryBucket
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Git.GitDirectoryOptions? options) -> void
@@ -55,11 +56,12 @@ AmpScm.Buckets.Git.GitLineIndentBucket
 AmpScm.Buckets.Git.GitLineIndentBucket.GitLineIndentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
 AmpScm.Buckets.Git.GitLineUnindentBucket
 AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
-AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitCommitSubBucket, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
-AmpScm.Buckets.Git.Objects.GitCommitSubBucket
-AmpScm.Buckets.Git.Objects.GitCommitSubBucket.GpgSignature = 1 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
-AmpScm.Buckets.Git.Objects.GitCommitSubBucket.GpgSignatureSha256 = 2 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
-AmpScm.Buckets.Git.Objects.GitCommitSubBucket.MergeTag = 0 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
+AmpScm.Buckets.Git.Objects.GitSubBucketType
+AmpScm.Buckets.Git.Objects.GitSubBucketType.MergeTag = 0 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
+AmpScm.Buckets.Git.Objects.GitSubBucketType.Signature = 1 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
+AmpScm.Buckets.Git.Objects.GitSubBucketType.SignatureSha256 = 2 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadSignatureBytesAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Git.Radix64ArmorBucket
 AmpScm.Buckets.Git.Radix64ArmorBucket.Radix64ArmorBucket(AmpScm.Buckets.Bucket! inner) -> void

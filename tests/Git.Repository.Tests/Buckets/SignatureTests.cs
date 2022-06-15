@@ -178,24 +178,81 @@ Pull MTD fixes from Miquel Raynal:
         {
             var src = Bucket.Create.FromASCII(mergetag.Replace("\r",""));
             bool readTag = false;
+            bool readSig = false;
+
+            using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
+
+            await commitReader.ReadUntilEofAsync();
+
+            Assert.IsTrue(readTag, "Read tag");
+            Assert.IsTrue(readSig, "Read signature");
+
+            async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
+            {
+                if (subBucket == GitSubBucketType.MergeTag)
+                {
+                    using var gto = new GitTagObjectBucket(bucket, handleSubBucket);
+
+                    await gto.ReadUntilEofAsync();
+                    readTag = true;
+                }
+                else if (subBucket == GitSubBucketType.Signature)
+                {
+                    using var gto = new Radix64ArmorBucket(bucket);
+
+                    await gto.ReadUntilEofAsync();
+                    readSig = true;
+                }
+                else
+                    await bucket.ReadUntilEofAndCloseAsync();
+            }
+        }
+
+        const string signedCommit =
+@"tree 49bf90d07df60ac5c9ebdede5547f4a733d013cd
+parent 05f211543bda96ba86bef14e8e6521069fb77797
+parent cdff2f0237f663e0f68155655a8b66d05c1ec716
+author Edward Thomson <ethomson@edwardthomson.com> 1655172877 -0400
+committer GitHub <noreply@github.com> 1655172877 -0400
+gpgsig -----BEGIN PGP SIGNATURE-----
+ 
+ wsBcBAABCAAQBQJip+8NCRBK7hj4Ov3rIwAAw9cIACWyL7ApK82WkscXLl60uOqK
+ o1B6DFIaQfg9DyFPpIb0QU+SPaPBlLNbYgck0tJFbL2fzIBPyLBxeVXUsKFuVv2D
+ J1ATvZGniAIIDHAFjyJFpA4z6PKocIKFZbWQ1tw8tRkH9Ta6BWuhUsHwsSFpgd+s
+ CojqKYcAV4+xDgb+ZE2JJJJ0ma8QkJi4JKymGJCVljG+a3myQ+3OyN12++AQk80q
+ ldCOcdpTuFrXatsvv+ECvOjIA445Hlinfosa7zpXKw4DtUZx3lZYf+oYtTIWcMYb
+ 78iolJ8qzZVJJUpq94qM+Dd/e057cvEj9CeiBMoXK2VOXOxj/BBVXjHYPq0gtv4=
+ =5cT+
+ -----END PGP SIGNATURE-----
+ 
+
+Merge pull request #6321 from libgit2/ethomson/ownership
+
+repo: allow administrator to own the configuration";
+        [TestMethod]
+        public async Task ReadSignedCommit()
+        {
+            var src = Bucket.Create.FromASCII(signedCommit.Replace("\r", ""));
+            bool readGpg = false;
 
             using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
 
 
             await commitReader.ReadUntilEofAsync();
 
-            Assert.IsTrue(readTag);
+            Assert.IsTrue(readGpg);
 
 
-            async ValueTask handleSubBucket(GitCommitSubBucket subBucket, Bucket bucket)
+            async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
             {
-                if (subBucket != GitCommitSubBucket.MergeTag)
+                if (subBucket != GitSubBucketType.Signature)
                     await bucket.ReadUntilEofAndCloseAsync();
 
-                using var gto = new GitTagObjectBucket(bucket);
+                var rdx = new Radix64ArmorBucket(bucket);
+                using var gpg = new OpenPgpSignatureBucket(rdx);
 
-                await gto.ReadUntilEofAsync();
-                readTag = true;
+                await gpg.ReadUntilEofAsync();
+                readGpg = true;
             }
         }
     }
