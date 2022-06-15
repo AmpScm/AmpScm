@@ -108,7 +108,7 @@ namespace AmpScm.Git.Objects
                     long len = Convert.ToInt64(bb.Slice(5).ToASCIIString(eol), 10);
 
                     {
-                        Bucket body = source.TakeExact(len).NoClose();
+                        Bucket body = source.TakeExactly(len).NoClose();
                         GitId? id = null;
 
                         switch (type)

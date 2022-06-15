@@ -38,7 +38,7 @@ namespace AmpScm.Buckets.Git.Objects
             if (_objectId is not null)
                 return (_objectId, _type);
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, null, 7 /* "object " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, 7 /* "object " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("object "))
                 throw new GitBucketException($"Expected 'object' record at start of tag in '{Inner.Name}'");
@@ -48,7 +48,7 @@ namespace AmpScm.Buckets.Git.Objects
             else
                 throw new GitBucketException($"Expected valid 'object' record at start of tag in '{Inner.Name}'");
 
-            (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, null, 5 /* "type " */ + 6 /* "commit" */ + 2 /* ALL EOL */).ConfigureAwait(false);
+            (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "type " */ + 6 /* "commit" */ + 2 /* ALL EOL */, null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("type "))
             {
@@ -80,7 +80,7 @@ namespace AmpScm.Buckets.Git.Objects
             if (_objectId is null)
                 await ReadObjectIdAsync().ConfigureAwait(false);
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, null, MaxHeader).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, MaxHeader, null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tag "))
                 throw new GitBucketException($"Expected 'tag' record in '{Inner.Name}'");
@@ -128,7 +128,7 @@ namespace AmpScm.Buckets.Git.Objects
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, null).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
 
                 if (bb.IsEof || bb.Length <= eol.CharCount())
                     break;
@@ -165,9 +165,9 @@ namespace AmpScm.Buckets.Git.Objects
             {
                 var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
 
-                if (OpenPgpArmorBucket.IsHeader(bb, eol))
+                if (Radix64ArmorBucket.IsHeader(bb, eol))
                 {
-                    using var sig = new OpenPgpArmorBucket(bb.ToArray().AsBucket() + Inner.NoClose());
+                    using var sig = new Radix64ArmorBucket(bb.ToArray().AsBucket() + Inner.NoClose());
 
                     bb = await sig.ReadExactlyAsync(8192).ConfigureAwait(false);
 

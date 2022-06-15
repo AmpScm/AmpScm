@@ -60,7 +60,7 @@ namespace AmpScm.Buckets.Git.Objects
                 _checkedType = true;
             }
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero, null).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero, eolState: null).ConfigureAwait(false);
 
             if (bb.IsEof)
                 return null;

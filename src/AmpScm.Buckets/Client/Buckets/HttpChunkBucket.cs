@@ -53,7 +53,7 @@ namespace AmpScm.Buckets.Client.Buckets
                     if (len.HasValue && len.Value > 0)
                     {
                         int size = (len.Value > MaxChunkSize) ? MaxChunkSize : (int)len;
-                        _chunkReader = Inner.TakeExact(size);
+                        _chunkReader = Inner.TakeExactly(size);
 
                         _remaining = Encoding.ASCII.GetBytes($"{Convert.ToString(size, 16)}\r\n");
                         _addEol = true;

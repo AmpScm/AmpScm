@@ -287,12 +287,12 @@ static AmpScm.Buckets.BucketExtensions.PollReadAsync(this AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.Prepend(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Bucket! newFirst) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.ReadBuffersAsync(this AmpScm.Buckets.Bucket! bucket, int maxRequested = 2146435071) -> System.Threading.Tasks.ValueTask<(System.ReadOnlyMemory<byte>[]! Buffers, bool Done)>
 static AmpScm.Buckets.BucketExtensions.ReadCombinedAsync(this AmpScm.Buckets.Bucket! bucket, int bufferSize, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-static AmpScm.Buckets.BucketExtensions.ReadExactlyUntilEolAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, AmpScm.Buckets.BucketEolState? eolState = null, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
+static AmpScm.Buckets.BucketExtensions.ReadExactlyUntilEolAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.BucketEol acceptableEols, int requested = 2146435071, AmpScm.Buckets.BucketEolState? eolState = null) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes, AmpScm.Buckets.BucketEol)>
 static AmpScm.Buckets.BucketExtensions.ReadUntilAsync(this AmpScm.Buckets.Bucket! bucket, byte b) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketExtensions.Skip(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.SkipExact(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.SkipExactly(this AmpScm.Buckets.Bucket! bucket, long skipBytes, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.Take(this AmpScm.Buckets.Bucket! bucket, long limit, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.BucketExtensions.TakeExact(this AmpScm.Buckets.Bucket! bucket, long length, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.TakeExactly(this AmpScm.Buckets.Bucket! bucket, long length, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.ToArray(this AmpScm.Buckets.Bucket! bucket) -> byte[]!
 static AmpScm.Buckets.BucketExtensions.ToArrayAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<byte[]!>
 static AmpScm.Buckets.BucketExtensions.VerifyBehavior<TBucket>(this TBucket! bucket) -> AmpScm.Buckets.Bucket!

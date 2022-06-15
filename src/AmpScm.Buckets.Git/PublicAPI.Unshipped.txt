@@ -61,21 +61,43 @@ AmpScm.Buckets.Git.Objects.GitCommitSubBucket.GpgSignature = 1 -> AmpScm.Buckets
 AmpScm.Buckets.Git.Objects.GitCommitSubBucket.GpgSignatureSha256 = 2 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
 AmpScm.Buckets.Git.Objects.GitCommitSubBucket.MergeTag = 0 -> AmpScm.Buckets.Git.Objects.GitCommitSubBucket
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadSignatureBytesAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-AmpScm.Buckets.Git.OpenPgpArmorBucket
-AmpScm.Buckets.Git.OpenPgpArmorBucket.OpenPgpArmorBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.Git.OpenPgpArmorBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+AmpScm.Buckets.Git.Radix64ArmorBucket
+AmpScm.Buckets.Git.Radix64ArmorBucket.Radix64ArmorBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.Radix64ArmorBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+AmpScm.Buckets.Git.OpenPgpSignatureBucket
+AmpScm.Buckets.Git.OpenPgpSignatureBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Git.OpenPgpSignatureBucket.ReadTagAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.OpenPgpTagType>
+AmpScm.Buckets.Git.OpenPgpSignatureBucket.OpenPgpSignatureBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.CompressedData = 8 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.Literal = 11 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.Marker = 10 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.None = 0 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.OnePassSignature = 4 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.PublicKey = 6 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.PublicKeySession = 1 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.PublicSubkey = 14 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.SecretKey = 5 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.SecretSubkey = 7 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.Signature = 2 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.SymetricEncryptedData = 9 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.SymetricSessionKey = 3 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.Trust = 12 -> AmpScm.Buckets.Git.OpenPgpTagType
+AmpScm.Buckets.Git.OpenPgpTagType.UserID = 13 -> AmpScm.Buckets.Git.OpenPgpTagType
 override AmpScm.Buckets.Git.GitLineIndentBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Git.GitLineIndentBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitLineUnindentBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Git.GitLineUnindentBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitLineUnindentBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
-override AmpScm.Buckets.Git.OpenPgpArmorBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.Radix64ArmorBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Git.Radix64ArmorBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Git.OpenPgpSignatureBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Git.GitCommitGenerationValue.FromValue(ulong value, long offset) -> AmpScm.Buckets.Git.GitCommitGenerationValue
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
-static AmpScm.Buckets.Git.OpenPgpArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool
+static AmpScm.Buckets.Git.Radix64ArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool
 static AmpScm.Git.GitId.Zero(AmpScm.Git.GitIdType type) -> AmpScm.Git.GitId!
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.HighestSupportedFormat -> int
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.LowestSupportedFormat -> int

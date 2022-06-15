@@ -12,6 +12,7 @@ if NOT EXIST libgit2-bmp              @git clone libgit2-std                    
 if NOT EXIST lin-no-tree-cs           @git clone https://github.com/torvalds/linux.git --filter=tree:0      lin-no-tree-cs
 if NOT EXIST tado-multipack           @git clone https://github.com/germainlefebvre4/libtado.git            tado-multipack
 if NOT EXIST tado-multipack-bmp       @git clone https://github.com/germainlefebvre4/libtado.git            tado-multipack-bmp
+if NOT EXIST ssh-sign                 @git clone https://github.com/imjasonmiller/ssh-signing-commits.git   ssh-sign
 REM if NOT EXIST git-reftable             @git clone https://github.com/git/git.git --filter=tree:0             git-reftable
 
 for /d %%1 in (*-cs) do (

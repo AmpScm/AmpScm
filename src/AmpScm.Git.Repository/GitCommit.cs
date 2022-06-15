@@ -71,7 +71,7 @@ namespace AmpScm.Git
                 case GitCommitSubBucket.GpgSignature:
                 case GitCommitSubBucket.GpgSignatureSha256:
 #if DEBUG
-                    using (var sig = new OpenPgpArmorBucket(bucket))
+                    using (var sig = new Radix64ArmorBucket(bucket))
                         await sig.ReadUntilEofAsync().ConfigureAwait(false);
 #else
                     await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);

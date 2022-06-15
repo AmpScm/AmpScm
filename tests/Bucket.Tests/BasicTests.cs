@@ -229,7 +229,7 @@ namespace BucketTests
         {
             var b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
 
-            b = b.SkipExact(4).TakeExact(10);
+            b = b.SkipExactly(4).TakeExactly(10);
 
             var p = b.Peek();
 

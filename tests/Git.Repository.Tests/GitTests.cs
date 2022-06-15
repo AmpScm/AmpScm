@@ -594,7 +594,7 @@ namespace GitRepositoryTests
 
             long l = (await srcFile.ReadRemainingBytesAsync()).Value;
 
-            using var b = srcFile.TakeExact(l - 20).SHA1(x => fileChecksum = x);
+            using var b = srcFile.TakeExactly(l - 20).SHA1(x => fileChecksum = x);
 
             var gh = new GitPackHeaderBucket(b.NoClose());
 
@@ -689,7 +689,7 @@ namespace GitRepositoryTests
             long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
 
             byte[]? idxChecksum = null;
-            using var idxData = indexFile.TakeExact(lIdx - 20).SHA1(x => idxChecksum = x);
+            using var idxData = indexFile.TakeExactly(lIdx - 20).SHA1(x => idxChecksum = x);
 
             Console.WriteLine(packFile);
             await Assert.That.BucketsEqual(idxData, index);
@@ -793,7 +793,7 @@ namespace GitRepositoryTests
 
             byte[]? fileChecksum = null;
             {
-                using var b = srcFile.Duplicate(true).TakeExact(srcLen - 20).SHA1(x => fileChecksum = x);
+                using var b = srcFile.Duplicate(true).TakeExactly(srcLen - 20).SHA1(x => fileChecksum = x);
 
                 await b.ReadUntilEofAsync();
                 Assert.IsNotNull(fileChecksum);
@@ -805,7 +805,7 @@ namespace GitRepositoryTests
             long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
 
             byte[]? idxChecksum = null;
-            using var idxData = indexFile.TakeExact(lIdx - 20).SHA1(x => idxChecksum = x);
+            using var idxData = indexFile.TakeExactly(lIdx - 20).SHA1(x => idxChecksum = x);
 
             Assert.IsTrue(await idxData.NoClose().HasSameContentsAsync(index.NoClose()));
         }
@@ -880,7 +880,7 @@ namespace GitRepositoryTests
             using var srcFile = FileBucket.OpenRead(packFile);
             var b = new List<Bucket>();
             for (int i = 0; i < 1000; i++)
-                b.Add(srcFile.Duplicate().SkipExact(i * 1024));
+                b.Add(srcFile.Duplicate().SkipExactly(i * 1024));
 
             var s = b.Select(b => b.ReadAsync(1024).AsTask()).ToArray();
 

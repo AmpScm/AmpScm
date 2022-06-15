@@ -7,7 +7,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Git
 {
-    public class OpenPgpArmorBucket : WrappingBucket
+    public class Radix64ArmorBucket : WrappingBucket
     {
         SState _state;
         Bucket? _base64Decode;
@@ -22,7 +22,7 @@ namespace AmpScm.Buckets.Git
             Trailer,
             Eof
         }
-        public OpenPgpArmorBucket(Bucket inner) : base(inner)
+        public Radix64ArmorBucket(Bucket inner) : base(inner)
         {
         }
 
@@ -38,6 +38,12 @@ namespace AmpScm.Buckets.Git
                 if (!bb.StartsWithASCII("-----BEGIN "))
                     throw new GitBucketException("Expected '-----BEGIN '");
 
+                if (bb.Slice("-----BEGIN ".Length).StartsWithASCII("SSH "))
+                {
+                    _state = SState.Body;
+                    return BucketBytes.Eof;
+                }
+
                 _state = SState.Headers;
 
                 (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
@@ -52,6 +58,14 @@ namespace AmpScm.Buckets.Git
                 return bb.Slice(eol);
         }
 
+        public override BucketBytes Peek()
+        {
+            if (_state != SState.Body)
+                return BucketBytes.Empty;
+
+            return _base64Decode?.Peek() ?? BucketBytes.Empty;
+        }
+
         public override async ValueTask<BucketBytes> ReadAsync(int requested = Bucket.MaxRead)
         {
             if (_state == SState.Eof)
@@ -64,7 +78,7 @@ namespace AmpScm.Buckets.Git
 
             if (_state == SState.Body)
             {
-                _base64Decode ??= Inner.NoClose().Base64Decode(true).Crc24(x => _crc24Result = x);
+                _base64Decode ??= new StopAtLineStartBucket(Inner.NoClose(), new byte[] { (byte)'=', (byte)'-'}).Base64Decode(true).Crc24(x => _crc24Result = x);
 
                 var bb = await _base64Decode.ReadAsync(requested).ConfigureAwait(false);
 
@@ -98,7 +112,7 @@ namespace AmpScm.Buckets.Git
 
                     _state = SState.Trailer;
                 }
-                else if (bb.StartsWithASCII("-----"))
+                else if (bb.TrimStart().StartsWithASCII("-----END "))
                 {
                     _state = SState.Eof;
                     return BucketBytes.Eof;
@@ -122,6 +136,34 @@ namespace AmpScm.Buckets.Git
             }
 
             return true;
+        }
+
+        sealed class StopAtLineStartBucket : WrappingBucket
+        {
+            byte[] _stopAt;
+            bool _eof;
+
+            public StopAtLineStartBucket(Bucket inner, params byte[] stopAt) : base(inner)
+            {
+                _stopAt = (byte[])stopAt.Clone();
+            }
+
+            public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
+            {
+                if (_eof)
+                    return BucketBytes.Eof;
+
+                var bb = Inner.Peek();
+
+                if (bb.Length > 0 && _stopAt.Contains(bb[0]))
+                {
+                    _eof = true;
+                    return BucketBytes.Eof;
+                }
+
+                (bb, BucketEol _) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
+                return bb;
+            }
         }
     }
 }

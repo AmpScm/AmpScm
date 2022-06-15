@@ -50,7 +50,7 @@ namespace AmpScm.Buckets.Git.Objects
             if (_treeId is not null)
                 return _treeId;
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, null, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */).ConfigureAwait(false);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tree "))
                 throw new GitBucketException($"Expected 'tree' record at start of commit in '{Inner.Name}'");
@@ -211,7 +211,7 @@ namespace AmpScm.Buckets.Git.Objects
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, null).ConfigureAwait(false);
+                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
 
                 if (bb.IsEof || bb.Length <= eol.CharCount())
                     break;

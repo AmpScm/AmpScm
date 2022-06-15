@@ -136,7 +136,7 @@ namespace AmpScm.Buckets.Specialized
             static readonly uint[] _table = InitializeTable();
             uint hash;
 
-            public Crc32()
+            private Crc32()
             {
                 hash = DefaultSeed;
             }
@@ -188,6 +188,9 @@ namespace AmpScm.Buckets.Specialized
             public static new Crc32 Create() => new();
         }
 
+        /// <summary>
+        /// CRC24, as documented in RFC 4880
+        /// </summary>
         internal sealed class Crc24 : HashAlgorithm
         {
             const uint DefaultPolynomial = 0x1864cfb;
@@ -195,7 +198,7 @@ namespace AmpScm.Buckets.Specialized
 
             uint hash;
 
-            public Crc24()
+            private Crc24()
             {
                 hash = DefaultSeed;
             }

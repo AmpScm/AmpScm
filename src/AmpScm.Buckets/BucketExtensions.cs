@@ -79,7 +79,7 @@ namespace AmpScm.Buckets
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <remarks>See also <see cref="Take"/>, which handles truncated streams</remarks>
-        public static Bucket TakeExact(this Bucket bucket, long length, bool alwaysWrap = false)
+        public static Bucket TakeExactly(this Bucket bucket, long length, bool alwaysWrap = false)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -102,7 +102,7 @@ namespace AmpScm.Buckets
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        /// <remarks>See also <see cref="TakeExact"/>, which takes an exact amount
+        /// <remarks>See also <see cref="TakeExactly"/>, which takes an exact amount
         /// of bytes</remarks>
         public static Bucket Take(this Bucket bucket, long limit, bool alwaysWrap = false)
         {
@@ -126,7 +126,7 @@ namespace AmpScm.Buckets
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Bucket SkipExact(this Bucket bucket, long skipBytes, bool alwaysWrap = false)
+        public static Bucket SkipExactly(this Bucket bucket, long skipBytes, bool alwaysWrap = false)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));

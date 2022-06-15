@@ -153,14 +153,14 @@ namespace BucketTests
         [TestMethod]
         public async Task ReadEolsFull()
         {
-            var (bb, eol) = await MakeBucket("abc\nabc").ReadExactlyUntilEolAsync(BucketEol.LF, new BucketEolState());
+            var (bb, eol) = await MakeBucket("abc\nabc").ReadExactlyUntilEolAsync(BucketEol.LF, eolState: new BucketEolState());
 
             Assert.AreEqual(4, bb.Length);
             Assert.AreEqual("abc\n", bb.ToASCIIString());
             Assert.AreEqual("abc", bb.ToASCIIString(eol));
             Assert.AreEqual(BucketEol.LF, eol);
 
-            (bb, eol) = await MakeBucket("abc\0abc").ReadExactlyUntilEolAsync(BucketEol.Zero, new BucketEolState());
+            (bb, eol) = await MakeBucket("abc\0abc").ReadExactlyUntilEolAsync(BucketEol.Zero, eolState: new BucketEolState());
 
             Assert.AreEqual(4, bb.Length);
             Assert.AreEqual("abc", bb.ToASCIIString(eol));
@@ -168,18 +168,18 @@ namespace BucketTests
 
             var b = MakeBucket("a", "b", "c", "\0a", "bc", "d\0a", "b", "c", "\0", "a");
 
-            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, new BucketEolState());
+            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, eolState: new BucketEolState());
 
             Assert.AreEqual(4, bb.Length);
             Assert.AreEqual("abc", bb.ToASCIIString(eol));
             Assert.AreEqual(BucketEol.Zero, eol);
 
-            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, new BucketEolState());
+            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, eolState: new BucketEolState());
             Assert.AreEqual(5, bb.Length);
             Assert.AreEqual("abcd", bb.ToASCIIString(eol));
             Assert.AreEqual(BucketEol.Zero, eol);
 
-            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, new BucketEolState());
+            (bb, eol) = await b.ReadExactlyUntilEolAsync(BucketEol.Zero, eolState: new BucketEolState());
 
             Assert.AreEqual(4, bb.Length);
             Assert.AreEqual("abc", bb.ToASCIIString(eol));
@@ -190,7 +190,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.Zero, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.Zero, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -210,7 +210,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -225,7 +225,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -243,7 +243,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -261,7 +261,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -279,7 +279,7 @@ namespace BucketTests
             state = new BucketEolState();
             while (true)
             {
-                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol | BucketEol.Zero, state);
+                (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol | BucketEol.Zero, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -305,7 +305,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
+                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -324,7 +324,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, state);
+                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.AnyEol, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -343,7 +343,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.Zero, state);
+                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.Zero, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -362,7 +362,7 @@ namespace BucketTests
             var state = new BucketEolState();
             while (true)
             {
-                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.CR, state);
+                var (bb, eol) = await r.ReadExactlyUntilEolAsync(BucketEol.CR, eolState: state);
 
                 if (bb.IsEof)
                     break;
@@ -396,7 +396,7 @@ namespace BucketTests
                                     var expected = Escape(tst.Insert(n2, "|").Insert(n1, "|"));
                                     while (true)
                                     {
-                                        var (bb, eol) = await r.ReadExactlyUntilEolAsync(acceptableEols, state);
+                                        var (bb, eol) = await r.ReadExactlyUntilEolAsync(acceptableEols, eolState: state);
 
                                         if (bb.IsEof)
                                             break;

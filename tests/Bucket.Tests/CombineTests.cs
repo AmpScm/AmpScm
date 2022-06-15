@@ -112,7 +112,7 @@ namespace BucketTests
 
             try
             {
-                bb = await new byte[128].AsBucket().TakeExact(130).ReadExactlyAsync(200);
+                bb = await new byte[128].AsBucket().TakeExactly(130).ReadExactlyAsync(200);
                 Assert.Fail("Expected eof exception");
             }
             catch(BucketEofException)
@@ -127,7 +127,7 @@ namespace BucketTests
 
             try
             {
-                bb = await new byte[128].AsBucket().SkipExact(130).ReadExactlyAsync(200);
+                bb = await new byte[128].AsBucket().SkipExactly(130).ReadExactlyAsync(200);
                 Assert.Fail("Expected eof exception");
             }
             catch (BucketEofException)
