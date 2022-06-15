@@ -110,7 +110,7 @@ DgEAAAAG
             var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
 
             var sr = new Radix64ArmorBucket(b);
-            using var rr = new OpenPgpSignatureBucket(sr);
+            using var rr = new GitSignatureBucket(sr);
 
             var bb = await rr.ReadExactlyAsync(8192);
 
@@ -249,7 +249,7 @@ repo: allow administrator to own the configuration";
                     await bucket.ReadUntilEofAndCloseAsync();
 
                 var rdx = new Radix64ArmorBucket(bucket);
-                using var gpg = new OpenPgpSignatureBucket(rdx);
+                using var gpg = new GitSignatureBucket(rdx);
 
                 await gpg.ReadUntilEofAsync();
                 readGpg = true;

@@ -41,14 +41,15 @@ namespace AmpScm.Buckets.Git
         None = 0,
         SignatureCreationTime = 2,
         SignatureExpirationTime = 3,
-        Issuer = 16
+        Issuer = 16,
+        IssuerFingerprint= 33,
     }
 
     enum OpenPgpHashAlgorithm : byte
     {
         None,
         MD5 = 1,
-        Sha1 = 2,
+        SHA1 = 2,
         MD160 = 3,
         SHA256 = 8,
         SHA384 = 9,
@@ -69,7 +70,10 @@ namespace AmpScm.Buckets.Git
         DHE = 21
     }
 
-    public class OpenPgpSignatureBucket : WrappingBucket
+    /// <summary>
+    /// Reads an OpenPGP or OpenSSH signature
+    /// </summary>
+    public class GitSignatureBucket : WrappingBucket
     {
         enum SState
         {
@@ -79,15 +83,17 @@ namespace AmpScm.Buckets.Git
         }
         SState _state;
         private OpenPgpSignatureType _signatureType;
-        private ulong? _signer;
+        private byte[]? _signer;
         private OpenPgpPublicKeyType _publicKeyType;
         private OpenPgpHashAlgorithm _hashAlgorithm;
         private ushort _hashStart;
         DateTime? _signTime;
+        private byte[]? _signature;
+        private byte[]? _fingerPrint;
 
         new OpenPgpContainer Inner => (OpenPgpContainer)base.Inner;
 
-        public OpenPgpSignatureBucket(Bucket inner)
+        public GitSignatureBucket(Bucket inner)
             : base(new OpenPgpContainer(inner))
         {
         }
@@ -97,7 +103,12 @@ namespace AmpScm.Buckets.Git
             if (_state == SState.init)
                 await ReadHeaderAsync().ConfigureAwait(false);
 
-            return await Inner.ReadAsync(requested).ConfigureAwait(false);
+            var bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+
+            if (!bb.IsEof && Inner.IsSshSignature)
+                throw new BucketException($"Unexpected trailing data in {Inner.Name} Bucket");
+
+            return bb;
         }
 
         public ValueTask<OpenPgpTagType> ReadTagAsync()
@@ -133,37 +144,30 @@ namespace AmpScm.Buckets.Git
                             if (sshVersion != 1)
                                 throw new BucketException();
 
-                            // BH: No idea what we read here...
-                            var publicKeyLen = await Inner.ReadNetworkUInt32Async().ConfigureAwait(false);
-
-                            if (publicKeyLen > 0)
-                            {
-                                using var publicKeyBucket = Inner.NoClose().TakeExactly(publicKeyLen);
-
-                                while (await publicKeyBucket.ReadRemainingBytesAsync().ConfigureAwait(false) > 0)
-                                {
-                                    var s = (await ReadSshStringAsync(publicKeyBucket).ConfigureAwait(false)).ToASCIIString();
-
-                                    Console.WriteLine($"PK: {s}");
-                                }
-                            }
+                            bb = await ReadSshStringAsync(Inner).ConfigureAwait(false);
+                            _signer = bb.ToArray();
 
                             var sigNamespace = (await ReadSshStringAsync(Inner).ConfigureAwait(false)).ToASCIIString();
                             var sigReserved = (await ReadSshStringAsync(Inner).ConfigureAwait(false)).ToASCIIString();
                             var sigHashAlgo = (await ReadSshStringAsync(Inner).ConfigureAwait(false)).ToASCIIString();
-                            var signatureLen = await Inner.ReadNetworkUInt32Async().ConfigureAwait(false);
-
-                            if (signatureLen > 0)
+                            switch(sigHashAlgo)
                             {
-                                using var signatureBucket = Inner.NoClose().TakeExactly(signatureLen);
-
-                                while (await signatureBucket.ReadRemainingBytesAsync().ConfigureAwait(false) > 0)
-                                {
-                                    var s = (await ReadSshStringAsync(signatureBucket).ConfigureAwait(false)).ToASCIIString();
-
-                                    Console.WriteLine($"SIG: {s}");
-                                }
+                                case "sha256":
+                                    _hashAlgorithm = OpenPgpHashAlgorithm.SHA256;
+                                    break;
+                                case "sha512":
+                                    _hashAlgorithm = OpenPgpHashAlgorithm.SHA512;
+                                    break;
+                                default:
+                                    throw new NotImplementedException($"Unexpected hash type: {sigHashAlgo} in SSH signature from {Inner.Name} Bucket");
                             }
+
+                            Console.WriteLine(sigNamespace);
+                            Console.WriteLine(sigReserved);
+                            Console.WriteLine(sigHashAlgo);
+
+                            bb = await ReadSshStringAsync(Inner).ConfigureAwait(false);
+                            _signature = bb.ToArray();
                         }
                         else if (version == 4 || version == 5)
                         {
@@ -238,11 +242,11 @@ namespace AmpScm.Buckets.Git
 
                                             _signTime = DateTimeOffset.FromUnixTimeSeconds(time).DateTime;
                                             break;
-                                        case OpenPgpSubPacketType.Issuer:
-                                            if (len != 8)
-                                                throw new InvalidOperationException();
-
-                                            _signer = await subRead.ReadNetworkUInt64Async().ConfigureAwait(false);
+                                        case OpenPgpSubPacketType.Issuer:                                        
+                                            _signer = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
+                                            break;
+                                        case OpenPgpSubPacketType.IssuerFingerprint:
+                                            _fingerPrint = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
                                             break;
                                         default:
                                             if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
@@ -296,13 +300,13 @@ namespace AmpScm.Buckets.Git
                                 throw new BucketException($"HashInfoLen must by 5 for v3 in {Inner.Name}");
                             _signatureType = (OpenPgpSignatureType)bb[1];
                             _signTime = DateTimeOffset.FromUnixTimeSeconds(NetBitConverter.ToUInt32(bb, 2)).DateTime;
-                            _signer = NetBitConverter.ToUInt64(bb, 6);
+                            _signer = bb.Slice(6,8).ToArray();
                             _publicKeyType = (OpenPgpPublicKeyType)bb[14];
                             _hashAlgorithm = (OpenPgpHashAlgorithm)bb[15];
                             _hashStart = NetBitConverter.ToUInt16(bb, 16);
                         }
                         else
-                            throw new NotImplementedException("Only signature versions 3, 4 and 5 are supported");
+                            throw new NotImplementedException("Only OpenPGP signature versions 3, 4 and 5 are supported");
                     }
                     break;
                 default:
