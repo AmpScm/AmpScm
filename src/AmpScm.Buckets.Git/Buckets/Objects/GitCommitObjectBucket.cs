@@ -160,7 +160,12 @@ namespace AmpScm.Buckets.Git.Objects
             if (_author is null)
             {
                 if (_parents is null || _parents is List<GitId>)
+                {
                     await ReadAllParentIdsAsync().ConfigureAwait(false);
+
+                    if (_author is not null)
+                        return _author;
+                }
 
                 var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
@@ -235,6 +240,56 @@ namespace AmpScm.Buckets.Git.Objects
             }
 
             _readHeaders = true;
+        }
+
+        public static Bucket ForSignature(Bucket src)
+        {
+            return Create.From(WalkSignature(src));
+        }
+
+        static async IAsyncEnumerable<BucketBytes> WalkSignature(Bucket src)
+        {
+            using (src)
+            {
+                while (true)
+                {
+                    var (bb, _) = await src.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+
+                    if (bb.IsEof)
+                        yield break;
+
+                    if (bb.StartsWithASCII("gpgsig ") || bb.StartsWithASCII("gpgsig-sha256 "))
+                    {
+                        while (true)
+                        {
+                            (bb, _) = await src.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+
+                            if (bb.IsEof)
+                                yield break;
+                            else if (bb.Length == 0 || bb[0] != ' ')
+                                break;
+                        }
+                    }
+
+                    if (bb.IsEmpty)
+                    {
+                        yield return bb;
+                        break;
+                    }
+                    else
+                        yield break;
+                }
+
+                while (true)
+                {
+                    var bb = await src.ReadAsync().ConfigureAwait(false);
+
+                    if (bb.IsEof)
+                        yield break;
+
+                    yield return bb;
+                }
+            }
         }
 
         static GitSubBucketType GetEvent(string key) =>

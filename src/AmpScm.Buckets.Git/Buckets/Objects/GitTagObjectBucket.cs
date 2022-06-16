@@ -215,5 +215,31 @@ namespace AmpScm.Buckets.Git.Objects
         {
             return new(_signature ?? BucketBytes.Empty);
         }
+
+        public static Bucket ForSignature(Bucket src)
+        {
+            return Create.From(WalkSignature(src));
+        }
+
+        static async IAsyncEnumerable<BucketBytes> WalkSignature(Bucket src)
+        {
+            using (src)
+            {
+                while (true)
+                {
+                    var (bb, _) = await src.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+
+                    if (bb.IsEof)
+                        yield break;
+
+                    if (bb.StartsWithASCII("-----BEGIN "))
+                    {
+                        yield break;
+                    }
+
+                    yield return bb;
+                }
+            }
+        }
     }
 }

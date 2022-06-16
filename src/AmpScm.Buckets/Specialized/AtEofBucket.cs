@@ -26,6 +26,19 @@ namespace AmpScm.Buckets.Specialized
             return bb;
         }
 
+        public override async ValueTask<long> ReadSkipAsync(long requested)
+        {
+            long r = await base.ReadSkipAsync(requested).ConfigureAwait(false);
+
+            if (r < requested)
+            {
+                _atEof?.Invoke();
+                _atEof = null;
+            }
+
+            return r;
+        }
+
         public override bool CanReset => false;
     }
 }

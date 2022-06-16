@@ -55,10 +55,17 @@ AmpScm.Buckets.Git.GitLineIndentBucket
 AmpScm.Buckets.Git.GitLineIndentBucket.GitLineIndentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
 AmpScm.Buckets.Git.GitLineUnindentBucket
 AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
+AmpScm.Buckets.Git.GitPublicKey
+AmpScm.Buckets.Git.GitPublicKey.Algorithm.get -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
+AmpScm.Buckets.Git.GitPublicKey.Fingerprint.get -> System.ReadOnlyMemory<byte>
+AmpScm.Buckets.Git.GitPublicKey.GitPublicKey(System.ReadOnlyMemory<byte> fingerprint, AmpScm.Buckets.Git.GitPublicKeyAlgorithm algorithm, System.ReadOnlyMemory<System.Numerics.BigInteger> values) -> void
+AmpScm.Buckets.Git.GitPublicKey.Values.get -> System.ReadOnlyMemory<System.Numerics.BigInteger>
+AmpScm.Buckets.Git.GitPublicKeyAlgorithm
+AmpScm.Buckets.Git.GitPublicKeyAlgorithm.None = 0 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
+AmpScm.Buckets.Git.GitPublicKeyAlgorithm.RSA = 1 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitSignatureBucket
 AmpScm.Buckets.Git.GitSignatureBucket.GitSignatureBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.Git.GitSignatureBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask
-AmpScm.Buckets.Git.GitSignatureBucket.ReadTagAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.OpenPgpTagType>
+AmpScm.Buckets.Git.GitSignatureBucket.VerifyAsync(AmpScm.Buckets.Bucket! sourceData, AmpScm.Buckets.Git.GitPublicKey! key) -> System.Threading.Tasks.ValueTask<bool>
 AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitSubBucketType
 AmpScm.Buckets.Git.Objects.GitSubBucketType.MergeTag = 0 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
@@ -98,6 +105,7 @@ static AmpScm.Buckets.Git.GitDirectoryEntry.operator <(AmpScm.Buckets.Git.GitDir
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
+static AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ForSignature(AmpScm.Buckets.Bucket! src) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Git.Radix64ArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool
 static AmpScm.Git.GitId.Zero(AmpScm.Git.GitIdType type) -> AmpScm.Git.GitId!
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.HighestSupportedFormat -> int

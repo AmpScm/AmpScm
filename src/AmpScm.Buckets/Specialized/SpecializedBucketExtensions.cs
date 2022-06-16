@@ -58,6 +58,21 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
+        /// Wraps the bucket with an <see cref="System.Security.Cryptography.SHA256"/> calculator that reports the result on EOF
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="created"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Bucket SHA384(this Bucket bucket, Action<byte[]> created)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new CreateHashBucket(bucket, System.Security.Cryptography.SHA384.Create(), created);
+        }
+
+        /// <summary>
         /// Wraps the bucket with an <see cref="System.Security.Cryptography.MD5"/> calculator that reports the result on EOF
         /// </summary>
         /// <param name="bucket"></param>
@@ -454,9 +469,9 @@ namespace AmpScm.Buckets.Specialized
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            var bb = await bucket.ReadExactlyAsync(sizeof(uint)).ConfigureAwait(false);
+            var bb = await bucket.ReadExactlyAsync(sizeof(ushort)).ConfigureAwait(false);
 
-            if (bb.Length != sizeof(uint))
+            if (bb.Length != sizeof(ushort))
             {
                 if (bb.IsEof)
                     throw new BucketEofException(bucket);

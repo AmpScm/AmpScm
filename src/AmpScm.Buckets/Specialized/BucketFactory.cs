@@ -34,5 +34,13 @@ namespace AmpScm.Buckets.Specialized
 
             return Encoding.UTF8.GetBytes(value).AsBucket();
         }
+
+        public Bucket From(IAsyncEnumerable<BucketBytes> byteEnumerable)
+        {
+            if (byteEnumerable is null)
+                throw new ArgumentNullException(nameof(byteEnumerable));
+
+            return new FromEnumerableBucket(byteEnumerable);
+        }
     }
 }
