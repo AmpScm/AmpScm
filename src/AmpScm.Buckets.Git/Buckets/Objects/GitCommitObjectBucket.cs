@@ -271,13 +271,14 @@ namespace AmpScm.Buckets.Git.Objects
                         }
                     }
 
-                    if (bb.IsEmpty)
+                    if (!bb.IsEmpty)
                     {
                         yield return bb;
-                        break;
                     }
-                    else
+                    else if (bb.IsEof)
                         yield break;
+                    else
+                        break;
                 }
 
                 while (true)

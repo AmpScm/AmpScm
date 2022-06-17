@@ -242,7 +242,6 @@ repo: allow administrator to own the configuration";
 
             Assert.IsTrue(readGpg);
 
-
             async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
             {
                 if (subBucket != GitSubBucketType.Signature)
@@ -253,7 +252,11 @@ repo: allow administrator to own the configuration";
 
                 await gpg.ReadUntilEofAsync();
 
+                var ok1 = await gpg.VerifyAsync(verifySrcReader, null);
+                Assert.IsTrue(ok1, "Verify as signature from 'someone'");
+
                 var ok = await gpg.VerifyAsync(verifySrcReader, await GetKey());
+                //Assert.IsTrue(ok);
                 readGpg = true;
             }
         }
@@ -378,6 +381,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
                 await gpg.ReadUntilEofAsync();
 
                 var ok = await gpg.VerifyAsync(verifySrcReader, key);
+                Assert.IsTrue(ok);
                 readGpg = true;
             }
         }
@@ -433,6 +437,7 @@ docs: add README
                 await gpg.ReadUntilEofAsync();
 
                 var ok = await gpg.VerifyAsync(verifySrcReader, await GetKey());
+                //Assert.IsTrue(ok);
                 readGpg = true;
             }
         }

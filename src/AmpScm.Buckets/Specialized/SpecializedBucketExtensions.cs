@@ -194,6 +194,11 @@ namespace AmpScm.Buckets.Specialized
             return new AtEofBucket(bucket, action);
         }
 
+        public static Bucket ReadAlso(this Bucket bucket, Func<BucketBytes, ValueTask> reader)
+        {
+            return new AlsoReadBucket(bucket, reader);
+        }
+
         /// <summary>
         /// 
         /// </summary>

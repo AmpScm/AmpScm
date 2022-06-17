@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
@@ -130,6 +131,20 @@ namespace AmpScm.Git
                 throw new ArgumentOutOfRangeException(nameof(comparison));
 
             return on.GetHashCode();
+        }
+
+        internal static byte[] ToByteArray(this BigInteger bi, bool isUnsigned=false, bool isBigEndian=false)
+        {
+            IEnumerable<byte> b = bi.ToByteArray();
+
+            if (isUnsigned)
+                b = b.SkipWhile((x, i) => i == 0 && x == 0);
+
+            if (isBigEndian)
+                b = b.Reverse();
+
+
+            return (b as byte[]) ?? b.ToArray();
         }
 #endif
     }
