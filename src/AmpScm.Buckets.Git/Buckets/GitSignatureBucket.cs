@@ -308,7 +308,13 @@ namespace AmpScm.Buckets.Git
                                     }
 
                                     // Complete the signblob
-                                    var lenBytes = NetBitConverter.GetBytes(bc.Length);
+                                    byte[] lenBytes;
+
+                                    if (version == 4)
+                                        lenBytes = NetBitConverter.GetBytes(bc.Length);
+                                    else // v5
+                                        lenBytes = NetBitConverter.GetBytes((long)bc.Length);
+
                                     bc.Append(version);
                                     bc.Append(0xFF);
                                     bc.Append(lenBytes);
@@ -370,7 +376,7 @@ namespace AmpScm.Buckets.Git
                                 }
                                 else if (version == 3)
                                 {
-                                    throw new NotImplementedException();
+                                    throw new NotImplementedException("Version 3 signature not implemented yet");
                                 }
                                 else
                                     throw new NotImplementedException("Only OpenPGP public key versions 3 and 4 are supported");
@@ -481,22 +487,6 @@ namespace AmpScm.Buckets.Git
 
         private bool VerifySignatureAsync(byte[] hashValue, GitPublicKey key)
         {
-            //switch(_hashAlgorithm)
-            //{
-            //    case OpenPgpHashAlgorithm.SHA512:
-            //        hashValue = new byte[] {0x30, 0x51, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86,
-            //                                0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05,
-            //                                0x00, 0x04, 0x40}.Concat(hashValue).ToArray();
-            //        break;
-            //    case OpenPgpHashAlgorithm.SHA256:
-            //        hashValue = new byte[] {0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86,
-            //                                0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05,
-            //                                0x00, 0x04, 0x20}.Concat(hashValue).ToArray();
-            //        break;
-            //    default:
-            //        throw new NotImplementedException();
-            //}
-
             switch (_signaturePublicKeyType)
             {
                 case OpenPgpPublicKeyType.Rsa:
@@ -522,7 +512,7 @@ namespace AmpScm.Buckets.Git
                         return false;
                     }
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"Signature type {_signaturePublicKeyType} not implemented yet");
             }
         }
 
@@ -532,7 +522,7 @@ namespace AmpScm.Buckets.Git
                 OpenPgpHashAlgorithm.SHA256 => HashAlgorithmName.SHA256,
                 OpenPgpHashAlgorithm.SHA512 => HashAlgorithmName.SHA512,
                 OpenPgpHashAlgorithm.SHA384 => HashAlgorithmName.SHA384,
-                _ => throw new NotImplementedException()
+                _ => throw new NotImplementedException($"OpenPGP scheme {hashAlgorithm} not mapped yet.")
             };
 
         private async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created)
@@ -558,7 +548,7 @@ namespace AmpScm.Buckets.Git
                 case OpenPgpHashAlgorithm.MD160:
                     throw new NotImplementedException($"Hash algorithm {_hashAlgorithm} not supported yet");
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"Hash algorithm {_hashAlgorithm} not supported yet");
             }
 
             await sourceData.ReadUntilEofAndCloseAsync().ConfigureAwait(false);

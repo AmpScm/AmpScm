@@ -415,6 +415,10 @@ docs: add README
         [TestMethod]
         public async Task ReadSignedSshCommit()
         {
+#if NETFRAMEWORK || true
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("Key algorithm not supported on MONO (yet)");
+#endif
             var src = Bucket.Create.FromASCII(sshSignedCommit.Replace("\r", ""));
             bool readGpg = false;
 
