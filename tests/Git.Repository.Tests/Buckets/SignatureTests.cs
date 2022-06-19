@@ -362,7 +362,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             var src = Bucket.Create.FromASCII(signedTag.Replace("\r", ""));
             bool readGpg = false;
 
-            var verifySrcReader = GitTagObjectBucket.ForSignature(src.Duplicate());
+            var verifySrcReader = GitTagObjectBucket.ForSignature(src.Duplicate()).Buffer();
             using var tagReader = new GitTagObjectBucket(src, handleSubBucket);
 
             await tagReader.ReadUntilEofAsync();
@@ -380,8 +380,11 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 
                 await gpg.ReadUntilEofAsync();
 
-                var ok = await gpg.VerifyAsync(verifySrcReader, key);
-                Assert.IsTrue(ok);
+                var ok = await gpg.VerifyAsync(verifySrcReader.NoClose(), null);
+                Assert.IsTrue(ok, "Signature appears ok");
+                verifySrcReader.Reset();
+                ok = await gpg.VerifyAsync(verifySrcReader, key);
+                Assert.IsTrue(ok, "Signature verified against signer");
                 readGpg = true;
             }
         }

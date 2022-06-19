@@ -493,8 +493,7 @@ namespace AmpScm.Buckets.Git
 
                     using (RSA rsa = RSA.Create())
                     {
-                        bool bigEndian = false;
-                        byte[] signature = _signatureInts![0].ToByteArray(isUnsigned: true, isBigEndian: bigEndian);
+                        byte[] signature = _signatureInts![0].ToByteArray(isUnsigned: true, isBigEndian: true);
 
                         rsa.ImportParameters(new RSAParameters()
                         {
@@ -504,7 +503,7 @@ namespace AmpScm.Buckets.Git
 
                         //Console.WriteLine(rsa.ToString.ToXmlString(false));
 
-                        return rsa.VerifyHash(hashValue, signature.Reverse().ToArray(), GetDotNetHashAlgorithmName(_hashAlgorithm), RSASignaturePadding.Pkcs1);
+                        return rsa.VerifyHash(hashValue, signature, GetDotNetHashAlgorithmName(_hashAlgorithm), RSASignaturePadding.Pkcs1);
                     }
                 case OpenPgpPublicKeyType.ECDSA:
                     using (var ecdsa = ECDsa.Create())

@@ -135,17 +135,21 @@ namespace AmpScm.Git
 
         internal static byte[] ToByteArray(this BigInteger bi, bool isUnsigned=false, bool isBigEndian=false)
         {
-            IEnumerable<byte> b = bi.ToByteArray();
+            var bytes = bi.ToByteArray();
+            IEnumerable<byte> b = bytes;
 
             if (isUnsigned)
-                b = b.SkipWhile((x, i) => i == 0 && x == 0);
+            {
+                if (bytes[bytes.Length - 1] == 0)
+                    b = b.Take(bytes.Length - 1);
+            }
 
             if (isBigEndian)
                 b = b.Reverse();
 
-
             return (b as byte[]) ?? b.ToArray();
         }
 #endif
+
     }
 }
