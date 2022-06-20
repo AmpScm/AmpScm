@@ -487,7 +487,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             var ok = await gpg.VerifyAsync(src, k);
 
 #if !DEBUG
-            if (type == "rsa" || type == "dsa")
+            if (type != "ecdsa")
 #endif
                 Assert.IsTrue(ok, "Signature valid");
         }

@@ -17,19 +17,60 @@ namespace Cryptographic
      * Released to the public domain
      */
 
-    internal class Ed25519
+    internal static class Ed25519
     {
-        private static byte[] ComputeHash(byte[] m)
+        private const int BitLength = 256;
+
+        static readonly BigInteger TwoPowBitLengthMinusTwo = BigInteger.Pow(2, BitLength - 2);
+        static readonly BigInteger[] TwoPowCache = Enumerable.Range(0, 2 * BitLength).Select(i => BigInteger.Pow(2, i)).ToArray();
+
+        static readonly BigInteger Q =
+            BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819949", CultureInfo.InvariantCulture);
+
+        static readonly BigInteger Qm2 =
+            BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819947", CultureInfo.InvariantCulture);
+
+        static readonly BigInteger Qp3 =
+            BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819952", CultureInfo.InvariantCulture);
+
+        static readonly BigInteger L =
+            BigInteger.Parse("7237005577332262213973186563042994240857116359379907606001950938285454250989", CultureInfo.InvariantCulture);
+
+        static readonly BigInteger D =
+            BigInteger.Parse("-4513249062541557337682894930092624173785641285191125241628941591882900924598840740", CultureInfo.InvariantCulture);
+
+        static readonly BigInteger I =
+            BigInteger.Parse("19681161376707505956807079304988542015446066515923890162744021073123829784752", CultureInfo.InvariantCulture);
+
+        static readonly BigInteger By =
+            BigInteger.Parse("46316835694926478169428394003475163141307993866256225615783033603165251855960", CultureInfo.InvariantCulture);
+
+        static readonly BigInteger Bx =
+            BigInteger.Parse("15112221349535400772501151409588531511454012693041857206046113283949847762202", CultureInfo.InvariantCulture);
+
+        static readonly (BigInteger, BigInteger) B = (Bx.Mod(Q), By.Mod(Q));
+
+        static readonly BigInteger Un =
+            BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819967", CultureInfo.InvariantCulture);
+
+        static readonly BigInteger Two = new BigInteger(2);
+        static readonly BigInteger Eight = new BigInteger(8);
+
+        static byte[] ComputeHash(byte[] m)
         {
+#if NET5_0_OR_GREATER
+            return SHA512.HashData(m);
+#else
             using (var sha512 = SHA512.Create())
             {
                 return sha512.ComputeHash(m);
             }
+#endif
         }
 
-        private static BigInteger ExpMod(BigInteger number, BigInteger exponent, BigInteger modulo)
+        static BigInteger ExpMod(BigInteger number, BigInteger exponent, BigInteger modulo)
         {
-            if (exponent.Equals(BigInteger.Zero))
+            if (exponent.IsZero)
             {
                 return BigInteger.One;
             }
@@ -42,12 +83,12 @@ namespace Cryptographic
             return t;
         }
 
-        private static BigInteger Inv(BigInteger x)
+        static BigInteger Inv(BigInteger x)
         {
             return ExpMod(x, Qm2, Q);
         }
 
-        private static BigInteger RecoverX(BigInteger y)
+        static BigInteger RecoverX(BigInteger y)
         {
             BigInteger y2 = y * y;
             BigInteger xx = (y2 - 1) * Inv(D * y2 + 1);
@@ -63,30 +104,30 @@ namespace Cryptographic
             return x;
         }
 
-        private static Tuple<BigInteger, BigInteger> Edwards(BigInteger px, BigInteger py, BigInteger qx, BigInteger qy)
+        static (BigInteger, BigInteger) Edwards(BigInteger px, BigInteger py, BigInteger qx, BigInteger qy)
         {
             BigInteger xx12 = px * qx;
             BigInteger yy12 = py * qy;
             BigInteger dtemp = D * xx12 * yy12;
             BigInteger x3 = (px * qy + qx * py) * (Inv(1 + dtemp));
             BigInteger y3 = (py * qy + xx12) * (Inv(1 - dtemp));
-            return new Tuple<BigInteger, BigInteger>(x3.Mod(Q), y3.Mod(Q));
+            return (x3.Mod(Q), y3.Mod(Q));
         }
 
-        private static Tuple<BigInteger, BigInteger> EdwardsSquare(BigInteger x, BigInteger y)
+        static (BigInteger, BigInteger) EdwardsSquare(BigInteger x, BigInteger y)
         {
             BigInteger xx = x * x;
             BigInteger yy = y * y;
             BigInteger dtemp = D * xx * yy;
             BigInteger x3 = (2 * x * y) * (Inv(1 + dtemp));
             BigInteger y3 = (yy + xx) * (Inv(1 - dtemp));
-            return new Tuple<BigInteger, BigInteger>(x3.Mod(Q), y3.Mod(Q));
+            return (x3.Mod(Q), y3.Mod(Q));
         }
-        private static Tuple<BigInteger, BigInteger> ScalarMul(Tuple<BigInteger, BigInteger> p, BigInteger e)
+        static (BigInteger, BigInteger) ScalarMul((BigInteger, BigInteger) p, BigInteger e)
         {
             if (e.Equals(BigInteger.Zero))
             {
-                return new Tuple<BigInteger, BigInteger>(BigInteger.Zero, BigInteger.One);
+                return (BigInteger.Zero, BigInteger.One);
             }
             var q = ScalarMul(p, e / Two);
             q = EdwardsSquare(q.Item1, q.Item2);
@@ -109,7 +150,7 @@ namespace Cryptographic
             return nout;
         }
 
-        private static int GetBit(byte[] h, int i)
+        static int GetBit(byte[] h, int i)
         {
             return h[i / 8] >> (i % 8) & 1;
         }
@@ -130,7 +171,7 @@ namespace Cryptographic
             return EncodePoint(bigA.Item1, bigA.Item2);
         }
 
-        private static BigInteger HashInt(byte[] m)
+        static BigInteger HashInt(byte[] m)
         {
             byte[] h = ComputeHash(m);
             BigInteger hsum = BigInteger.Zero;
@@ -185,7 +226,7 @@ namespace Cryptographic
             }
         }
 
-        private static bool IsOnCurve(BigInteger x, BigInteger y)
+        static bool IsOnCurve(BigInteger x, BigInteger y)
         {
             BigInteger xx = x * x;
             BigInteger yy = y * y;
@@ -193,12 +234,12 @@ namespace Cryptographic
             return (yy - xx - dxxyy - 1).Mod(Q).Equals(BigInteger.Zero);
         }
 
-        private static BigInteger DecodeInt(byte[] s)
+        static BigInteger DecodeInt(byte[] s)
         {
             return new BigInteger(s) & Un;
         }
 
-        private static Tuple<BigInteger, BigInteger> DecodePoint(byte[] pointBytes)
+        static (BigInteger, BigInteger) DecodePoint(byte[] pointBytes)
         {
             BigInteger y = new BigInteger(pointBytes) & Un;
             BigInteger x = RecoverX(y);
@@ -206,7 +247,7 @@ namespace Cryptographic
             {
                 x = Q - x;
             }
-            var point = new Tuple<BigInteger, BigInteger>(x, y);
+            var point = (x, y);
             if (!IsOnCurve(x, y)) throw new ArgumentException("Decoding point that is not on curve");
             return point;
         }
@@ -216,11 +257,11 @@ namespace Cryptographic
             if (signature.Length != BitLength / 4) throw new ArgumentException("Signature length is wrong");
             if (publicKey.Length != BitLength / 8) throw new ArgumentException("Public key length is wrong");
 
-            byte[] rByte = Arrays.CopyOfRange(signature, 0, BitLength / 8);
+            byte[] rByte = signature.AsSpan(0, BitLength / 8).ToArray();
             var r = DecodePoint(rByte);
             var a = DecodePoint(publicKey);
 
-            byte[] sByte = Arrays.CopyOfRange(signature, BitLength / 8, BitLength / 4);
+            byte[] sByte = signature.AsSpan(BitLength / 8, BitLength / 4 - BitLength/8).ToArray();
             BigInteger s = DecodeInt(sByte);
             BigInteger h;
 
@@ -238,55 +279,7 @@ namespace Cryptographic
             if (!ra.Item1.Equals(rb.Item1) || !ra.Item2.Equals(rb.Item2))
                 return false;
             return true;
-        }
-
-        private const int BitLength = 256;
-
-        private static readonly BigInteger TwoPowBitLengthMinusTwo = BigInteger.Pow(2, BitLength - 2);
-        private static readonly BigInteger[] TwoPowCache = Enumerable.Range(0, 2 * BitLength).Select(i => BigInteger.Pow(2, i)).ToArray();
-
-        private static readonly BigInteger Q =
-            BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819949", CultureInfo.InvariantCulture);
-
-        private static readonly BigInteger Qm2 =
-            BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819947", CultureInfo.InvariantCulture);
-
-        private static readonly BigInteger Qp3 =
-            BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819952", CultureInfo.InvariantCulture);
-
-        private static readonly BigInteger L =
-            BigInteger.Parse("7237005577332262213973186563042994240857116359379907606001950938285454250989", CultureInfo.InvariantCulture);
-
-        private static readonly BigInteger D =
-            BigInteger.Parse("-4513249062541557337682894930092624173785641285191125241628941591882900924598840740", CultureInfo.InvariantCulture);
-
-        private static readonly BigInteger I =
-            BigInteger.Parse("19681161376707505956807079304988542015446066515923890162744021073123829784752", CultureInfo.InvariantCulture);
-
-        private static readonly BigInteger By =
-            BigInteger.Parse("46316835694926478169428394003475163141307993866256225615783033603165251855960", CultureInfo.InvariantCulture);
-
-        private static readonly BigInteger Bx =
-            BigInteger.Parse("15112221349535400772501151409588531511454012693041857206046113283949847762202", CultureInfo.InvariantCulture);
-
-        private static readonly Tuple<BigInteger, BigInteger> B = new Tuple<BigInteger, BigInteger>(Bx.Mod(Q), By.Mod(Q));
-
-        private static readonly BigInteger Un =
-            BigInteger.Parse("57896044618658097711785492504343953926634992332820282019728792003956564819967", CultureInfo.InvariantCulture);
-
-        private static readonly BigInteger Two = new BigInteger(2);
-        private static readonly BigInteger Eight = new BigInteger(8);
-    }
-
-    internal static class Arrays
-    {
-        public static byte[] CopyOfRange(byte[] original, int from, int to)
-        {
-            int length = to - from;
-            var result = new byte[length];
-            Array.Copy(original, from, result, 0, length);
-            return result;
-        }
+        }        
     }
 
     internal static class BigIntegerHelpers

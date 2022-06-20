@@ -528,8 +528,22 @@ namespace AmpScm.Buckets.Git
 
                 if (_signaturePublicKeyType == OpenPgpPublicKeyType.Dsa)
                     overrideAlg = OpenPgpHashAlgorithm.SHA1;
+                else if (_signaturePublicKeyType == OpenPgpPublicKeyType.ECDSA)
+                {
+                    string curveName = Encoding.ASCII.GetString((key?.Values[2] ?? _keyInts![2]).ToByteArray(isUnsigned: true, isBigEndian: true));
 
-                await CreateHash(toSign, x => hashValue = x, overrideAlg: overrideAlg).ConfigureAwait(false);
+                    if (curveName.EndsWith("256", StringComparison.Ordinal))
+                        overrideAlg = OpenPgpHashAlgorithm.SHA256;
+                    else if (curveName.EndsWith("384", StringComparison.Ordinal))
+                        overrideAlg = OpenPgpHashAlgorithm.SHA384;
+                    else if (curveName.EndsWith("521", StringComparison.Ordinal))
+                        overrideAlg = OpenPgpHashAlgorithm.SHA512;
+                }
+
+                if (_signaturePublicKeyType != OpenPgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
+                    await CreateHash(toSign, x => hashValue = x, overrideAlg: overrideAlg).ConfigureAwait(false);
+                else
+                    hashValue = toSign.ToArray();
 
                 if (key is null)
                     return false; // Can't verify SSH signature without key (yet)
