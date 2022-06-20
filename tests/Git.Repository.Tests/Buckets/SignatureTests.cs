@@ -578,7 +578,9 @@ qH6BKotaAsaFaOvvazluYi9BSNS8
 
         [TestMethod]
         [DataRow("rsa")]
-        [DataRow("dsa")]
+#if !NETFRAMEWORK
+        [DataRow("dsa")] // .Net Framework By default only supports SHA1. Needs investigation
+#endif
         [DataRow("ecdsa")]
         //[DataRow("ed25519")]
         [Timeout(5000)]

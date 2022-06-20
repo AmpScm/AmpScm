@@ -562,11 +562,10 @@ namespace AmpScm.Buckets.Git
                             P = key.Values[0].ToByteArray(isUnsigned: true, isBigEndian: true),
                             Q = key.Values[1].ToByteArray(isUnsigned: true, isBigEndian: true),
                             G = key.Values[2].ToByteArray(isUnsigned: true, isBigEndian: true),
-                            Y = key.Values[3].ToByteArray(isUnsigned: true, isBigEndian: true)
+                            Y = key.Values[3].ToByteArray(isUnsigned: true, isBigEndian: true),
                         });
 
                         //Console.WriteLine(rsa.ToString.ToXmlString(false));
-
                         return dsa.VerifySignature(hashValue, signature);
                     }
                 case OpenPgpPublicKeyType.Elgamal:
