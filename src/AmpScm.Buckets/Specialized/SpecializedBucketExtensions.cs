@@ -184,7 +184,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
-        /// 
+        /// Calls <paramref name="action"/> when <paramref name="bucket"/> reads <see cref="BucketBytes.Eof"/> for the first time
         /// </summary>
         /// <param name="bucket"></param>
         /// <param name="action"></param>
@@ -194,7 +194,13 @@ namespace AmpScm.Buckets.Specialized
             return new AtEofBucket(bucket, action);
         }
 
-        public static Bucket ReadAlso(this Bucket bucket, Func<BucketBytes, ValueTask> reader)
+        /// <summary>
+        /// Calls <paramref name="reader"/> on every read from <paramref name="bucket"/>
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        public static Bucket AtRead(this Bucket bucket, Func<BucketBytes, ValueTask> reader)
         {
             return new AlsoReadBucket(bucket, reader);
         }

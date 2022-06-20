@@ -504,8 +504,11 @@ docs: add README
         [Timeout(5000)]
         public async Task TaskVerifyGenerateSSH(string type)
         {
-#if !NET6_0_OR_GREATER || true
+#if !NET6_0_OR_GREATER
             if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("");
+
+            if (type == "dsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("");
 #endif
             var dir = TestContext.PerTestDirectory(type);

@@ -281,7 +281,7 @@ namespace AmpScm.Buckets.Git
                                     if (subLen > 0)
                                     {
                                         using var subRead = bucket.NoClose().TakeExactly(subLen)
-                                            .ReadAlso(bb =>
+                                            .AtRead(bb =>
                                             {
                                                 if (!bb.IsEmpty)
                                                     bc.Append(bb);
