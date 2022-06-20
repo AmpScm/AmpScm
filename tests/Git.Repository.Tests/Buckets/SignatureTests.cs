@@ -431,55 +431,6 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             var k = await kb.ReadKeyAsync();
         }
 
-        const string sshSignedCommit =
-@"tree 3e0b0fa45d77c89db35a39e7a43b055bd0bcd181
-author Jason Miller <contact@jasonmiller.nl> 1638312729 +0100
-committer Jason Miller <contact@jasonmiller.nl> 1638312729 +0100
-gpgsig -----BEGIN SSH SIGNATURE-----
- U1NIU0lHAAAAAQAAAEoAAAAac2stc3NoLWVkMjU1MTlAb3BlbnNzaC5jb20AAAAg/XfTTM
- 09PqIP1qLjTggzPQ40jHERrT0zlDwLOA+CJb4AAAAEc3NoOgAAAANnaXQAAAAAAAAABnNo
- YTUxMgAAAGcAAAAac2stc3NoLWVkMjU1MTlAb3BlbnNzaC5jb20AAABA7Buu75hNZ2bymp
- +9mNcCDb8B2s//7Wx32QkpAXGZ+qCYZL4vt9kgOGWmO0Dp8EvQdhBJnsgG6uzTwr8SqsDO
- DgEAAAAG
- -----END SSH SIGNATURE-----
-
-docs: add README
-";
-        [TestMethod]
-        [Ignore]
-        public async Task ReadSignedSshCommit()
-        {
-#if NETFRAMEWORK
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                Assert.Inconclusive("Key algorithm not supported on MONO (yet)");
-#endif
-            var src = Bucket.Create.FromASCII(sshSignedCommit.Replace("\r", ""));
-            bool readGpg = false;
-
-            var verifySrcReader = GitCommitObjectBucket.ForSignature(src.Duplicate());
-            using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
-
-            await commitReader.ReadUntilEofAsync();
-
-            Assert.IsTrue(readGpg);
-
-
-            async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
-            {
-                if (subBucket != GitSubBucketType.Signature)
-                    await bucket.ReadUntilEofAndCloseAsync();
-
-                var rdx = new Radix64ArmorBucket(bucket);
-                using var gpg = new GitSignatureBucket(rdx);
-
-                await gpg.ReadUntilEofAsync();
-
-                var ok = await gpg.VerifyAsync(verifySrcReader, await GetKey());
-                //Assert.IsTrue(ok);
-                readGpg = true;
-            }
-        }
-
         [TestMethod]
         public async Task VerifySSHRSa()
         {
@@ -500,8 +451,8 @@ docs: add README
         [DataRow("rsa")]
         [DataRow("dsa")] // .Net Framework By default only supports SHA1. Needs investigation
         [DataRow("ecdsa")]
-        //[DataRow("ed25519")]
-        [Timeout(5000)]
+        [DataRow("ed25519")]
+        //[Timeout(5000)]
         public async Task TaskVerifyGenerateSSH(string type)
         {
 #if !NET6_0_OR_GREATER
@@ -534,6 +485,8 @@ docs: add README
             using var gpg = new GitSignatureBucket(rdx);
 
             var ok = await gpg.VerifyAsync(src, k);
+            if (type == "rsa")
+                Assert.IsTrue(ok, "Signature valid");
         }
 
         private void RunSshKeyGen(params string[] args)

@@ -77,9 +77,6 @@ namespace AmpScm.Buckets.Git
                         new BigInteger[]
                         {
                             new BigInteger(vals[1].ToArray().Reverse().Concat(new byte[] { 0 }).ToArray()),
-                            new BigInteger(vals[2].ToArray().Reverse().Concat(new byte[] { 0 }).ToArray()),
-                            new BigInteger(vals[3].ToArray().Reverse().Concat(new byte[] { 0 }).ToArray()),
-                            new BigInteger(vals[4].ToArray().Reverse().Concat(new byte[] { 0 }).ToArray()),
                         });
                     return true;
                 case "ecdsa-sha2-nistp256":
@@ -115,7 +112,6 @@ namespace AmpScm.Buckets.Git
                 default:
                     throw new NotImplementedException();
             }
-            return false;
         }
     }
 }

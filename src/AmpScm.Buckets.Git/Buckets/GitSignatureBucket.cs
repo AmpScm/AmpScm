@@ -162,6 +162,7 @@ namespace AmpScm.Buckets.Git
                                         case "ssh-dss":
                                             _signaturePublicKeyType = OpenPgpPublicKeyType.Dsa;
                                             break;
+                                        case "ssh-ed25519":
                                         case "ssh-ed25519@openssh.com":
                                             _signaturePublicKeyType = OpenPgpPublicKeyType.Ed25519;
                                             break;
@@ -548,14 +549,12 @@ namespace AmpScm.Buckets.Git
                             Exponent = key.Values[1].ToByteArray(isUnsigned: true, isBigEndian: true)
                         });
 
-                        //Console.WriteLine(rsa.ToString.ToXmlString(false));
-
                         return rsa.VerifyHash(hashValue, signature, GetDotNetHashAlgorithmName(_hashAlgorithm), RSASignaturePadding.Pkcs1);
                     }
                 case OpenPgpPublicKeyType.Dsa:
                     using (DSA dsa = CreateDSA())
                     {
-                        byte[] signature = _signatureInts!.SelectMany(x => x.ToByteArray(isUnsigned: true, isBigEndian: true)).ToArray();
+                        byte[] signature = _signatureInts![0].ToByteArray(isUnsigned: true, isBigEndian: true);
 
                         dsa.ImportParameters(new DSAParameters()
                         {
@@ -565,7 +564,6 @@ namespace AmpScm.Buckets.Git
                             Y = key.Values[3].ToByteArray(isUnsigned: true, isBigEndian: true),
                         });
 
-                        //Console.WriteLine(rsa.ToString.ToXmlString(false));
                         return dsa.VerifySignature(hashValue, signature);
                     }
                 case OpenPgpPublicKeyType.Elgamal:
@@ -592,18 +590,23 @@ namespace AmpScm.Buckets.Git
 
                         return ecdsa.VerifyHash(hashValue, signature);
                     }
+                case OpenPgpPublicKeyType.Ed25519:
+                    {
+                        byte[] signature = _signatureInts!.SelectMany(x => x.ToByteArray(isUnsigned: true, isBigEndian: true)).ToArray();
+
+                        return Cryptographic.Ed25519.CheckValid(signature, hashValue, key.Values[0].ToByteArray(isUnsigned: true, isBigEndian: true));
+                    }
                 case OpenPgpPublicKeyType.EdDSA:
                 default:
                     throw new NotImplementedException($"Signature type {_signaturePublicKeyType} not implemented yet");
             }
         }
 
+#pragma warning disable CA5384 // Do Not Use Digital Signature Algorithm (DSA)
         static DSA CreateDSA()
         {
 #if !NETFRAMEWORK
-#pragma warning disable CA5384 // Do Not Use Digital Signature Algorithm (DSA)
             return DSA.Create();
-#pragma warning restore CA5384 // Do Not Use Digital Signature Algorithm (DSA)
 #else
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
                 return DSA.Create();
@@ -617,6 +620,7 @@ namespace AmpScm.Buckets.Git
             }
 #endif
         }
+#pragma warning restore CA5384 // Do Not Use Digital Signature Algorithm (DSA)
 
         static HashAlgorithmName GetDotNetHashAlgorithmName(OpenPgpHashAlgorithm hashAlgorithm)
             => hashAlgorithm switch
