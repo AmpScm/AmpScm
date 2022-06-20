@@ -553,13 +553,7 @@ namespace AmpScm.Buckets.Git
                         return rsa.VerifyHash(hashValue, signature, GetDotNetHashAlgorithmName(_hashAlgorithm), RSASignaturePadding.Pkcs1);
                     }
                 case OpenPgpPublicKeyType.Dsa:
-                    using (DSA dsa =
-#if !NETFRAMEWORK
-                        DSA.Create()
-#else
-                        new DSACng(2048)
-#endif
-                        )
+                    using (DSA dsa = CreateDSA())
                     {
                         byte[] signature = _signatureInts!.SelectMany(x => x.ToByteArray(isUnsigned: true, isBigEndian: true)).ToArray();
 
@@ -602,6 +596,26 @@ namespace AmpScm.Buckets.Git
                 default:
                     throw new NotImplementedException($"Signature type {_signaturePublicKeyType} not implemented yet");
             }
+        }
+
+        static DSA CreateDSA()
+        {
+#if !NETFRAMEWORK
+#pragma warning disable CA5384 // Do Not Use Digital Signature Algorithm (DSA)
+            return DSA.Create();
+#pragma warning restore CA5384 // Do Not Use Digital Signature Algorithm (DSA)
+#else
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                return DSA.Create();
+            else
+                return CreateDSACNG();
+            
+            // Inner helper, to avoid creating class that doesn't exist on MONO
+            static DSA CreateDSACNG()
+            {
+                return new DSACng(2048);
+            }
+#endif
         }
 
         static HashAlgorithmName GetDotNetHashAlgorithmName(OpenPgpHashAlgorithm hashAlgorithm)
