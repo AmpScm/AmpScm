@@ -449,7 +449,7 @@ docs: add README
         [Ignore]
         public async Task ReadSignedSshCommit()
         {
-#if NETFRAMEWORK || true
+#if NETFRAMEWORK
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("Key algorithm not supported on MONO (yet)");
 #endif
@@ -480,86 +480,6 @@ docs: add README
             }
         }
 
-        const string dsaKey =
-@"-----BEGIN PGP PUBLIC KEY BLOCK-----
-
-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
-qH6BKotaAsaFaOvvazluYi9BSNS8
-=ez2d
------END PGP PUBLIC KEY BLOCK-----
-";
-
-        async ValueTask<GitPublicKey> GetDSAKey()
-        {
-            var key = Bucket.Create.FromASCII(dsaKey);
-
-            var radix = new Radix64ArmorBucket(key);
-            var kb = new GitSignatureBucket(radix);
-
-            await kb.ReadUntilEofAndCloseAsync();
-            return await kb.ReadKeyAsync();
-        }
-
-        [TestMethod]
-        public async Task VerifyDSA()
-        {
-            var src = Bucket.Create.FromASCII("test");
-
-            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(sigDSA));
-            using var gpg = new GitSignatureBucket(rdx);
-
-            //await gpg.ReadAsync();
-
-            var ok = await gpg.VerifyAsync(src, await GetDSAKey());
-            Assert.IsTrue(ok, "DSA ok");
-        }
-
         [TestMethod]
         public async Task VerifySSHRSa()
         {
@@ -578,14 +498,16 @@ qH6BKotaAsaFaOvvazluYi9BSNS8
 
         [TestMethod]
         [DataRow("rsa")]
-#if !NETFRAMEWORK
         [DataRow("dsa")] // .Net Framework By default only supports SHA1. Needs investigation
-#endif
         [DataRow("ecdsa")]
         //[DataRow("ed25519")]
         [Timeout(5000)]
         public async Task TaskVerifyGenerateSSH(string type)
         {
+#if !NET6_0_OR_GREATER || true
+            if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("");
+#endif
             var dir = TestContext.PerTestDirectory(type);
 
             string keyFile = Path.Combine(dir, "key");

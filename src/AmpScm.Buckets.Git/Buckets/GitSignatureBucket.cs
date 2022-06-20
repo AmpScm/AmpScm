@@ -553,7 +553,13 @@ namespace AmpScm.Buckets.Git
                         return rsa.VerifyHash(hashValue, signature, GetDotNetHashAlgorithmName(_hashAlgorithm), RSASignaturePadding.Pkcs1);
                     }
                 case OpenPgpPublicKeyType.Dsa:
-                    using (DSA dsa = DSA.Create())
+                    using (DSA dsa =
+#if !NETFRAMEWORK
+                        DSA.Create()
+#else
+                        new DSACng(2048)
+#endif
+                        )
                     {
                         byte[] signature = _signatureInts!.SelectMany(x => x.ToByteArray(isUnsigned: true, isBigEndian: true)).ToArray();
 
