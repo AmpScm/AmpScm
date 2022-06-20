@@ -373,7 +373,7 @@ namespace AmpScm.Git
         static string EscapeGitCommandlineArgument(string argument)
         {
             if (string.IsNullOrEmpty(argument))
-                return "";
+                return "\"\"";
 
             bool escape = false;
             for (int i = 0; i < argument.Length; i++)

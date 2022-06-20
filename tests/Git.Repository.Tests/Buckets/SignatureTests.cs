@@ -2,18 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AmpScm;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Git.Objects;
 using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using System.Diagnostics;
 
 namespace GitRepositoryTests.Buckets
 {
     [TestClass]
     public class SignatureTests
     {
+        public TestContext TestContext { get; set; } = default!;
+
         const string sig1 =
 @"-----BEGIN PGP SIGNATURE-----
 
@@ -38,26 +43,49 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
  =37hr
  -----END PGP SIGNATURE-----";
 
+        const string sigDSA =
+@"-----BEGIN PGP SIGNATURE-----
+
+iIIEABEIACoWIQTHNE8vTjJt+Sudk9934a70jlWGXwUCYrAsPwwcZHNhQGxwdDEu
+bmwACgkQd+Gu9I5Vhl/hfgD/XmXduRrXvp8wD7cuKWkKfotF+IIgtCnC7FMf9Eq1
+WukA/jvr/XbHcqQmFzmWYxf+k3Q5eqKGtMka41jfCWCPxt0Y
+=ofhh
+-----END PGP SIGNATURE-----";
+
+        // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
         const string sshSig =
 @"-----BEGIN SSH SIGNATURE-----
-U1NIU0lHAAAAAQAAAEoAAAAac2stc3NoLWVkMjU1MTlAb3BlbnNzaC5jb20AAAAg/XfTTM
-09PqIP1qLjTggzPQ40jHERrT0zlDwLOA+CJb4AAAAEc3NoOgAAAANnaXQAAAAAAAAABnNo
-YTUxMgAAAGcAAAAac2stc3NoLWVkMjU1MTlAb3BlbnNzaC5jb20AAABA7Buu75hNZ2bymp
-+9mNcCDb8B2s//7Wx32QkpAXGZ+qCYZL4vt9kgOGWmO0Dp8EvQdhBJnsgG6uzTwr8SqsDO
-DgEAAAAG
+U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAP5ogvLJzK+1q2cwJ7K5y6
+tIKRc9y4wv9uAk4cULCN4UDwIBcGU4QiAxuWPsgjxKko/qaQMQWBdBcAUXqLTRQC7z80ER
+xbXF0uHT/XZfbCVtkg9pwxsYj8ltpgPmTOfIOGx3IyYx+luJkg5c+iahVupxeHzBGoQ2q7
+U5MvnMhAEkF+UR5lUbhfqhEOq6SWGsBydr3I/OCrAYcBBO1elXif//ptXO6z2ZOyQI0WL5
+wq+aqJ8VUDCIbfbxWQYisqP8SQHgwHfuYhkpifo537S+/PAf7UHmJbrpOOj8DZ/Hrmymqi
+U8uEVHZuZFLE/gvGyDhH5MGYwMywM+B4l8Poi7R5+zWzauov1UZtULQWDDh2z2oJ+/ass7
+Zr739TmiilduBQGVENeKJf/N6vcAW7KJ5YjeN6+sVtFCqGWbTxpYz8I/fCuliKR6ZfJ0e7
+G/lhTAlFoKZ504izPm1V+18PcT5wQ4igtROShnC31iDLCj6lxxtONEWi45wJPUhvSD7rOA
+TQAAAARmaWxlAAAAAAAAAAZzaGE1MTIAAAGUAAAADHJzYS1zaGEyLTUxMgAAAYDf95HBLz
+yqmKENS4mr+B2/ycK/nPcVMAN8ieqhNheHJjYWROuMiFOMT+h4CwnWZpsIKgce7KTTmAwz
+NrO9UpTpRlueSTUkw/L4g6FhEXONZC5WScLZ2XuKTkqu6vOYsth4AMTvcRtdoEWf7QLbvd
+YVuBj+QWZV7GKARdMbM3yp10ISWgDk4Ob3hjAcmAT7+eBrQHE08uIqBX82zVe1dfZKSXoI
+1VLzGUI/94N++2jDEX35qxKV9wS/13ZtYSW+k7LCSCzgzTtNXFkmb1eYVq5P4/IXJfGB7Z
+Cm/QEhrgEyMptGcY/81fCfXE/ylJSDl9sBzCtSin1E9nFkuA1HGkM9zzPvcAY49k0q5j+O
+zMVsThr0xjYrEpCy7Mk+v6B94DsJFvSpycppXmfnYX+H2Umi1qw9hp7d/wb2txmqFStM8g
+9JDwomS99jM88rMEhZWi6dRjXlEG4q/OoTKnTmT30Aib71Ill+sFxEtmGesS8eeJ+js6B7
+GtAh3JPRDOlZUZM=
 -----END SSH SIGNATURE-----";
 
-//        const string sshSig2 =
-//@"-----BEGIN SSH SIGNATURE-----
-//U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgJKxoLBJBivUPNTUJUSslQTt2hD
-//jozKvHarKeN8uYFqgAAAADZm9vAAAAAAAAAFMAAAALc3NoLWVkMjU1MTkAAABAKNC4IEbt
-//Tq0Fb56xhtuE1/lK9H9RZJfON4o6hE9R4ZGFX98gy0+fFJ/1d2/RxnZky0Y7GojwrZkrHT
-//FgCqVWAQ==
-//-----END SSH SIGNATURE-----";
+        //        const string sshSig2 =
+        //@"-----BEGIN SSH SIGNATURE-----
+        //U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgJKxoLBJBivUPNTUJUSslQTt2hD
+        //jozKvHarKeN8uYFqgAAAADZm9vAAAAAAAAAFMAAAALc3NoLWVkMjU1MTkAAABAKNC4IEbt
+        //Tq0Fb56xhtuE1/lK9H9RZJfON4o6hE9R4ZGFX98gy0+fFJ/1d2/RxnZky0Y7GojwrZkrHT
+        //FgCqVWAQ==
+        //-----END SSH SIGNATURE-----";
 
         [TestMethod]
         [DataRow(sig1, DisplayName = nameof(sig1))]
         [DataRow(sig2, DisplayName = nameof(sig2))]
+        [DataRow(sigDSA, DisplayName = nameof(sigDSA))]
         [DataRow(sshSig, DisplayName = nameof(sshSig))]
         //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseSignature(string signature)
@@ -79,6 +107,7 @@ DgEAAAAG
         [TestMethod]
         [DataRow(sig1, DisplayName = nameof(sig1))]
         [DataRow(sig2, DisplayName = nameof(sig2))]
+        [DataRow(sigDSA, DisplayName = nameof(sigDSA))]
         [DataRow(sshSig, DisplayName = nameof(sshSig))]
         //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseSigTail(string signature)
@@ -103,6 +132,7 @@ DgEAAAAG
         [TestMethod]
         [DataRow(sig1, DisplayName = nameof(sig1))]
         [DataRow(sig2, DisplayName = nameof(sig2))]
+        [DataRow(sigDSA, DisplayName = nameof(sigDSA))]
         [DataRow(sshSig, DisplayName = nameof(sshSig))]
         //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseRfc4880(string signature)
@@ -117,7 +147,7 @@ DgEAAAAG
             //Assert.AreEqual(OpenPgpTagType.Signature, await rr.ReadTagAsync());
 
             var bt = await b.ReadExactlyAsync(1024);
-            Assert.AreEqual("TAIL!", bt.ToASCIIString());     
+            Assert.AreEqual("TAIL!", bt.ToASCIIString());
         }
 
         const string mergetag =
@@ -176,7 +206,7 @@ Pull MTD fixes from Miquel Raynal:
         [TestMethod]
         public async Task ReadMergeTag()
         {
-            var src = Bucket.Create.FromASCII(mergetag.Replace("\r",""));
+            var src = Bucket.Create.FromASCII(mergetag.Replace("\r", ""));
             bool readTag = false;
             bool readSig = false;
 
@@ -237,7 +267,7 @@ repo: allow administrator to own the configuration";
 
             var verifySrcReader = GitCommitObjectBucket.ForSignature(src.Duplicate());
             using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
-            
+
             await commitReader.ReadUntilEofAsync();
 
             Assert.IsTrue(readGpg);
@@ -416,6 +446,7 @@ gpgsig -----BEGIN SSH SIGNATURE-----
 docs: add README
 ";
         [TestMethod]
+        [Ignore]
         public async Task ReadSignedSshCommit()
         {
 #if NETFRAMEWORK || true
@@ -447,6 +478,212 @@ docs: add README
                 //Assert.IsTrue(ok);
                 readGpg = true;
             }
+        }
+
+        const string dsaKey =
+@"-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+qH6BKotaAsaFaOvvazluYi9BSNS8
+=ez2d
+-----END PGP PUBLIC KEY BLOCK-----
+";
+
+        async ValueTask<GitPublicKey> GetDSAKey()
+        {
+            var key = Bucket.Create.FromASCII(dsaKey);
+
+            var radix = new Radix64ArmorBucket(key);
+            var kb = new GitSignatureBucket(radix);
+
+            await kb.ReadUntilEofAndCloseAsync();
+            return await kb.ReadKeyAsync();
+        }
+
+        [TestMethod]
+        public async Task VerifyDSA()
+        {
+            var src = Bucket.Create.FromASCII("test");
+
+            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(sigDSA));
+            using var gpg = new GitSignatureBucket(rdx);
+
+            //await gpg.ReadAsync();
+
+            var ok = await gpg.VerifyAsync(src, await GetDSAKey());
+            Assert.IsTrue(ok, "DSA ok");
+        }
+
+        [TestMethod]
+        public async Task VerifySSHRSa()
+        {
+            var src = Bucket.Create.FromASCII("test");
+
+            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(sshSig));
+            using var gpg = new GitSignatureBucket(rdx);
+
+            //await gpg.ReadAsync();
+
+            Assert.IsTrue(GitPublicKey.TryParse("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQD+aILyycyvtatnMCeyucurSCkXPcuML/bgJOHFCwjeFA8CAXBlOEIgMblj7II8SpKP6mkDEFgXQXAFF6i00UAu8/NBEcW1xdLh0/12X2wlbZIPacMbGI/JbaYD5kznyDhsdyMmMfpbiZIOXPomoVbqcXh8wRqENqu1OTL5zIQBJBflEeZVG4X6oRDquklhrAcna9yPzgqwGHAQTtXpV4n//6bVzus9mTskCNFi+cKvmqifFVAwiG328VkGIrKj/EkB4MB37mIZKYn6Od+0vvzwH+1B5iW66Tjo/A2fx65spqolPLhFR2bmRSxP4Lxsg4R+TBmMDMsDPgeJfD6Iu0efs1s2rqL9VGbVC0Fgw4ds9qCfv2rLO2a+9/U5oopXbgUBlRDXiiX/zer3AFuyieWI3jevrFbRQqhlm08aWM/CP3wrpYikemXydHuxv5YUwJRaCmedOIsz5tVftfD3E+cEOIoLUTkoZwt9Ygywo+pccbTjRFouOcCT1Ib0g+6zgE0= me@pc", out var pk));
+
+            var ok = await gpg.VerifyAsync(src, pk);
+            Assert.IsTrue(ok, "RSA ok");
+        }
+
+        [TestMethod]
+        [DataRow("rsa")]
+        [DataRow("dsa")]
+        //[DataRow("ecdsa")]
+        //[DataRow("ed25519")]
+        [Timeout(5000)]
+        public async Task TaskVerifyGenerateSSH(string type)
+        {
+            var dir = TestContext.PerTestDirectory(type);
+
+            string keyFile = Path.Combine(dir, "key");
+            RunSshKeyGen("-f", keyFile, "-t", type, "-N", "");
+
+            string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
+            Console.WriteLine(publicKey);
+
+            Assert.IsTrue(GitPublicKey.TryParse(publicKey, out var k));
+
+            string testData = Guid.NewGuid().ToString();
+            string testDataFile = Path.Combine(dir, "testdata");
+            File.WriteAllText(testDataFile, testData);
+
+            RunSshKeyGen("-Y", "sign", "-n", "ns", "-f", keyFile, "-i", testDataFile);
+
+            string signature = File.ReadAllText(testDataFile + ".sig");
+
+            var src = Bucket.Create.FromASCII(testData);
+            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(signature));
+            using var gpg = new GitSignatureBucket(rdx);
+
+            var ok = await gpg.VerifyAsync(src, k);
+        }
+
+        private void RunSshKeyGen(params string[] args)
+        {
+            FixConsoleEncoding();
+            ProcessStartInfo psi = new ProcessStartInfo("ssh-keygen", string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))));
+            Console.WriteLine(psi.Arguments);
+            psi.RedirectStandardInput = true;
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
+
+            using var p = Process.Start(psi);
+            Assert.IsNotNull(p);
+
+            p.StandardInput.Close();
+
+            Console.WriteLine(p.StandardError.ReadToEnd());
+            Console.WriteLine(p.StandardOutput.ReadToEnd());
+            
+            p.WaitForExit();
+
+            Assert.AreEqual(0, p.ExitCode);
+        }
+
+        private void FixConsoleEncoding()
+        {
+            var ci = Console.InputEncoding;
+            if (ci == Encoding.UTF8 && ci.GetPreamble().Length > 0)
+            {
+                // Workaround CHCP 65001 / UTF8 bug, where the process will always write a BOM to each started process
+                // with Stdin redirected, which breaks processes which explicitly expect some strings as binary data
+                Console.InputEncoding = new UTF8Encoding(false, true);
+            }
+        }
+
+        static string EscapeGitCommandlineArgument(string argument)
+        {
+            if (string.IsNullOrEmpty(argument))
+                return "\"\"";
+
+            bool escape = false;
+            for (int i = 0; i < argument.Length; i++)
+            {
+                if (char.IsWhiteSpace(argument, i))
+                {
+                    escape = true;
+                    break;
+                }
+                else if (argument[i] == '\"')
+                {
+                    escape = true;
+                    break;
+                }
+            }
+
+            if (!escape)
+                return argument;
+
+            StringBuilder sb = new StringBuilder(argument.Length + 5);
+
+            sb.Append('\"');
+
+            for (int i = 0; i < argument.Length; i++)
+            {
+                switch (argument[i])
+                {
+                    case '\"':
+                        sb.Append('\\');
+                        break;
+                }
+
+                sb.Append(argument[i]);
+            }
+
+            sb.Append('\"');
+
+            return sb.ToString();
         }
     }
 }

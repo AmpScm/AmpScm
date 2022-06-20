@@ -62,17 +62,23 @@ namespace AmpScm.Buckets.Git
         SHA224 = 11
     }
 
-    enum OpenPgpPublicKeyType : byte
+    enum OpenPgpPublicKeyType
     {
         None,
         Rsa = 1,
         RsaEncryptOnly = 2,
         RsaSignOnly = 3,
         Elgamal = 16,
-        DSA = 17,
+        Dsa = 17,
         EllipticCurve = 18,
         ECDSA = 19,
-        DHE = 21
+        DHE = 21,
+        EdDSA = 22,
+        AEDH = 23,
+        AEDSA = 24,
+
+        // Outside PGP range, used for ssh
+        Ed25519= 0x1001,
     }
 
     /// <summary>
@@ -145,9 +151,21 @@ namespace AmpScm.Buckets.Git
                                     bb = await ReadSshStringAsync(ib).ConfigureAwait(false);
                                     string alg = bb.ToASCIIString();
 
+                                    if (alg.StartsWith("sk-", StringComparison.Ordinal))
+                                        alg = alg.Substring(3); 
+
                                     switch (alg)
                                     {
-                                        case "sk-ssh-ed25519@openssh.com":
+                                        case "ssh-rsa":
+                                            _signaturePublicKeyType = OpenPgpPublicKeyType.Rsa;
+                                            break;
+                                        case "ssh-dss":
+                                            _signaturePublicKeyType = OpenPgpPublicKeyType.Dsa;
+                                            break;
+                                        case "ssh-ed25519@openssh.com":
+                                            _signaturePublicKeyType = OpenPgpPublicKeyType.Ed25519;
+                                            break;
+                                        case "ecdsa-sha2-nistp256":
                                             _signaturePublicKeyType = OpenPgpPublicKeyType.ECDSA;
                                             break;
                                         default:
@@ -189,6 +207,27 @@ namespace AmpScm.Buckets.Git
                                 bb = await ReadSshStringAsync(bucket).ConfigureAwait(false);
                                 _signature = bb.ToArray();
                                 _signBlob = signPrefix.ToArray();
+
+                                using var b = _signature.AsBucket();
+
+                                var tp = await ReadSshStringAsync(b).ConfigureAwait(false);
+
+                                List<BigInteger> bigInts = new();
+
+                                while (!(bb = await ReadSshStringAsync(b).ConfigureAwait(false)).IsEof)
+                                {
+#if !NETFRAMEWORK
+                                    bigInts.Add(new BigInteger(bb.ToArray(), isUnsigned: true, isBigEndian: true));
+#else
+                                    bigInts.Add(new BigInteger(bb.ToArray().Reverse().Concat(new byte[] { 0 }).ToArray()));
+#endif
+
+                                    if (0 == await b.ReadRemainingBytesAsync().ConfigureAwait(false))
+                                        break;
+                                }
+
+                                _signatureInts = bigInts.ToArray();
+
                                 break;
                             }
                         case OpenPgpTagType.Signature:
@@ -441,13 +480,14 @@ namespace AmpScm.Buckets.Git
         public async ValueTask<GitPublicKey> ReadKeyAsync()
         {
             await ReadAsync().ConfigureAwait(false);
-            return new GitPublicKey(_keyFingerprint, GetKeyAlgo(_keyPublicKeyType), _keyInts);
+            return new GitPublicKey(_keyFingerprint!, GetKeyAlgo(_keyPublicKeyType), _keyInts!);
         }
 
         static GitPublicKeyAlgorithm GetKeyAlgo(OpenPgpPublicKeyType keyPublicKeyType)
             => keyPublicKeyType switch
             {
-                OpenPgpPublicKeyType.Rsa => GitPublicKeyAlgorithm.RSA,
+                OpenPgpPublicKeyType.Rsa => GitPublicKeyAlgorithm.Rsa,
+                OpenPgpPublicKeyType.Dsa => GitPublicKeyAlgorithm.Dsa,
                 _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
             };
 
@@ -455,6 +495,8 @@ namespace AmpScm.Buckets.Git
         {
             if (sourceData is null)
                 throw new ArgumentNullException(nameof(sourceData));
+
+            await ReadAsync().ConfigureAwait(false);
 
             byte[] hashValue = null!;
 
@@ -487,6 +529,9 @@ namespace AmpScm.Buckets.Git
 
         private bool VerifySignatureAsync(byte[] hashValue, GitPublicKey key)
         {
+            if (_signatureInts == null)
+                throw new InvalidOperationException("No signature value found to verify against");
+
             switch (_signaturePublicKeyType)
             {
                 case OpenPgpPublicKeyType.Rsa:
@@ -505,11 +550,43 @@ namespace AmpScm.Buckets.Git
 
                         return rsa.VerifyHash(hashValue, signature, GetDotNetHashAlgorithmName(_hashAlgorithm), RSASignaturePadding.Pkcs1);
                     }
+                case OpenPgpPublicKeyType.Dsa:
+                    using (DSA dsa = DSA.Create())
+                    {
+                        byte[] signature = _signatureInts!.SelectMany(x => x.ToByteArray(isUnsigned: true, isBigEndian: true)).ToArray();
+
+                        dsa.ImportParameters(new DSAParameters()
+                        {
+                            P = key.Values[0].ToByteArray(isUnsigned: true, isBigEndian: true),
+                            Q = key.Values[1].ToByteArray(isUnsigned: true, isBigEndian: true),
+                            G = key.Values[2].ToByteArray(isUnsigned: true, isBigEndian: true),
+                            Y = key.Values[3].ToByteArray(isUnsigned: true, isBigEndian: true)
+                        });
+
+                        //Console.WriteLine(rsa.ToString.ToXmlString(false));
+
+                        return dsa.VerifySignature(hashValue, signature);
+                    }
+                case OpenPgpPublicKeyType.Elgamal:
+                    // P, G, Y
+                    goto default;
                 case OpenPgpPublicKeyType.ECDSA:
                     using (var ecdsa = ECDsa.Create())
                     {
-                        return false;
+                        byte[] signature = _signatureInts!.SelectMany(x => x.ToByteArray(isUnsigned: true, isBigEndian: true)).ToArray();
+
+                        ecdsa.ImportParameters(new ECParameters()
+                        {
+                            Q = new ECPoint
+                            {
+                                X = key.Values[0].ToByteArray(isUnsigned: true, isBigEndian: true),
+                                Y = key.Values[1].ToByteArray(isUnsigned: true, isBigEndian: true),
+                            }
+                        });
+
+                        return ecdsa.VerifyHash(hashValue, signature);
                     }
+                case OpenPgpPublicKeyType.EdDSA:
                 default:
                     throw new NotImplementedException($"Signature type {_signaturePublicKeyType} not implemented yet");
             }
@@ -585,6 +662,26 @@ namespace AmpScm.Buckets.Git
                 return BucketBytes.Empty;
 
             return await bucket.ReadExactlyAsync(len).ConfigureAwait(false);
+        }
+
+        internal static ReadOnlyMemory<byte>[] ParseSshStrings(byte[] data)
+        {
+            List<ReadOnlyMemory<byte>> mems = new();
+
+            // HACK^2: We know we have a memory only bucket, so ignore everything async
+            // And we also know the result will refer to the original data, so returning
+            // references is safe in this specific edge case.
+
+            var b = data.AsBucket();
+
+            while (b.ReadRemainingBytesAsync().AsTask().Result > 0)
+            {
+                var bb = ReadSshStringAsync(b).AsTask().Result;
+
+                mems.Add(bb.Memory);
+            }
+
+            return mems.ToArray();
         }
 
         sealed class OpenPgpContainer : WrappingBucket
