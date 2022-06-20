@@ -166,6 +166,8 @@ namespace AmpScm.Buckets.Git
                                             _signaturePublicKeyType = OpenPgpPublicKeyType.Ed25519;
                                             break;
                                         case "ecdsa-sha2-nistp256":
+                                        case "ecdsa-sha2-nistp384":
+                                        case "ecdsa-sha2-nistp521":
                                             _signaturePublicKeyType = OpenPgpPublicKeyType.ECDSA;
                                             break;
                                         default:
@@ -575,13 +577,18 @@ namespace AmpScm.Buckets.Git
                     {
                         byte[] signature = _signatureInts!.SelectMany(x => x.ToByteArray(isUnsigned: true, isBigEndian: true)).ToArray();
 
+
+                        // The name is stored as integer... Nice :(
+                        string curveName = Encoding.ASCII.GetString(key.Values[2].ToByteArray().Reverse().ToArray());
+
                         ecdsa.ImportParameters(new ECParameters()
                         {
                             Q = new ECPoint
                             {
                                 X = key.Values[0].ToByteArray(isUnsigned: true, isBigEndian: true),
                                 Y = key.Values[1].ToByteArray(isUnsigned: true, isBigEndian: true),
-                            }
+                            },
+                            Curve = ECCurve.CreateFromFriendlyName(curveName)
                         });
 
                         return ecdsa.VerifyHash(hashValue, signature);

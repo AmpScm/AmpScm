@@ -579,7 +579,7 @@ qH6BKotaAsaFaOvvazluYi9BSNS8
         [TestMethod]
         [DataRow("rsa")]
         [DataRow("dsa")]
-        //[DataRow("ecdsa")]
+        [DataRow("ecdsa")]
         //[DataRow("ed25519")]
         [Timeout(5000)]
         public async Task TaskVerifyGenerateSSH(string type)
