@@ -614,6 +614,7 @@ qH6BKotaAsaFaOvvazluYi9BSNS8
             FixConsoleEncoding();
             ProcessStartInfo psi = new ProcessStartInfo("ssh-keygen", string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))));
             Console.WriteLine(psi.Arguments);
+            psi.UseShellExecute = false;
             psi.RedirectStandardInput = true;
             psi.RedirectStandardOutput = true;
             psi.RedirectStandardError = true;

@@ -579,7 +579,7 @@ namespace AmpScm.Buckets.Git
 
 
                         // The name is stored as integer... Nice :(
-                        string curveName = Encoding.ASCII.GetString(key.Values[2].ToByteArray().Reverse().ToArray());
+                        string curveName = Encoding.ASCII.GetString(key.Values[2].ToByteArray(isUnsigned: true, isBigEndian: true));
 
                         ecdsa.ImportParameters(new ECParameters()
                         {
