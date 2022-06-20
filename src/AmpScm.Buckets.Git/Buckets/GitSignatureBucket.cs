@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Git
         AEDSA = 24,
 
         // Outside PGP range, used for ssh
-        Ed25519= 0x1001,
+        Ed25519 = 0x1001,
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ namespace AmpScm.Buckets.Git
                                     string alg = bb.ToASCIIString();
 
                                     if (alg.StartsWith("sk-", StringComparison.Ordinal))
-                                        alg = alg.Substring(3); 
+                                        alg = alg.Substring(3);
 
                                     switch (alg)
                                     {
@@ -174,6 +174,19 @@ namespace AmpScm.Buckets.Git
                                         default:
                                             throw new NotImplementedException($"Unknown signature type: {alg}");
                                     }
+
+                                    List<BigInteger> keyInts = new();
+                                    while (0 < await ib.ReadRemainingBytesAsync().ConfigureAwait(false))
+                                    {
+                                        bb = await ReadSshStringAsync(ib).ConfigureAwait(false);
+
+#if !NETFRAMEWORK
+                                        keyInts.Add(new BigInteger(bb.ToArray(), isUnsigned: true, isBigEndian: true));
+#else
+                                        keyInts.Add(new BigInteger(bb.ToArray().Reverse().Concat(new byte[] { 0 }).ToArray()));
+#endif
+                                    }
+                                    _keyInts = keyInts.ToArray();
                                 }
 
                                 ByteCollector signPrefix = new(512);
@@ -511,7 +524,12 @@ namespace AmpScm.Buckets.Git
                 // SSH signature signs blob that contains original hash and some other data
                 var toSign = _signBlob!.AsBucket() + NetBitConverter.GetBytes(hashValue.Length).AsBucket() + hashValue.AsBucket();
 
-                await CreateHash(toSign, x => hashValue = x).ConfigureAwait(false);
+                OpenPgpHashAlgorithm? overrideAlg = null;
+
+                if (_signaturePublicKeyType == OpenPgpPublicKeyType.Dsa)
+                    overrideAlg = OpenPgpHashAlgorithm.SHA1;
+
+                await CreateHash(toSign, x => hashValue = x, overrideAlg: overrideAlg).ConfigureAwait(false);
 
                 if (key is null)
                     return false; // Can't verify SSH signature without key (yet)
@@ -552,7 +570,7 @@ namespace AmpScm.Buckets.Git
                         return rsa.VerifyHash(hashValue, signature, GetDotNetHashAlgorithmName(_hashAlgorithm), RSASignaturePadding.Pkcs1);
                     }
                 case OpenPgpPublicKeyType.Dsa:
-                    using (DSA dsa = CreateDSA())
+                    using (DSA dsa = DSA.Create())
                     {
                         byte[] signature = _signatureInts![0].ToByteArray(isUnsigned: true, isBigEndian: true);
 
@@ -602,26 +620,6 @@ namespace AmpScm.Buckets.Git
             }
         }
 
-#pragma warning disable CA5384 // Do Not Use Digital Signature Algorithm (DSA)
-        static DSA CreateDSA()
-        {
-#if !NETFRAMEWORK
-            return DSA.Create();
-#else
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                return DSA.Create();
-            else
-                return CreateDSACNG();
-            
-            // Inner helper, to avoid creating class that doesn't exist on MONO
-            static DSA CreateDSACNG()
-            {
-                return new DSACng(2048);
-            }
-#endif
-        }
-#pragma warning restore CA5384 // Do Not Use Digital Signature Algorithm (DSA)
-
         static HashAlgorithmName GetDotNetHashAlgorithmName(OpenPgpHashAlgorithm hashAlgorithm)
             => hashAlgorithm switch
             {
@@ -631,9 +629,9 @@ namespace AmpScm.Buckets.Git
                 _ => throw new NotImplementedException($"OpenPGP scheme {hashAlgorithm} not mapped yet.")
             };
 
-        private async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created)
+        private async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created, OpenPgpHashAlgorithm? overrideAlg = null)
         {
-            switch (_hashAlgorithm)
+            switch (overrideAlg ?? _hashAlgorithm)
             {
                 case OpenPgpHashAlgorithm.SHA256:
                     sourceData = sourceData.SHA256(created);

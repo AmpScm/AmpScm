@@ -485,7 +485,10 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             using var gpg = new GitSignatureBucket(rdx);
 
             var ok = await gpg.VerifyAsync(src, k);
-            if (type == "rsa")
+
+#if !DEBUG
+            if (type == "rsa" || type == "dsa")
+#endif
                 Assert.IsTrue(ok, "Signature valid");
         }
 
