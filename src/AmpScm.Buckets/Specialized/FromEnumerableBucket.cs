@@ -7,7 +7,7 @@ namespace AmpScm.Buckets.Specialized
     sealed class FromEnumerableBucket : Bucket
     {
         readonly IAsyncEnumerable<BucketBytes> _enumerable;
-        IAsyncEnumerator<BucketBytes> _enumerator;
+        IAsyncEnumerator<BucketBytes>? _enumerator;
         BucketBytes? _next;
 
         public FromEnumerableBucket(IAsyncEnumerable<BucketBytes> enumerable)
@@ -17,6 +17,17 @@ namespace AmpScm.Buckets.Specialized
 
             _enumerable = enumerable;
             _enumerator = enumerable.GetAsyncEnumerator();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing && _enumerator is not null)
+            {
+                _enumerator.DisposeAsync().GetAwaiter().GetResult();
+                _enumerator = null;
+            }
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
@@ -41,7 +52,7 @@ namespace AmpScm.Buckets.Specialized
                 }
             }
 
-            if (!await _enumerator.MoveNextAsync().ConfigureAwait(false))
+            if (_enumerator is null || !await _enumerator.MoveNextAsync().ConfigureAwait(false))
             {
                 _next = BucketBytes.Eof;
                 return BucketBytes.Eof;
@@ -51,6 +62,8 @@ namespace AmpScm.Buckets.Specialized
 
             if (bb.IsEof)
             {
+                await _enumerator.DisposeAsync().ConfigureAwait(false);
+                _enumerator = null;
                 _next = bb;
                 return bb;
             }

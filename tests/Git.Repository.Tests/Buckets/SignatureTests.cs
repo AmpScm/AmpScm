@@ -239,33 +239,33 @@ Pull MTD fixes from Miquel Raynal:
         }
 
         const string SignedCommit =
-@"tree 49bf90d07df60ac5c9ebdede5547f4a733d013cd
-parent 05f211543bda96ba86bef14e8e6521069fb77797
-parent cdff2f0237f663e0f68155655a8b66d05c1ec716
-author Edward Thomson <ethomson@edwardthomson.com> 1655172877 -0400
-committer GitHub <noreply@github.com> 1655172877 -0400
+@"tree d6b79075cd65b101cec0b38f9e4eb86de5b850a7
+parent 660e6bd5cd277296aa8b3aadc1383995b6c00e87
+parent 0f5944459beb952fd49461dfb3c2867de7df314b
+author Edward Thomson <ethomson@edwardthomson.com> 1655044812 -0400
+committer GitHub <noreply@github.com> 1655044812 -0400
 gpgsig -----BEGIN PGP SIGNATURE-----
  
- wsBcBAABCAAQBQJip+8NCRBK7hj4Ov3rIwAAw9cIACWyL7ApK82WkscXLl60uOqK
- o1B6DFIaQfg9DyFPpIb0QU+SPaPBlLNbYgck0tJFbL2fzIBPyLBxeVXUsKFuVv2D
- J1ATvZGniAIIDHAFjyJFpA4z6PKocIKFZbWQ1tw8tRkH9Ta6BWuhUsHwsSFpgd+s
- CojqKYcAV4+xDgb+ZE2JJJJ0ma8QkJi4JKymGJCVljG+a3myQ+3OyN12++AQk80q
- ldCOcdpTuFrXatsvv+ECvOjIA445Hlinfosa7zpXKw4DtUZx3lZYf+oYtTIWcMYb
- 78iolJ8qzZVJJUpq94qM+Dd/e057cvEj9CeiBMoXK2VOXOxj/BBVXjHYPq0gtv4=
- =5cT+
+ wsBcBAABCAAQBQJipfrMCRBK7hj4Ov3rIwAAJIcIABCqxS+DdDQh9iIIaNFvI4Ul
+ djcR9XeHfK9PrbGZFTKLmSj0WdU6JNplBiNl0IsvAEPatAKMKc+J6kz1o4gJHNIq
+ gT5dQQ8lKiVTq+adMwU1ikAreh6/a8jMCFImXrQchAZjWn0CK7DZxWmQ1iS+VgmZ
+ kNP0DQqxg4qPYgdyaGLh6+jWMOJqMYbOBViJMd6xN1vgyX9pqXKzkTPv0OyY4GqM
+ 5l2Munaeoq36powq+grP8f7zLFucfi+HL71EJKRGrMta0UBgR0ncJHQO1Qtbzypx
+ 7DPWGlcyfCo3+pPK8BsqHKj800StyhuNe5gsH6cSEI94XnH3eUxZG64S6N/cBxs=
+ =2xQs
  -----END PGP SIGNATURE-----
  
 
-Merge pull request #6321 from libgit2/ethomson/ownership
+Merge pull request #6288 from libgit2/cmn/mwindow-simplifications
 
-repo: allow administrator to own the configuration";
+A couple of simplications around mwindow";
         [TestMethod]
         public async Task ReadSignedCommit()
         {
             var src = Bucket.Create.FromASCII(SignedCommit.Replace("\r", ""));
             bool readGpg = false;
 
-            var verifySrcReader = GitCommitObjectBucket.ForSignature(src.Duplicate());
+            var verifySrcReader = GitCommitObjectBucket.ForSignature(src.Duplicate()).Buffer();
             using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
 
             await commitReader.ReadUntilEofAsync();
@@ -280,13 +280,13 @@ repo: allow administrator to own the configuration";
                 var rdx = new Radix64ArmorBucket(bucket);
                 using var gpg = new GitSignatureBucket(rdx);
 
-                await gpg.ReadUntilEofAsync();
-
-                var ok1 = await gpg.VerifyAsync(verifySrcReader, null);
+                var ok1 = await gpg.VerifyAsync(verifySrcReader.NoClose(), null);
                 Assert.IsTrue(ok1, "Verify as signature from 'someone'");
 
-                var ok = await gpg.VerifyAsync(verifySrcReader, await GetKey());
-                //Assert.IsTrue(ok);
+                verifySrcReader.Reset();
+
+                var ok = await gpg.VerifyAsync(verifySrcReader, await GetGitHubWebFlowKey());
+                Assert.IsTrue(ok, "Valid sigature");
                 readGpg = true;
             }
         }
@@ -384,6 +384,35 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             return await kb.ReadKeyAsync();
         }
 
+        const string WebFlowKey =
+@"-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+xsBNBFmUaEEBCACzXTDt6ZnyaVtueZASBzgnAmK13q9Urgch+sKYeIhdymjuMQta
+x15OklctmrZtqre5kwPUosG3/B2/ikuPYElcHgGPL4uL5Em6S5C/oozfkYzhwRrT
+SQzvYjsE4I34To4UdE9KA97wrQjGoz2Bx72WDLyWwctD3DKQtYeHXswXXtXwKfjQ
+7Fy4+Bf5IPh76dA8NJ6UtjjLIDlKqdxLW4atHe6xWFaJ+XdLUtsAroZcXBeWDCPa
+buXCDscJcLJRKZVc62gOZXXtPfoHqvUPp3nuLA4YjH9bphbrMWMf810Wxz9JTd3v
+yWgGqNY0zbBqeZoGv+TuExlRHT8ASGFS9SVDABEBAAHNNUdpdEh1YiAod2ViLWZs
+b3cgY29tbWl0IHNpZ25pbmcpIDxub3JlcGx5QGdpdGh1Yi5jb20+wsBiBBMBCAAW
+BQJZlGhBCRBK7hj4Ov3rIwIbAwIZAQAAmQEIACATWFmi2oxlBh3wAsySNCNV4IPf
+DDMeh6j80WT7cgoX7V7xqJOxrfrqPEthQ3hgHIm7b5MPQlUr2q+UPL22t/I+ESF6
+9b0QWLFSMJbMSk+BXkvSjH9q8jAO0986/pShPV5DU2sMxnx4LfLfHNhTzjXKokws
++8ptJ8uhMNIDXfXuzkZHIxoXk3rNcjDN5c5X+sK8UBRH092BIJWCOfaQt7v7wig5
+4Ra28pM9GbHKXVNxmdLpCFyzvyMuCmINYYADsC848QQFFwnd4EQnupo6QvhEVx1O
+j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
+=HXDP
+-----END PGP PUBLIC KEY BLOCK-----";
+        static async ValueTask<GitPublicKey> GetGitHubWebFlowKey()
+        {
+            var key = Bucket.Create.FromASCII(WebFlowKey.Replace("\r", ""));
+
+            var radix = new Radix64ArmorBucket(key);
+            var kb = new GitSignatureBucket(radix);
+
+            await kb.ReadUntilEofAndCloseAsync();
+            return await kb.ReadKeyAsync();
+        }
+
         [TestMethod]
         public async Task ReadSignedTag()
         {
@@ -408,10 +437,9 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
                 var rdx = new Radix64ArmorBucket(bucket);
                 using var gpg = new GitSignatureBucket(rdx);
 
-                await gpg.ReadUntilEofAsync();
-
                 var ok = await gpg.VerifyAsync(verifySrcReader.NoClose(), null);
                 Assert.IsTrue(ok, "Signature appears ok");
+
                 verifySrcReader.Reset();
                 ok = await gpg.VerifyAsync(verifySrcReader, key);
                 Assert.IsTrue(ok, "Signature verified against signer");
@@ -449,7 +477,9 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 
         [TestMethod]
         [DataRow("rsa", "")]
-        [DataRow("dsa", "")] // .Net Framework By default only supports SHA1. Needs investigation
+        [DataRow("rsa", "-b1024")]
+        [DataRow("rsa", "-b4096")]
+        [DataRow("dsa", "")]
         [DataRow("ecdsa", "")]
         [DataRow("ecdsa", "-b256")]
         [DataRow("ecdsa", "-b384")]
@@ -482,7 +512,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             string testDataFile = Path.Combine(dir, "testdata");
             File.WriteAllText(testDataFile, testData);
 
-            RunSshKeyGen("-v", "-Y", "sign", "-n", "ns", "-f", keyFile, testDataFile);
+            RunSshKeyGen("-Y", "sign", "-n", "ns", "-f", keyFile, testDataFile);
 
             string signature = File.ReadAllText(testDataFile + ".sig");
 
