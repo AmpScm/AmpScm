@@ -536,7 +536,7 @@ namespace AmpScm.Buckets.Git
                 else
                     hashValue = toSign.ToArray();
 
-                if (key is null)
+                if (key is null && _keyInts is null)
                     return false; // Can't verify SSH signature without key (yet)
             }
             else
@@ -550,10 +550,12 @@ namespace AmpScm.Buckets.Git
                     return true; // Signature is a valid signature, but we can't verify it
             }
 
-            return VerifySignatureAsync(hashValue, key);
+            var v = key?.Values ?? _keyInts ?? throw new InvalidOperationException("No key to verify with");
+
+            return VerifySignatureAsync(hashValue, v);
         }
 
-        private bool VerifySignatureAsync(byte[] hashValue, GitPublicKey key)
+        private bool VerifySignatureAsync(byte[] hashValue, IReadOnlyList<ReadOnlyMemory<byte>> keyValues)
         {
             if (_signatureInts == null)
                 throw new InvalidOperationException("No signature value found to verify against");
@@ -568,8 +570,8 @@ namespace AmpScm.Buckets.Git
 
                         rsa.ImportParameters(new RSAParameters()
                         {
-                            Modulus = key.Values[0].ToArray(),
-                            Exponent = key.Values[1].ToArray()
+                            Modulus = MakeUnsignedArray(keyValues[0]),
+                            Exponent = MakeUnsignedArray(keyValues[1])
                         });
 
                         return rsa.VerifyHash(hashValue, signature, GetDotNetHashAlgorithmName(_hashAlgorithm), RSASignaturePadding.Pkcs1);
@@ -581,10 +583,10 @@ namespace AmpScm.Buckets.Git
 
                         dsa.ImportParameters(new DSAParameters()
                         {
-                            P = MakeUnsignedArray(key.Values[0]),
-                            Q = MakeUnsignedArray(key.Values[1]),
-                            G = MakeUnsignedArray(key.Values[2]),
-                            Y = MakeUnsignedArray(key.Values[3])
+                            P = MakeUnsignedArray(keyValues[0]),
+                            Q = MakeUnsignedArray(keyValues[1]),
+                            G = MakeUnsignedArray(keyValues[2]),
+                            Y = MakeUnsignedArray(keyValues[3])
                         });
 
                         return dsa.VerifySignature(hashValue, signature);
@@ -595,7 +597,7 @@ namespace AmpScm.Buckets.Git
                 case OpenPgpPublicKeyType.ECDSA:
                     using (var ecdsa = ECDsa.Create())
                     {
-                        string curveName = Encoding.ASCII.GetString(key.Values[0].ToArray());
+                        string curveName = Encoding.ASCII.GetString(keyValues[0].ToArray());
                         var rawSignature = _signatureInts![0];
 
                         // Signature is DER variable-size encoded pair of integers
@@ -625,8 +627,8 @@ namespace AmpScm.Buckets.Git
 
                             Q = new ECPoint
                             {
-                                X = key.Values[1].ToArray(),
-                                Y = key.Values[2].ToArray(),
+                                X = keyValues[1].ToArray(),
+                                Y = keyValues[2].ToArray(),
                             },
                         });
 
@@ -636,7 +638,7 @@ namespace AmpScm.Buckets.Git
                     {
                         byte[] signature = _signatureInts![0].ToArray();
 
-                        return Cryptographic.Ed25519.CheckValid(signature, hashValue, key.Values[0].ToArray());
+                        return Cryptographic.Ed25519.CheckValid(signature, hashValue, keyValues[0].ToArray());
                     }
                 case OpenPgpPublicKeyType.EdDSA:
                 default:

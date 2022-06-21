@@ -19,7 +19,7 @@ namespace GitRepositoryTests.Buckets
     {
         public TestContext TestContext { get; set; } = default!;
 
-        const string sig1 =
+        const string Sig1 =
 @"-----BEGIN PGP SIGNATURE-----
 
 wsBcBAABCAAQBQJioEepCRBK7hj4Ov3rIwAAGoMIAHCHbTas3gShVMMX2dx2r82B
@@ -31,7 +31,7 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
 =7fmL
 -----END PGP SIGNATURE-----";
 
-        const string sig2 = // Similar as sig1 but whitespace at start of line
+        const string Sig2 = // Similar as sig1 but whitespace at start of line
 @"-----BEGIN PGP SIGNATURE-----
 
  wsBcBAABCAAQBQJimgGPCRBK7hj4Ov3rIwAAP10IAGkgEDtRaPWlyreQincqo8KM
@@ -43,7 +43,7 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
  =37hr
  -----END PGP SIGNATURE-----";
 
-        const string sigDSA =
+        const string SigDSA =
 @"-----BEGIN PGP SIGNATURE-----
 
 iIIEABEIACoWIQTHNE8vTjJt+Sudk9934a70jlWGXwUCYrAsPwwcZHNhQGxwdDEu
@@ -53,7 +53,7 @@ WukA/jvr/XbHcqQmFzmWYxf+k3Q5eqKGtMka41jfCWCPxt0Y
 -----END PGP SIGNATURE-----";
 
         // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
-        const string sshSig =
+        const string SshSig =
 @"-----BEGIN SSH SIGNATURE-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAP5ogvLJzK+1q2cwJ7K5y6
 tIKRc9y4wv9uAk4cULCN4UDwIBcGU4QiAxuWPsgjxKko/qaQMQWBdBcAUXqLTRQC7z80ER
@@ -83,10 +83,10 @@ GtAh3JPRDOlZUZM=
         //-----END SSH SIGNATURE-----";
 
         [TestMethod]
-        [DataRow(sig1, DisplayName = nameof(sig1))]
-        [DataRow(sig2, DisplayName = nameof(sig2))]
-        [DataRow(sigDSA, DisplayName = nameof(sigDSA))]
-        [DataRow(sshSig, DisplayName = nameof(sshSig))]
+        [DataRow(Sig1, DisplayName = nameof(Sig1))]
+        [DataRow(Sig2, DisplayName = nameof(Sig2))]
+        [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
+        [DataRow(SshSig, DisplayName = nameof(SshSig))]
         //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseSignature(string signature)
         {
@@ -105,10 +105,10 @@ GtAh3JPRDOlZUZM=
         }
 
         [TestMethod]
-        [DataRow(sig1, DisplayName = nameof(sig1))]
-        [DataRow(sig2, DisplayName = nameof(sig2))]
-        [DataRow(sigDSA, DisplayName = nameof(sigDSA))]
-        [DataRow(sshSig, DisplayName = nameof(sshSig))]
+        [DataRow(Sig1, DisplayName = nameof(Sig1))]
+        [DataRow(Sig2, DisplayName = nameof(Sig2))]
+        [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
+        [DataRow(SshSig, DisplayName = nameof(SshSig))]
         //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseSigTail(string signature)
         {
@@ -130,10 +130,10 @@ GtAh3JPRDOlZUZM=
         }
 
         [TestMethod]
-        [DataRow(sig1, DisplayName = nameof(sig1))]
-        [DataRow(sig2, DisplayName = nameof(sig2))]
-        [DataRow(sigDSA, DisplayName = nameof(sigDSA))]
-        [DataRow(sshSig, DisplayName = nameof(sshSig))]
+        [DataRow(Sig1, DisplayName = nameof(Sig1))]
+        [DataRow(Sig2, DisplayName = nameof(Sig2))]
+        [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
+        [DataRow(SshSig, DisplayName = nameof(SshSig))]
         //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseRfc4880(string signature)
         {
@@ -150,7 +150,7 @@ GtAh3JPRDOlZUZM=
             Assert.AreEqual("TAIL!", bt.ToASCIIString());
         }
 
-        const string mergetag =
+        const string MergeTag =
 @"tree 31b100c21e7d04fab9a2ce69b192f40798f2f260
 parent 233087ca063686964a53c829d547c7571e3f67bf
 parent ba7542eb2dd5dfc75c457198b88986642e602065
@@ -206,7 +206,7 @@ Pull MTD fixes from Miquel Raynal:
         [TestMethod]
         public async Task ReadMergeTag()
         {
-            var src = Bucket.Create.FromASCII(mergetag.Replace("\r", ""));
+            var src = Bucket.Create.FromASCII(MergeTag.Replace("\r", ""));
             bool readTag = false;
             bool readSig = false;
 
@@ -238,7 +238,7 @@ Pull MTD fixes from Miquel Raynal:
             }
         }
 
-        const string signedCommit =
+        const string SignedCommit =
 @"tree 49bf90d07df60ac5c9ebdede5547f4a733d013cd
 parent 05f211543bda96ba86bef14e8e6521069fb77797
 parent cdff2f0237f663e0f68155655a8b66d05c1ec716
@@ -262,7 +262,7 @@ repo: allow administrator to own the configuration";
         [TestMethod]
         public async Task ReadSignedCommit()
         {
-            var src = Bucket.Create.FromASCII(signedCommit.Replace("\r", ""));
+            var src = Bucket.Create.FromASCII(SignedCommit.Replace("\r", ""));
             bool readGpg = false;
 
             var verifySrcReader = GitCommitObjectBucket.ForSignature(src.Duplicate());
@@ -291,7 +291,7 @@ repo: allow administrator to own the configuration";
             }
         }
 
-        const string signedTag =
+        const string SignedTag =
 @"object ba7542eb2dd5dfc75c457198b88986642e602065
 type commit
 tag mtd/fixes-for-5.18-rc5
@@ -317,7 +317,7 @@ grze+yeq0AqntS2gaiIsmRHShd/gpTfd4OAYkifpvclUYMGlfy2i038eTsuLLMfA
 -----END PGP SIGNATURE-----
 ";
 
-        const string publicKeyOfSignedTag =
+        const string PublicKeyOfSignedTag =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQENBFk/j/ABCADBrAWnqPpax2so2sQFrihYOy2AebXaq/o3NBtd62v2q+HspQj0
@@ -373,9 +373,9 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 -----END PGP PUBLIC KEY BLOCK-----
 ";
 
-        async ValueTask<GitPublicKey> GetKey()
+        static async ValueTask<GitPublicKey> GetKey()
         {
-            var key = Bucket.Create.FromASCII(publicKeyOfSignedTag.Replace("\r", ""));
+            var key = Bucket.Create.FromASCII(PublicKeyOfSignedTag.Replace("\r", ""));
 
             var radix = new Radix64ArmorBucket(key);
             var kb = new GitSignatureBucket(radix);
@@ -389,7 +389,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
         {
             var key = await GetKey();
 
-            var src = Bucket.Create.FromASCII(signedTag.Replace("\r", ""));
+            var src = Bucket.Create.FromASCII(SignedTag.Replace("\r", ""));
             bool readGpg = false;
 
             var verifySrcReader = GitTagObjectBucket.ForSignature(src.Duplicate()).Buffer();
@@ -422,13 +422,13 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
         [TestMethod]
         public async Task ReadPublicKey()
         {
-            var key = Bucket.Create.FromASCII(publicKeyOfSignedTag.Replace("\r", ""));
+            var key = Bucket.Create.FromASCII(PublicKeyOfSignedTag.Replace("\r", ""));
 
             var radix = new Radix64ArmorBucket(key);
             var kb = new GitSignatureBucket(radix);
 
             await kb.ReadUntilEofAndCloseAsync();
-            var k = await kb.ReadKeyAsync();
+            await kb.ReadKeyAsync();
         }
 
         [TestMethod]
@@ -436,7 +436,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
         {
             var src = Bucket.Create.FromASCII("test");
 
-            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(sshSig));
+            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(SshSig));
             using var gpg = new GitSignatureBucket(rdx);
 
             //await gpg.ReadAsync();
@@ -495,7 +495,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             Assert.IsTrue(ok, "Signature valid");
         }
 
-        private void RunSshKeyGen(params string[] args)
+        static void RunSshKeyGen(params string[] args)
         {
             FixConsoleEncoding();
             ProcessStartInfo psi = new ProcessStartInfo("ssh-keygen", string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))));
@@ -518,7 +518,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             Assert.AreEqual(0, p.ExitCode);
         }
 
-        private void FixConsoleEncoding()
+        static void FixConsoleEncoding()
         {
             var ci = Console.InputEncoding;
             if (ci == Encoding.UTF8 && ci.GetPreamble().Length > 0)
