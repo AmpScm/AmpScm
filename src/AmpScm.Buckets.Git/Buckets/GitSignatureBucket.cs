@@ -595,6 +595,7 @@ namespace AmpScm.Buckets.Git
                 case OpenPgpPublicKeyType.ECDSA:
                     using (var ecdsa = ECDsa.Create())
                     {
+                        string curveName = Encoding.ASCII.GetString(key.Values[0].ToArray());
                         var rawSignature = _signatureInts![0];
 
                         // Signature is DER variable-size encoded pair of integers
@@ -604,9 +605,15 @@ namespace AmpScm.Buckets.Git
                         byte[] s = MakeUnsignedArray(rawSignature.Slice(8 + r_len, s_len));
 
                         int klen = Math.Max(r.Length, s.Length);
-                        byte[] sig = new byte[2 * klen];
 
-                        Debug.Assert(klen == 32 || klen == 48 || klen == 66);
+                        if (curveName.EndsWith("p256", StringComparison.Ordinal))
+                            klen = 32;
+                        else if (curveName.EndsWith("p384", StringComparison.Ordinal))
+                            klen = 48;
+                        else if (curveName.EndsWith("p521", StringComparison.Ordinal))
+                            klen = 66;
+
+                        byte[] sig = new byte[2 * klen];
 
                         r.CopyTo(sig, klen - r.Length);
                         s.CopyTo(sig, 2 * klen - s.Length);
@@ -614,7 +621,7 @@ namespace AmpScm.Buckets.Git
                         ecdsa.ImportParameters(new ECParameters()
                         {
                             // The name is stored as integer... Nice :(
-                            Curve = ECCurve.CreateFromFriendlyName(Encoding.ASCII.GetString(key.Values[0].ToArray())),
+                            Curve = ECCurve.CreateFromFriendlyName(curveName),
 
                             Q = new ECPoint
                             {

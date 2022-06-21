@@ -58,8 +58,8 @@ AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bu
 AmpScm.Buckets.Git.GitPublicKey
 AmpScm.Buckets.Git.GitPublicKey.Algorithm.get -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKey.Fingerprint.get -> System.Collections.Generic.IReadOnlyList<byte>!
-AmpScm.Buckets.Git.GitPublicKey.GitPublicKey(System.Collections.Generic.IReadOnlyList<byte>! fingerprint, AmpScm.Buckets.Git.GitPublicKeyAlgorithm algorithm, System.Collections.Generic.IReadOnlyList<System.Numerics.BigInteger>! values) -> void
-AmpScm.Buckets.Git.GitPublicKey.Values.get -> System.Collections.Generic.IReadOnlyList<System.Numerics.BigInteger>!
+AmpScm.Buckets.Git.GitPublicKey.GitPublicKey(System.Collections.Generic.IReadOnlyList<byte>! fingerprint, AmpScm.Buckets.Git.GitPublicKeyAlgorithm algorithm, System.Collections.Generic.IReadOnlyList<System.ReadOnlyMemory<byte>>! values) -> void
+AmpScm.Buckets.Git.GitPublicKey.Values.get -> System.Collections.Generic.IReadOnlyList<System.ReadOnlyMemory<byte>>!
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm.Dsa = 2 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm.Ecdsa = 3 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm

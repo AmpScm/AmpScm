@@ -461,9 +461,6 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 #if !NET6_0_OR_GREATER
             if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("");
-
-            if (type == "dsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
-                Assert.Inconclusive("");
 #endif
             var dir = TestContext.PerTestDirectory(type+ex);
 
