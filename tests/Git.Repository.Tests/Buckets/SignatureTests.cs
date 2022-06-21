@@ -448,12 +448,15 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
         }
 
         [TestMethod]
-        [DataRow("rsa")]
-        [DataRow("dsa")] // .Net Framework By default only supports SHA1. Needs investigation
-        [DataRow("ecdsa")]
-        [DataRow("ed25519")]
+        [DataRow("rsa", "")]
+        [DataRow("dsa", "")] // .Net Framework By default only supports SHA1. Needs investigation
+        [DataRow("ecdsa", "")]
+        [DataRow("ecdsa", "-b256")]
+        [DataRow("ecdsa", "-b384")]
+        [DataRow("ecdsa", "-b521")]
+        [DataRow("ed25519", "")]
         //[Timeout(5000)]
-        public async Task TaskVerifyGenerateSSH(string type)
+        public async Task TaskVerifyGenerateSSH(string type, string ex)
         {
 #if !NET6_0_OR_GREATER
             if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
@@ -462,10 +465,16 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             if (type == "dsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("");
 #endif
-            var dir = TestContext.PerTestDirectory(type);
+            var dir = TestContext.PerTestDirectory(type+ex);
 
             string keyFile = Path.Combine(dir, "key");
-            RunSshKeyGen("-f", keyFile, "-t", type, "-N", "");
+            if (string.IsNullOrEmpty(ex))
+                RunSshKeyGen("-f", keyFile, "-t", type, "-N", "");
+            else
+                RunSshKeyGen("-f", keyFile, "-t", type, "-N", "", ex);
+
+            string privateKey = File.ReadAllText(keyFile).Trim();
+            //Console.WriteLine(privateKey);
 
             string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
             Console.WriteLine(publicKey);
@@ -476,7 +485,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             string testDataFile = Path.Combine(dir, "testdata");
             File.WriteAllText(testDataFile, testData);
 
-            RunSshKeyGen("-Y", "sign", "-n", "ns", "-f", keyFile, "-i", testDataFile);
+            RunSshKeyGen("-v", "-Y", "sign", "-n", "ns", "-f", keyFile, testDataFile);
 
             string signature = File.ReadAllText(testDataFile + ".sig");
 
@@ -486,10 +495,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 
             var ok = await gpg.VerifyAsync(src, k);
 
-#if !DEBUG
-            if (type != "ecdsa")
-#endif
-                Assert.IsTrue(ok, "Signature valid");
+            Assert.IsTrue(ok, "Signature valid");
         }
 
         private void RunSshKeyGen(params string[] args)
