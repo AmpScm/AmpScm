@@ -37,7 +37,7 @@ namespace AmpScm.Buckets.Specialized
             else if (!r.IsEmpty)
             {
                 var (bytes, offset) = r.ExpandToArray();
-                _hasher?.TransformBlock(bytes, offset, r.Length, null!, 16);
+                _hasher?.TransformBlock(bytes, offset, r.Length, null!, 0);
             }
 
             return r;

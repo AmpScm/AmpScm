@@ -9,14 +9,14 @@ namespace AmpScm.Buckets.Specialized
     internal class TextRecoderBucket : WrappingBucket
     {
         readonly char[] _charBuffer;
-        byte[] _utfBuffer;
+        readonly byte[] _utfBuffer;
         byte[]? _toConvert;
         BucketBytes _remaining;
-        Encoding _sourceEncoding;
-        Encoding _targetEncoding;
-        Decoder _decoder;
-        Encoder _encoder;
-        bool _by2;
+        readonly Encoding _sourceEncoding;
+        readonly Encoding _targetEncoding;
+        readonly Decoder _decoder;
+        readonly Encoder _encoder;
+        readonly bool _by2;
         private int _toEncode;
         long _position;
         bool _preampbleScanned;
