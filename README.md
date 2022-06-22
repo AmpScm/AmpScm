@@ -65,23 +65,25 @@ intended for testing the lower layers, but probly useful for more users. May bec
 
 
 ## Git On Disk Format Support
-|Feature                        | GIT           | LibGit2   | JGit    | AmpScm        |
-| ----------------------------- | ------------- | --------- | ------- | ------------- |
-| Loose Objects                 | Yes           | Yes       | Yes     | Yes           |
-| Packed Object Files           | Yes           | Yes       | Yes     | Yes           |
-| Loose References              | Yes           | Yes       | Yes     | Yes           |
-| Packed References             | Yes           | Yes       | Yes     | Yes           |
-| Sha256 Repositories           | Yes           | No        | No      | Yes           |
-| Reference Table format        | Expected Soon | No        | No      | Expected Soon |
-| Reference Log                 | Yes           | Yes       | Yes     | Yes           |
-| Multipack index               | Yes           | Yes       | No      | Yes           |
-| CommitGraph                   | Yes           | Yes       | No      | Yes           |
-| Bitmap index Packfiles        | Yes           | No        | Yes     | Yes           |
-| Bitmap index Multipack Index  | Yes           | No        | No      | Yes           |
-| Reverse index Packfiles       | Yes           | No        | No      | Yes           |
-| Reverse index Multipack Index | Yes           | No        | No      | Yes           |
-| Directory Index format 2,3    | Yes           | Yes       | Yes     | Yes           |
-| Directory Index format 4      | Yes           | Yes       | Yes     | Yes           |
-| Split Directory Index format  | Yes           | No        | No      | Yes           |
-| Sparse Index (Cone) support   | Yes           | No        | No      | Yes           |
-| Fast Import support           | Yes           | No        | No      | Yes           |
+|Feature                           | GIT           | LibGit2   | JGit    | AmpScm        |
+| -------------------------------- | ------------- | --------- | ------- | ------------- |
+| Loose Objects                    | Yes           | Yes       | Yes     | Yes           |
+| Packed Object Files              | Yes           | Yes       | Yes     | Yes           |
+| Loose References                 | Yes           | Yes       | Yes     | Yes           |
+| Packed References                | Yes           | Yes       | Yes     | Yes           |
+| Sha256 Repositories              | Yes           | No        | No      | Yes           |
+| Reference Table format           | Expected Soon | No        | No      | Expected Soon |
+| Reference Log                    | Yes           | Yes       | Yes     | Yes           |
+| Multipack index                  | Yes           | Yes       | No      | Yes           |
+| CommitGraph                      | Yes           | Yes       | No      | Yes           |
+| Bitmap index Packfiles           | Yes           | No        | Yes     | Yes           |
+| Bitmap index Multipack Index     | Yes           | No        | No      | Yes           |
+| Reverse index Packfiles          | Yes           | No        | No      | Yes           |
+| Reverse index Multipack Index    | Yes           | No        | No      | Yes           |
+| Directory Index format 2,3       | Yes           | Yes       | Yes     | Yes           |
+| Directory Index format 4         | Yes           | Yes       | Yes     | Yes           |
+| Split Directory Index format     | Yes           | No        | No      | Yes           |
+| Sparse Index (Cone) support      | Yes           | No        | No      | Yes           |
+| Fast Import support              | Yes           | No        | No      | Yes           |
+| OpenPGP signature verification   | Yes           | No        | No      | Yes           |
+| (Open)SSH signature verification | Yes           | No        | No      | Yes           |
