@@ -373,14 +373,13 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 -----END PGP PUBLIC KEY BLOCK-----
 ";
 
-        static async ValueTask<GitPublicKey> GetKey()
+        static async ValueTask<GitPublicKey> GetKey(string keyData = PublicKeyOfSignedTag)
         {
-            var key = Bucket.Create.FromASCII(PublicKeyOfSignedTag.Replace("\r", ""));
+            var key = Bucket.Create.FromASCII(keyData.Replace("\r", ""));
 
             var radix = new Radix64ArmorBucket(key);
             var kb = new GitSignatureBucket(radix);
 
-            await kb.ReadUntilEofAndCloseAsync();
             return await kb.ReadKeyAsync();
         }
 
@@ -523,6 +522,94 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             var ok = await gpg.VerifyAsync(src, k);
 
             Assert.IsTrue(ok, "Signature valid");
+        }
+
+        const string Ecc25519PublicKey =
+@"-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEYrLREBYJKwYBBAHaRw8BAQdAVr1b5ohYyw/5zQJoJe9qKQKYidrej30SlobO
+XyuHcou0I0VDQy1DdXJ2ZTI1NTE5LVRlc3QgPHQtZWNjQGxwdDEubmw+iJQEExYK
+ADwWIQQaPoMZbPR0oKyzHviIOdnGw+9H8QUCYrLREAIbAwULCQgHAgMiAgEGFQoJ
+CAsCBBYCAwECHgcCF4AACgkQiDnZxsPvR/GOnwEA/CfUnDoTx/5msrw4lvFFPvEJ
+4xrrl3k69ZK+hMdO3ysA/jgnCdnAhLfzytL/rU7NTTfuocf29SU39zbbYsB6uuAC
+uDgEYrLREBIKKwYBBAGXVQEFAQEHQBuToLPwS5CS7rwNAaIjZk2pSuebqBpMn2QF
+xC/lNOkFAwEIB4h4BBgWCgAgFiEEGj6DGWz0dKCssx74iDnZxsPvR/EFAmKy0RAC
+GwwACgkQiDnZxsPvR/Fs4AEAh388vGcQ0RV3266eaGd6xzqSXGbOKH7q+/A5dXrh
+6nIA/3sIBw1lMn207CM+zGp1U0uTX3KzTI2Jv97ywIHcqvsA
+=0TNE
+-----END PGP PUBLIC KEY BLOCK-----
+";
+
+        const string Ecc25519Signature =
+@"-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQQaPoMZbPR0oKyzHviIOdnGw+9H8QUCYrLSJAAKCRCIOdnGw+9H
+8YHDAQCPKPp40I5xn5GTI5dwMrWWVasSZF0ZXEmLUn9DVY7cYAEA8algpEpMoX21
+Zt5h6i/BNNX9AiqbRo/ep/RrPpU71Qo=
+=WK9t
+-----END PGP SIGNATURE-----";
+
+        [TestMethod]
+        public async Task VerifyPGPEcc2519()
+        {
+            var src = Bucket.Create.FromASCII("test");
+
+            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(Ecc25519Signature));
+            using var gpg = new GitSignatureBucket(rdx);
+
+            //await gpg.ReadAsync();
+
+            var key = await GetKey(Ecc25519PublicKey);
+
+            var ok = await gpg.VerifyAsync(src, key);
+            Assert.IsTrue(ok, "Ecc2519");
+        }
+
+        const string EccNistPublicKey =
+@"-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mG8EYrLYWxMFK4EEACIDAwQ3dqzKcuXivDHQy8P8e382xyQyP/tpPBIwh9ZmMJkv
+nCs1cTqbqcGqmBywkwwCJfAhdQsvLdq4uJpfXFaDAqpE+pVRfCcWlic4zYH3Oztn
+ieXr7okw3lnCcm6xIqDWZey0GEVDQyBUZXN0IDx0LWVjY0BscHQxLm5sPoi0BBMT
+CQA8FiEESJYnnkMWF8Xvli3+gWMSp+BqHh4FAmKy2FsCGwMFCwkIBwIDIgIBBhUK
+CQgLAgQWAgMBAh4HAheAAAoJEIFjEqfgah4e+7kBf1ttFFAV25laFBSmyxvivEE2
+em8B/Iba5XEIaz2AmS/qeYS235DX8oLLNT0QJe8bZAF/RqmDG3dm5c50vHTHNGJ2
+Bhs3pogw+bc42EJAZgAnh4UiFKHD5CnTL13ql4PJyACLuHMEYrLYWxIFK4EEACID
+AwSQ09tAIUcF+4L2kIT/nHs/R2SUZFOFeK9ka7yfIRmuiG5rWl6qPV4U6ogoRRiT
+6CUL/u/6J4y2I4xZGQdAAtsZK5g4ZO+S3WzVch6MGlWVKeduAPgKPQHVbpll9J/V
+m/wDAQkJiJgEGBMJACAWIQRIlieeQxYXxe+WLf6BYxKn4GoeHgUCYrLYWwIbDAAK
+CRCBYxKn4GoeHhZjAYDF2ALJVHTRUscewYgcVa68QM3bYSFNuyCFBYWGTTYNeBKE
+rNA7FxH2eo4HO2YdP2QBgMgBeD345QWv1+pB43sFxkkt0K4h71dLd39tKZZT+Oep
+rkyJCMgja4VUwipJDfpHhQ==
+=zkVy
+-----END PGP PUBLIC KEY BLOCK-----
+";
+
+        const string EccNistSignature =
+@"-----BEGIN PGP SIGNATURE-----
+
+iJUEABMJAB0WIQRIlieeQxYXxe+WLf6BYxKn4GoeHgUCYrLYwwAKCRCBYxKn4Goe
+Hn03AX4k4O0nldx2IRIHp5QSp3zJyND6cnFB5FaAgd5sTYmU7aR+5slupkS9MSrE
+sMuzbXABgIX+gVot02mQzgxIvluhvnUNczvZ+QSzjT8iWHYzBWgG3zbaDzdRfvCr
+izD0ZbH6Qw==
+=tAmr
+-----END PGP SIGNATURE-----
+";
+
+        [TestMethod]
+        public async Task VerifyPgpEccNist()
+        {
+            var src = Bucket.Create.FromASCII("test");
+
+            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(EccNistSignature));
+            using var gpg = new GitSignatureBucket(rdx);
+
+            //await gpg.ReadAsync();
+
+            var key = await GetKey(EccNistPublicKey);
+
+            var ok = await gpg.VerifyAsync(src, key);
+            Assert.IsTrue(ok, "EccNist");
         }
 
         static void RunSshKeyGen(params string[] args)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -59,7 +60,10 @@ namespace AmpScm.Buckets.Git
         SHA256 = 8,
         SHA384 = 9,
         SHA512 = 10,
-        SHA224 = 11
+        SHA224 = 11,
+        SHA256v3 = 12,
+        // 13 is reserved
+        SHA512v3 = 14,
     }
 
     enum OpenPgpPublicKeyType
@@ -158,7 +162,7 @@ namespace AmpScm.Buckets.Git
                                         "ssh-dss" => OpenPgpPublicKeyType.Dsa,
                                         "ssh-ed25519" or "ssh-ed25519@openssh.com" => OpenPgpPublicKeyType.Ed25519,
                                         "ecdsa-sha2-nistp256" or "ecdsa-sha2-nistp384" or "ecdsa-sha2-nistp521" => OpenPgpPublicKeyType.ECDSA,
-                                        _ => throw new NotImplementedException($"Unknown signature type: {alg}"),
+                                        _ => throw new NotImplementedException($"Unknown public key type: {alg}"),
                                     };
 
                                     List<ReadOnlyMemory<byte>> keyInts = new();
@@ -396,6 +400,12 @@ namespace AmpScm.Buckets.Git
                                 }
 
                                 _signatureInts = bigInts.ToArray();
+
+                                if (_signaturePublicKeyType == OpenPgpPublicKeyType.EdDSA && _signatureInts.Length == 2 && _signatureInts.All(x => x.Length == 32))
+                                {
+                                    _signaturePublicKeyType = OpenPgpPublicKeyType.Ed25519;
+                                    _signatureInts = new ReadOnlyMemory<byte>[] { _signatureInts.SelectMany(x => x.ToArray()).ToArray() };
+                                }
                             }
                             break;
                         case OpenPgpTagType.PublicKey when (_keyInts is null):
@@ -425,12 +435,35 @@ namespace AmpScm.Buckets.Git
                                     throw new NotImplementedException("Only OpenPGP public key versions 3, 4 and 5 are supported");
 
                                 List<ReadOnlyMemory<byte>> bigInts = new();
+
+                                if (_keyPublicKeyType is OpenPgpPublicKeyType.EdDSA or OpenPgpPublicKeyType.ECDSA)
+                                {
+                                    var b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
+
+                                    if (b == 0 || b == 0xFF)
+                                        throw new NotImplementedException("Reserved value");
+
+                                    var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
+
+                                    bigInts.Add(bb.ToArray());
+                                }
+
                                 while (await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
                                 {
                                     bigInts.Add(bi);
                                 }
 
                                 _keyInts = bigInts.ToArray();
+
+                                if (_keyPublicKeyType == OpenPgpPublicKeyType.ECDSA)
+                                    _keyInts = GetEcdsaValues(_keyInts, true);
+                                else if(_keyPublicKeyType == OpenPgpPublicKeyType.EdDSA && _keyInts[0].Span.SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
+                                {
+                                    // This algorithm is not implemented by .Net, but for this specific curve we have a workaround
+                                    _keyPublicKeyType = OpenPgpPublicKeyType.Ed25519;
+                                    // Convert `0x40 | value` form to `value`
+                                    _keyInts = new ReadOnlyMemory<byte>[] { _keyInts[1].Slice(1).ToArray() };
+                                }
 
                                 csum.Reset();
 
@@ -487,6 +520,9 @@ namespace AmpScm.Buckets.Git
             {
                 OpenPgpPublicKeyType.Rsa => GitPublicKeyAlgorithm.Rsa,
                 OpenPgpPublicKeyType.Dsa => GitPublicKeyAlgorithm.Dsa,
+                OpenPgpPublicKeyType.EdDSA => GitPublicKeyAlgorithm.EdDsa,
+                OpenPgpPublicKeyType.ECDSA => GitPublicKeyAlgorithm.Ecdsa,
+                OpenPgpPublicKeyType.Ed25519 => GitPublicKeyAlgorithm.Ed25519,
                 _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
             };
 
@@ -517,7 +553,7 @@ namespace AmpScm.Buckets.Git
 
                     overrideAlg = OpenPgpHashAlgorithm.SHA512;
 
-                    if (curveName.EndsWith("256", StringComparison.Ordinal))
+                    if (curveName.EndsWith("256", StringComparison.Ordinal) || curveName.EndsWith("256r1", StringComparison.Ordinal))
                         overrideAlg = OpenPgpHashAlgorithm.SHA256;
                     else if (curveName.EndsWith("384", StringComparison.Ordinal))
                         overrideAlg = OpenPgpHashAlgorithm.SHA384;
@@ -633,9 +669,9 @@ namespace AmpScm.Buckets.Git
 
                         return Cryptographic.Ed25519.CheckValid(signature, hashValue, keyValues[0].ToArray());
                     }
-                case OpenPgpPublicKeyType.EdDSA:
+                case OpenPgpPublicKeyType.EdDSA:                    
                 default:
-                    throw new NotImplementedException($"Signature type {_signaturePublicKeyType} not implemented yet");
+                    throw new NotImplementedException($"Public Key type {_signaturePublicKeyType} not implemented yet");
             }
         }
 
@@ -656,12 +692,37 @@ namespace AmpScm.Buckets.Git
                 _ => throw new NotImplementedException($"OpenPGP scheme {hashAlgorithm} not mapped yet.")
             };
 
-        internal static ReadOnlyMemory<byte>[] GetEcdsaValues(IEnumerable<ReadOnlyMemory<byte>> vals)
+        internal static ReadOnlyMemory<byte>[] GetEcdsaValues(IEnumerable<ReadOnlyMemory<byte>> vals, bool pgp = false)
         {
             ReadOnlyMemory<byte>[] signature;
 
             var curve = vals.First();
             var v2 = vals.Skip(1).First().ToArray();
+
+            if (pgp)
+            {
+                string curveName;
+
+                if (curve.Span.SequenceEqual(new byte[] { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07 }))
+                    curveName = nameof(ECCurve.NamedCurves.nistP256);
+                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x22 }))
+                    curveName = nameof(ECCurve.NamedCurves.nistP384);
+                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x23 }))
+                    curveName = nameof(ECCurve.NamedCurves.nistP521);
+                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07 }))
+                    curveName = nameof(ECCurve.NamedCurves.brainpoolP256r1);
+                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D }))
+                    curveName = nameof(ECCurve.NamedCurves.brainpoolP512t1);
+                // These 2 are only used with Eddsa
+                //else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
+                //    curveName = "Ed25519";
+                //else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
+                //    curveName = "Curve25519";
+                else
+                    throw new NotImplementedException("Unknown curve oid in ecdsa key");
+
+                curve = Encoding.ASCII.GetBytes(curveName);
+            }
 
             switch (v2[0])
             {
@@ -677,8 +738,16 @@ namespace AmpScm.Buckets.Git
                                     // The Curve name is stored as integer... Nice :(.. But at least consistent
                                     curve,
 
-                                    v2.Skip(1).Take(v2.Length/2).ToArray(),
-                                    v2.Skip(1 + v2.Length/2).Take(v2.Length/2).ToArray(),
+                                    v2.Skip(1).Take(v2.Length / 2).ToArray(),
+                                    v2.Skip(1 + v2.Length / 2).Take(v2.Length / 2).ToArray(),
+                                };
+                    break;
+                case 0x40 when (pgp): // Custom compressed poing see rfc4880bis-06
+                    signature = new[]
+                                {
+                                    curve,
+
+                                    v2.Skip(1).ToArray(),
                                 };
                     break;
 

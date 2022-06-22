@@ -25,9 +25,9 @@ namespace AmpScm.Buckets.Specialized
 
             if (disposing && _enumerator is not null)
             {
-                _enumerator.DisposeAsync().GetAwaiter().GetResult();
-                _enumerator = null;
+                _enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
+            _enumerator = null;
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)

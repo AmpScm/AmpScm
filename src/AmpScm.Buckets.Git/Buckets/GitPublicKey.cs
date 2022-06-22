@@ -16,6 +16,7 @@ namespace AmpScm.Buckets.Git
         Dsa,
         Ecdsa,
         Ed25519,
+        EdDsa,
     }
 
     public sealed record class GitPublicKey
