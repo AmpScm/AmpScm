@@ -152,32 +152,18 @@ namespace AmpScm.Buckets.Git
                                     if (alg.StartsWith("sk-", StringComparison.Ordinal))
                                         alg = alg.Substring(3);
 
-                                    switch (alg)
+                                    _signaturePublicKeyType = alg switch
                                     {
-                                        case "ssh-rsa":
-                                            _signaturePublicKeyType = OpenPgpPublicKeyType.Rsa;
-                                            break;
-                                        case "ssh-dss":
-                                            _signaturePublicKeyType = OpenPgpPublicKeyType.Dsa;
-                                            break;
-                                        case "ssh-ed25519":
-                                        case "ssh-ed25519@openssh.com":
-                                            _signaturePublicKeyType = OpenPgpPublicKeyType.Ed25519;
-                                            break;
-                                        case "ecdsa-sha2-nistp256":
-                                        case "ecdsa-sha2-nistp384":
-                                        case "ecdsa-sha2-nistp521":
-                                            _signaturePublicKeyType = OpenPgpPublicKeyType.ECDSA;
-                                            break;
-                                        default:
-                                            throw new NotImplementedException($"Unknown signature type: {alg}");
-                                    }
+                                        "ssh-rsa" => OpenPgpPublicKeyType.Rsa,
+                                        "ssh-dss" => OpenPgpPublicKeyType.Dsa,
+                                        "ssh-ed25519" or "ssh-ed25519@openssh.com" => OpenPgpPublicKeyType.Ed25519,
+                                        "ecdsa-sha2-nistp256" or "ecdsa-sha2-nistp384" or "ecdsa-sha2-nistp521" => OpenPgpPublicKeyType.ECDSA,
+                                        _ => throw new NotImplementedException($"Unknown signature type: {alg}"),
+                                    };
 
                                     List<ReadOnlyMemory<byte>> keyInts = new();
-                                    while (0 < await ib.ReadRemainingBytesAsync().ConfigureAwait(false))
+                                    while (!(bb = await ReadSshStringAsync(ib).ConfigureAwait(false)).IsEof)
                                     {
-                                        bb = await ReadSshStringAsync(ib).ConfigureAwait(false);
-
                                         keyInts.Add(bb.ToArray());
                                     }
 
@@ -206,17 +192,13 @@ namespace AmpScm.Buckets.Git
                                 signPrefix.Append(bb);
 
                                 var sigHashAlgo = (bb).ToASCIIString();
-                                switch (sigHashAlgo)
+
+                                _hashAlgorithm = sigHashAlgo switch
                                 {
-                                    case "sha256":
-                                        _hashAlgorithm = OpenPgpHashAlgorithm.SHA256;
-                                        break;
-                                    case "sha512":
-                                        _hashAlgorithm = OpenPgpHashAlgorithm.SHA512;
-                                        break;
-                                    default:
-                                        throw new NotImplementedException($"Unexpected hash type: {sigHashAlgo} in SSH signature from {bucket.Name} Bucket");
-                                }
+                                    "sha256" => OpenPgpHashAlgorithm.SHA256,
+                                    "sha512" => OpenPgpHashAlgorithm.SHA512,
+                                    _ => throw new NotImplementedException($"Unexpected hash type: {sigHashAlgo} in SSH signature from {bucket.Name} Bucket"),
+                                };
 
                                 bb = await ReadSshStringAsync(bucket).ConfigureAwait(false);
                                 _signature = bb.ToArray();
@@ -237,16 +219,12 @@ namespace AmpScm.Buckets.Git
                                         while (!(bb = await ReadSshStringAsync(s).ConfigureAwait(false)).IsEof)
                                         {
                                             bigInts.Add(bb.ToArray());
-
-                                            if (0 == await s.ReadRemainingBytesAsync().ConfigureAwait(false))
-                                                break;
                                         }
-                                    }
-                                    else
-                                        bigInts.Add(bb.ToArray());
 
-                                    if (0 == await b.ReadRemainingBytesAsync().ConfigureAwait(false))
-                                        break;
+                                        continue;
+                                    }
+
+                                    bigInts.Add(bb.ToArray());
                                 }
 
                                 _signatureInts = bigInts.ToArray();
@@ -601,10 +579,10 @@ namespace AmpScm.Buckets.Git
 
                         dsa.ImportParameters(new DSAParameters()
                         {
-                            P = MakeUnsignedArray(keyValues[0]),
-                            Q = MakeUnsignedArray(keyValues[1]),
-                            G = MakeUnsignedArray(keyValues[2]),
-                            Y = MakeUnsignedArray(keyValues[3])
+                            P = MakeUnsignedArray(keyValues[0], 4),
+                            Q = MakeUnsignedArray(keyValues[1], 4),
+                            G = MakeUnsignedArray(keyValues[2], 4),
+                            Y = MakeUnsignedArray(keyValues[3], 4)
                         });
 
                         return dsa.VerifySignature(hashValue, signature);
@@ -661,9 +639,9 @@ namespace AmpScm.Buckets.Git
             }
         }
 
-        static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory)
+        static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory, int? makeLen = null)
         {
-            if (readOnlyMemory.Span[0] == 0)
+            if (readOnlyMemory.Span[0] == 0 && readOnlyMemory.Length != makeLen)
                 return readOnlyMemory.Slice(1).ToArray();
             else
                 return readOnlyMemory.ToArray();
@@ -711,30 +689,16 @@ namespace AmpScm.Buckets.Git
 
         private async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created, OpenPgpHashAlgorithm? overrideAlg = null)
         {
-            switch (overrideAlg ?? _hashAlgorithm)
+            sourceData = (overrideAlg ?? _hashAlgorithm) switch
             {
-                case OpenPgpHashAlgorithm.SHA256:
-                    sourceData = sourceData.SHA256(created);
-                    break;
-                case OpenPgpHashAlgorithm.SHA512:
-                    sourceData = sourceData.SHA512(created);
-                    break;
-                case OpenPgpHashAlgorithm.SHA384:
-                    sourceData = sourceData.SHA384(created);
-                    break;
-                case OpenPgpHashAlgorithm.SHA1:
-                    sourceData = sourceData.SHA1(created);
-                    break;
-                case OpenPgpHashAlgorithm.MD5:
-                    sourceData = sourceData.MD5(created);
-                    break;
-                case OpenPgpHashAlgorithm.SHA224:
-                case OpenPgpHashAlgorithm.MD160:
-                    throw new NotImplementedException($"Hash algorithm {_hashAlgorithm} not supported yet");
-                default:
-                    throw new NotImplementedException($"Hash algorithm {_hashAlgorithm} not supported yet");
-            }
-
+                OpenPgpHashAlgorithm.SHA256 => sourceData.SHA256(created),
+                OpenPgpHashAlgorithm.SHA512 => sourceData.SHA512(created),
+                OpenPgpHashAlgorithm.SHA384 => sourceData.SHA384(created),
+                OpenPgpHashAlgorithm.SHA1 => sourceData.SHA1(created),
+                OpenPgpHashAlgorithm.MD5 => sourceData.MD5(created),
+                OpenPgpHashAlgorithm.SHA224 or OpenPgpHashAlgorithm.MD160 => throw new NotImplementedException($"Hash algorithm {_hashAlgorithm} not supported yet"),
+                _ => throw new NotImplementedException($"Hash algorithm {_hashAlgorithm} not supported yet"),
+            };
             await sourceData.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
         }
 
@@ -764,7 +728,14 @@ namespace AmpScm.Buckets.Git
 
         private static async ValueTask<BucketBytes> ReadSshStringAsync(Bucket bucket)
         {
-            int len = (int)await bucket.ReadNetworkUInt32Async().ConfigureAwait(false);
+            var bb = await bucket.ReadExactlyAsync(sizeof(int)).ConfigureAwait(false);
+
+            if (bb.IsEof)
+                return BucketBytes.Eof;
+            else if (bb.Length < sizeof(int))
+                throw new BucketEofException(bucket);
+
+            int len = NetBitConverter.ToInt32(bb, 0);
 
             if (len == 0)
                 return BucketBytes.Empty;
@@ -782,10 +753,8 @@ namespace AmpScm.Buckets.Git
 
             var b = data.AsBucket();
 
-            while (b.ReadRemainingBytesAsync().AsTask().Result > 0)
+            while (ReadSshStringAsync(b).AsTask().Result is BucketBytes bb && !bb.IsEof)
             {
-                var bb = ReadSshStringAsync(b).AsTask().Result;
-
                 mems.Add(bb.Memory);
             }
 
@@ -808,7 +777,7 @@ namespace AmpScm.Buckets.Git
             {
                 while (true)
                 {
-                    var (tag, bucket) = await ReadPacketAsync().ConfigureAwait(false);
+                    var (_, bucket) = await ReadPacketAsync().ConfigureAwait(false);
 
                     if (bucket is null)
                         return BucketBytes.Eof;
@@ -891,20 +860,13 @@ namespace AmpScm.Buckets.Git
                     }
                     else
                     {
-                        switch (remaining)
+                        remaining = remaining switch
                         {
-                            case 0:
-                                remaining = await inner.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Inner);
-                                break;
-                            case 1:
-                                remaining = await inner.ReadNetworkUInt16Async().ConfigureAwait(false);
-                                break;
-                            case 2:
-                                remaining = await inner.ReadNetworkUInt32Async().ConfigureAwait(false);
-                                break;
-                            default:
-                                throw new NotImplementedException("Indetermined size");
-                        }
+                            0 => await inner.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Inner),
+                            1 => await inner.ReadNetworkUInt16Async().ConfigureAwait(false),
+                            2 => await inner.ReadNetworkUInt32Async().ConfigureAwait(false),
+                            _ => throw new NotImplementedException("Indetermined size"),
+                        };
                     }
 
                     _reading = true;
