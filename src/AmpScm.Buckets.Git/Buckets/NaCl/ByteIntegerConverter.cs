@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 
 namespace Chaos.NaCl.Internal
 {
@@ -9,27 +10,12 @@ namespace Chaos.NaCl.Internal
     {
         public static ulong LoadBigEndian64(byte[] buf, int offset)
         {
-            return
-                (ulong)(buf[offset + 7])
-                | (((ulong)(buf[offset + 6])) << 8)
-                | (((ulong)(buf[offset + 5])) << 16)
-                | (((ulong)(buf[offset + 4])) << 24)
-                | (((ulong)(buf[offset + 3])) << 32)
-                | (((ulong)(buf[offset + 2])) << 40)
-                | (((ulong)(buf[offset + 1])) << 48)
-                | (((ulong)(buf[offset + 0])) << 56);
+            return BinaryPrimitives.ReadUInt64BigEndian(buf.AsSpan(offset));
         }
 
         public static void StoreBigEndian64(byte[] buf, int offset, ulong value)
         {
-            buf[offset + 7] = unchecked((byte)value);
-            buf[offset + 6] = unchecked((byte)(value >> 8));
-            buf[offset + 5] = unchecked((byte)(value >> 16));
-            buf[offset + 4] = unchecked((byte)(value >> 24));
-            buf[offset + 3] = unchecked((byte)(value >> 32));
-            buf[offset + 2] = unchecked((byte)(value >> 40));
-            buf[offset + 1] = unchecked((byte)(value >> 48));
-            buf[offset + 0] = unchecked((byte)(value >> 56));
+            BinaryPrimitives.WriteUInt64BigEndian(buf.AsSpan(offset), value);
         }
 
         public static void Array16LoadBigEndian64(out Array16 output, byte[] input, int inputOffset)

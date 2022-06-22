@@ -46,35 +46,36 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
         }*/
 
         public static bool crypto_sign_verify(
-            byte[] sig, int sigoffset,
-            byte[] m, int moffset, int mlen,
-            byte[] pk, int pkoffset)
+            byte[] sig,
+            byte[] m,
+            byte[] pk)
         {
             byte[] h;
             byte[] checkr = new byte[32];
             GroupElementP3 A;
             GroupElementP2 R;
 
-            if ((sig[sigoffset + 63] & 224) != 0) return false;
-            if (GroupOperations.ge_frombytes_negate_vartime(out A, pk, pkoffset) != 0)
+            if ((sig[63] & 224) != 0)
+                return false;
+            if (GroupOperations.ge_frombytes_negate_vartime(out A, pk, 0) != 0)
                 return false;
 
-            var hasher = new Sha512();
-            hasher.Update(sig, sigoffset, 32);
-            hasher.Update(pk, pkoffset, 32);
-            hasher.Update(m, moffset, mlen);
-            h = hasher.Finalize();
+            using (var hasher = System.Security.Cryptography.SHA512.Create())
+            {
+                hasher.TransformBlock(sig, 0, 32, null, 0);
+                hasher.TransformBlock(pk, 0, 32, null, 0);
+                hasher.TransformFinalBlock(m, 0, m.Length);
+                h = hasher.Hash!;
+            }
 
             ScalarOperations.sc_reduce(h);
 
             var sm32 = new byte[32];//todo: remove allocation
-            Array.Copy(sig, sigoffset + 32, sm32, 0, 32);
+            Array.Copy(sig, 32, sm32, 0, 32);
             GroupOperations.ge_double_scalarmult_vartime(out R, h, ref A, sm32);
             GroupOperations.ge_tobytes(checkr, 0, ref R);
-            var result = CryptoBytes.ConstantTimeEquals(checkr, 0, sig, sigoffset, 32);
-            CryptoBytes.Wipe(h);
-            CryptoBytes.Wipe(checkr);
-            return result;
+
+            return checkr.AsSpan().SequenceEqual(sig.AsSpan(0, 32));
         }
     }
 }

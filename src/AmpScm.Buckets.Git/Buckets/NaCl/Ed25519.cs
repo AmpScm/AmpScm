@@ -33,10 +33,17 @@ namespace Chaos.NaCl
         /// <returns>True if signature is valid, false if it's not</returns>
         public static bool Verify(byte[] signature, byte[] message, byte[] publicKey)
         {
-            //Contract.Requires<ArgumentNullException>(signature != null && message != null && publicKey != null);
-            //Contract.Requires<ArgumentException>(signature.Length == SignatureSize && publicKey.Length == PublicKeySize);
+            if (signature is null)
+                throw new ArgumentNullException(nameof(signature));
+            else if (message is null)
+                throw new ArgumentNullException(nameof(message));
+            else if (publicKey is null)
+                throw new ArgumentNullException(nameof(publicKey));
 
-            return Ed25519Operations.crypto_sign_verify(signature, 0, message, 0, message.Length, publicKey, 0);
+            if (signature.Length != SignatureSize || publicKey.Length != PublicKeySize)
+                throw new InvalidOperationException();
+
+            return Ed25519Operations.crypto_sign_verify(signature, message, publicKey);
         }
     }
 }
