@@ -82,7 +82,7 @@ namespace AmpScm.Buckets.Git
         AEDH = 23,
         AEDSA = 24,
 
-        // Outside PGP range, used for ssh
+        // Outside PGP range, used for ssh and openpgp specialized handling
         Ed25519 = 0x1001,
     }
 
@@ -435,32 +435,42 @@ namespace AmpScm.Buckets.Git
                                 else
                                     throw new NotImplementedException("Only OpenPGP public key versions 3, 4 and 5 are supported");
 
-                                List<ReadOnlyMemory<byte>> bigInts = new();
-
-                                if (_keyPublicKeyType is OpenPgpPublicKeyType.EdDSA or OpenPgpPublicKeyType.ECDSA)
                                 {
-                                    var b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
+                                    List<ReadOnlyMemory<byte>> bigInts = new();
 
-                                    if (b == 0 || b == 0xFF)
-                                        throw new NotImplementedException("Reserved value");
+                                    if (_keyPublicKeyType is OpenPgpPublicKeyType.EdDSA or OpenPgpPublicKeyType.ECDSA)
+                                    {
+                                        var b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
 
-                                    var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
+                                        if (b == 0 || b == 0xFF)
+                                            throw new NotImplementedException("Reserved value");
 
-                                    bigInts.Add(bb.ToArray());
-                                }
+                                        var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
 
-                                while (await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
-                                {
-                                    bigInts.Add(bi);
+                                        bigInts.Add(bb.ToArray());
+                                    }
+
+                                    while (await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
+                                    {
+                                        bigInts.Add(bi);
+                                    }
+                                    _keyInts = bigInts.ToArray();
                                 }
 
                                 csum.Reset();
 
-                                await (new byte[] { 0x99 }.AsBucket() + NetBitConverter.GetBytes((ushort)len).AsBucket() + csum).SHA1(x => _keyFingerprint = x).ReadUntilEofAndCloseAsync().ConfigureAwait(false);
-
-
-
-                                _keyInts = bigInts.ToArray();
+                                if (version == 4)
+                                {
+                                    await (new byte[] { 0x99 }.AsBucket() + NetBitConverter.GetBytes((ushort)len).AsBucket() + csum)
+                                        .SHA1(x => _keyFingerprint = x)
+                                        .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                                }
+                                else if (version == 5)
+                                {
+                                    await (new byte[] { 0x9A }.AsBucket() + NetBitConverter.GetBytes((uint)len).AsBucket() + csum)
+                                        .SHA256(x => _keyFingerprint = x)
+                                        .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                                }
 
                                 if (_keyPublicKeyType == OpenPgpPublicKeyType.ECDSA)
                                 {
