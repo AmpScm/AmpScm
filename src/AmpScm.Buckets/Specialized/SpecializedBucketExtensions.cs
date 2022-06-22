@@ -58,7 +58,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
-        /// Wraps the bucket with an <see cref="System.Security.Cryptography.SHA256"/> calculator that reports the result on EOF
+        /// Wraps the bucket with an <see cref="System.Security.Cryptography.SHA384"/> calculator that reports the result on EOF
         /// </summary>
         /// <param name="bucket"></param>
         /// <param name="created"></param>
@@ -70,6 +70,24 @@ namespace AmpScm.Buckets.Specialized
                 throw new ArgumentNullException(nameof(bucket));
 
             return new CreateHashBucket(bucket, System.Security.Cryptography.SHA384.Create(), created);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="algorithmInstance"></param>
+        /// <param name="created"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Bucket Hash(this Bucket bucket, System.Security.Cryptography.HashAlgorithm algorithmInstance, Action<byte[]> created)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (algorithmInstance is null)
+                throw new ArgumentNullException(nameof(algorithmInstance));
+
+            return new CreateHashBucket(bucket, algorithmInstance, created);
         }
 
         /// <summary>

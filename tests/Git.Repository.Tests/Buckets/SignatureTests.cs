@@ -526,6 +526,10 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             Assert.IsTrue(ok, "Signature valid");
 
             Assert.IsTrue(fp.Span.SequenceEqual(k.Fingerprint.ToArray()), "Fingerprints match");
+
+#if NET6_0_OR_GREATER
+            Console.WriteLine($"Result: SHA256:{Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(fp.ToArray())).TrimEnd('=')}");
+#endif
         }
 
         // 1A3E83196CF474A0ACB31EF88839D9C6C3EF47F1

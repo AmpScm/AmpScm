@@ -71,6 +71,7 @@ AmpScm.Buckets.Git.GitPublicKeyAlgorithm.Rsa = 1 -> AmpScm.Buckets.Git.GitPublic
 AmpScm.Buckets.Git.GitSignatureBucket
 AmpScm.Buckets.Git.GitSignatureBucket.GitSignatureBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Git.GitSignatureBucket.ReadAsync() -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Git.GitSignatureBucket.ReadFingerprintAsync() -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>
 AmpScm.Buckets.Git.GitSignatureBucket.ReadKeyAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitPublicKey!>
 AmpScm.Buckets.Git.GitSignatureBucket.VerifyAsync(AmpScm.Buckets.Bucket! sourceData, AmpScm.Buckets.Git.GitPublicKey? key) -> System.Threading.Tasks.ValueTask<bool>
 AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void

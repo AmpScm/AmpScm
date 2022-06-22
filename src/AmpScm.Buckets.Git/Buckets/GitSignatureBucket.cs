@@ -548,7 +548,7 @@ namespace AmpScm.Buckets.Git
             if (Inner.IsSshSignature)
             {
 
-                await CreateHash(sourceData, x => hashValue = x).ConfigureAwait(false);
+                await CreateHash(sourceData, x => hashValue = x, _hashAlgorithm).ConfigureAwait(false);
 
                 // SSH signature signs blob that contains original hash and some other data
                 var toSign = _signBlob!.AsBucket() + NetBitConverter.GetBytes(hashValue.Length).AsBucket() + hashValue.AsBucket();
@@ -574,7 +574,7 @@ namespace AmpScm.Buckets.Git
                     overrideAlg = OpenPgpHashAlgorithm.SHA512;
 
                 if (_signaturePublicKeyType != OpenPgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
-                    await CreateHash(toSign, x => hashValue = x, overrideAlg: overrideAlg).ConfigureAwait(false);
+                    await CreateHash(toSign, x => hashValue = x, overrideAlg ?? _hashAlgorithm).ConfigureAwait(false);
                 else
                     hashValue = toSign.ToArray();
 
@@ -583,7 +583,7 @@ namespace AmpScm.Buckets.Git
             }
             else
             {
-                await CreateHash(sourceData + _signBlob!.AsBucket(), x => hashValue = x).ConfigureAwait(false);
+                await CreateHash(sourceData + _signBlob!.AsBucket(), x => hashValue = x, _hashAlgorithm).ConfigureAwait(false);
 
                 if (NetBitConverter.ToUInt16(hashValue, 0) != _hashStart)
                     return false; // No need to check the actual signature. The hash failed the check
@@ -679,7 +679,7 @@ namespace AmpScm.Buckets.Git
 
                         return Cryptographic.Ed25519.CheckValid(signature, hashValue, keyValues[0].ToArray());
                     }
-                case OpenPgpPublicKeyType.EdDSA:                    
+                case OpenPgpPublicKeyType.EdDSA:
                 default:
                     throw new NotImplementedException($"Public Key type {_signaturePublicKeyType} not implemented yet");
             }
@@ -689,6 +689,12 @@ namespace AmpScm.Buckets.Git
         {
             if (readOnlyMemory.Span[0] == 0 && readOnlyMemory.Length != makeLen)
                 return readOnlyMemory.Slice(1).ToArray();
+            else if (makeLen > readOnlyMemory.Length)
+            {
+                byte[] result = new byte[makeLen.Value];
+                readOnlyMemory.CopyTo(result.AsMemory(result.Length - readOnlyMemory.Length, readOnlyMemory.Length));
+                return result;
+            }
             else
                 return readOnlyMemory.ToArray();
         }
@@ -766,17 +772,24 @@ namespace AmpScm.Buckets.Git
             return signature;
         }
 
-        private async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created, OpenPgpHashAlgorithm? overrideAlg = null)
+        static async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created, OpenPgpHashAlgorithm hashAlgorithm)
         {
-            sourceData = (overrideAlg ?? _hashAlgorithm) switch
+            sourceData = hashAlgorithm switch
             {
                 OpenPgpHashAlgorithm.SHA256 => sourceData.SHA256(created),
                 OpenPgpHashAlgorithm.SHA512 => sourceData.SHA512(created),
                 OpenPgpHashAlgorithm.SHA384 => sourceData.SHA384(created),
                 OpenPgpHashAlgorithm.SHA1 => sourceData.SHA1(created),
                 OpenPgpHashAlgorithm.MD5 => sourceData.MD5(created),
-                OpenPgpHashAlgorithm.SHA224 or OpenPgpHashAlgorithm.MD160 => throw new NotImplementedException($"Hash algorithm {_hashAlgorithm} not supported yet"),
-                _ => throw new NotImplementedException($"Hash algorithm {_hashAlgorithm} not supported yet"),
+#if NETFRAMEWORK
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
+                OpenPgpHashAlgorithm.MD160 => sourceData.Hash(RIPEMD160.Create(), created),
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
+#else
+                OpenPgpHashAlgorithm.MD160 or
+#endif
+                OpenPgpHashAlgorithm.SHA224 => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} not supported yet"),
+                _ => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} not supported yet"),
             };
             await sourceData.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
         }
@@ -846,7 +859,7 @@ namespace AmpScm.Buckets.Git
                 throw new ArgumentNullException(nameof(fingerprint));
 
             var b0 = fingerprint[0];
-                    
+
             if (b0 >= 3 && b0 <= 5) // OpenPgp fingeprint formats 3-5
                 return string.Join("", fingerprint.Skip(1).Select(x => x.ToString("X2", CultureInfo.InvariantCulture)));
             else if (b0 == 0 && fingerprint[1] == 0 && fingerprint[2] == 0)
@@ -854,7 +867,7 @@ namespace AmpScm.Buckets.Git
                 var bytes = fingerprint as byte[] ?? fingerprint.ToArray();
                 var vals = GitSignatureBucket.ParseSshStrings(bytes);
 
-                return $"{Encoding.ASCII.GetString(vals[0].ToArray())} {Convert.ToBase64String(bytes)}";                    
+                return $"{Encoding.ASCII.GetString(vals[0].ToArray())} {Convert.ToBase64String(bytes)}";
             }
 
             return "";
