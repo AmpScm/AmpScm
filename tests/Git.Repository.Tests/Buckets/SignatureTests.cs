@@ -466,8 +466,6 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(SshSig));
             using var gpg = new GitSignatureBucket(rdx);
 
-            //await gpg.ReadAsync();
-
             Assert.IsTrue(GitPublicKey.TryParse("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQD+aILyycyvtatnMCeyucurSCkXPcuML/bgJOHFCwjeFA8CAXBlOEIgMblj7II8SpKP6mkDEFgXQXAFF6i00UAu8/NBEcW1xdLh0/12X2wlbZIPacMbGI/JbaYD5kznyDhsdyMmMfpbiZIOXPomoVbqcXh8wRqENqu1OTL5zIQBJBflEeZVG4X6oRDquklhrAcna9yPzgqwGHAQTtXpV4n//6bVzus9mTskCNFi+cKvmqifFVAwiG328VkGIrKj/EkB4MB37mIZKYn6Od+0vvzwH+1B5iW66Tjo/A2fx65spqolPLhFR2bmRSxP4Lxsg4R+TBmMDMsDPgeJfD6Iu0efs1s2rqL9VGbVC0Fgw4ds9qCfv2rLO2a+9/U5oopXbgUBlRDXiiX/zer3AFuyieWI3jevrFbRQqhlm08aWM/CP3wrpYikemXydHuxv5YUwJRaCmedOIsz5tVftfD3E+cEOIoLUTkoZwt9Ygywo+pccbTjRFouOcCT1Ib0g+6zgE0= me@pc", out var pk));
 
             var ok = await gpg.VerifyAsync(src, pk);
@@ -491,7 +489,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("");
 #endif
-            var dir = TestContext.PerTestDirectory(type+ex);
+            var dir = TestContext.PerTestDirectory(type + ex);
 
             string keyFile = Path.Combine(dir, "key");
             if (string.IsNullOrEmpty(ex))
@@ -503,10 +501,12 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             //Console.WriteLine(privateKey);
 
             string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
-            Console.WriteLine(publicKey);
+            Console.WriteLine($"Public key: {publicKey}");
 
             Assert.IsTrue(GitPublicKey.TryParse(publicKey, out var k));
 
+            int n = publicKey.IndexOf(' ', 32);
+            Assert.AreEqual(publicKey.Substring(0, n), k.FingerprintString);
             string testData = Guid.NewGuid().ToString();
             string testDataFile = Path.Combine(dir, "testdata");
             File.WriteAllText(testDataFile, testData);
@@ -519,11 +519,16 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(signature));
             using var gpg = new GitSignatureBucket(rdx);
 
+            var fp = await gpg.ReadFingerprintAsync();
+
             var ok = await gpg.VerifyAsync(src, k);
 
             Assert.IsTrue(ok, "Signature valid");
+
+            Assert.IsTrue(fp.Span.SequenceEqual(k.Fingerprint.ToArray()), "Fingerprints match");
         }
 
+        // 1A3E83196CF474A0ACB31EF88839D9C6C3EF47F1
         const string Ecc25519PublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -550,21 +555,27 @@ Zt5h6i/BNNX9AiqbRo/ep/RrPpU71Qo=
 -----END PGP SIGNATURE-----";
 
         [TestMethod]
-        public async Task VerifyPGPEcc2519()
+        public async Task VerifyPgpEd25519()
         {
             var src = Bucket.Create.FromASCII("test");
 
             var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(Ecc25519Signature));
             using var gpg = new GitSignatureBucket(rdx);
 
-            //await gpg.ReadAsync();
-
             var key = await GetKey(Ecc25519PublicKey);
 
+            var fp = await gpg.ReadFingerprintAsync();
+            Assert.IsNotNull(fp, "Have fingerprint");
+
+            Assert.AreEqual("1A3E83196CF474A0ACB31EF88839D9C6C3EF47F1", key.FingerprintString);
+
+            Assert.IsTrue(fp.Span.SequenceEqual(key.Fingerprint.ToArray()), "Fingerprints match");
+
             var ok = await gpg.VerifyAsync(src, key);
-            Assert.IsTrue(ok, "Ecc2519");
+            Assert.IsTrue(ok, "Ed25519");
         }
 
+        // 4896279E431617C5EF962DFE816312A7E06A1E1E
         const string EccNistPublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -599,17 +610,30 @@ izD0ZbH6Qw==
         [TestMethod]
         public async Task VerifyPgpEccNist()
         {
+#if !NET6_0_OR_GREATER
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("");
+#endif
+
             var src = Bucket.Create.FromASCII("test");
 
             var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(EccNistSignature));
             using var gpg = new GitSignatureBucket(rdx);
 
-            //await gpg.ReadAsync();
-
             var key = await GetKey(EccNistPublicKey);
+
+            var fp = await gpg.ReadFingerprintAsync();
+            Assert.IsNotNull(fp, "Have fingerprint");
+
+            Assert.AreEqual(GitPublicKeyAlgorithm.Ecdsa, key.Algorithm);
+            Assert.AreEqual("4896279E431617C5EF962DFE816312A7E06A1E1E", key.FingerprintString);
+
+            Assert.IsTrue(fp.Span.SequenceEqual(key.Fingerprint.ToArray()), "Fingerprints match");
 
             var ok = await gpg.VerifyAsync(src, key);
             Assert.IsTrue(ok, "EccNist");
+
+
         }
 
         static void RunSshKeyGen(params string[] args)
@@ -629,7 +653,7 @@ izD0ZbH6Qw==
 
             Console.WriteLine(p.StandardError.ReadToEnd());
             Console.WriteLine(p.StandardOutput.ReadToEnd());
-            
+
             p.WaitForExit();
 
             Assert.AreEqual(0, p.ExitCode);

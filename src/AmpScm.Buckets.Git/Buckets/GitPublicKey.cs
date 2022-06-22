@@ -2,6 +2,7 @@
 using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -31,6 +32,7 @@ namespace AmpScm.Buckets.Git
         public IReadOnlyList<byte> Fingerprint { get; }
         public GitPublicKeyAlgorithm Algorithm { get; }
         public IReadOnlyList<ReadOnlyMemory<byte>> Values { get; }
+        public string FingerprintString => GitSignatureBucket.FingerprintToString(Fingerprint);
 
         public static bool TryParse(string line, [NotNullWhen(true)] out GitPublicKey? value)
         {
@@ -54,7 +56,7 @@ namespace AmpScm.Buckets.Git
             switch (items[0])
             {
                 case "ssh-rsa":
-                    value = new GitPublicKey(Encoding.ASCII.GetBytes(items[2]), GitPublicKeyAlgorithm.Rsa,
+                    value = new GitPublicKey(data, GitPublicKeyAlgorithm.Rsa,
                         new[]
                         {
                             vals[2],
@@ -63,7 +65,7 @@ namespace AmpScm.Buckets.Git
                     );
                     return true;
                 case "ssh-dss":
-                    value = new GitPublicKey(Encoding.ASCII.GetBytes(items[2]), GitPublicKeyAlgorithm.Dsa,
+                    value = new GitPublicKey(data, GitPublicKeyAlgorithm.Dsa,
                         new[]
                         {
                             vals[1],
@@ -74,7 +76,7 @@ namespace AmpScm.Buckets.Git
                     );
                     return true;
                 case "ssh-ed25519":
-                    value = new GitPublicKey(Encoding.ASCII.GetBytes(items[2]), GitPublicKeyAlgorithm.Ed25519,
+                    value = new GitPublicKey(data, GitPublicKeyAlgorithm.Ed25519,
                         new[]
                         {
                             vals[1],
@@ -85,11 +87,11 @@ namespace AmpScm.Buckets.Git
                 case "ecdsa-sha2-nistp521":
                     {
                         var signature = GitSignatureBucket.GetEcdsaValues(vals.Skip(1));
-                        value = new GitPublicKey(Encoding.ASCII.GetBytes(items[2]), GitPublicKeyAlgorithm.Ecdsa, signature);
+                        value = new GitPublicKey(data, GitPublicKeyAlgorithm.Ecdsa, signature);
                         return true;
                     }
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"SSH public key format {items[0]} not implemented yet");
             }
         }
     }

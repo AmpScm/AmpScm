@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git;
 using AmpScm.Buckets.Specialized;
+using System.Globalization;
 
 namespace AmpScm.Buckets.Git
 {
@@ -146,9 +147,9 @@ namespace AmpScm.Buckets.Git
                                     throw new BucketException();
 
                                 var bb = await ReadSshStringAsync(bucket).ConfigureAwait(false);
-                                _signer = bb.ToArray();
+                                _keyFingerprint = bb.ToArray();
 
-                                using (var ib = _signer.AsBucket())
+                                using (var ib = _keyFingerprint.AsBucket())
                                 {
                                     bb = await ReadSshStringAsync(ib).ConfigureAwait(false);
                                     string alg = bb.ToASCIIString();
@@ -453,23 +454,25 @@ namespace AmpScm.Buckets.Git
                                     bigInts.Add(bi);
                                 }
 
+                                csum.Reset();
+
+                                await (new byte[] { 0x99 }.AsBucket() + NetBitConverter.GetBytes((ushort)len).AsBucket() + csum).SHA1(x => _keyFingerprint = x).ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+
+
+
                                 _keyInts = bigInts.ToArray();
 
                                 if (_keyPublicKeyType == OpenPgpPublicKeyType.ECDSA)
+                                {
                                     _keyInts = GetEcdsaValues(_keyInts, true);
-                                else if(_keyPublicKeyType == OpenPgpPublicKeyType.EdDSA && _keyInts[0].Span.SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
+                                }
+                                else if (_keyPublicKeyType == OpenPgpPublicKeyType.EdDSA && _keyInts[0].Span.SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
                                 {
                                     // This algorithm is not implemented by .Net, but for this specific curve we have a workaround
                                     _keyPublicKeyType = OpenPgpPublicKeyType.Ed25519;
                                     // Convert `0x40 | value` form to `value`
                                     _keyInts = new ReadOnlyMemory<byte>[] { _keyInts[1].Slice(1).ToArray() };
                                 }
-
-                                csum.Reset();
-
-                                await (new byte[] { 0x99 }.AsBucket() + NetBitConverter.GetBytes((ushort)len).AsBucket() + csum).SHA1(x => _keyFingerprint = x).ReadUntilEofAndCloseAsync().ConfigureAwait(false);
-
-                                GC.KeepAlive(_keyFingerprint);
                             }
                             break;
                         default:
@@ -525,6 +528,13 @@ namespace AmpScm.Buckets.Git
                 OpenPgpPublicKeyType.Ed25519 => GitPublicKeyAlgorithm.Ed25519,
                 _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
             };
+
+        public async ValueTask<ReadOnlyMemory<byte>> ReadFingerprintAsync()
+        {
+            await ReadAsync().ConfigureAwait(false);
+
+            return _keyFingerprint;
+        }
 
         public async ValueTask<bool> VerifyAsync(Bucket sourceData, GitPublicKey? key)
         {
@@ -828,6 +838,26 @@ namespace AmpScm.Buckets.Git
             }
 
             return mems.ToArray();
+        }
+
+        public static string FingerprintToString(IReadOnlyList<byte> fingerprint)
+        {
+            if (fingerprint is null || fingerprint.Count == 0)
+                throw new ArgumentNullException(nameof(fingerprint));
+
+            var b0 = fingerprint[0];
+                    
+            if (b0 >= 3 && b0 <= 5) // OpenPgp fingeprint formats 3-5
+                return string.Join("", fingerprint.Skip(1).Select(x => x.ToString("X2", CultureInfo.InvariantCulture)));
+            else if (b0 == 0 && fingerprint[1] == 0 && fingerprint[2] == 0)
+            {
+                var bytes = fingerprint as byte[] ?? fingerprint.ToArray();
+                var vals = GitSignatureBucket.ParseSshStrings(bytes);
+
+                return $"{Encoding.ASCII.GetString(vals[0].ToArray())} {Convert.ToBase64String(bytes)}";                    
+            }
+
+            return "";
         }
 
         sealed class OpenPgpContainer : WrappingBucket

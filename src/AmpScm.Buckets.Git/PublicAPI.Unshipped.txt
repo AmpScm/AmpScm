@@ -58,12 +58,14 @@ AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bu
 AmpScm.Buckets.Git.GitPublicKey
 AmpScm.Buckets.Git.GitPublicKey.Algorithm.get -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKey.Fingerprint.get -> System.Collections.Generic.IReadOnlyList<byte>!
+AmpScm.Buckets.Git.GitPublicKey.FingerprintString.get -> string!
 AmpScm.Buckets.Git.GitPublicKey.GitPublicKey(System.Collections.Generic.IReadOnlyList<byte>! fingerprint, AmpScm.Buckets.Git.GitPublicKeyAlgorithm algorithm, System.Collections.Generic.IReadOnlyList<System.ReadOnlyMemory<byte>>! values) -> void
 AmpScm.Buckets.Git.GitPublicKey.Values.get -> System.Collections.Generic.IReadOnlyList<System.ReadOnlyMemory<byte>>!
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm.Dsa = 2 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm.Ecdsa = 3 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm.Ed25519 = 4 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
+AmpScm.Buckets.Git.GitPublicKeyAlgorithm.EdDsa = 5 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm.None = 0 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitPublicKeyAlgorithm.Rsa = 1 -> AmpScm.Buckets.Git.GitPublicKeyAlgorithm
 AmpScm.Buckets.Git.GitSignatureBucket
@@ -111,6 +113,7 @@ static AmpScm.Buckets.Git.GitDirectoryEntry.operator <=(AmpScm.Buckets.Git.GitDi
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDirectoryEntry! left, AmpScm.Buckets.Git.GitDirectoryEntry! right) -> bool
 static AmpScm.Buckets.Git.GitPublicKey.TryParse(string! line, out AmpScm.Buckets.Git.GitPublicKey? value) -> bool
+static AmpScm.Buckets.Git.GitSignatureBucket.FingerprintToString(System.Collections.Generic.IReadOnlyList<byte>! fingerprint) -> string!
 static AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ForSignature(AmpScm.Buckets.Bucket! src) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ForSignature(AmpScm.Buckets.Bucket! src) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Git.Radix64ArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool
