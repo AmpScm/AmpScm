@@ -487,7 +487,7 @@ namespace AmpScm.Buckets.Git
             if (_processedExtensions)
                 return;
 
-            if (_nRead < _indexCount && !_endOfIndex.HasValue)
+            if (_nRead < _indexCount || !_endOfIndex.HasValue)
             {
                 while (null != await ReadEntryDirectAsync(true).ConfigureAwait(false))
                 {

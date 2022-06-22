@@ -180,9 +180,11 @@ namespace GitRepositoryTests.Index
             Assert.IsFalse(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "No shared index yet");
             Assert.IsFalse(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index.lock")), "Has no index lockfile");
 
-            File.WriteAllText(Path.Combine(path, "miota"), "QQQ");
-            File.WriteAllText(Path.Combine(path, "A", "mu"), "QQQ");
-            File.AppendAllText(Path.Combine(path, "README.md"), " ");
+            string suffix = new string('\n', 1024);
+
+            File.WriteAllText(Path.Combine(path, "miota"), "QQQ" + suffix);
+            File.WriteAllText(Path.Combine(path, "A", "mu"), "QQQ" + suffix);
+            File.AppendAllText(Path.Combine(path, "README.md"), " " + suffix);
 
             await Task.Delay(1000);
             await repo.GetPorcelain().Add(new[] { "miota", "A/mu", "README.md" });
