@@ -677,7 +677,8 @@ namespace AmpScm.Buckets.Git
                     {
                         byte[] signature = _signatureInts![0].ToArray();
 
-                        return Cryptographic.Ed25519.CheckValid(signature, hashValue, keyValues[0].ToArray());
+                        return Chaos.NaCl.Ed25519.Verify(signature, hashValue, keyValues[0].ToArray());
+                        //return Cryptographic.Ed25519.CheckValid(signature, hashValue, keyValues[0].ToArray());
                     }
                 case OpenPgpPublicKeyType.EdDSA:
                 default:

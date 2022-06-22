@@ -47,7 +47,11 @@
     <PackageReference Include="GitVersion.MsBuild" Version="5.10.1">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Buckets\NaCl\" />
   </ItemGroup>
 
 </Project>
