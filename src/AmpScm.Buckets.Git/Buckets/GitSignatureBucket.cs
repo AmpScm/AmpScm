@@ -227,10 +227,23 @@ namespace AmpScm.Buckets.Git
                                 var tp = await ReadSshStringAsync(b).ConfigureAwait(false);
 
                                 List<ReadOnlyMemory<byte>> bigInts = new();
-
+                                int i = 0;
                                 while (!(bb = await ReadSshStringAsync(b).ConfigureAwait(false)).IsEof)
                                 {
-                                    bigInts.Add(bb.ToArray());
+                                    if (SplitSignatureInt(i++, _signaturePublicKeyType))
+                                    {
+                                        var s = bb.ToArray().AsBucket();
+
+                                        while (!(bb = await ReadSshStringAsync(s).ConfigureAwait(false)).IsEof)
+                                        {
+                                            bigInts.Add(bb.ToArray());
+
+                                            if (0 == await s.ReadRemainingBytesAsync().ConfigureAwait(false))
+                                                break;
+                                        }
+                                    }
+                                    else
+                                        bigInts.Add(bb.ToArray());
 
                                     if (0 == await b.ReadRemainingBytesAsync().ConfigureAwait(false))
                                         break;
@@ -456,6 +469,11 @@ namespace AmpScm.Buckets.Git
             }
         }
 
+        static bool SplitSignatureInt(int index, OpenPgpPublicKeyType signaturePublicKeyType)
+        {
+            return signaturePublicKeyType == OpenPgpPublicKeyType.ECDSA && index == 0;
+        }
+
         static async ValueTask<ReadOnlyMemory<byte>?> ReadPgpMultiPrecisionInteger(Bucket sourceData)
         {
             var bb = await sourceData.ReadExactlyAsync(2).ConfigureAwait(false);
@@ -598,13 +616,10 @@ namespace AmpScm.Buckets.Git
                     using (var ecdsa = ECDsa.Create())
                     {
                         string curveName = Encoding.ASCII.GetString(keyValues[0].ToArray());
-                        var rawSignature = _signatureInts![0];
 
-                        // Signature is DER variable-size encoded pair of integers
-                        int r_len = NetBitConverter.ToInt32(rawSignature, 0);
-                        byte[] r = MakeUnsignedArray(rawSignature.Slice(4, r_len));
-                        int s_len = NetBitConverter.ToInt32(rawSignature, 4 + r_len);
-                        byte[] s = MakeUnsignedArray(rawSignature.Slice(8 + r_len, s_len));
+                        // Signature must be concattenation of 2 values with same number of bytes
+                        byte[] r = MakeUnsignedArray(_signatureInts[0]);
+                        byte[] s = MakeUnsignedArray(_signatureInts[1]);
 
                         int klen = Math.Max(r.Length, s.Length);
 
