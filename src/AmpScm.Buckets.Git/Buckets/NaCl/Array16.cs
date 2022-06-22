@@ -3,25 +3,23 @@ using System.Collections.Generic;
 
 namespace Chaos.NaCl.Internal
 {
-    // Array16<UInt32> Salsa20 state
-    // Array16<UInt64> SHA-512 block
-    internal struct Array16<T>
+    internal struct Array16
     {
-        public T x0;
-        public T x1;
-        public T x2;
-        public T x3;
-        public T x4;
-        public T x5;
-        public T x6;
-        public T x7;
-        public T x8;
-        public T x9;
-        public T x10;
-        public T x11;
-        public T x12;
-        public T x13;
-        public T x14;
-        public T x15;
+        public ulong x0;
+        public ulong x1;
+        public ulong x2;
+        public ulong x3;
+        public ulong x4;
+        public ulong x5;
+        public ulong x6;
+        public ulong x7;
+        public ulong x8;
+        public ulong x9;
+        public ulong x10;
+        public ulong x11;
+        public ulong x12;
+        public ulong x13;
+        public ulong x14;
+        public ulong x15;
     }
 }

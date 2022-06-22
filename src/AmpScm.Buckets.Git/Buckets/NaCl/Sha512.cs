@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using Chaos.NaCl.Internal;
 using System.Diagnostics.Contracts;
+using System.Security.Cryptography;
 
 namespace Chaos.NaCl
 {
     internal class Sha512
     {
-        private Array8<ulong> _state;
+        private Array8 _state;
         private readonly byte[] _buffer;
         private ulong _totalBytes;
         public const int BlockSize = 128;
@@ -32,15 +33,6 @@ namespace Chaos.NaCl
         }
 
         /// <summary>
-        /// Updates internal state with data from the provided array segment.
-        /// </summary>
-        /// <param name="data">Array segment</param>
-        public void Update(ArraySegment<byte> data)
-        {
-            Update(data.Array, data.Offset, data.Count);
-        }
-
-        /// <summary>
         /// Updates internal state with data from the provided array.
         /// </summary>
         /// <param name="data">Array of bytes</param>
@@ -52,7 +44,7 @@ namespace Chaos.NaCl
             //Contract.Requires<ArgumentOutOfRangeException>(index >=0 && length >= 0);
             //Contract.Requires<ArgumentException>((index + length) <= data.Length);
 
-            Array16<ulong> block;
+            Array16 block;
             int bytesInBuffer = (int)_totalBytes & (BlockSize - 1);
             _totalBytes += (uint)length;
 
@@ -95,18 +87,20 @@ namespace Chaos.NaCl
         /// <param name="output">Output buffer</param>
         public void Finalize(ArraySegment<byte> output)
         {
+            if (output.Array is null)
+                throw new ArgumentNullException(nameof(output));
             //Contract.Requires<ArgumentNullException>(output.Array != null);
             //Contract.Requires<ArgumentException>(output.Count == 64);
 
             Update(_padding, 0, _padding.Length);
-            Array16<ulong> block;
+            Array16 block;
             ByteIntegerConverter.Array16LoadBigEndian64(out block, _buffer, 0);
             CryptoBytes.InternalWipe(_buffer, 0, _buffer.Length);
             int bytesInBuffer = (int)_totalBytes & (BlockSize - 1);
             if (bytesInBuffer > BlockSize - 16)
             {
                 Sha512Internal.Core(out _state, ref _state, ref block);
-                block = default(Array16<ulong>);
+                block = default(Array16);
             }
             block.x15 = (_totalBytes - 1) * 8;
             Sha512Internal.Core(out _state, ref _state, ref block);
@@ -119,7 +113,7 @@ namespace Chaos.NaCl
             ByteIntegerConverter.StoreBigEndian64(output.Array, output.Offset + 40, _state.x5);
             ByteIntegerConverter.StoreBigEndian64(output.Array, output.Offset + 48, _state.x6);
             ByteIntegerConverter.StoreBigEndian64(output.Array, output.Offset + 56, _state.x7);
-            _state = default(Array8<ulong>);
+            _state = default(Array8);
         }
 
         /// <summary>
@@ -153,6 +147,9 @@ namespace Chaos.NaCl
         /// <returns>Hash bytes</returns>
         public static byte[] Hash(byte[] data, int index, int length)
         {
+#if NET6_0_OR_GREATER
+            return SHA512.HashData(data.AsSpan(index, length));
+#else
             //Contract.Requires<ArgumentNullException>(data != null);
             //Contract.Requires<ArgumentOutOfRangeException>(index >= 0 && length >= 0);
             //Contract.Requires<ArgumentException>((index + length) <= data.Length);
@@ -160,6 +157,7 @@ namespace Chaos.NaCl
             var hasher = new Sha512();
             hasher.Update(data, index, length);
             return hasher.Finalize();
+#endif
         }
     }
 }

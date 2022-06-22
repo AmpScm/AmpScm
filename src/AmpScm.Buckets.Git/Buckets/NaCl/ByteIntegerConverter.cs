@@ -32,7 +32,7 @@ namespace Chaos.NaCl.Internal
             buf[offset + 0] = unchecked((byte)(value >> 56));
         }
 
-        public static void Array16LoadBigEndian64(out Array16<ulong> output, byte[] input, int inputOffset)
+        public static void Array16LoadBigEndian64(out Array16 output, byte[] input, int inputOffset)
         {
             output.x0 = LoadBigEndian64(input, inputOffset + 0);
             output.x1 = LoadBigEndian64(input, inputOffset + 8);

@@ -29,7 +29,7 @@ namespace Chaos.NaCl.Internal
                 0x4cc5d4becb3e42b6,0x597f299cfc657e2a,0x5fcb6fab3ad6faec,0x6c44198c4a475817
             };
 
-        internal static void Sha512Init(out Array8<ulong> state)
+        internal static void Sha512Init(out Array8 state)
         {
             state.x0 = 0x6a09e667f3bcc908;
             state.x1 = 0xbb67ae8584caa73b;
@@ -41,7 +41,7 @@ namespace Chaos.NaCl.Internal
             state.x7 = 0x5be0cd19137e2179;
         }
 
-        internal static void Core(out Array8<ulong> outputState, ref Array8<ulong> inputState, ref Array16<ulong> input)
+        internal static void Core(out Array8 outputState, ref Array8 inputState, ref Array16 input)
         {
             unchecked
             {
