@@ -9,7 +9,7 @@
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <RootNamespace>AmpScm.Buckets.Git</RootNamespace>
+    <RootNamespace>AmpScm.Buckets</RootNamespace>
     <NoWarn>1701;1702;1591</NoWarn>
     <WarningLevel>6</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
@@ -48,10 +48,6 @@
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Buckets\NaCl\" />
   </ItemGroup>
 
 </Project>

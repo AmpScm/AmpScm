@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Git
+namespace AmpScm.Buckets.Signatures
 {
-    public class Radix64ArmorBucket : WrappingBucket
+    public sealed class Radix64ArmorBucket : WrappingBucket
     {
         SState _state;
         Bucket? _base64Decode;
@@ -36,7 +36,7 @@ namespace AmpScm.Buckets.Git
             if (_state == SState.Init)
             {
                 if (!bb.StartsWithASCII("-----BEGIN "))
-                    throw new GitBucketException("Expected '-----BEGIN '");
+                    throw new BucketException("Expected '-----BEGIN '");
 
                 if (bb.Slice("-----BEGIN ".Length).StartsWithASCII("SSH "))
                 {
@@ -66,7 +66,7 @@ namespace AmpScm.Buckets.Git
             return _base64Decode?.Peek() ?? BucketBytes.Empty;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = Bucket.MaxRead)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (_state == SState.Eof)
                 return BucketBytes.Eof;
@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Git
 
             if (_state == SState.Body)
             {
-                _base64Decode ??= new StopAtLineStartBucket(Inner.NoClose(), new byte[] { (byte)'=', (byte)'-'}).Base64Decode(true).Crc24(x => _crc24Result = x);
+                _base64Decode ??= new StopAtLineStartBucket(Inner.NoClose(), new byte[] { (byte)'=', (byte)'-' }).Base64Decode(true).Crc24(x => _crc24Result = x);
 
                 var bb = await _base64Decode.ReadAsync(requested).ConfigureAwait(false);
 
@@ -101,13 +101,13 @@ namespace AmpScm.Buckets.Git
                 {
                     var crc = bb.Trim(eol).ToASCIIString(1);
 
-                    byte[] crcData = Convert.FromBase64String(crc);
-                    byte[] b4 = new byte[4];
+                    var crcData = Convert.FromBase64String(crc);
+                    var b4 = new byte[4];
                     crcData.CopyTo(b4, 1);
 
                     if (_crc24Result != NetBitConverter.ToInt32(b4, 0))
                     {
-                        throw new GitBucketException($"CRC mismatch in signature from {Inner.Name} Bucket");
+                        throw new BucketException($"CRC mismatch in signature from {Inner.Name} Bucket");
                     }
 
                     _state = SState.Trailer;
@@ -161,7 +161,7 @@ namespace AmpScm.Buckets.Git
                     return BucketBytes.Eof;
                 }
 
-                (bb, BucketEol _) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
+                (bb, var _) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
                 return bb;
             }
         }

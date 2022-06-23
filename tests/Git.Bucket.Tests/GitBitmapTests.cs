@@ -139,7 +139,7 @@ namespace GitRepositoryTests
 
         static string? FindResource(string pattern)
         {
-            string dir = Path.GetDirectoryName(typeof(GitTests).Assembly.Location)!;
+            string dir = Path.GetDirectoryName(typeof(GitBitmapTests).Assembly.Location)!;
 
             var f = Directory.EnumerateFiles(Path.Combine(dir, "cases"), pattern).FirstOrDefault();
 

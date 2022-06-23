@@ -7,22 +7,25 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Buckets;
 
-namespace AmpScm.Buckets.Git
+namespace AmpScm.Buckets.Signatures
 {
-    public enum GitPublicKeyAlgorithm
+    public enum SignatureBucketAlgorithm
     {
         None,
         Rsa,
         Dsa,
         Ecdsa,
         Ed25519,
-        EdDsa,
     }
 
-    public sealed record class GitPublicKey
+    /// <summary>
+    /// Public key for usage with <see cref="SignatureBucket"/>
+    /// </summary>
+    public sealed record class SignatureBucketKey
     {
-        public GitPublicKey(IReadOnlyList<byte> fingerprint, GitPublicKeyAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values)
+        internal SignatureBucketKey(IReadOnlyList<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values)
         {
             Algorithm = algorithm;
             Values = values;
@@ -30,11 +33,11 @@ namespace AmpScm.Buckets.Git
         }
 
         public IReadOnlyList<byte> Fingerprint { get; }
-        public GitPublicKeyAlgorithm Algorithm { get; }
+        public SignatureBucketAlgorithm Algorithm { get; }
         public IReadOnlyList<ReadOnlyMemory<byte>> Values { get; }
-        public string FingerprintString => GitSignatureBucket.FingerprintToString(Fingerprint);
+        public string FingerprintString => SignatureBucket.FingerprintToString(Fingerprint);
 
-        public static bool TryParse(string line, [NotNullWhen(true)] out GitPublicKey? value)
+        public static bool TryParse(string line, [NotNullWhen(true)] out SignatureBucketKey? value)
         {
             if (string.IsNullOrWhiteSpace(line))
                 throw new ArgumentNullException(nameof(line));
@@ -43,7 +46,7 @@ namespace AmpScm.Buckets.Git
             var items = line.Split(new char[] { ' ' }, 3);
             var data = Convert.FromBase64String(items[1]);
 
-            var vals = GitSignatureBucket.ParseSshStrings(data);
+            var vals = SignatureBucket.ParseSshStrings(data);
 
             var name = Encoding.ASCII.GetString(vals[0].ToArray());
 
@@ -53,10 +56,15 @@ namespace AmpScm.Buckets.Git
                 return false;
             }
 
-            switch (items[0])
+            var alg = items[0];
+
+            if (alg.StartsWith("sk-", StringComparison.Ordinal))
+                alg = alg.Substring(3);
+
+            switch (alg)
             {
                 case "ssh-rsa":
-                    value = new GitPublicKey(data, GitPublicKeyAlgorithm.Rsa,
+                    value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Rsa,
                         new[]
                         {
                             vals[2],
@@ -65,7 +73,7 @@ namespace AmpScm.Buckets.Git
                     );
                     return true;
                 case "ssh-dss":
-                    value = new GitPublicKey(data, GitPublicKeyAlgorithm.Dsa,
+                    value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Dsa,
                         new[]
                         {
                             vals[1],
@@ -76,7 +84,7 @@ namespace AmpScm.Buckets.Git
                     );
                     return true;
                 case "ssh-ed25519":
-                    value = new GitPublicKey(data, GitPublicKeyAlgorithm.Ed25519,
+                    value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Ed25519,
                         new[]
                         {
                             vals[1],
@@ -86,8 +94,8 @@ namespace AmpScm.Buckets.Git
                 case "ecdsa-sha2-nistp384":
                 case "ecdsa-sha2-nistp521":
                     {
-                        var signature = GitSignatureBucket.GetEcdsaValues(vals.Skip(1));
-                        value = new GitPublicKey(data, GitPublicKeyAlgorithm.Ecdsa, signature);
+                        var signature = SignatureBucket.GetEcdsaValues(vals.Skip(1));
+                        value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Ecdsa, signature);
                         return true;
                     }
                 default:

@@ -37,6 +37,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmpScm.Diff", "src\AmpScm.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diff.Tests", "tests\Diff.Tests\Diff.Tests.csproj", "{20B31723-9D0A-4CC4-97D1-5D62FE21A416}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Git.Bucket.Tests", "tests\Git.Bucket.Tests\Git.Bucket.Tests.csproj", "{79E01CAD-2D2A-4F8F-815B-4BA785B21522}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,10 @@ Global
 		{20B31723-9D0A-4CC4-97D1-5D62FE21A416}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20B31723-9D0A-4CC4-97D1-5D62FE21A416}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20B31723-9D0A-4CC4-97D1-5D62FE21A416}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79E01CAD-2D2A-4F8F-815B-4BA785B21522}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79E01CAD-2D2A-4F8F-815B-4BA785B21522}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79E01CAD-2D2A-4F8F-815B-4BA785B21522}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79E01CAD-2D2A-4F8F-815B-4BA785B21522}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,6 +104,7 @@ Global
 		{A22A35CA-0FAA-4D32-8111-E2F6F47CCC09} = {78BFCCE6-51F9-49B2-B94A-00698882EE67}
 		{94D95264-4663-4B63-8F05-96701399E216} = {808AB523-2A80-4630-A13C-A54CBDF95D51}
 		{20B31723-9D0A-4CC4-97D1-5D62FE21A416} = {78BFCCE6-51F9-49B2-B94A-00698882EE67}
+		{79E01CAD-2D2A-4F8F-815B-4BA785B21522} = {78BFCCE6-51F9-49B2-B94A-00698882EE67}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {87E00793-7FC0-4CBC-BCA7-7F684F515F8F}
