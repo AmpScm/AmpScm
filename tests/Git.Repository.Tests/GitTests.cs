@@ -136,21 +136,5 @@ namespace GitRepositoryTests
 
             return (await repo.ObjectRepository.FetchGitIdBucketAsync(id)) ?? throw new InvalidOperationException($"Can't obtain object {id} from {packFile}");
         }
-
-
-        sealed class MyComparer<T> : IComparer<T>
-        {
-            public MyComparer(Func<T?, T?, int> comparer)
-            {
-                Comparer = comparer;
-            }
-
-            public Func<T?, T?, int> Comparer { get; }
-
-            public int Compare(T? x, T? y)
-            {
-                return Comparer(x, y);
-            }
-        }
     }
 }

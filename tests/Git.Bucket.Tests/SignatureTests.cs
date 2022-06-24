@@ -699,7 +699,7 @@ R74grCkxsuX711oRA0zFfP30qi/UzDM=
 
         }
 
-        const string DhaAlgamelPublicKey =
+        const string DsaAlgamelPublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQSuBGK1eOURDACwV2vrYbajFLkkQciLH9/TkvctoLCpX6BEpoqx4hmX1TXVgdjk
@@ -753,7 +753,7 @@ bh8Py0e9QqxLXckAKG/5iAG61kxIDzpnqstNW3s8K8MA/3V67BDb2quxmDpH5MwS
 =yjoG
 -----END PGP PUBLIC KEY BLOCK-----";
 
-        const string DhaAlgamelSignature =
+        const string DsaAlgamelSignature =
 @"-----BEGIN PGP SIGNATURE-----
 
 iHUEABEIAB0WIQSQD/u2BUfUhLOko9t+kcTtGH3EMgUCYrV53wAKCRB+kcTtGH3E
@@ -763,14 +763,19 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 -----END PGP SIGNATURE-----";
 
         [TestMethod]
-        public async Task VerifyPgpDhaAlgamel()
+        public async Task VerifyPgpDsaAlgamel()
         {
+#if NETFRAMEWORK
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("DSA hash length issue on mono");
+#endif
+
             var src = Bucket.Create.FromASCII("test");
 
-            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(DhaAlgamelSignature));
+            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(DsaAlgamelSignature));
             using var gpg = new SignatureBucket(rdx);
 
-            var key = await GetKey(DhaAlgamelPublicKey);
+            var key = await GetKey(DsaAlgamelPublicKey);
 
             var fp = await gpg.ReadFingerprintAsync();
             Assert.IsNotNull(fp, "Have fingerprint");
