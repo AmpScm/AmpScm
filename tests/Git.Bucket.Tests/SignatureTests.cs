@@ -872,6 +872,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
             await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
 
             // TODO: Verify using our infra
+            Assert.AreEqual(theMerge.MergeTags[1].Id, repo.Tags.First().TagObject.Id);
         }
 
         static void RunSshKeyGen(params string[] args)

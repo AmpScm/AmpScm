@@ -37,7 +37,7 @@ namespace AmpScm.Git.References
             {
                 string name = Path.GetFileName(file);
 
-                if (GitReference.AllUpper(name) && !alreadyReturned.Contains(name))
+                if (GitReference.AllUpper(name) && !alreadyReturned.Contains(name) && !name.EndsWith("MSG", StringComparison.Ordinal))
                     yield return new GitSymbolicReference(this, file.Substring(GitDir.Length + 1));
             }
         }
@@ -88,7 +88,7 @@ namespace AmpScm.Git.References
             if (symbolic)
                 return new GitSymbolicReference(this, name);
             else
-                return new GitReference(this, name, new GitAsyncLazy<GitId?>(async () => await LoadIdFromFile(fileName).ConfigureAwait(false)));
+                return new GitReference(this, name, async () => await LoadIdFromFile(fileName).ConfigureAwait(false));
         }
 
         protected internal override async ValueTask<GitReference?> ResolveAsync(GitReference gitReference)

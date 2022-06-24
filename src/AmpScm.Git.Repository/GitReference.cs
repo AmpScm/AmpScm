@@ -16,11 +16,11 @@ namespace AmpScm.Git
         protected GitReferenceRepository ReferenceRepository { get; }
         object? _object;
         object? _commit;
-        Lazy<GitId?>? _resolver;
+        Func<ValueTask<GitId?>>? _resolver;
         string? _shortName;
         GitReference? _resolved;
 
-        internal GitReference(GitReferenceRepository repository, string name, Lazy<GitId?> resolver)
+        internal GitReference(GitReferenceRepository repository, string name, Func<ValueTask<GitId?>> resolver)
         {
             ReferenceRepository = repository ?? throw new ArgumentNullException(nameof(repository));
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -62,9 +62,19 @@ namespace AmpScm.Git
         {
             if (_object is null)
             {
-                _object = _resolver?.Value;
+                if (_resolver is not null)
+                {
+                    _object = await _resolver();
+                    _resolver = null;
+                }
                 _object ??= await ReferenceRepository.Repository.References.GetAsync(Name).ConfigureAwait(false);
-            }
+
+                if (_object is GitReference gr)
+                {
+                    await gr.ReadAsync().ConfigureAwait(false);
+                    _object = gr._object;
+                }
+            }            
 
             if (_object is GitId oid)
             {
