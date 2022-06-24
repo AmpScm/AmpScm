@@ -449,7 +449,7 @@ namespace AmpScm.Buckets.Signatures
                                 {
                                     keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
                                     keyInts = keyInts.Skip(1).ToArray();
-                                }                
+                                }
 
                                 _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts));
                             }
@@ -605,13 +605,20 @@ namespace AmpScm.Buckets.Signatures
                     {
                         var signature = _signatureInts![0].ToArray();
 
-                        dsa.ImportParameters(new DSAParameters()
+                        try
                         {
-                            P = MakeUnsignedArray(keyValues[0]),
-                            Q = MakeUnsignedArray(keyValues[1]),
-                            G = MakeUnsignedArray(keyValues[2]),
-                            Y = MakeUnsignedArray(keyValues[3])
-                        });
+                            dsa.ImportParameters(new DSAParameters()
+                            {
+                                P = MakeUnsignedArray(keyValues[0], align4: true),
+                                Q = MakeUnsignedArray(keyValues[1], align4: true),
+                                G = MakeUnsignedArray(keyValues[2], align4: true),
+                                Y = MakeUnsignedArray(keyValues[3], align4: true)
+                            });
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            throw new InvalidOperationException("DSA parameter length error. Please verify edge case in public key", ex);
+                        }
 
                         return dsa.VerifySignature(hashValue, signature);
                     }
@@ -666,6 +673,21 @@ namespace AmpScm.Buckets.Signatures
                 default:
                     throw new NotImplementedException($"Public Key type {_signaturePublicKeyType} not implemented yet");
             }
+        }
+
+        static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory, bool align4)
+        {
+            if (align4)
+            {
+                int b4 = (readOnlyMemory.Length & 3);
+                if (b4 == 3)
+                    return new byte[] { 0 }.Concat(readOnlyMemory.ToArray()).ToArray();
+                else if (b4 == 0)
+                    return readOnlyMemory.ToArray();
+                else if (b4 == 2) // Very unlikely edge case
+                    return new byte[] { 0, 0 }.Concat(readOnlyMemory.ToArray()).ToArray();
+            }
+            return MakeUnsignedArray(readOnlyMemory);
         }
 
         static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory)
