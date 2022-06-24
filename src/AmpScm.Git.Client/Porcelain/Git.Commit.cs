@@ -12,6 +12,7 @@ namespace AmpScm.Git.Client.Porcelain
         public bool Amend { get; set; }
         public string? Message { get; set; }
         public bool Only { get; set; }
+        public bool Sign { get; set; }
 
         public override void Verify()
         {
@@ -38,6 +39,8 @@ namespace AmpScm.Git.Client.Porcelain
                 args.Add("--all");
             if (options.Amend)
                 args.Add("--amend");
+            if (options.Sign)
+                args.Add("-S");
 
             // TODO: Allow configuring these
             args.Add("--no-edit");

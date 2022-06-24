@@ -18,6 +18,7 @@ namespace AmpScm.Git.Client.Porcelain
         public bool AppendLog { get; set; }
 
         public AllowAlwaysNever FastForward { get; set; }
+        public bool Sign { get; set; }
 
         public override void Verify()
         {
@@ -48,6 +49,8 @@ namespace AmpScm.Git.Client.Porcelain
 
             if (options.AppendLog)
                 args.Add("--log");
+            if (options.Sign)
+                args.Add("-S");
 
             if (options.FastForward == AllowAlwaysNever.Never)
                 args.Add("--no-ff");

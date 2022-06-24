@@ -95,17 +95,29 @@ namespace AmpScm.Git
 
                 foreach (var (k, v) in init.InitialConfiguration)
                 {
-                    var sp = k.Split(new[] { '.' }, 2);
+                    int n = k.LastIndexOf('.');
 
-                    if (sp.Length != 2)
+                    if (n < 0)
                         continue;
 
-                    if (!sp[0].Equals(lastGroup, StringComparison.OrdinalIgnoreCase))
+                    string group = k.Substring(0, n);
+                    string key = k.Substring(n + 1);
+
+                    if (!group.Equals(lastGroup, StringComparison.OrdinalIgnoreCase))
                     {
-                        lastGroup = sp[0];
-                        configText.Append((string)$"\n[{lastGroup}]\n");
+                        lastGroup = group;
+
+                        n = group.IndexOf('.', StringComparison.Ordinal);
+                        if (n < 0)
+                            configText.Append((string)$"\n[{group}]\n");
+                        else
+                        {
+                            var g = group.Substring(0, n);
+                            var s = group.Substring(n + 1);
+                            configText.Append((string)$"\n[{g} \"{s}\"]");
+                        }
                     }
-                    configText.Append((string)$"\t{sp[1]} = {v}\n");
+                    configText.Append((string)$"\t{key} = {v}\n");
                 }
             }
 

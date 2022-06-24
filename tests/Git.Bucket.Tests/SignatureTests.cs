@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Diagnostics;
 using AmpScm.Buckets.Signatures;
+using AmpScm.Git;
+using AmpScm.Git.Client.Porcelain;
 
 namespace GitRepositoryTests.Buckets
 {
@@ -778,6 +780,96 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 
             var ok = await gpg.VerifyAsync(src, key);
             Assert.IsTrue(ok, "Dha-Algamel");
+        }
+
+        [TestMethod]
+        public async Task TestGitSign()
+        {
+            var dir = TestContext.PerTestDirectory();
+            string keyFile = Path.Combine(dir, "key");
+            string signersFile = Path.Combine(dir, "signers");
+            var repo = GitRepository.Init(dir, new GitRepositoryInitArgs
+            {
+                InitialConfiguration = new[]
+                {
+                    ("commit.gpgsign", "true"),
+                    ("gpg.format", "ssh"),
+                    ("user.signingkey", keyFile.Replace('\\', '/')),
+                    ("gpg.ssh.allowedsignersfile", signersFile.Replace('\\', '/')),
+                }
+            });
+            
+            RunSshKeyGen("-f", keyFile, "-N", "");
+
+            await repo.GetPorcelain().Add("key");
+            await repo.GetPorcelain().Commit(new()
+            {
+                All = true,
+                Sign = true,
+                Message = "Signed Commit"
+            });
+
+            var initialCommit = repo.Head.Commit;
+
+            Assert.IsTrue(initialCommit!.IsSigned, "Commit is signed");
+
+            using (var c = repo.References.CreateUpdateTransaction())
+            {
+                c.Create("refs/heads/base", repo.Head.Id!);
+                await c.CommitAsync();
+            }
+
+            File.WriteAllText(Path.Combine(dir, "newA"), "A");
+            await repo.GetPorcelain().Add("newA");
+            await repo.GetPorcelain().Commit(new()
+            {
+                All = true,
+                Sign = true,
+                Message = "Added newA"
+            });
+
+            await repo.GetPorcelain().Tag("a", new()
+            {
+                Sign = true,
+                Message = "Tagged A"
+            });
+
+            await repo.GetPorcelain().CheckOut("base");
+
+            await repo.GetPorcelain().Merge("tags/a", new()
+            {
+                Sign = true,
+                FastForward = AllowAlwaysNever.Never,
+                Message = "Merge a"
+            }); ;
+
+            var theMerge = repo.Head.Commit;
+            Assert.IsNotNull(theMerge, "Have merge");
+            Assert.AreEqual(2, theMerge.ParentCount);
+            Assert.IsTrue(theMerge.IsSigned, "Merge Commit is signed");
+            Assert.IsNull(theMerge.MergeTags[0], "No mergetag on parent 0");
+            Assert.IsNotNull(theMerge.MergeTags[1], "Has mergetag on parent 1");
+            Assert.IsTrue(theMerge.IsSigned, "The merge commit is singed");
+            Assert.IsTrue(theMerge.Parents.All(p => p.IsSigned), "Both parents signed");
+            Assert.IsTrue(theMerge.MergeTags[1]!.IsSigned, "The merge tag is signed");
+
+            try
+            {
+                await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
+                Assert.Fail("Should have failed");
+            }
+            catch (GitException)
+            { }
+
+
+            string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
+            Assert.IsTrue(SignatureBucketKey.TryParse(publicKey, out var k));
+            File.WriteAllText(signersFile, "me@me " + k.FingerprintString + " me@my-pc"+Environment.NewLine);
+
+            // And now verify passes
+            await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
+
+            // TODO: Verify using our infra
         }
 
         static void RunSshKeyGen(params string[] args)

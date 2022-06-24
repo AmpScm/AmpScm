@@ -9,6 +9,7 @@ namespace AmpScm.Git.Client.Porcelain
     public class GitTagArgs : GitPorcelainArgs
     {
         public string? Message { get; set; }
+        public bool Sign { get; set; }
 
         public override void Verify()
         {
@@ -30,6 +31,9 @@ namespace AmpScm.Git.Client.Porcelain
                 args.Add("-m");
                 args.Add(options.Message!);
             }
+
+            if (options.Sign)
+                args.Add("-s");
 
             args.Add("--");
             args.Add(name);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AmpScm.Git.Client.Porcelain
 {
@@ -17,12 +18,17 @@ namespace AmpScm.Git.Client.Porcelain
     partial class GitPorcelain
     {
         [GitCommand("verify-commit")]
-        public static async ValueTask VerifyCommit(this GitPorcelainClient c, GitVerifyCommitArgs? options = null)
+        public static async ValueTask VerifyCommit(this GitPorcelainClient c, string commit, GitVerifyCommitArgs? options = null)
         {
             options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
-            await c.ThrowNotImplemented();
+            options ??= new();
+
+            List<string> args = new();
+
+            args.Add(commit);
+
+            await c.Repository.RunGitCommandAsync("verify-commit", args);
         }
     }
 }
