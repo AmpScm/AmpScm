@@ -75,20 +75,11 @@ zMVsThr0xjYrEpCy7Mk+v6B94DsJFvSpycppXmfnYX+H2Umi1qw9hp7d/wb2txmqFStM8g
 GtAh3JPRDOlZUZM=
 -----END SSH SIGNATURE-----";
 
-        //        const string sshSig2 =
-        //@"-----BEGIN SSH SIGNATURE-----
-        //U1NIU0lHAAAAAQAAADMAAAALc3NoLWVkMjU1MTkAAAAgJKxoLBJBivUPNTUJUSslQTt2hD
-        //jozKvHarKeN8uYFqgAAAADZm9vAAAAAAAAAFMAAAALc3NoLWVkMjU1MTkAAABAKNC4IEbt
-        //Tq0Fb56xhtuE1/lK9H9RZJfON4o6hE9R4ZGFX98gy0+fFJ/1d2/RxnZky0Y7GojwrZkrHT
-        //FgCqVWAQ==
-        //-----END SSH SIGNATURE-----";
-
         [TestMethod]
         [DataRow(Sig1, DisplayName = nameof(Sig1))]
         [DataRow(Sig2, DisplayName = nameof(Sig2))]
         [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
         [DataRow(SshSig, DisplayName = nameof(SshSig))]
-        //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseSignature(string signature)
         {
             var b = Bucket.Create.FromASCII(signature);
@@ -110,7 +101,6 @@ GtAh3JPRDOlZUZM=
         [DataRow(Sig2, DisplayName = nameof(Sig2))]
         [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
         [DataRow(SshSig, DisplayName = nameof(SshSig))]
-        //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseSigTail(string signature)
         {
             var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
@@ -135,7 +125,6 @@ GtAh3JPRDOlZUZM=
         [DataRow(Sig2, DisplayName = nameof(Sig2))]
         [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
         [DataRow(SshSig, DisplayName = nameof(SshSig))]
-        //[DataRow(sshSig2, DisplayName = nameof(sshSig2))]
         public async Task ParseRfc4880(string signature)
         {
             var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
@@ -144,8 +133,6 @@ GtAh3JPRDOlZUZM=
             using var rr = new SignatureBucket(sr);
 
             var bb = await rr.ReadExactlyAsync(8192);
-
-            //Assert.AreEqual(OpenPgpTagType.Signature, await rr.ReadTagAsync());
 
             var bt = await b.ReadExactlyAsync(1024);
             Assert.AreEqual("TAIL!", bt.ToASCIIString());
@@ -483,7 +470,6 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
         [DataRow("ecdsa", "-b384")]
         [DataRow("ecdsa", "-b521")]
         [DataRow("ed25519", "")]
-        //[Timeout(5000)]
         public async Task TaskVerifyGenerateSSH(string type, string ex)
         {
 #if !NET6_0_OR_GREATER
@@ -499,7 +485,6 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
                 RunSshKeyGen("-f", keyFile, "-t", type, "-N", "", ex);
 
             string privateKey = File.ReadAllText(keyFile).Trim();
-            //Console.WriteLine(privateKey);
 
             string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
             Console.WriteLine($"Public key: {publicKey}");
@@ -533,7 +518,6 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 #endif
         }
 
-        // 1A3E83196CF474A0ACB31EF88839D9C6C3EF47F1
         const string Ecc25519PublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -580,7 +564,6 @@ Zt5h6i/BNNX9AiqbRo/ep/RrPpU71Qo=
             Assert.IsTrue(ok, "Ed25519");
         }
 
-        // 4896279E431617C5EF962DFE816312A7E06A1E1E
         const string EccNistPublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -762,10 +745,12 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 =RlHU
 -----END PGP SIGNATURE-----";
 
-        [TestMethod]
-        public async Task VerifyPgpDsaAlgamel()
+#if !NETFRAMEWORK
+[TestMethod]
+#endif
+        public async Task VerifyPgpDsaAlgamel2072()
         {
-#if NETFRAMEWORK || !NET5_0_OR_GREATER
+#if !NET5_0_OR_GREATER
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("DSA hash length issue on mono");
 #else
