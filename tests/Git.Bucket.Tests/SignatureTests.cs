@@ -670,7 +670,10 @@ R74grCkxsuX711oRA0zFfP30qi/UzDM=
         [TestMethod]
         public async Task VerifyPgpBrainPool()
         {
-#if !NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
+            if (OperatingSystem.IsMacOS())
+                Assert.Inconclusive("MacOS doesn't appear to support Brainpoool ");
+#else
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("");
 #endif

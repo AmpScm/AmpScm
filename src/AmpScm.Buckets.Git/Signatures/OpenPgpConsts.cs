@@ -72,7 +72,7 @@ namespace AmpScm.Buckets.Signatures
         RsaSignOnly = 3,
         Elgamal = 16,
         Dsa = 17,
-        EllipticCurve = 18,
+        ECDH = 18,
         ECDSA = 19,
         DHE = 21,
         EdDSA = 22,
@@ -81,5 +81,6 @@ namespace AmpScm.Buckets.Signatures
 
         // Outside PGP range, used for ssh and openpgp specialized handling
         Ed25519 = 0x1001,
+        Curve25519 = 0x1002,
     }
 }

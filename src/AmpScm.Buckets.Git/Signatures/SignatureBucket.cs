@@ -64,9 +64,6 @@ namespace AmpScm.Buckets.Signatures
 
                 using (bucket)
                 {
-#if DEBUG
-                    Console.WriteLine($"Got {tag}");
-#endif
                     switch (tag)
                     {
                         case OpenPgpTagType.Signature when Inner.IsSshSignature && _signatureInts is null:
@@ -344,7 +341,7 @@ namespace AmpScm.Buckets.Signatures
                             }
                             break;
                         case OpenPgpTagType.PublicKey:
-                            //case OpenPgpTagType.PublicSubkey:
+                        case OpenPgpTagType.PublicSubkey:
                             {
                                 DateTime keyTime;
                                 ReadOnlyMemory<byte>[]? keyInts;
@@ -375,35 +372,46 @@ namespace AmpScm.Buckets.Signatures
                                 else
                                     throw new NotImplementedException("Only OpenPGP public key versions 3, 4 and 5 are supported");
 
-                                if (tag == OpenPgpTagType.PublicSubkey && keyPublicKeyType == OpenPgpPublicKeyType.EllipticCurve)
+                                List<ReadOnlyMemory<byte>> bigInts = new();
+
+                                if (keyPublicKeyType is OpenPgpPublicKeyType.EdDSA or OpenPgpPublicKeyType.ECDSA or OpenPgpPublicKeyType.ECDH)
                                 {
-                                    csum.Dispose();
-                                    goto default;
+                                    var b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
+
+                                    if (b == 0 || b == 0xFF)
+                                        throw new NotImplementedException("Reserved value");
+
+                                    var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
+                                    if (bb.Length != b)
+                                        throw new BucketEofException(bucket);
+
+                                    bigInts.Add(bb.ToArray());
                                 }
 
+                                if (keyPublicKeyType is OpenPgpPublicKeyType.ECDH)
                                 {
-                                    List<ReadOnlyMemory<byte>> bigInts = new();
+                                    var bi = await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false);
 
-                                    if (keyPublicKeyType is OpenPgpPublicKeyType.EdDSA or OpenPgpPublicKeyType.ECDSA)
-                                    {
-                                        var b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
+                                    bigInts.Add(bi.Value);
 
-                                        if (b == 0 || b == 0xFF)
-                                            throw new NotImplementedException("Reserved value");
+                                    var b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
 
-                                        var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
-                                        if (bb.Length != b)
-                                            throw new BucketEofException(bucket);
+                                    if (b == 0 || b == 0xFF)
+                                        throw new NotImplementedException("Reserved value");
 
-                                        bigInts.Add(bb.ToArray());
-                                    }
+                                    var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
+                                    if (bb.Length != b)
+                                        throw new BucketEofException(bucket);
 
-                                    while (await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
-                                    {
-                                        bigInts.Add(bi);
-                                    }
-                                    keyInts = bigInts.ToArray();
+                                    bigInts.Add(bb.ToArray());
                                 }
+
+
+                                while (await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
+                                {
+                                    bigInts.Add(bi);
+                                }
+                                keyInts = bigInts.ToArray();
 
                                 csum.Reset();
 
@@ -433,14 +441,16 @@ namespace AmpScm.Buckets.Signatures
                                     // Convert `0x40 | value` form to `value`
                                     keyInts = new ReadOnlyMemory<byte>[] { keyInts[1].Slice(1).ToArray() };
                                 }
+                                else if (keyPublicKeyType == OpenPgpPublicKeyType.ECDH && keyInts[0].Span.SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
+                                {
+                                    keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
+                                    keyInts = keyInts.Skip(1).ToArray();
+                                }                
 
                                 _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts));
                             }
                             break;
                         default:
-#if DEBUG
-                            Console.WriteLine($"Ignoring {tag}");
-#endif
                             await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                             break;
                     }
@@ -490,6 +500,8 @@ namespace AmpScm.Buckets.Signatures
                 OpenPgpPublicKeyType.Dsa => SignatureBucketAlgorithm.Dsa,
                 OpenPgpPublicKeyType.ECDSA => SignatureBucketAlgorithm.Ecdsa,
                 OpenPgpPublicKeyType.Ed25519 => SignatureBucketAlgorithm.Ed25519,
+                OpenPgpPublicKeyType.ECDH => SignatureBucketAlgorithm.Ecdh,
+                OpenPgpPublicKeyType.Curve25519 => SignatureBucketAlgorithm.Curve25519,
                 _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
             };
 
@@ -695,11 +707,6 @@ namespace AmpScm.Buckets.Signatures
                     curveName = nameof(ECCurve.NamedCurves.brainpoolP256r1);
                 else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D }))
                     curveName = nameof(ECCurve.NamedCurves.brainpoolP512t1);
-                // These 2 are only used with Eddsa
-                //else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
-                //    curveName = "Ed25519";
-                //else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
-                //    curveName = "Curve25519";
                 else
                     throw new NotImplementedException("Unknown curve oid in ecdsa key");
 

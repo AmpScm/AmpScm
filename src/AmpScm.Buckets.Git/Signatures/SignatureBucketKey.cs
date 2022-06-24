@@ -18,6 +18,8 @@ namespace AmpScm.Buckets.Signatures
         Dsa,
         Ecdsa,
         Ed25519,
+        Ecdh,
+        Curve25519,
     }
 
     /// <summary>
