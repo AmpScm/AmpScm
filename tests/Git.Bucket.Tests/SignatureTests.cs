@@ -765,9 +765,12 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
         [TestMethod]
         public async Task VerifyPgpDsaAlgamel()
         {
-#if NETFRAMEWORK
+#if NETFRAMEWORK || !NET5_0_OR_GREATER
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("DSA hash length issue on mono");
+#else
+            if (OperatingSystem.IsMacOS())
+                Assert.Inconclusive("MacOS doesn't like 3072 bit key");
 #endif
 
             var src = Bucket.Create.FromASCII("test");
