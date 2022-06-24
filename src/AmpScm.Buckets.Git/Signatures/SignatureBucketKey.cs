@@ -20,6 +20,7 @@ namespace AmpScm.Buckets.Signatures
         Ed25519,
         Ecdh,
         Curve25519,
+        Elgamal,
     }
 
     /// <summary>

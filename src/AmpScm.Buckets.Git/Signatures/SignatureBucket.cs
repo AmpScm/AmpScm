@@ -338,6 +338,10 @@ namespace AmpScm.Buckets.Signatures
                                     _signaturePublicKeyType = OpenPgpPublicKeyType.Ed25519;
                                     _signatureInts = new ReadOnlyMemory<byte>[] { _signatureInts.SelectMany(x => x.ToArray()).ToArray() };
                                 }
+                                else if (_signaturePublicKeyType == OpenPgpPublicKeyType.Dsa)
+                                {
+                                    _signatureInts = new ReadOnlyMemory<byte>[] { _signatureInts.SelectMany(x => x.ToArray()).ToArray() };
+                                }
                             }
                             break;
                         case OpenPgpTagType.PublicKey:
@@ -502,6 +506,7 @@ namespace AmpScm.Buckets.Signatures
                 OpenPgpPublicKeyType.Ed25519 => SignatureBucketAlgorithm.Ed25519,
                 OpenPgpPublicKeyType.ECDH => SignatureBucketAlgorithm.Ecdh,
                 OpenPgpPublicKeyType.Curve25519 => SignatureBucketAlgorithm.Curve25519,
+                OpenPgpPublicKeyType.Elgamal => SignatureBucketAlgorithm.Elgamal,
                 _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
             };
 
@@ -602,10 +607,10 @@ namespace AmpScm.Buckets.Signatures
 
                         dsa.ImportParameters(new DSAParameters()
                         {
-                            P = MakeUnsignedArray(keyValues[0], 4),
-                            Q = MakeUnsignedArray(keyValues[1], 4),
-                            G = MakeUnsignedArray(keyValues[2], 4),
-                            Y = MakeUnsignedArray(keyValues[3], 4)
+                            P = MakeUnsignedArray(keyValues[0]),
+                            Q = MakeUnsignedArray(keyValues[1]),
+                            G = MakeUnsignedArray(keyValues[2]),
+                            Y = MakeUnsignedArray(keyValues[3])
                         });
 
                         return dsa.VerifySignature(hashValue, signature);
@@ -663,16 +668,10 @@ namespace AmpScm.Buckets.Signatures
             }
         }
 
-        static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory, int? makeLen = null)
+        static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory)
         {
-            if (readOnlyMemory.Span[0] == 0 && readOnlyMemory.Length != makeLen)
+            if (readOnlyMemory.Span[0] == 0 && (readOnlyMemory.Length & 1) == 1)
                 return readOnlyMemory.Slice(1).ToArray();
-            else if (makeLen > readOnlyMemory.Length)
-            {
-                var result = new byte[makeLen.Value];
-                readOnlyMemory.CopyTo(result.AsMemory(result.Length - readOnlyMemory.Length, readOnlyMemory.Length));
-                return result;
-            }
             else
                 return readOnlyMemory.ToArray();
         }

@@ -699,6 +699,91 @@ R74grCkxsuX711oRA0zFfP30qi/UzDM=
 
         }
 
+        const string DhaAlgamelPublicKey =
+@"-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+68JESaa1uXk8ZZRBvp0uS3TS
+=yjoG
+-----END PGP PUBLIC KEY BLOCK-----";
+
+        const string DhaAlgamelSignature =
+@"-----BEGIN PGP SIGNATURE-----
+
+iHUEABEIAB0WIQSQD/u2BUfUhLOko9t+kcTtGH3EMgUCYrV53wAKCRB+kcTtGH3E
+Ms22AP4h4s6JFBFdREqft2CK8DHvCwBdFe3YvDeeONKkJCg3WgD/TyXLRVa916IL
+uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
+=RlHU
+-----END PGP SIGNATURE-----";
+
+        [TestMethod]
+        public async Task VerifyPgpDhaAlgamel()
+        {
+            var src = Bucket.Create.FromASCII("test");
+
+            var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(DhaAlgamelSignature));
+            using var gpg = new SignatureBucket(rdx);
+
+            var key = await GetKey(DhaAlgamelPublicKey);
+
+            var fp = await gpg.ReadFingerprintAsync();
+            Assert.IsNotNull(fp, "Have fingerprint");
+
+            Assert.AreEqual(SignatureBucketAlgorithm.Dsa, key.Algorithm);
+            Assert.AreEqual("900FFBB60547D484B3A4A3DB7E91C4ED187DC432", key.FingerprintString);
+
+            Assert.IsTrue(fp.Span.SequenceEqual(key.Fingerprint.ToArray()), "Fingerprints match");
+
+            var ok = await gpg.VerifyAsync(src, key);
+            Assert.IsTrue(ok, "Dha-Algamel");
+        }
+
         static void RunSshKeyGen(params string[] args)
         {
             FixConsoleEncoding();
