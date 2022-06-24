@@ -796,6 +796,8 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
                     ("gpg.format", "ssh"),
                     ("user.signingkey", keyFile.Replace('\\', '/')),
                     ("gpg.ssh.allowedsignersfile", signersFile.Replace('\\', '/')),
+                    ("user.email", "me@myself.i"),
+                    ("user.name", "My Name")
                 }
             });
             
@@ -876,7 +878,6 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
         {
             FixConsoleEncoding();
             ProcessStartInfo psi = new ProcessStartInfo("ssh-keygen", string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))));
-            Console.WriteLine(psi.Arguments);
             psi.UseShellExecute = false;
             psi.RedirectStandardInput = true;
             psi.RedirectStandardOutput = true;
