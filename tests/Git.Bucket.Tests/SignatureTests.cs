@@ -748,16 +748,8 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 #if !NETFRAMEWORK
 [TestMethod]
 #endif
-        public async Task VerifyPgpDsaAlgamel2072()
+        public async Task VerifyPgpDsaAlgamel3072()
         {
-#if !NET5_0_OR_GREATER
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                Assert.Inconclusive("DSA hash length issue on mono");
-#else
-            if (OperatingSystem.IsMacOS())
-                Assert.Inconclusive("MacOS doesn't like 3072 bit key");
-#endif
-
             var src = Bucket.Create.FromASCII("test");
 
             var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(DsaAlgamelSignature));
@@ -772,6 +764,17 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
             Assert.AreEqual("900FFBB60547D484B3A4A3DB7E91C4ED187DC432", key.FingerprintString);
 
             Assert.IsTrue(fp.Span.SequenceEqual(key.Fingerprint.ToArray()), "Fingerprints match");
+
+            // This tests a 3072 bit DSA key, while mono and legacy .net
+            // only supports the old 1024 bit keys, like those used in SSH.
+
+#if !NET5_0_OR_GREATER
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("DSA hash length issue on mono");
+#else
+            if (OperatingSystem.IsMacOS())
+                Assert.Inconclusive("MacOS doesn't like 3072 bit key");
+#endif
 
             var ok = await gpg.VerifyAsync(src, key);
             Assert.IsTrue(ok, "Dha-Algamel");
