@@ -868,11 +868,22 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
             Assert.IsTrue(SignatureBucketKey.TryParse(publicKey, out var k));
             File.WriteAllText(signersFile, "me@me " + k.FingerprintString + " me@my-pc"+Environment.NewLine);
 
-            // And now verify passes
-            await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
-
             // TODO: Verify using our infra
             Assert.AreEqual(theMerge.MergeTags[1].Id, repo.Tags.First().TagObject.Id);
+
+
+
+
+            // And now verify that what we tested is also accepted by git
+            // On GitHub the OpenSSH on MAC/OS doesn't support ssh verify yet
+#if NET6_0_OR_GREATER
+            if (!OperatingSystem.IsMacOS())
+#else
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+#endif
+            {
+                await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
+            }
         }
 
         static void RunSshKeyGen(params string[] args)
