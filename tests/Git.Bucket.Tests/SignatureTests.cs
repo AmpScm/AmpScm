@@ -15,7 +15,9 @@ using AmpScm.Buckets.Signatures;
 using AmpScm.Git;
 using AmpScm.Git.Client.Porcelain;
 
-namespace GitRepositoryTests.Buckets
+[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
+
+namespace GitBucketTests
 {
     [TestClass]
     public class SignatureTests
@@ -520,6 +522,65 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 #endif
         }
 
+        [TestMethod]
+        [DataRow("rsa", "")]
+        [DataRow("rsa", "-b1024")]
+        [DataRow("rsa", "-b4096")]
+        [DataRow("dsa", "")]
+        [DataRow("ecdsa", "")]
+        [DataRow("ecdsa", "-b256")]
+        [DataRow("ecdsa", "-b384")]
+        [DataRow("ecdsa", "-b521")]
+        //[DataRow("ed25519", "")] // Not supported in PEM
+        public async Task TaskVerifyGenerateSSHPem(string type, string ex)
+        {
+#if !NET6_0_OR_GREATER
+            if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("");
+#endif
+            var dir = TestContext.PerTestDirectory(type + ex);
+
+            string keyFile = Path.Combine(dir, "key");
+            if (string.IsNullOrEmpty(ex))
+                RunSshKeyGen("-f", keyFile, "-t", type, "-N", "");
+            else
+                RunSshKeyGen("-f", keyFile, "-t", type, "-N", "", ex);
+
+
+            string publicKeyPem = RunSshKeyGen("-e", "-f", $"{keyFile}.pub", "-m", "pem");
+            string publicKeyRfc4716 = RunSshKeyGen("-e", "-f", $"{keyFile}.pub", "-m", "RFC4716");
+
+
+            string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
+            Assert.IsTrue(SignatureBucketKey.TryParse(publicKey, out var k), "Parse public key");
+
+            Assert.IsTrue(SignatureBucketKey.TryParse(publicKeyPem, out var kPem), "Parse public key pem");
+
+            Assert.IsTrue(SignatureBucketKey.TryParse(publicKeyRfc4716, out var kRfc4716), "Parse");
+
+            Console.WriteLine(k.FingerprintString);
+            Console.WriteLine(kPem.FingerprintString);
+            Console.WriteLine(kRfc4716.FingerprintString);
+
+            Assert.AreEqual(k.Algorithm, kPem.Algorithm, "Pem algorithm");
+            Assert.AreEqual(k.Algorithm, kRfc4716.Algorithm, "4716 alg");
+
+            Assert.AreEqual(k.Values.Count, kPem.Values.Count, "pem value count");
+            Assert.AreEqual(k.Values.Count, kRfc4716.Values.Count, "4716 value count");
+
+            for (int i = 0; i < k.Values.Count; i++)
+            {
+                Assert.IsTrue(k.Values[i].Span.SequenceEqual(kPem.Values[i].Span), $"Values of pem[{i}] match");
+                Assert.IsTrue(k.Values[i].Span.SequenceEqual(kRfc4716.Values[i].Span), $"Values of 4716[{i}] match");
+            }
+
+            Assert.AreEqual(k.FingerprintString, kPem.FingerprintString, "pem fingerprint");
+            Assert.AreEqual(k.FingerprintString, kRfc4716.FingerprintString, "4716 fingerprint");
+
+            Assert.IsTrue(k.Fingerprint.SequenceEqual(kPem.Fingerprint), "pem fingerprint");
+            Assert.IsTrue(k.Fingerprint.SequenceEqual(kRfc4716.Fingerprint), "4716 fingerprint");
+        }
+
         const string Ecc25519PublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -748,7 +809,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 -----END PGP SIGNATURE-----";
 
 #if !NETFRAMEWORK
-[TestMethod]
+        [TestMethod]
 #endif
         public async Task VerifyPgpDsaAlgamel3072()
         {
@@ -800,7 +861,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
                     ("user.name", "My Name")
                 }
             });
-            
+
             RunSshKeyGen("-f", keyFile, "-N", "");
 
             await repo.GetPorcelain().Add("key");
@@ -866,7 +927,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 
             string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
             Assert.IsTrue(SignatureBucketKey.TryParse(publicKey, out var k));
-            File.WriteAllText(signersFile, "me@me " + k.FingerprintString + " me@my-pc"+Environment.NewLine);
+            File.WriteAllText(signersFile, "me@me " + k.FingerprintString + " me@my-pc" + Environment.NewLine);
 
             // TODO: Verify using our infra
             Assert.AreEqual(theMerge.MergeTags[1].Id, repo.Tags.First().TagObject.Id);
@@ -886,7 +947,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
             }
         }
 
-        static void RunSshKeyGen(params string[] args)
+        static string RunSshKeyGen(params string[] args)
         {
             FixConsoleEncoding();
             ProcessStartInfo psi = new ProcessStartInfo("ssh-keygen", string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))));
@@ -900,12 +961,14 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 
             p.StandardInput.Close();
 
+            string s;
             Console.WriteLine(p.StandardError.ReadToEnd());
-            Console.WriteLine(p.StandardOutput.ReadToEnd());
+            Console.WriteLine(s = p.StandardOutput.ReadToEnd());
 
             p.WaitForExit();
 
             Assert.AreEqual(0, p.ExitCode);
+            return s;
         }
 
         static void FixConsoleEncoding()

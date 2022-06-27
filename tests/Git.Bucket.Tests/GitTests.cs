@@ -12,7 +12,7 @@ using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace GitRepositoryTests
+namespace GitBucketTests
 {
     [TestClass]
     public class GitTests

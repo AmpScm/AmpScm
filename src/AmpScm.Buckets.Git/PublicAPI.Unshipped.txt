@@ -63,6 +63,7 @@ AmpScm.Buckets.Git.Objects.GitSubBucketType.SignatureSha256 = 2 -> AmpScm.Bucket
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadSignatureBytesAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Signatures.Radix64ArmorBucket
+AmpScm.Buckets.Signatures.Radix64ArmorBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Signatures.Radix64ArmorBucket.Radix64ArmorBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Signatures.Radix64ArmorBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Signatures.SignatureBucket.ReadAsync() -> System.Threading.Tasks.ValueTask

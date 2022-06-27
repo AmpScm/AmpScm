@@ -10,7 +10,7 @@ using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace GitRepositoryTests
+namespace GitBucketTests
 {
     [TestClass]
     public class GitBitmapTests

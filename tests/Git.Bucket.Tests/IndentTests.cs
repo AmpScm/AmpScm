@@ -8,7 +8,7 @@ using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace GitRepositoryTests.Buckets
+namespace GitBucketTests
 {
     [TestClass]
     public class IndentTests

@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
 {
-    public sealed class Radix64ArmorBucket : WrappingBucket
+    public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
     {
         SState _state;
         Bucket? _base64Decode;
         int? _crc24Result;
+        private bool _sshBegin;
+
+        internal ReadOnlyMemory<byte>? PublicKeyType { get; private set; }
 
         enum SState
         {
@@ -36,12 +40,23 @@ namespace AmpScm.Buckets.Signatures
             if (_state == SState.Init)
             {
                 if (!bb.StartsWithASCII("-----BEGIN "))
-                    throw new BucketException("Expected '-----BEGIN '");
-
-                if (bb.Slice("-----BEGIN ".Length).StartsWithASCII("SSH "))
                 {
+                    if (!bb.StartsWithASCII("---- BEGIN "))
+                        throw new BucketException("Expected '-----BEGIN '");
+
+                    _sshBegin = true;
+                }
+                var sl = "-----BEGIN ".Length;
+
+                if (bb.Slice(sl).StartsWithASCII("SSH "))
+                {
+                    _base64Decode = SetupDecode();
                     _state = SState.Body;
                     return BucketBytes.Eof;
+                }
+                else if (bb.Slice(eol).EndsWithASCII(" PUBLIC KEY-----"))
+                {
+                    PublicKeyType = bb.Slice(sl, bb.Length - sl - 17).ToArray();
                 }
 
                 _state = SState.Headers;
@@ -51,6 +66,13 @@ namespace AmpScm.Buckets.Signatures
 
             if (bb.IsEmpty || bb.TrimEnd(eol).IsEmpty)
             {
+                _base64Decode = SetupDecode();
+                _state = SState.Body;
+                return BucketBytes.Eof;
+            }
+            else if (0 > bb.IndexOf((byte)':'))
+            {
+                _base64Decode = new StopAtLineStartBucket(bb.ToArray().AsBucket() + Inner.NoClose(), new byte[] {(byte)'-'}).Base64Decode(true);
                 _state = SState.Body;
                 return BucketBytes.Eof;
             }
@@ -66,6 +88,23 @@ namespace AmpScm.Buckets.Signatures
             return _base64Decode?.Peek() ?? BucketBytes.Empty;
         }
 
+        public async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
+        {
+            while (_state < SState.Body)
+            {
+                await ReadHeaderAsync().ConfigureAwait(false);
+            }
+
+            if (_state != SState.Body)
+                return BucketBytes.Empty;
+
+            if (_base64Decode is null)
+                return BucketBytes.Empty;
+
+            return await _base64Decode.PollAsync(minRequested).ConfigureAwait(false);
+        }
+
+
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (_state == SState.Eof)
@@ -78,7 +117,7 @@ namespace AmpScm.Buckets.Signatures
 
             if (_state == SState.Body)
             {
-                _base64Decode ??= new StopAtLineStartBucket(Inner.NoClose(), new byte[] { (byte)'=', (byte)'-' }).Base64Decode(true).Crc24(x => _crc24Result = x);
+                _base64Decode ??= SetupDecode();
 
                 var bb = await _base64Decode.ReadAsync(requested).ConfigureAwait(false);
 
@@ -112,7 +151,7 @@ namespace AmpScm.Buckets.Signatures
 
                     _state = SState.Trailer;
                 }
-                else if (bb.TrimStart().StartsWithASCII("-----END "))
+                else if (bb.TrimStart().StartsWithASCII(_sshBegin ? "---- END " : "-----END "))
                 {
                     _state = SState.Eof;
                     return BucketBytes.Eof;
@@ -120,6 +159,11 @@ namespace AmpScm.Buckets.Signatures
             }
 
             return BucketBytes.Eof;
+        }
+
+        private Bucket SetupDecode()
+        {
+            return new StopAtLineStartBucket(Inner.NoClose(), new byte[] { (byte)'=', (byte)'-' }).Base64Decode(true).Crc24(x => _crc24Result = x);
         }
 
         public static bool IsHeader(BucketBytes bb, BucketEol eol)

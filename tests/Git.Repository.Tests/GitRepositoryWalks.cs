@@ -83,7 +83,7 @@ namespace GitRepositoryTests
                 TestContext.WriteLine($"{r.Name} {r.ShortName.PadRight(15)} - {r.Commit?.Id:x7} - {r.Commit?.Author}");
             }
 
-            if (!repo.IsShallow)
+            if (!repo.IsShallow && repo.Head.Commit.ParentCount > 0)
                 Assert.IsNotNull(repo.Commits.FirstOrDefault(x => x.Parents.Count > 1), "Repository has merges");
 
             Assert.IsTrue(repo.References.Any(), "Repository has references");
@@ -211,7 +211,7 @@ namespace GitRepositoryTests
 
             using var repo = GitRepository.Open(path);
 
-            if (repo.IsShallow)
+            if (repo.IsShallow || repo.Head.Commit!.ParentCount == 0)
                 return;
 
             var r = await repo.GetPlumbing().RevisionList(new GitRevisionListArgs { MaxCount = 32, FirstParentOnly = true }).ToListAsync();

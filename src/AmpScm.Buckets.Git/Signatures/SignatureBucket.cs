@@ -12,6 +12,7 @@ using AmpScm.Git;
 using AmpScm.Buckets.Specialized;
 using System.Globalization;
 using AmpScm.Buckets;
+using System.Runtime.ConstrainedExecution;
 
 namespace AmpScm.Buckets.Signatures
 {
@@ -32,12 +33,14 @@ namespace AmpScm.Buckets.Signatures
         private ReadOnlyMemory<byte>[]? _signatureInts;
         readonly List<SignatureBucketKey> _keys = new();
         byte[]? _signKeyFingerprint;
+        readonly Bucket _outer;
 
         new OpenPgpContainer Inner => (OpenPgpContainer)base.Inner;
 
         public SignatureBucket(Bucket inner)
             : base(new OpenPgpContainer(inner))
         {
+            _outer = inner;
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
@@ -66,7 +69,7 @@ namespace AmpScm.Buckets.Signatures
                 {
                     switch (tag)
                     {
-                        case OpenPgpTagType.Signature when Inner.IsSshSignature && _signatureInts is null:
+                        case OpenPgpTagType.Signature when Inner.IsSsh && _signatureInts is null:
                             {
                                 var sshVersion = await bucket.ReadNetworkUInt32Async().ConfigureAwait(false);
 
@@ -165,6 +168,29 @@ namespace AmpScm.Buckets.Signatures
 
                                 _signatureInts = bigInts.ToArray();
 
+                                break;
+                            }
+                        case OpenPgpTagType.PublicKey when Inner.IsSsh:
+                            {
+                                BucketBytes bb;
+                                ByteCollector bc = new();
+                                string? sshKeyType = null;
+
+                                while (!(bb = await ReadSshStringAsync(bucket).ConfigureAwait(false)).IsEof)
+                                {
+                                    if (sshKeyType == null)
+                                        sshKeyType = bb.ToASCIIString();
+
+                                    bc.Append(NetBitConverter.GetBytes(bb.Length));
+                                    bc.Append(bb);
+                                }
+
+                                var k = $"{sshKeyType} {Convert.ToBase64String(bc.ToArray())} bb";
+
+                                if (SignatureBucketKey.TryParseSshLine(k, out var kk))
+                                {
+                                    _keys.Add(kk);
+                                }
                                 break;
                             }
                         case OpenPgpTagType.Signature when _signatureInts is null:
@@ -454,10 +480,172 @@ namespace AmpScm.Buckets.Signatures
                                 _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts));
                             }
                             break;
+                        case OpenPgpTagType.DerValue:
+                            {
+                                var db = (DerBucket)bucket;
+                                var (derRoot, t) = await db.ReadValueAsync().ConfigureAwait(false);
+
+                                var pkt = (_outer as Radix64ArmorBucket)?.PublicKeyType;
+
+                                if (t != DerType.Sequence || pkt is null)
+                                    throw new BucketException("Unexpected DER value");
+
+                                using var der = new DerBucket(derRoot!);
+
+
+                                BucketBytes bb = new(pkt.Value);
+
+                                if (bb.StartsWithASCII("RSA"))
+                                {
+                                    List<ReadOnlyMemory<byte>> vals = new();
+                                    var (b, bt) = await der.ReadValueAsync().ConfigureAwait(false);
+
+                                    bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
+                                    vals.Add(bb.ToArray());
+
+                                    (b, bt) = await der.ReadValueAsync().ConfigureAwait(false);
+                                    if (b is null)
+                                        throw new BucketEofException(der);
+
+                                    bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
+                                    vals.Add(bb.ToArray());
+
+                                    var keyInts = vals.ToArray();
+
+                                    _keys.Add(new SignatureBucketKey(CreateSshFingerprint(SignatureBucketAlgorithm.Rsa, keyInts), SignatureBucketAlgorithm.Rsa, keyInts));
+                                }
+                                else if (bb.IsEmpty)
+                                {
+                                    var (ob, obt) = await der.ReadValueAsync().ConfigureAwait(false);
+
+                                    if (obt != DerType.Sequence)
+                                    {
+                                        await der.ReadUntilEofAsync().ConfigureAwait(false);
+                                        break;
+                                    }
+
+                                    using var der2 = new DerBucket(ob!);
+
+                                    (ob, obt) = await der2.ReadValueAsync().ConfigureAwait(false);
+
+                                    bb = await ob!.ReadExactlyAsync(32).ConfigureAwait(false);
+
+                                    SignatureBucketAlgorithm sba;
+
+                                    if (bb.Span.SequenceEqual(new byte[] { 0x2a, 0x86, 0x48, 0xce, 0x38, 0x04, 0x01 }))
+                                        sba = SignatureBucketAlgorithm.Dsa;
+                                    else if (bb.Span.SequenceEqual(new byte[] { 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01 }))
+                                        sba = SignatureBucketAlgorithm.Ecdsa;
+                                    else
+                                    {
+                                        await ob!.ReadUntilEofAsync().ConfigureAwait(false);
+                                        await der2.ReadUntilEofAsync().ConfigureAwait(false);
+                                        await der.ReadUntilEofAsync().ConfigureAwait(false);
+                                        break;
+                                    }
+
+                                    List<ReadOnlyMemory<byte>> vals = new();
+
+                                    await SequenceToList(vals, der2).ConfigureAwait(false);
+                                    await SequenceToList(vals, der).ConfigureAwait(false);
+
+                                    ReadOnlyMemory<byte>[] keyInts = vals.ToArray();
+
+                                    if (sba == SignatureBucketAlgorithm.Ecdsa && vals.Count >= 2)
+                                    {
+                                        vals[1] = vals[1].Slice(1).ToArray();
+                                        keyInts = GetEcdsaValues(vals, true);
+                                    }
+                                    else
+                                        keyInts = vals.ToArray();
+
+                                    _keys.Add(new SignatureBucketKey(CreateSshFingerprint(sba, keyInts), sba, keyInts));
+                                }
+                                else
+                                    await der.ReadUntilEofAsync();
+                            }
+                            break;
                         default:
                             await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                             break;
                     }
+                }
+            }
+        }
+
+        static IReadOnlyList<byte> CreateSshFingerprint(SignatureBucketAlgorithm sba, ReadOnlyMemory<byte>[] keyInts)
+        {
+            ByteCollector bb = new(4096);
+
+            var ints = keyInts.ToList();
+
+            string alg;
+            switch (sba)
+            {
+                case SignatureBucketAlgorithm.Rsa:
+                    alg = "ssh-rsa";
+                    (ints[1], ints[0]) = (ints[0], ints[1]);
+                    break;
+                case SignatureBucketAlgorithm.Dsa:
+                    alg = "ssh-dss";
+                    break;
+                case SignatureBucketAlgorithm.Ed25519:
+                    alg = "ssh-ed25519";
+                    break;
+                case SignatureBucketAlgorithm.Ecdsa:
+                    string kv = Encoding.ASCII.GetString(keyInts[0].ToArray());
+                    alg = "ecdsa-sha2-" + kv.ToString();
+
+                    ints[1] = new byte[] { 4 }.Concat(ints[1].ToArray()).Concat(ints[2].ToArray()).ToArray();
+                    ints.RemoveAt(2);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            bb.Append(NetBitConverter.GetBytes(alg.Length));
+            bb.Append(Encoding.ASCII.GetBytes(alg));
+
+            for(int i = 0; i < ints.Count; i++)
+            {
+                bb.Append(NetBitConverter.GetBytes(ints[i].Length));
+                bb.Append(ints[i]);
+            }
+
+            return bb.ToArray();
+        }
+
+        static async ValueTask SequenceToList(List<ReadOnlyMemory<byte>> vals, DerBucket der2)
+        {
+            while (true)
+            {
+                var (b, bt) = await der2.ReadValueAsync().ConfigureAwait(false);
+
+                if (b is null)
+                    break;
+
+                if (bt == DerType.Sequence)
+                {
+                    using var bq = new DerBucket(b);
+                    await SequenceToList(vals, bq).ConfigureAwait(false);
+                }
+                else
+                {
+                    var bb = await b!.ReadExactlyAsync(32768).ConfigureAwait(false);
+
+                    if (bt == DerType.BitString)
+                    {
+                        // This next check matches for DSA.
+                        // I'm guessing this is some magic
+                        if (bb.Span.StartsWith(new byte[] {0, 0x02, 0x81, 0x81}) || bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x80 }))
+                            vals.Add(bb.Slice(4).ToArray());
+                        else
+                            vals.Add(bb.ToArray());
+                    }
+                    else
+                        vals.Add(bb.ToArray());
+
+                    await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -528,7 +716,7 @@ namespace AmpScm.Buckets.Signatures
 
             var keyInts = _keys.FirstOrDefault()?.Values;
 
-            if (Inner.IsSshSignature)
+            if (Inner.IsSsh)
             {
                 await CreateHash(sourceData, x => hashValue = x, _hashAlgorithm).ConfigureAwait(false);
 
@@ -552,7 +740,7 @@ namespace AmpScm.Buckets.Signatures
                     else if (curveName.EndsWith("521", StringComparison.Ordinal))
                         overrideAlg = OpenPgpHashAlgorithm.SHA512;
                 }
-                else if (_signaturePublicKeyType == OpenPgpPublicKeyType.Rsa && Inner.IsSshSignature)
+                else if (_signaturePublicKeyType == OpenPgpPublicKeyType.Rsa && Inner.IsSsh)
                     overrideAlg = OpenPgpHashAlgorithm.SHA512;
 
                 if (_signaturePublicKeyType != OpenPgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
@@ -731,7 +919,9 @@ namespace AmpScm.Buckets.Signatures
                 else
                     throw new NotImplementedException("Unknown curve oid in ecdsa key");
 
-                curve = Encoding.ASCII.GetBytes(curveName);
+#pragma warning disable CA1308 // Normalize strings to uppercase
+                curve = Encoding.ASCII.GetBytes(curveName.ToLowerInvariant());
+#pragma warning restore CA1308 // Normalize strings to uppercase
             }
 
             switch (v2[0])
@@ -872,12 +1062,13 @@ namespace AmpScm.Buckets.Signatures
             bool _notFirst;
             bool _isSsh;
             bool _reading;
+            bool _isDer;
 
             public OpenPgpContainer(Bucket inner) : base(inner)
             {
             }
 
-            public bool IsSshSignature => _isSsh;
+            public bool IsSsh => _isSsh;
 
             public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
             {
@@ -890,12 +1081,13 @@ namespace AmpScm.Buckets.Signatures
                 }
             }
 
-            public async ValueTask<(Bucket? b, OpenPgpTagType type)> ReadPacketAsync()
+            public async ValueTask<(Bucket? Bucket, OpenPgpTagType Type)> ReadPacketAsync()
             {
                 if (_reading)
                     throw new InvalidOperationException();
                 var first = false;
                 var inner = Inner;
+                bool sshPublicKey = false;
                 if (!_notFirst)
                 {
                     var didRead = false;
@@ -913,6 +1105,20 @@ namespace AmpScm.Buckets.Signatures
                         if (!didRead)
                             bb = await Inner.ReadExactlyAsync(6).ConfigureAwait(false);
                     }
+                    else if (bb.Span.StartsWith(new byte[] { 0x00, 0x00, 0x00 }))
+                    {
+                        if (didRead)
+                            inner = bb.ToArray().AsBucket() + Inner;
+
+                        _isSsh = true;
+                        sshPublicKey = true;
+                    }
+                    else if (await DerBucket.BytesMayBeDerAsync(bb).ConfigureAwait(false))
+                    {
+                        _isDer = true;
+                        if (didRead)
+                            inner = bb.ToArray().AsBucket() + Inner;
+                    }
                     else
                     {
                         if (didRead)
@@ -926,7 +1132,19 @@ namespace AmpScm.Buckets.Signatures
                 {
                     if (first)
                     {
-                        return (inner.NoClose(), OpenPgpTagType.Signature);
+                        return (inner.NoClose(), sshPublicKey ? OpenPgpTagType.PublicKey : OpenPgpTagType.Signature);
+                    }
+                    else
+                    {
+                        await Inner.ReadUntilEofAsync().ConfigureAwait(false);
+                        return (null, default);
+                    }
+                }
+                else if (_isDer)
+                {
+                    if (first)
+                    {
+                        return (new DerBucket(Inner.NoClose()), OpenPgpTagType.DerValue);
                     }
                     else
                     {

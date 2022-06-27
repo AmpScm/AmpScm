@@ -8,7 +8,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public abstract class ConversionBucket : WrappingBucket//, IBucketPoll
+    public abstract class ConversionBucket : WrappingBucket, IBucketPoll
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         BucketBytes _remaining;
@@ -89,6 +89,32 @@ namespace AmpScm.Buckets.Specialized
                     _position += r.Length;
                     return r;
                 }
+            }
+            while (!_readLeft.IsEof);
+
+            return BucketBytes.Eof;
+        }
+
+        public async ValueTask<BucketBytes> PollAsync(int minRequested=1)
+        {
+            if (!_remaining.IsEmpty)
+                return _remaining;
+
+            while (_skipFirst > 0)
+            {
+                var skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
+                _skipFirst -= (int)skipped;
+            }
+
+            do
+            {
+                if (_readLeft.IsEmpty)
+                    _readLeft = await InnerReadAsync(ConvertRequested(Math.Max(512, minRequested))).ConfigureAwait(false);
+
+                _remaining = ConvertData(ref _readLeft, _readLeft.IsEof);
+
+                if (!_remaining.IsEmpty)
+                    return _remaining;
             }
             while (!_readLeft.IsEof);
 

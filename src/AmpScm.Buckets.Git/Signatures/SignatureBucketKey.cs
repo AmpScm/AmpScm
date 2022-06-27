@@ -46,6 +46,42 @@ namespace AmpScm.Buckets.Signatures
                 throw new ArgumentNullException(nameof(line));
 
             line = line.Trim();
+
+            if (line.StartsWith("-----BEGIN ", StringComparison.Ordinal)
+                || line.StartsWith("---- BEGIN ", StringComparison.Ordinal))
+                return TryParseBlob(line, out value);
+            else
+                return TryParseSshLine(line, out value);
+        }
+
+        private static bool TryParseBlob(string line, out SignatureBucketKey? value)
+        {
+            var b = Bucket.Create.FromASCII(line);
+
+            var r = new Radix64ArmorBucket(b);
+            using var sig = new SignatureBucket(r);
+
+            sig.ReadAsync().AsTask().GetAwaiter().GetResult();
+
+            try
+            {
+                value = sig.ReadKeyAsync().AsTask().GetAwaiter().GetResult();
+                return true;
+            }
+            catch(BucketException)
+            {
+                value = null;
+                return false;
+            }
+        }
+
+        public static bool TryParseSshLine(string line, [NotNullWhen(true)] out SignatureBucketKey? value)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                throw new ArgumentNullException(nameof(line));
+
+            line = line.Trim();
+
             var items = line.Split(new char[] { ' ' }, 3);
             var data = Convert.FromBase64String(items[1]);
 

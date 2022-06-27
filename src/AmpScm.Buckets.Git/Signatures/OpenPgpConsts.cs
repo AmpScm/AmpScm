@@ -31,6 +31,9 @@ namespace AmpScm.Buckets.Signatures
 
         // 21-59 undefined yet
         //60 to 63 -- Private or Experimental Values
+
+
+        DerValue = 10021,
     }
 
     enum OpenPgpSignatureType : byte

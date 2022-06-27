@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using AmpScm.Buckets.Git;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace GitRepositoryTests
+namespace GitBucketTests
 {
     [TestClass]
     public class GitStorageTests

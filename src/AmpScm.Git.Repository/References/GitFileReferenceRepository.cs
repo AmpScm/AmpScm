@@ -29,7 +29,7 @@ namespace AmpScm.Git.References
                 {
                     string name = file.Substring(baseDir.Length + 1).Replace(Path.DirectorySeparatorChar, '/');
 
-                    yield return new GitReference(this, name, (GitId?)null);
+                    yield return new GitReference(this, name, async () => await LoadIdFromFile(file).ConfigureAwait(false));
                 }
             }
 

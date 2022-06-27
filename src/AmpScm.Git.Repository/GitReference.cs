@@ -21,17 +21,27 @@ namespace AmpScm.Git
         GitReference? _resolved;
 
         internal GitReference(GitReferenceRepository repository, string name, Func<ValueTask<GitId?>> resolver)
+            : this(repository, name)
         {
-            ReferenceRepository = repository ?? throw new ArgumentNullException(nameof(repository));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            if (resolver is null)
+                throw new ArgumentNullException(nameof(resolver));
+
             _resolver = resolver;
         }
 
-        internal GitReference(GitReferenceRepository repository, string name, GitId? value)
+        internal GitReference(GitReferenceRepository repository, string name, GitId value)
+            : this(repository, name)
+        {
+            if (value is null)
+                throw new ArgumentNullException(nameof(value));
+
+            _object = value;
+        }
+
+        private protected GitReference(GitReferenceRepository repository, string name)
         {
             ReferenceRepository = repository ?? throw new ArgumentNullException(nameof(repository));
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            _object = value;
         }
 
         public string Name { get; }
@@ -64,7 +74,7 @@ namespace AmpScm.Git
             {
                 if (_resolver is not null)
                 {
-                    _object = await _resolver();
+                    _object = await _resolver().ConfigureAwait(false);
                     _resolver = null;
                 }
                 _object ??= await ReferenceRepository.Repository.References.GetAsync(Name).ConfigureAwait(false);
