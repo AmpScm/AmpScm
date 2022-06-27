@@ -532,7 +532,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
         [DataRow("ecdsa", "-b384")]
         [DataRow("ecdsa", "-b521")]
         //[DataRow("ed25519", "")] // Not supported in PEM
-        public async Task TaskVerifyGenerateSSHPem(string type, string ex)
+        public void TaskVerifyGenerateSSHPem(string type, string ex)
         {
 #if !NET6_0_OR_GREATER
             if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)

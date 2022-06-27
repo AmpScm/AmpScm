@@ -56,7 +56,7 @@ namespace AmpScm.Buckets.Signatures
                 }
                 else if (bb.Slice(eol).EndsWithASCII(" PUBLIC KEY-----"))
                 {
-                    PublicKeyType = bb.Slice(sl, bb.Length - sl - 17).ToArray();
+                    PublicKeyType = bb.Slice(sl, bb.Length - sl - 15 - eol.CharCount()).ToArray();
                 }
 
                 _state = SState.Headers;
