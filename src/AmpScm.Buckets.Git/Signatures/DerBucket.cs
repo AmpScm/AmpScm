@@ -130,7 +130,7 @@ namespace AmpScm.Buckets.Signatures
             if ((b & 0x80) == 0)
             {
                 _reading = true;
-                return (Inner.NoClose().TakeExactly(b).AtEof(() => _reading = false), (DerType)type);
+                return (Inner.NoDispose().TakeExactly(b).AtEof(() => _reading = false), (DerType)type);
             }
             else if (b > 0x80 && b < 0xFF)
             {
@@ -147,7 +147,7 @@ namespace AmpScm.Buckets.Signatures
                 }
 
                 _reading = true;
-                return (Inner.NoClose().TakeExactly(len).AtEof(() => _reading = false), (DerType)type);
+                return (Inner.NoDispose().TakeExactly(len).AtEof(() => _reading = false), (DerType)type);
             }
             else
                 throw new InvalidOperationException("Unsupported DER form");

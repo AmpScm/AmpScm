@@ -43,7 +43,7 @@ namespace AmpScm.Buckets.Git
             }
 
             long objectCount;
-            using (var gh = new GitPackHeaderBucket(srcFile.NoClose()))
+            using (var gh = new GitPackHeaderBucket(srcFile.NoDispose()))
             {
                 var r = await gh.ReadAsync().ConfigureAwait(false);
                 objectCount = (int)gh.ObjectCount!.Value;
@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Git
                 int crc = 0;
                 long offset = srcFile.Position!.Value;
 
-                using (var pf = new GitPackObjectBucket(srcFile.NoClose().Crc32(c => crc = c), idType,
+                using (var pf = new GitPackObjectBucket(srcFile.NoDispose().Crc32(c => crc = c), idType,
                     id => new(DummyObjectBucket.Instance),
                     ofs => { crcs[ofs].Deps.Add(offset); return new(DummyObjectBucket.Instance); }))
                 {
@@ -69,7 +69,7 @@ namespace AmpScm.Buckets.Git
                         var type = await pf.ReadTypeAsync().ConfigureAwait(false);
                         var len = await pf.ReadRemainingBytesAsync().ConfigureAwait(false);
 
-                        using var csum = (type.CreateHeader(len.Value) + pf.NoClose()).GitHash(idType, s => oid = s);
+                        using var csum = (type.CreateHeader(len.Value) + pf.NoDispose()).GitHash(idType, s => oid = s);
 
                         await csum.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
                     }

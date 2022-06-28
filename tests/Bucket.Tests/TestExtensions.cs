@@ -85,7 +85,7 @@ namespace AmpScm
 
         public static async ValueTask BucketsEqual(this Assert self, Bucket left, Bucket right)
         {
-            Assert.IsTrue(await left.NoClose().HasSameContentsAsync(right.NoClose()));
+            Assert.IsTrue(await left.NoDispose().HasSameContentsAsync(right.NoDispose()));
         }
 
         public static void WriteLine(this TestContext TestContext)

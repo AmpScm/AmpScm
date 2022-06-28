@@ -345,7 +345,7 @@ namespace AmpScm.Git.Objects
 
         async ValueTask VerifyBitmap(FileBucket bmp)
         {
-            using var bhr = new GitBitmapHeaderBucket(bmp.NoClose(), Repository.InternalConfig.IdType);
+            using var bhr = new GitBitmapHeaderBucket(bmp.NoDispose(), Repository.InternalConfig.IdType);
 
             var bb = await bhr.ReadAsync().ConfigureAwait(false);
 

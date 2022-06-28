@@ -29,7 +29,7 @@ namespace GitRepositoryTests
 
             using var b = srcFile.TakeExactly(l - 20).SHA1(x => fileChecksum = x);
 
-            var gh = new GitPackHeaderBucket(b.NoClose());
+            var gh = new GitPackHeaderBucket(b.NoDispose());
 
             var r = await gh.ReadAsync();
             Assert.IsTrue(r.IsEof);
@@ -45,7 +45,7 @@ namespace GitRepositoryTests
                 long? offset = b.Position;
                 GitId? checksum = null;
                 int crc = 0;
-                var crcr = b.NoClose().Crc32(c => crc = c);
+                var crcr = b.NoDispose().Crc32(c => crc = c);
                 using (var pf = new GitPackObjectBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
                 {
 
@@ -60,7 +60,7 @@ namespace GitRepositoryTests
                     var hdr = type.CreateHeader(len.Value);
                     var hdrLen = await hdr.ReadRemainingBytesAsync();
 
-                    var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
+                    var csum = hdr.Append(pf.NoDispose()).GitHash(GitIdType.Sha1, s => checksum = s);
 
                     var data = await csum.ReadToEnd();
 

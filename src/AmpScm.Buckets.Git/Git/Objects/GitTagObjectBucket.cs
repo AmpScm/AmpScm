@@ -176,7 +176,7 @@ namespace AmpScm.Buckets.Git.Objects
 
                 if (Radix64ArmorBucket.IsHeader(bb, eol))
                 {
-                    var src = bb.ToArray().AsBucket() + Inner.NoClose();
+                    var src = bb.ToArray().AsBucket() + Inner.NoDispose();
                     if (_handleSubBucket != null)
                     {
                         await _handleSubBucket(GitSubBucketType.Signature, src).ConfigureAwait(false);

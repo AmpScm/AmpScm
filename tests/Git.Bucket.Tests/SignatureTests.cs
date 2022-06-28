@@ -272,7 +272,7 @@ A couple of simplications around mwindow";
                 var rdx = new Radix64ArmorBucket(bucket);
                 using var gpg = new SignatureBucket(rdx);
 
-                var ok1 = await gpg.VerifyAsync(verifySrcReader.NoClose(), null);
+                var ok1 = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null);
                 Assert.IsTrue(ok1, "Verify as signature from 'someone'");
 
                 verifySrcReader.Reset();
@@ -428,7 +428,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
                 var rdx = new Radix64ArmorBucket(bucket);
                 using var gpg = new SignatureBucket(rdx);
 
-                var ok = await gpg.VerifyAsync(verifySrcReader.NoClose(), null);
+                var ok = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null);
                 Assert.IsTrue(ok, "Signature appears ok");
 
                 verifySrcReader.Reset();
@@ -522,7 +522,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 #endif
         }
 
-        [TestMethod]
+
         [DataRow("rsa", "")]
         [DataRow("rsa", "-b1024")]
         [DataRow("rsa", "-b4096")]
@@ -531,13 +531,16 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
         [DataRow("ecdsa", "-b256")]
         [DataRow("ecdsa", "-b384")]
         [DataRow("ecdsa", "-b521")]
-        //[DataRow("ed25519", "")] // Not supported in PEM
         public void TaskVerifyGenerateSSHPem(string type, string ex)
         {
-#if !NET6_0_OR_GREATER
-            if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
-                Assert.Inconclusive("");
+#if NET6_0_OR_GREATER
+            if (OperatingSystem.IsMacOS())
+                Assert.Inconclusive("GitHub's MacOS install's openssh doesn't like this test");
+#else
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("GitHub's MacOS install's openssh doesn't like this test");
 #endif
+
             var dir = TestContext.PerTestDirectory(type + ex);
 
             string keyFile = Path.Combine(dir, "key");
@@ -930,8 +933,10 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
             File.WriteAllText(signersFile, "me@me " + k.FingerprintString + " me@my-pc" + Environment.NewLine);
 
             // TODO: Verify using our infra
-            Assert.AreEqual(theMerge.MergeTags[1].Id, repo.Tags.First().TagObject.Id);
+            Assert.AreEqual(theMerge.MergeTags[1]!.Id, repo.TagObjects.First().Id);
 
+            Assert.IsTrue(await theMerge.VerifySignatureAsync(GetKey), "Commit verified");
+            Assert.IsTrue(await repo.TagObjects.First().VerifySignatureAsync(GetKey), "Merge verified");
 
 
 
@@ -944,6 +949,14 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 #endif
             {
                 await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
+            }
+
+            ValueTask<SignatureBucketKey?> GetKey(ReadOnlyMemory<byte> fingerprint)
+            {
+                if (SignatureBucketKey.TryParse(File.ReadAllText(keyFile + ".pub"), out var k))
+                    return new(k);
+                else
+                    return default;
             }
         }
 

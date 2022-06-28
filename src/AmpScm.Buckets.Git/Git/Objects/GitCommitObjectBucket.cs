@@ -224,7 +224,7 @@ namespace AmpScm.Buckets.Git.Objects
                     case "mergetag":
                     case "gpgsig":
                     case "gpgsig-sha256":
-                        sub = new GitLineUnindentBucket(bb.Slice(parts[0].Length).ToArray().AsBucket() + Inner.NoClose());
+                        sub = new GitLineUnindentBucket(bb.Slice(parts[0].Length).ToArray().AsBucket() + Inner.NoDispose());
 
                         if (_handleSubBucket is not null)
                             await _handleSubBucket(GetEvent(parts[0]), sub).ConfigureAwait(false);

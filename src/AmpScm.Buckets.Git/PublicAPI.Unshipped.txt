@@ -86,6 +86,7 @@ AmpScm.Buckets.Signatures.SignatureBucketAlgorithm.Rsa = 1 -> AmpScm.Buckets.Sig
 AmpScm.Buckets.Signatures.SignatureBucket
 AmpScm.Buckets.Signatures.SignatureBucket.SignatureBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Signatures.SignatureBucket.ReadFingerprintAsync() -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>
+override AmpScm.Buckets.Git.GitFileObjectBucket.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
 override AmpScm.Buckets.Git.GitLineIndentBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Git.GitLineIndentBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitLineUnindentBucket.Peek() -> AmpScm.Buckets.BucketBytes

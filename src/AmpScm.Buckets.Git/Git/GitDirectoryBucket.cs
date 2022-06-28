@@ -501,7 +501,7 @@ namespace AmpScm.Buckets.Git
 
             Bucket reader;
             if (_nRead == _indexCount)
-                reader = Inner.NoClose(true);
+                reader = Inner.NoDispose(true);
             else
             {
                 reader = await Inner.DuplicateSeekedAsync(_endOfIndex.Value).ConfigureAwait(false);

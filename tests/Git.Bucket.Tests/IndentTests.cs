@@ -18,7 +18,7 @@ namespace GitBucketTests
         {
             using var innerBucket = Bucket.Create.FromASCII(" i\n dent\n test\n more\nNext");
 
-            using var bucket = new GitLineUnindentBucket(innerBucket.NoClose());
+            using var bucket = new GitLineUnindentBucket(innerBucket.NoDispose());
 
             long l = (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false)).Value;
 

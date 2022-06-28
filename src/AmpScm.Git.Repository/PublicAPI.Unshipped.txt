@@ -29,6 +29,7 @@ AmpScm.Git.GitCommit.Revisions.get -> AmpScm.Git.Sets.GitRevisionSet!
 AmpScm.Git.GitCommit.Summary.get -> string!
 AmpScm.Git.GitCommit.Tree.get -> AmpScm.Git.GitTree!
 AmpScm.Git.GitCommit.TreeId.get -> AmpScm.Git.GitId!
+AmpScm.Git.GitCommit.VerifySignatureAsync(System.Func<System.ReadOnlyMemory<byte>, System.Threading.Tasks.ValueTask<AmpScm.Buckets.Signatures.SignatureBucketKey?>>? findKey = null) -> System.Threading.Tasks.ValueTask<bool>
 AmpScm.Git.GitDirectoryTreeEntry
 AmpScm.Git.GitDirectoryTreeEntry.GitObject.get -> AmpScm.Git.GitTree!
 AmpScm.Git.GitDirectoryTreeEntry.Tree.get -> AmpScm.Git.GitTree!

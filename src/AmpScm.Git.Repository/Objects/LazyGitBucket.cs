@@ -15,6 +15,8 @@ namespace AmpScm.Git.Objects
         GitId Id { get; }
         GitObjectBucket? _inner;
         GitObjectType _type;
+        bool _eof;
+
         public LazyGitObjectBucket(GitRepository repository, GitId id, GitObjectType type=GitObjectType.None) : base(Bucket.Empty)
         {
             Repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -24,11 +26,17 @@ namespace AmpScm.Git.Objects
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
+            if (_eof)
+                return BucketBytes.Eof;
+
             if (_inner == null)
                 _inner = await Repository.ObjectRepository.ResolveById(Id).ConfigureAwait(false) ?? throw new InvalidOperationException($"Can't fetch {Id}");
 
             var bb =  await _inner.ReadAsync(requested).ConfigureAwait(false);
             
+            if (bb.IsEof)
+                _eof = true;
+
             return bb;
         }
 
@@ -56,12 +64,15 @@ namespace AmpScm.Git.Objects
                 return await _inner.ReadRemainingBytesAsync().ConfigureAwait(false);
         }
 
-        public override long? Position => _inner?.Position;
+        public override long? Position => _inner?.Position ?? 0;
 
         public override bool CanReset => _inner?.CanReset ?? true;
 
         public override void Reset()
         {
+            if (_eof)
+                _eof = false;
+
             _inner?.Reset();
         }
 
@@ -99,12 +110,14 @@ namespace AmpScm.Git.Objects
 
         public override string Name => _inner?.Name ?? base.Name;
 
-        protected override void Dispose(bool disposing)
+        protected override void InnerDispose()
         {
-            if (disposing)
-                _inner?.Dispose();
+            base.InnerDispose();
 
-            base.Dispose(disposing);
+            _inner?.Dispose();
+
+            _inner = null;
+            _eof = true;
         }
 
         public override async ValueTask SeekAsync(long newPosition)

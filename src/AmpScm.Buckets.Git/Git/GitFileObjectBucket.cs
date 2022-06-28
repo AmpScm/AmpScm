@@ -22,6 +22,23 @@ namespace AmpScm.Buckets.Git
         {
         }
 
+        private GitFileObjectBucket(ZLibBucket newInner)
+            : base(newInner)
+        {
+
+        }
+
+        public override Bucket Duplicate(bool reset = false)
+        {
+            var inner = Inner.Duplicate(reset || Position == 0);
+
+            GitFileObjectBucket dup = new GitFileObjectBucket((ZLibBucket)inner);
+            dup._startOffset = _startOffset;
+            dup._length = _length;
+            dup._type = _type;
+            return dup;
+        }
+
         public override async ValueTask<GitObjectType> ReadTypeAsync()
         {
             int so = 0;

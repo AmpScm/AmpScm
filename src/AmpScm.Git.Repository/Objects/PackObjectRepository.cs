@@ -405,7 +405,7 @@ namespace AmpScm.Git.Objects
 
         private async ValueTask VerifyPack(FileBucket fb)
         {
-            using var phr = new GitPackHeaderBucket(fb.NoClose());
+            using var phr = new GitPackHeaderBucket(fb.NoDispose());
 
             var bb = await phr.ReadAsync().ConfigureAwait(false);
 
@@ -619,7 +619,7 @@ namespace AmpScm.Git.Objects
 
         async ValueTask VerifyBitmap(FileBucket bmp)
         {
-            using var bhr = new GitBitmapHeaderBucket(bmp.NoClose(), Repository.InternalConfig.IdType);
+            using var bhr = new GitBitmapHeaderBucket(bmp.NoDispose(), Repository.InternalConfig.IdType);
 
             var bb = await bhr.ReadAsync().ConfigureAwait(false);
 

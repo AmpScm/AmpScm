@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Git.Objects;
+using AmpScm.Buckets.Signatures;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git.Objects;
 
@@ -180,6 +181,43 @@ namespace AmpScm.Git
                 return this.AsWriter().WriteToAsync(repository);
             else
                 return new(Id);
+        }
+
+        public async ValueTask<bool> VerifySignatureAsync(Func<ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null)
+        {
+            bool succeeded = false;
+            GitObjectBucket b = (await Repository.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false))!;
+            var src = GitTagObjectBucket.ForSignature(b);
+
+            using (var gob = new GitTagObjectBucket(b.Duplicate(), HandleSubBucket))
+            {
+                await gob.ReadUntilEofAsync().ConfigureAwait(false);
+            }
+
+            return succeeded;
+
+            async ValueTask HandleSubBucket(GitSubBucketType arg1, Bucket bucket)
+            {
+                if (arg1 == GitSubBucketType.Signature || arg1 == GitSubBucketType.SignatureSha256)
+                {
+                    var rdx = new Radix64ArmorBucket(bucket);
+                    using var gpg = new SignatureBucket(rdx);
+
+                    var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
+
+                    SignatureBucketKey? key = null;
+
+                    if (findKey != null)
+                        key = await findKey(fingerprint).ConfigureAwait(false);
+
+                    if (key is null)
+                        key = await Repository.InternalConfig.GetKey(fingerprint).ConfigureAwait(false);
+
+                    succeeded = await gpg.VerifyAsync(src, key).ConfigureAwait(false);
+                }
+                else
+                    await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+            }
         }
     }
 }

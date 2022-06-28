@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
@@ -54,7 +55,7 @@ namespace AmpScm.Git
                     long len = (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false)).Value;
                     GitId? id = GitId.Zero(Id.Type);
 
-                    await (GitObjectType.Tag.CreateHeader(len) + bucket.NoClose())
+                    await (GitObjectType.Tag.CreateHeader(len) + bucket.NoDispose())
                         .GitHash(Repository.InternalConfig.IdType, v => id = v)
                         .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                     bucket.Reset();
@@ -292,6 +293,46 @@ namespace AmpScm.Git
                 return this.AsWriter().WriteToAsync(repository);
             else
                 return new(Id);
+        }
+
+        public async ValueTask<bool> VerifySignatureAsync(Func<ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null)
+        {
+            bool succeeded = false;
+            bool disposeSrc = true;
+            GitObjectBucket b = (await Repository.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false))!;
+            var src = GitCommitObjectBucket.ForSignature(b);
+
+            using (var gob = new GitCommitObjectBucket(b.Duplicate(), HandleSubBucket))
+            {
+                await gob.ReadUntilEofAsync().ConfigureAwait(false);
+            }
+            src.Dispose();
+
+            return succeeded;
+
+            async ValueTask HandleSubBucket(GitSubBucketType arg1, Bucket bucket)
+            {
+                if (arg1 == GitSubBucketType.Signature || arg1 == GitSubBucketType.SignatureSha256)
+                {
+                    var rdx = new Radix64ArmorBucket(bucket);
+                    using var gpg = new SignatureBucket(rdx);
+
+                    var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
+
+                    SignatureBucketKey? key = null;
+
+                    if (findKey != null)
+                        key = await findKey(fingerprint).ConfigureAwait(false);
+
+                    if (key is null)
+                        key = await Repository.InternalConfig.GetKey(fingerprint);
+
+                    disposeSrc = false;
+                    succeeded = await gpg.VerifyAsync(src, key).ConfigureAwait(false);                    
+                }
+                else
+                    await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+            }
         }
 
         public GitRevisionSet Revisions => new GitRevisionSet(Repository).AddCommit(this);

@@ -24,7 +24,7 @@ namespace GitBucketTests
         {
             var b = pack_fac19906ba9a2181e9b1cde3dcb317f0b52acb31_pack.AsBucket();
 
-            var gh = new GitPackHeaderBucket(b.NoClose());
+            var gh = new GitPackHeaderBucket(b.NoDispose());
 
             var r = await gh.ReadAsync();
             Assert.IsTrue(r.IsEof);
@@ -36,7 +36,7 @@ namespace GitBucketTests
             for (int i = 0; i < gh.ObjectCount; i++)
             {
                 long? offset = b.Position;
-                using var pf = new GitPackObjectBucket(b.NoClose(), GitIdType.Sha1, null);
+                using var pf = new GitPackObjectBucket(b.NoDispose(), GitIdType.Sha1, null);
 
                 GitObjectType type = await pf.ReadTypeAsync();
 
@@ -592,7 +592,7 @@ namespace GitBucketTests
 
             long srcLen = (await srcFile.ReadRemainingBytesAsync()).Value;
 
-            using var gh = new GitPackHeaderBucket(srcFile.NoClose());
+            using var gh = new GitPackHeaderBucket(srcFile.NoDispose());
 
             var r = await gh.ReadAsync();
             Assert.IsTrue(r.IsEof);
@@ -607,7 +607,7 @@ namespace GitBucketTests
             {
                 long? offset = srcFile.Position;
                 int crc = 0;
-                var crcr = srcFile.NoClose().Crc32(c => crc = c);
+                var crcr = srcFile.NoDispose().Crc32(c => crc = c);
                 GitId? checksum = null;
 
                 using (var pf = new GitPackObjectBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
@@ -623,7 +623,7 @@ namespace GitBucketTests
                     var hdr = type.CreateHeader(len.Value);
                     var hdrLen = await hdr.ReadRemainingBytesAsync();
 
-                    var csum = hdr.Append(pf.NoClose()).GitHash(GitIdType.Sha1, s => checksum = s);
+                    var csum = hdr.Append(pf.NoDispose()).GitHash(GitIdType.Sha1, s => checksum = s);
 
                     var data = await csum.ReadToEnd();
 
@@ -696,7 +696,7 @@ namespace GitBucketTests
             byte[]? idxChecksum = null;
             using var idxData = indexFile.TakeExactly(lIdx - 20).SHA1(x => idxChecksum = x);
 
-            Assert.IsTrue(await idxData.NoClose().HasSameContentsAsync(index.NoClose()));
+            Assert.IsTrue(await idxData.NoDispose().HasSameContentsAsync(index.NoDispose()));
         }
 
         [TestMethod]

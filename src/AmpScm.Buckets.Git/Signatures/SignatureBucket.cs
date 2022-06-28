@@ -241,7 +241,7 @@ namespace AmpScm.Buckets.Signatures
 
                                     if (subLen > 0)
                                     {
-                                        using var subRead = bucket.NoClose().TakeExactly(subLen)
+                                        using var subRead = bucket.NoDispose().TakeExactly(subLen)
                                             .AtRead(bb =>
                                             {
                                                 if (!bb.IsEmpty)
@@ -378,7 +378,7 @@ namespace AmpScm.Buckets.Signatures
                                 byte[]? keyFingerprint = null;
                                 OpenPgpPublicKeyType keyPublicKeyType;
 
-                                var csum = bucket.NoClose().Buffer();
+                                var csum = bucket.NoDispose().Buffer();
                                 var len = (uint)await csum.ReadRemainingBytesAsync().ConfigureAwait(false);
                                 var version = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(bucket);
 
@@ -1132,7 +1132,7 @@ namespace AmpScm.Buckets.Signatures
                 {
                     if (first)
                     {
-                        return (inner.NoClose(), sshPublicKey ? OpenPgpTagType.PublicKey : OpenPgpTagType.Signature);
+                        return (inner.NoDispose(), sshPublicKey ? OpenPgpTagType.PublicKey : OpenPgpTagType.Signature);
                     }
                     else
                     {
@@ -1144,7 +1144,7 @@ namespace AmpScm.Buckets.Signatures
                 {
                     if (first)
                     {
-                        return (new DerBucket(Inner.NoClose()), OpenPgpTagType.DerValue);
+                        return (new DerBucket(Inner.NoDispose()), OpenPgpTagType.DerValue);
                     }
                     else
                     {
@@ -1194,7 +1194,7 @@ namespace AmpScm.Buckets.Signatures
                     }
 
                     _reading = true;
-                    return (inner.NoClose().TakeExactly(remaining).AtEof(() => _reading = false), tag);
+                    return (inner.NoDispose().TakeExactly(remaining).AtEof(() => _reading = false), tag);
                 }
             }
         }

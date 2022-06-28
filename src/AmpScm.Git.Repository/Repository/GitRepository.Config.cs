@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Git;
+using AmpScm.Buckets.Signatures;
 using AmpScm.Git.Repository;
 
 namespace AmpScm.Git
@@ -20,6 +21,10 @@ namespace AmpScm.Git
                 IdType = type;
             }
 
+            internal ValueTask<SignatureBucketKey?> GetKey(ReadOnlyMemory<byte> fingerprint)
+            {
+                return default;
+            }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
