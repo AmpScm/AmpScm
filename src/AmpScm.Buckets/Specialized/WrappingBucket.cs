@@ -2,10 +2,11 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public abstract class WrappingBucket : Bucket
+    public abstract class WrappingBucket : Bucket, IBucketNoDispose
     {
         protected Bucket Inner { get; }
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -21,7 +22,7 @@ namespace AmpScm.Buckets.Specialized
             : this(inner)
         {
             if (noDispose)
-                NoClose();
+                NoDispose();
         }
 
         public override string Name => base.Name + ">" + Inner.Name;
@@ -61,15 +62,20 @@ namespace AmpScm.Buckets.Specialized
             Inner.Dispose();
         }
 
-        protected void NoClose()
+        protected virtual Bucket NoDispose()
         {
             Interlocked.Increment(ref _nDispose);
+            return this;
         }
 
-        protected bool HasMoreClosers()
+        protected virtual bool HasMultipleDisposers()
         {
             return _nDispose > 1;
         }
+
+        bool IBucketNoDispose.HasMultipleDisposers() => HasMultipleDisposers();
+
+        Bucket IBucketNoDispose.NoDispose() => NoDispose();
 
         internal Bucket GetInner()
         {

@@ -10,7 +10,7 @@ using AmpScm.Buckets.Interfaces;
 namespace AmpScm.Buckets
 {
     [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Next={{{nameof(PeekDisplay)},nq}}")]
-    public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBucketSkip, IBucketSeekOnReset, IBucketNoClose, IBucketDuplicateSeekedAsync
+    public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBucketSkip, IBucketSeekOnReset, IBucketNoDispose, IBucketDuplicateSeekedAsync
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         FileHolder _holder;
@@ -202,13 +202,13 @@ namespace AmpScm.Buckets
             }
         }
 
-        Bucket IBucketNoClose.NoClose()
+        Bucket IBucketNoDispose.NoDispose()
         {
             Interlocked.Increment(ref _nDispose);
             return this;
         }
 
-        bool IBucketNoClose.HasMoreClosers()
+        bool IBucketNoDispose.HasMultipleDisposers()
         {
             return _nDispose > 1;
         }

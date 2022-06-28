@@ -161,12 +161,12 @@ namespace AmpScm.Buckets
                 return new SkipBucket(bucket, skipBytes, false);
         }
 
-        public static Bucket NoClose(this Bucket bucket, bool alwaysWrap = false)
+        public static Bucket NoDispose(this Bucket bucket, bool alwaysWrap = false)
         {
-            if (!alwaysWrap && bucket is IBucketNoClose nc)
-                return nc.NoClose();
+            if (!alwaysWrap && bucket is IBucketNoDispose nc)
+                return nc.NoDispose();
             else
-                return new NoCloseBucket(bucket);
+                return new NoDisposeBucket(bucket);
         }
 
         public static Bucket Wrap(this Bucket bucket)

@@ -4,7 +4,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public abstract class ProxyBucket<TBucket> : WrappingBucket, IBucketNoClose
+    public abstract class ProxyBucket<TBucket> : WrappingBucket
         where TBucket : Bucket
     {
         protected ProxyBucket(Bucket inner)
@@ -68,17 +68,6 @@ namespace AmpScm.Buckets.Specialized
             return null;
         }
 
-        Bucket IBucketNoClose.NoClose()
-        {
-            base.NoClose();
-            return this;
-        }
-
-        bool IBucketNoClose.HasMoreClosers()
-        {
-            return base.HasMoreClosers();
-        }
-
         internal abstract class WithPoll : ProxyBucket<TBucket>, IBucketPoll
         {
             protected WithPoll(Bucket inner) : base(inner)
@@ -114,7 +103,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
 
-        internal sealed class Sealed : ProxyBucket, IBucketPoll, IBucketNoClose
+        internal sealed class Sealed : ProxyBucket, IBucketPoll, IBucketNoDispose
         {
             public Sealed(Bucket inner) : base(inner)
             {

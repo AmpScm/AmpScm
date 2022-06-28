@@ -6,7 +6,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Client.Buckets
 {
-    internal sealed class HttpDechunkBucket : WrappingBucket, IBucketNoClose
+    internal sealed class HttpDechunkBucket : WrappingBucket
     {
         enum DechunkState
         {
@@ -194,17 +194,6 @@ namespace AmpScm.Buckets.Client.Buckets
                 return true;
             else
                 return false;
-        }
-
-        Bucket IBucketNoClose.NoClose()
-        {
-            base.NoClose();
-            return this;
-        }
-
-        bool IBucketNoClose.HasMoreClosers()
-        {
-            return base.HasMoreClosers();
         }
     }
 }

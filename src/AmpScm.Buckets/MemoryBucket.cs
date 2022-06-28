@@ -8,7 +8,7 @@ using AmpScm.Buckets.Interfaces;
 namespace AmpScm.Buckets
 {
     [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}, Next={{{nameof(DebuggerDisplay)},nq}}")]
-    public sealed class MemoryBucket : Bucket, IBucketNoClose, IBucketReadBuffers
+    public sealed class MemoryBucket : Bucket, IBucketNoDispose, IBucketReadBuffers
     {
         internal BucketBytes Data { get; }
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -76,13 +76,13 @@ namespace AmpScm.Buckets
         }
 
 #pragma warning disable CA1033 // Interface methods should be callable by child types
-        Bucket IBucketNoClose.NoClose()
+        Bucket IBucketNoDispose.NoDispose()
 #pragma warning restore CA1033 // Interface methods should be callable by child types
         {
             return this;
         }
 
-        bool IBucketNoClose.HasMoreClosers()
+        bool IBucketNoDispose.HasMultipleDisposers()
         {
             return false;
         }

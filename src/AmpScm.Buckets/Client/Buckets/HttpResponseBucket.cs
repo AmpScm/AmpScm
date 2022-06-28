@@ -89,7 +89,7 @@ namespace AmpScm.Buckets.Client.Buckets
                     if (string.Equals(tEnc, "chunked", StringComparison.OrdinalIgnoreCase))
                     {
                         allowNext = chunked = true;
-                        rdr = new HttpDechunkBucket(rdr, true).NoClose();
+                        rdr = new HttpDechunkBucket(rdr, true).NoDispose();
                     }
                 }
             }
@@ -99,7 +99,7 @@ namespace AmpScm.Buckets.Client.Buckets
             if (!chunked && headers[HttpResponseHeader.ContentLength] is string cl
                 && long.TryParse(cl, out var contentLength) && contentLength >= 0)
             {
-                rdr = rdr.TakeExactly(contentLength, alwaysWrap: true).NoClose();
+                rdr = rdr.TakeExactly(contentLength, alwaysWrap: true).NoDispose();
                 allowNext = true;
             }
 

@@ -7,7 +7,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal class CompressionBucket : WrappingBucket, IBucketNoClose
+    internal class CompressionBucket : WrappingBucket
     {
         private protected Stream Src { get; }
         protected Stream Processed { get; }
@@ -17,7 +17,7 @@ namespace AmpScm.Buckets.Specialized
         AggregateBucket? _written;
         BucketBytes _remaining;
 
-        public CompressionBucket(Bucket inner, Func<Stream, Stream> compressor) : base(inner.NoClose())
+        public CompressionBucket(Bucket inner, Func<Stream, Stream> compressor) : base(inner.NoDispose())
         {
             Src = Inner.AsStream(new Writer(this));
             Processed = compressor(Src);
@@ -123,17 +123,6 @@ namespace AmpScm.Buckets.Specialized
                     _remaining = await _written!.ReadAsync().ConfigureAwait(false);
                 }
             }
-        }
-
-        Bucket IBucketNoClose.NoClose()
-        {
-            base.NoClose();
-            return this;
-        }
-
-        bool IBucketNoClose.HasMoreClosers()
-        {
-            return base.HasMoreClosers();
         }
 
         private class Writer : IBucketWriter

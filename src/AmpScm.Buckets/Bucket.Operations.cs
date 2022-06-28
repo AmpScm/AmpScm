@@ -15,19 +15,19 @@ namespace AmpScm.Buckets
         public static Bucket Empty { get; } = new EmptyBucket();
 
 
-        private protected sealed class EmptyBucket : Bucket, IBucketNoClose
+        private protected sealed class EmptyBucket : Bucket, IBucketNoDispose
         {
             public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
             {
                 return EofTask;
             }
 
-            bool IBucketNoClose.HasMoreClosers()
+            bool IBucketNoDispose.HasMultipleDisposers()
             {
                 return false;
             }
 
-            Bucket IBucketNoClose.NoClose()
+            Bucket IBucketNoDispose.NoDispose()
             {
                 return this;
             }
@@ -55,7 +55,7 @@ namespace AmpScm.Buckets
             else if (buckets.Length == 1)
                 return buckets[0];
 
-            // HasMoreClosers() handles the keepOpen case for us.
+            // HasMultipleDisposers() handles the keepOpen case for us.
             if (buckets[0] is AggregateBucket.SimpleAggregate s && !s.HasMoreClosers())
             {
                 int n = 1;

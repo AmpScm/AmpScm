@@ -7,7 +7,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    public sealed class BitwiseNotBucket : WrappingBucket, Interfaces.IBucketNoClose
+    public sealed class BitwiseNotBucket : WrappingBucket
     {
         readonly byte[] _buffer;
 
@@ -62,17 +62,6 @@ namespace AmpScm.Buckets.Specialized
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
             return Inner.ReadRemainingBytesAsync();
-        }
-
-        Bucket IBucketNoClose.NoClose()
-        {
-            base.NoClose();
-            return this;
-        }
-
-        bool IBucketNoClose.HasMoreClosers()
-        {
-            return base.HasMoreClosers();
         }
     }
 }

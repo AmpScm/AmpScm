@@ -18,7 +18,7 @@ namespace AmpScm.Buckets
     /// <para>While .Net guaranteers that there is still data referenced, the data might have been replaced by the next
     /// call. So in general, once you hand over a bucket to some other user you shouldn't access the bucket until
     /// the other user is done. Most users will call <see cref="Dispose()"/> on buckets that are handed over, so
-    /// wrapping a bucket using <see cref="BucketExtensions.NoClose"/> might be useful.</para>
+    /// wrapping a bucket using <see cref="BucketExtensions.NoDispose"/> might be useful.</para>
     /// </remarks>
     [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}")]
     public abstract partial class Bucket : IDisposable

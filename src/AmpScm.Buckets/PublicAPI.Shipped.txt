@@ -120,9 +120,9 @@ AmpScm.Buckets.FileBucket.ReadAtAsync(long fileOffset, byte[]! buffer, int reque
 AmpScm.Buckets.FileBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Interfaces.IBucketDuplicateSeekedAsync
 AmpScm.Buckets.Interfaces.IBucketDuplicateSeekedAsync.DuplicateSeekedAsync(long newPosition) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Bucket!>
-AmpScm.Buckets.Interfaces.IBucketNoClose
-AmpScm.Buckets.Interfaces.IBucketNoClose.HasMoreClosers() -> bool
-AmpScm.Buckets.Interfaces.IBucketNoClose.NoClose() -> AmpScm.Buckets.Bucket!
+AmpScm.Buckets.Interfaces.IBucketNoDispose
+AmpScm.Buckets.Interfaces.IBucketNoDispose.HasMultipleDisposers() -> bool
+AmpScm.Buckets.Interfaces.IBucketNoDispose.NoDispose() -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Interfaces.IBucketPoll
 AmpScm.Buckets.Interfaces.IBucketPoll.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Interfaces.IBucketReadBuffers
@@ -172,7 +172,7 @@ AmpScm.Buckets.Specialized.TlsBucket.TlsBucket(AmpScm.Buckets.Bucket! reader, Am
 AmpScm.Buckets.Specialized.TlsBucket.Write(AmpScm.Buckets.Bucket! bucket) -> void
 AmpScm.Buckets.Specialized.WrappingBucket
 AmpScm.Buckets.Specialized.WrappingBucket.Inner.get -> AmpScm.Buckets.Bucket!
-AmpScm.Buckets.Specialized.WrappingBucket.NoClose() -> void
+AmpScm.Buckets.Specialized.WrappingBucket.NoDispose() -> void
 AmpScm.Buckets.Specialized.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Specialized.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! inner, bool noDispose) -> void
 AmpScm.Buckets.Specialized.ZLibBucket
@@ -281,7 +281,7 @@ static AmpScm.Buckets.BucketExtensions.Compress(this AmpScm.Buckets.Bucket! buck
 static AmpScm.Buckets.BucketExtensions.Decompress(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.IndexOf<T>(this System.ReadOnlySpan<T> span, System.Func<T, bool>! predicate) -> int
 static AmpScm.Buckets.BucketExtensions.IsEmpty(this AmpScm.Buckets.BucketBytes bytes, AmpScm.Buckets.BucketEol eol) -> bool
-static AmpScm.Buckets.BucketExtensions.NoClose(this AmpScm.Buckets.Bucket! bucket, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.BucketExtensions.NoDispose(this AmpScm.Buckets.Bucket! bucket, bool alwaysWrap = false) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.BucketExtensions.PollAsync(this AmpScm.Buckets.Bucket! bucket, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.BucketExtensions.PollReadAsync(this AmpScm.Buckets.Bucket! bucket, int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketPollBytes!>
 static AmpScm.Buckets.BucketExtensions.Prepend(this AmpScm.Buckets.Bucket! bucket, AmpScm.Buckets.Bucket! newFirst) -> AmpScm.Buckets.Bucket!

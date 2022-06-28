@@ -11,7 +11,7 @@ namespace AmpScm.Buckets
 {
     [DebuggerTypeProxy(typeof(AggregateDebugProxy))]
     [DebuggerDisplay($"{{{nameof(Name)},nq}}: {{{nameof(BucketCount)}}} Buckets, Current={{{nameof(CurrentBucket)},nq}}")]
-    public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers, IBucketNoClose
+    public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers, IBucketNoDispose
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         ValueList<Bucket> _buckets;
@@ -324,7 +324,7 @@ namespace AmpScm.Buckets
             return (result.ToArray(), CurrentBucket is null);
         }
 
-        Bucket IBucketNoClose.NoClose()
+        Bucket IBucketNoDispose.NoDispose()
         {
             NoClose();
             return this;
@@ -335,7 +335,7 @@ namespace AmpScm.Buckets
             Interlocked.Increment(ref _nDispose);
         }
 
-        bool IBucketNoClose.HasMoreClosers()
+        bool IBucketNoDispose.HasMultipleDisposers()
         {
             return HasMoreClosers();
         }
