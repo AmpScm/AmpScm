@@ -62,7 +62,7 @@ namespace AmpScm.Buckets.Specialized
             Inner.Dispose();
         }
 
-        protected virtual Bucket NoDispose()
+        protected Bucket NoDispose()
         {
             Interlocked.Increment(ref _nDispose);
             return this;

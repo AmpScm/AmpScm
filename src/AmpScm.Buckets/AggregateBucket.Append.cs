@@ -52,9 +52,9 @@ namespace AmpScm.Buckets
                     return _buckets.ToArray()!;
             }
 
-            public new bool HasMoreClosers()
+            public new bool HasMultipleDisposers()
             {
-                return base.HasMoreClosers();
+                return base.HasMultipleDisposers();
             }
         }
 

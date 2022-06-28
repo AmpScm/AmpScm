@@ -56,10 +56,10 @@ namespace AmpScm.Buckets
                 return buckets[0];
 
             // HasMultipleDisposers() handles the keepOpen case for us.
-            if (buckets[0] is AggregateBucket.SimpleAggregate s && !s.HasMoreClosers())
+            if (buckets[0] is AggregateBucket.SimpleAggregate s && !s.HasMultipleDisposers())
             {
                 int n = 1;
-                while (n < buckets.Length && buckets[n] is AggregateBucket.SimpleAggregate s2 && !s2.HasMoreClosers())
+                while (n < buckets.Length && buckets[n] is AggregateBucket.SimpleAggregate s2 && !s2.HasMultipleDisposers())
                 {
                     s.AppendRange(s2.GetBuckets(), 0);
                     n++;

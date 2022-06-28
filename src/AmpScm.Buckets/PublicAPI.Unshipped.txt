@@ -1,8 +1,8 @@
 ﻿#nullable enable
 abstract AmpScm.Buckets.Client.BucketWebRequest.GetResponseAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Client.ResponseBucket!>
 abstract AmpScm.Buckets.Specialized.ConversionBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
-AmpScm.Buckets.AggregateBucket.HasMoreClosers() -> bool
-AmpScm.Buckets.AggregateBucket.NoClose() -> void
+AmpScm.Buckets.AggregateBucket.HasMultipleDisposers() -> bool
+AmpScm.Buckets.AggregateBucket.NoDispose() -> void
 AmpScm.Buckets.BucketBytes.EndsWithASCII(string! value) -> bool
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.get -> string?
@@ -93,6 +93,7 @@ AmpScm.Buckets.Specialized.ConversionBucket
 AmpScm.Buckets.Specialized.ConversionBucket.ConversionBucket(AmpScm.Buckets.Bucket! inner) -> void
 const AmpScm.Buckets.Bucket.MaxRead = 2146435071 -> int
 const AmpScm.Buckets.Specialized.ZLibBucket.DefaultBufferSize = 8192 -> int
+override AmpScm.Buckets.AggregateBucket.Name.get -> string!
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentLength.get -> long
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentType.get -> string?
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!

@@ -345,7 +345,7 @@ namespace AmpScm.Buckets.Client.Buckets
                 return false; // Just handle request
             }
 
-            var (reader, noClose) = GetBodyReader(headers);
+            var (reader, noDispose) = GetBodyReader(headers);
 
             await reader.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
 

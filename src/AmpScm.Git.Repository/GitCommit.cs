@@ -295,9 +295,10 @@ namespace AmpScm.Git
                 return new(Id);
         }
 
-        public async ValueTask<bool> VerifySignatureAsync(Func<ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null)
+        public async ValueTask<bool> VerifySignatureAsync(Func<ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null, bool includeMergetags = true)
         {
-            bool succeeded = false;
+            bool allSucceeded = true;
+            bool foundSignature = false;
             bool disposeSrc = true;
             GitObjectBucket b = (await Repository.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false))!;
             var src = GitCommitObjectBucket.ForSignature(b);
@@ -306,15 +307,16 @@ namespace AmpScm.Git
             {
                 await gob.ReadUntilEofAsync().ConfigureAwait(false);
             }
-            src.Dispose();
+            if (!disposeSrc)
+                src.Dispose();
 
-            return succeeded;
+            return allSucceeded && foundSignature;
 
-            async ValueTask HandleSubBucket(GitSubBucketType arg1, Bucket bucket)
+            async ValueTask HandleSubBucket(GitSubBucketType sbType, Bucket commitBucket)
             {
-                if (arg1 == GitSubBucketType.Signature || arg1 == GitSubBucketType.SignatureSha256)
+                if (sbType == GitSubBucketType.Signature || sbType == GitSubBucketType.SignatureSha256)
                 {
-                    var rdx = new Radix64ArmorBucket(bucket);
+                    var rdx = new Radix64ArmorBucket(commitBucket);
                     using var gpg = new SignatureBucket(rdx);
 
                     var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
@@ -325,13 +327,52 @@ namespace AmpScm.Git
                         key = await findKey(fingerprint).ConfigureAwait(false);
 
                     if (key is null)
-                        key = await Repository.InternalConfig.GetKey(fingerprint);
+                        key = await Repository.InternalConfig.GetKey(fingerprint).ConfigureAwait(false);
 
                     disposeSrc = false;
-                    succeeded = await gpg.VerifyAsync(src, key).ConfigureAwait(false);                    
+
+                    foundSignature = true;
+                    if (!await gpg.VerifyAsync(src, key).ConfigureAwait(false))
+                        allSucceeded = false;
+                }
+                else if (sbType == GitSubBucketType.MergeTag && includeMergetags)
+                {
+                    commitBucket = commitBucket.Buffer();
+
+                    GitTagObjectBucket tob = new GitTagObjectBucket(commitBucket, HandleTagBucket);
+
+                    await tob.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                 }
                 else
-                    await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                    await commitBucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+
+                async ValueTask HandleTagBucket(GitSubBucketType sbType, Bucket tagBucket)
+                {
+                    if (sbType == GitSubBucketType.Signature)
+                    {
+                        var rdx = new Radix64ArmorBucket(tagBucket.Buffer()); // TODO: This buffering should be unnecessary, but 'somehow' this fails without this
+                        using var gpg = new SignatureBucket(rdx);
+
+                        var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
+
+                        SignatureBucketKey? key = null;
+
+                        if (findKey != null)
+                            key = await findKey(fingerprint).ConfigureAwait(false);
+
+                        if (key is null)
+                            key = await Repository.InternalConfig.GetKey(fingerprint).ConfigureAwait(false);
+
+                        foundSignature = true;
+
+                        commitBucket.Reset();
+
+                        if (!await gpg.VerifyAsync(GitTagObjectBucket.ForSignature(commitBucket.NoDispose()), key).ConfigureAwait(false))
+                            allSucceeded = false;
+                    }
+                    else
+                        await tagBucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                }
             }
         }
 

@@ -123,10 +123,10 @@ namespace AmpScm.Buckets.Git
                     return BucketBytes.Empty;
             }
 
-            int n = bb.IndexOfAny((byte)'\n', (byte)'\r', (byte)'\0');
+            int n = bb.IndexOf((byte)'\n');
 
             if (n >= 0)
-                return bb.Slice(0, n);
+                return bb.Slice(0, n + 1);
             else
                 return bb;
         }

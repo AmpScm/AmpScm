@@ -72,7 +72,7 @@ namespace AmpScm.Buckets.Signatures
             }
             else if (0 > bb.IndexOf((byte)':'))
             {
-                _base64Decode = new StopAtLineStartBucket(bb.ToArray().AsBucket() + Inner.NoDispose(), new byte[] {(byte)'-'}).Base64Decode(true);
+                _base64Decode = new StopAtLineStartBucket(bb.ToArray().AsBucket() + Inner.NoDispose(), new byte[] { (byte)'-' }).Base64Decode(true);
                 _state = SState.Body;
                 return BucketBytes.Eof;
             }
@@ -205,8 +205,25 @@ namespace AmpScm.Buckets.Signatures
                     return BucketBytes.Eof;
                 }
 
-                (bb, var _) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
+                (bb, _) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
                 return bb;
+            }
+
+            public override BucketBytes Peek()
+            {
+                var bb = Inner.Peek();
+
+                if (bb.Length > 0 && _stopAt.Contains(bb[0]))
+                {
+                    return BucketBytes.Eof;
+                }
+
+                int n = bb.IndexOf((byte)'\n');
+
+                if (n > 0)
+                    return bb.Slice(0, n + 1);
+                else
+                    return bb;
             }
         }
     }

@@ -326,21 +326,21 @@ namespace AmpScm.Buckets
 
         Bucket IBucketNoDispose.NoDispose()
         {
-            NoClose();
+            NoDispose();
             return this;
         }
 
-        protected void NoClose()
+        protected void NoDispose()
         {
             Interlocked.Increment(ref _nDispose);
         }
 
         bool IBucketNoDispose.HasMultipleDisposers()
         {
-            return HasMoreClosers();
+            return HasMultipleDisposers();
         }
 
-        protected bool HasMoreClosers()
+        protected bool HasMultipleDisposers()
         {
             return _nDispose > 1 || _keepOpen;
         }
