@@ -54,7 +54,7 @@ namespace AmpScm.Git
             _bytes = hash;
         }
 
-        static readonly GitId[] _zeros = new GitId[(int)GitIdType.Sha256];
+        static readonly GitId[] _zeros = new GitId[((int)GitIdType.Sha256) + 1];
         /// <summary>
         /// 
         /// </summary>

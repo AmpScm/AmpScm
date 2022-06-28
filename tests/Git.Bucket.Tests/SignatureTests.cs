@@ -847,13 +847,16 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
         }
 
         [TestMethod]
-        public async Task TestGitSign()
+        [DataRow(GitIdType.Sha1)]
+        [DataRow(GitIdType.Sha256)]
+        public async Task TestGitSign(GitIdType idType)
         {
-            var dir = TestContext.PerTestDirectory();
+            var dir = TestContext.PerTestDirectory(idType.ToString());
             string keyFile = Path.Combine(dir, "key");
             string signersFile = Path.Combine(dir, "signers");
             var repo = GitRepository.Init(dir, new GitRepositoryInitArgs
             {
+                IdType = idType,
                 InitialConfiguration = new[]
                 {
                     ("commit.gpgsign", "true"),
