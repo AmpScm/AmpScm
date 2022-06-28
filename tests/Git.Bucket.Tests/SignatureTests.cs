@@ -954,8 +954,10 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
                 await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
             }
 
-            ValueTask<SignatureBucketKey?> GetKey(ReadOnlyMemory<byte> fingerprint)
+            ValueTask<SignatureBucketKey?> GetKey(string email, ReadOnlyMemory<byte> fingerprint)
             {
+                Assert.AreEqual("me@myself.i", email);
+
                 if (SignatureBucketKey.TryParse(File.ReadAllText(keyFile + ".pub"), out var k))
                     return new(k);
                 else

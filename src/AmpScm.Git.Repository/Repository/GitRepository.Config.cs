@@ -21,7 +21,7 @@ namespace AmpScm.Git
                 IdType = type;
             }
 
-            internal ValueTask<SignatureBucketKey?> GetKey(ReadOnlyMemory<byte> fingerprint)
+            internal ValueTask<SignatureBucketKey?> GetKey(string v, ReadOnlyMemory<byte> fingerprint)
             {
                 return default;
             }

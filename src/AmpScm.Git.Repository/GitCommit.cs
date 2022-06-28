@@ -295,16 +295,20 @@ namespace AmpScm.Git
                 return new(Id);
         }
 
-        public async ValueTask<bool> VerifySignatureAsync(Func<ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null, bool includeMergetags = true)
+        public async ValueTask<bool> VerifySignatureAsync(Func<string, ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null, bool includeMergetags = true)
         {
             bool allSucceeded = true;
             bool foundSignature = false;
             bool disposeSrc = true;
             GitObjectBucket b = (await Repository.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false))!;
             var src = GitCommitObjectBucket.ForSignature(b);
+            GitSignatureRecord? committer = null;
+            GitSignatureRecord? tagger = null;
 
             using (var gob = new GitCommitObjectBucket(b.Duplicate(), HandleSubBucket))
             {
+                committer = await gob.ReadCommitterAsync().ConfigureAwait(false);
+
                 await gob.ReadUntilEofAsync().ConfigureAwait(false);
             }
             if (!disposeSrc)
@@ -324,10 +328,10 @@ namespace AmpScm.Git
                     SignatureBucketKey? key = null;
 
                     if (findKey != null)
-                        key = await findKey(fingerprint).ConfigureAwait(false);
+                        key = await findKey(committer?.Email!, fingerprint).ConfigureAwait(false);
 
                     if (key is null)
-                        key = await Repository.InternalConfig.GetKey(fingerprint).ConfigureAwait(false);
+                        key = await Repository.InternalConfig.GetKey(committer?.Email!, fingerprint).ConfigureAwait(false);
 
                     disposeSrc = false;
 
@@ -340,6 +344,8 @@ namespace AmpScm.Git
                     commitBucket = commitBucket.Buffer();
 
                     GitTagObjectBucket tob = new GitTagObjectBucket(commitBucket, HandleTagBucket);
+
+                    tagger = await tob.ReadTaggerAsync().ConfigureAwait(false);
 
                     await tob.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                 }
@@ -358,10 +364,10 @@ namespace AmpScm.Git
                         SignatureBucketKey? key = null;
 
                         if (findKey != null)
-                            key = await findKey(fingerprint).ConfigureAwait(false);
+                            key = await findKey(tagger?.Email!, fingerprint).ConfigureAwait(false);
 
                         if (key is null)
-                            key = await Repository.InternalConfig.GetKey(fingerprint).ConfigureAwait(false);
+                            key = await Repository.InternalConfig.GetKey(tagger?.Email!, fingerprint).ConfigureAwait(false);
 
                         foundSignature = true;
 

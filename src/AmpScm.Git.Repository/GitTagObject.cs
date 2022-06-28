@@ -183,14 +183,16 @@ namespace AmpScm.Git
                 return new(Id);
         }
 
-        public async ValueTask<bool> VerifySignatureAsync(Func<ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null)
+        public async ValueTask<bool> VerifySignatureAsync(Func<string, ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null)
         {
             bool succeeded = false;
             GitObjectBucket b = (await Repository.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false))!;
             var src = GitTagObjectBucket.ForSignature(b);
+            GitSignatureRecord? tagger = null;
 
             using (var gob = new GitTagObjectBucket(b.Duplicate(), HandleSubBucket))
             {
+                tagger = await gob.ReadTaggerAsync().ConfigureAwait(false);
                 await gob.ReadUntilEofAsync().ConfigureAwait(false);
             }
 
@@ -208,10 +210,10 @@ namespace AmpScm.Git
                     SignatureBucketKey? key = null;
 
                     if (findKey != null)
-                        key = await findKey(fingerprint).ConfigureAwait(false);
+                        key = await findKey(tagger?.Email!, fingerprint).ConfigureAwait(false);
 
                     if (key is null)
-                        key = await Repository.InternalConfig.GetKey(fingerprint).ConfigureAwait(false);
+                        key = await Repository.InternalConfig.GetKey(tagger?.Email!, fingerprint).ConfigureAwait(false);
 
                     succeeded = await gpg.VerifyAsync(src, key).ConfigureAwait(false);
                 }
