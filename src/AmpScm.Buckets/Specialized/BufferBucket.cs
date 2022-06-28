@@ -61,7 +61,12 @@ namespace AmpScm.Buckets.Specialized
 
         public override BucketBytes Peek()
         {
-            return readBucket.Peek();
+            var bb = readBucket.Peek();
+
+            if (bb.IsEof && !_readEof)
+                return BucketBytes.Empty;
+            else
+                return bb;
         }
 
         public async ValueTask<BucketBytes> PollAsync(int minRequested = 1)

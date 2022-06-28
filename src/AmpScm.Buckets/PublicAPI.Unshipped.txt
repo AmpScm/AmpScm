@@ -152,6 +152,7 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Hash(this AmpScm.B
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt16Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<ushort>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEofAndCloseAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA384(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Trace(this AmpScm.Buckets.Bucket! bucket, string? name = null) -> AmpScm.Buckets.Bucket!
 virtual AmpScm.Buckets.AggregateBucket.InnerDispose() -> void
 virtual AmpScm.Buckets.Client.BucketWebClient.Dispose(bool disposing) -> void
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.get -> string?

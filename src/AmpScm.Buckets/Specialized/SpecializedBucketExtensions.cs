@@ -184,6 +184,21 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
+        /// Traces usages of bucket to the Trace stream
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Bucket Trace(this Bucket bucket, string? name =null)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+
+            return new TraceBucket(bucket, name);
+        }
+
+        /// <summary>
         /// Wraps the bucket with a counter that counts the number of bytes read and reports that on EOF
         /// </summary>
         /// <param name="bucket"></param>

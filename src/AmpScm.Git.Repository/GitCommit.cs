@@ -350,7 +350,7 @@ namespace AmpScm.Git
                 {
                     if (sbType == GitSubBucketType.Signature)
                     {
-                        var rdx = new Radix64ArmorBucket(tagBucket.Buffer()); // TODO: This buffering should be unnecessary, but 'somehow' this fails without this
+                        var rdx = new Radix64ArmorBucket(tagBucket);
                         using var gpg = new SignatureBucket(rdx);
 
                         var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
