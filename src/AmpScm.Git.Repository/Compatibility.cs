@@ -26,5 +26,15 @@ namespace System.Diagnostics.CodeAnalysis
             ReturnValue = returnValue;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple=true, Inherited=false)]
+    public sealed class NotNullIfNotNullAttribute : Attribute
+    {
+        public string ParameterName { get; }
+        public NotNullIfNotNullAttribute(string parameterName)
+        {
+            ParameterName = parameterName;
+        }
+    }
 }
 #endif

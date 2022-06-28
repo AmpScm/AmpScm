@@ -91,9 +91,10 @@ AmpScm.Buckets.Specialized.BucketFactory.FromASCII(string! value) -> AmpScm.Buck
 AmpScm.Buckets.Specialized.BucketFactory.FromUTF8(string! value) -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Specialized.ConversionBucket
 AmpScm.Buckets.Specialized.ConversionBucket.ConversionBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Specialized.ConversionBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+AmpScm.Buckets.Specialized.WrappingBucket.NoDispose() -> AmpScm.Buckets.Bucket!
 const AmpScm.Buckets.Bucket.MaxRead = 2146435071 -> int
 const AmpScm.Buckets.Specialized.ZLibBucket.DefaultBufferSize = 8192 -> int
-override AmpScm.Buckets.AggregateBucket.Name.get -> string!
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentLength.get -> long
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentType.get -> string?
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!

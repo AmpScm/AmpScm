@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Signatures;
+using AmpScm.Git.Objects;
 using AmpScm.Git.Repository;
 
 namespace AmpScm.Git
@@ -19,11 +20,6 @@ namespace AmpScm.Git
             internal GitInternalConfigAccess(GitIdType type)
             {
                 IdType = type;
-            }
-
-            internal ValueTask<SignatureBucketKey?> GetKey(string v, ReadOnlyMemory<byte> fingerprint)
-            {
-                return default;
             }
         }
 

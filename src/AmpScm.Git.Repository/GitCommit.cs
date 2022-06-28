@@ -295,20 +295,16 @@ namespace AmpScm.Git
                 return new(Id);
         }
 
-        public async ValueTask<bool> VerifySignatureAsync(Func<string, ReadOnlyMemory<byte>, ValueTask<SignatureBucketKey?>>? findKey = null, bool includeMergetags = true)
+        public async ValueTask<bool> VerifySignatureAsync(Func<ReadOnlyMemory<byte>, ValueTask<GitPublicKey?>>? findKey = null, bool includeMergetags = true)
         {
             bool allSucceeded = true;
             bool foundSignature = false;
             bool disposeSrc = true;
             GitObjectBucket b = (await Repository.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false))!;
             var src = GitCommitObjectBucket.ForSignature(b);
-            GitSignatureRecord? committer = null;
-            GitSignatureRecord? tagger = null;
 
             using (var gob = new GitCommitObjectBucket(b.Duplicate(), HandleSubBucket))
             {
-                committer = await gob.ReadCommitterAsync().ConfigureAwait(false);
-
                 await gob.ReadUntilEofAsync().ConfigureAwait(false);
             }
             if (!disposeSrc)
@@ -318,34 +314,40 @@ namespace AmpScm.Git
 
             async ValueTask HandleSubBucket(GitSubBucketType sbType, Bucket commitBucket)
             {
-                if (sbType == GitSubBucketType.Signature || sbType == GitSubBucketType.SignatureSha256)
+                if (allSucceeded && sbType == GitSubBucketType.Signature || sbType == GitSubBucketType.SignatureSha256)
                 {
                     var rdx = new Radix64ArmorBucket(commitBucket);
                     using var gpg = new SignatureBucket(rdx);
 
                     var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
 
-                    SignatureBucketKey? key = null;
+                    GitPublicKey? key = null;
 
                     if (findKey != null)
-                        key = await findKey(committer?.Email!, fingerprint).ConfigureAwait(false);
+                        key = await findKey(fingerprint).ConfigureAwait(false);
 
                     if (key is null)
-                        key = await Repository.InternalConfig.GetKey(committer?.Email!, fingerprint).ConfigureAwait(false);
+                        key = await Repository.PublicKeyRepository.GetKeyAsync(fingerprint).ConfigureAwait(false);
 
                     disposeSrc = false;
 
                     foundSignature = true;
-                    if (!await gpg.VerifyAsync(src, key).ConfigureAwait(false))
+                    if (key is not null)
+                    {
+                        if (!await gpg.VerifyAsync(src, key).ConfigureAwait(false))
+                            allSucceeded = false;
+                    }
+                    else
+                    {
+                        await src.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                         allSucceeded = false;
+                    }
                 }
-                else if (sbType == GitSubBucketType.MergeTag && includeMergetags)
+                else if (allSucceeded && sbType == GitSubBucketType.MergeTag && includeMergetags)
                 {
                     commitBucket = commitBucket.Buffer();
 
                     GitTagObjectBucket tob = new GitTagObjectBucket(commitBucket, HandleTagBucket);
-
-                    tagger = await tob.ReadTaggerAsync().ConfigureAwait(false);
 
                     await tob.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                 }
@@ -354,27 +356,35 @@ namespace AmpScm.Git
 
                 async ValueTask HandleTagBucket(GitSubBucketType sbType, Bucket tagBucket)
                 {
-                    if (sbType == GitSubBucketType.Signature)
+                    if (allSucceeded && sbType == GitSubBucketType.Signature)
                     {
                         var rdx = new Radix64ArmorBucket(tagBucket);
                         using var gpg = new SignatureBucket(rdx);
 
                         var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
 
-                        SignatureBucketKey? key = null;
+                        GitPublicKey? key = null;
 
                         if (findKey != null)
-                            key = await findKey(tagger?.Email!, fingerprint).ConfigureAwait(false);
+                            key = await findKey(fingerprint).ConfigureAwait(false);
 
                         if (key is null)
-                            key = await Repository.InternalConfig.GetKey(tagger?.Email!, fingerprint).ConfigureAwait(false);
+                            key = await Repository.PublicKeyRepository.GetKeyAsync(fingerprint).ConfigureAwait(false);
 
                         foundSignature = true;
 
                         commitBucket.Reset();
 
-                        if (!await gpg.VerifyAsync(GitTagObjectBucket.ForSignature(commitBucket.NoDispose()), key).ConfigureAwait(false))
+                        if (key is not null)
+                        {
+                            if (!await gpg.VerifyAsync(GitTagObjectBucket.ForSignature(commitBucket.NoDispose()), key).ConfigureAwait(false))
+                                allSucceeded = false;
+                        }
+                        else
+                        {
+                            await src.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                             allSucceeded = false;
+                        }
                     }
                     else
                         await tagBucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);

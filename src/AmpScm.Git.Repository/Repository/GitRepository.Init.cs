@@ -114,7 +114,7 @@ namespace AmpScm.Git
                         {
                             var g = group.Substring(0, n);
                             var s = group.Substring(n + 1);
-                            configText.Append((string)$"\n[{g} \"{s}\"]");
+                            configText.Append((string)$"\n[{g} \"{s}\"]\n");
                         }
                     }
                     configText.Append((string)$"\t{key} = {v}\n");

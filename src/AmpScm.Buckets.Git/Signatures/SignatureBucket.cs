@@ -498,7 +498,10 @@ namespace AmpScm.Buckets.Signatures
                                 if (bb.StartsWithASCII("RSA"))
                                 {
                                     List<ReadOnlyMemory<byte>> vals = new();
+
                                     var (b, bt) = await der.ReadValueAsync().ConfigureAwait(false);
+                                    if (b is null)
+                                        throw new BucketEofException(der);
 
                                     bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
                                     vals.Add(bb.ToArray());
@@ -562,7 +565,7 @@ namespace AmpScm.Buckets.Signatures
                                     _keys.Add(new SignatureBucketKey(CreateSshFingerprint(sba, keyInts), sba, keyInts));
                                 }
                                 else
-                                    await der.ReadUntilEofAsync();
+                                    await der.ReadUntilEofAsync().ConfigureAwait(false);
                             }
                             break;
                         default:
@@ -897,8 +900,6 @@ namespace AmpScm.Buckets.Signatures
 
         internal static ReadOnlyMemory<byte>[] GetEcdsaValues(IEnumerable<ReadOnlyMemory<byte>> vals, bool pgp = false)
         {
-            ReadOnlyMemory<byte>[] signature;
-
             var curve = vals.First();
             var v2 = vals.Skip(1).First().ToArray();
 
@@ -924,36 +925,33 @@ namespace AmpScm.Buckets.Signatures
 #pragma warning restore CA1308 // Normalize strings to uppercase
             }
 
-            switch (v2[0])
+            return v2[0] switch
             {
-                case 2: // Y is even
-                case 3: // Y is odd
-                default:
-                    // TODO: Find some implementation to calculate X from Y
-                    throw new NotImplementedException("Only X and Y follow format is supported at this time");
-                case 4: // X and Y follow
-                        // X and Y both have the same number of bits... Half the value
-                    signature = new[]
-                                {
-                                    // The Curve name is stored as integer... Nice :(.. But at least consistent
-                                    curve,
+                4 => // X and Y follow
+                     // X and Y both have the same number of bits... Half the value
+                    new[]
+                    {
+                        // The Curve name is stored as integer... Nice :(.. But at least consistent
+                        curve,
 
-                                    v2.Skip(1).Take(v2.Length / 2).ToArray(),
-                                    v2.Skip(1 + v2.Length / 2).Take(v2.Length / 2).ToArray(),
-                                };
-                    break;
-                case 0x40 when pgp: // Custom compressed poing see rfc4880bis-06
-                    signature = new[]
-                                {
-                                    curve,
+                        v2.Skip(1).Take(v2.Length / 2).ToArray(),
+                        v2.Skip(1 + v2.Length / 2).Take(v2.Length / 2).ToArray(),
+                    },
 
-                                    v2.Skip(1).ToArray(),
-                                };
-                    break;
+                0x40 when pgp // Custom compressed poing see rfc4880bis-06
+                    => new[]
+                    {
+                        curve,
 
-            }
+                        v2.Skip(1).ToArray(),
+                    },
+                2       // Y is even
+                or 3    // Y is odd
+                or _ =>
+                // TODO: Find some implementation to calculate X from Y
+                    throw new NotImplementedException("Only X and Y follow format is supported at this time"),
+            };
 
-            return signature;
         }
 
         static async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created, OpenPgpHashAlgorithm hashAlgorithm)

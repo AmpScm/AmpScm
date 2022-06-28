@@ -75,7 +75,7 @@ namespace AmpScm.Buckets.Signatures
             }
         }
 
-        public static bool TryParseSshLine(string line, [NotNullWhen(true)] out SignatureBucketKey? value)
+        internal static bool TryParseSshLine(string line, [NotNullWhen(true)] out SignatureBucketKey? value)
         {
             if (string.IsNullOrWhiteSpace(line))
                 throw new ArgumentNullException(nameof(line));

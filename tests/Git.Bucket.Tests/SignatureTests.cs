@@ -14,6 +14,7 @@ using System.Diagnostics;
 using AmpScm.Buckets.Signatures;
 using AmpScm.Git;
 using AmpScm.Git.Client.Porcelain;
+using AmpScm.Git.Objects;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
 
@@ -862,7 +863,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
                     ("commit.gpgsign", "true"),
                     ("gpg.format", "ssh"),
                     ("user.signingkey", keyFile.Replace('\\', '/')),
-                    ("gpg.ssh.allowedsignersfile", signersFile.Replace('\\', '/')),
+                    ("gpg.ssh.allowedSignersFile", signersFile.Replace('\\', '/')),
                     ("user.email", "me@myself.i"),
                     ("user.name", "My Name")
                 }
@@ -941,6 +942,9 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
             Assert.IsTrue(await theMerge.VerifySignatureAsync(GetKey), "Commit verified");
             Assert.IsTrue(await repo.TagObjects.First().VerifySignatureAsync(GetKey), "Merge verified");
 
+            Assert.IsTrue(await theMerge.VerifySignatureAsync(), "Commit verified, loaded key");
+            Assert.IsTrue(await repo.TagObjects.First().VerifySignatureAsync(), "Merge verified, loaded key");
+
 
 
             // And now verify that what we tested is also accepted by git
@@ -954,11 +958,9 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
                 await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
             }
 
-            ValueTask<SignatureBucketKey?> GetKey(string email, ReadOnlyMemory<byte> fingerprint)
+            ValueTask<GitPublicKey?> GetKey(ReadOnlyMemory<byte> fingerprint)
             {
-                Assert.AreEqual("me@myself.i", email);
-
-                if (SignatureBucketKey.TryParse(File.ReadAllText(keyFile + ".pub"), out var k))
+                if (GitPublicKey.TryParse(File.ReadAllText(keyFile + ".pub"), out var k))
                     return new(k);
                 else
                     return default;

@@ -94,7 +94,7 @@ namespace AmpScm.Buckets.Specialized
             return bb;
         }
 
-        string Sum(BucketBytes bb)
+        static string Sum(BucketBytes bb)
         {
             if (bb.IsEmpty)
                 return bb.IsEof ? "<EOF>" : "<Empty>";

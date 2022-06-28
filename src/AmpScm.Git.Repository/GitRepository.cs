@@ -51,23 +51,24 @@ namespace AmpScm.Git
             _container = new ServiceContainer();
 
             SetQueryProvider = new GitQueryProvider(this);
-            Objects = new GitObjectSet<GitObject>(this, () => this.Objects!);
-            Commits = new GitObjectSet<GitCommit>(this, () => this.Commits!);
-            Blobs = new GitObjectSet<GitBlob>(this, () => this.Blobs!);
-            TagObjects = new GitObjectSet<GitTagObject>(this, () => this.TagObjects!);
-            Trees = new GitObjectSet<GitTree>(this, () => this.Trees!);
-            References = new GitReferencesSet(this, () => this.References!);
-            Remotes = new GitRemotesSet(this, () => this.Remotes!);
-            RevisionSetRoot = new GitRevisionSet(this);
+            Objects = new (this, () => this.Objects!);
+            Commits = new (this, () => this.Commits!);
+            Blobs = new (this, () => this.Blobs!);
+            TagObjects = new (this, () => this.TagObjects!);
+            Trees = new (this, () => this.Trees!);
+            References = new (this, () => this.References!);
+            Remotes = new (this, () => this.Remotes!);
+            RevisionSetRoot = new (this);
 
-            Branches = new GitNamedSet<GitBranch>(this, () => this.Branches!);
-            Tags = new GitTagsSet(this, () => this.Tags!);
+            Branches = new (this, () => this.Branches!);
+            Tags = new (this, () => this.Tags!);
 
             ObjectRepository = null!;
             GitDirectory = default!;
             FullPath = default!;
             WorkTreeDirectory = default!;
             ReferenceRepository = null!;
+            PublicKeyRepository = new(this);
         }
 
         internal GitRepository(string root, GitRootType rootType)
@@ -153,6 +154,8 @@ namespace AmpScm.Git
         public Objects.GitObjectRepository ObjectRepository { get; }
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public References.GitReferenceRepository ReferenceRepository { get; }
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public Objects.GitPublicKeyRepository PublicKeyRepository { get; }
 
         public GitReference Head => References.Head;
 
