@@ -12,7 +12,7 @@ namespace AmpScm.Git.Objects
     {
         private bool disposedValue;
         public GitRepository Repository { get; }
-        readonly Dictionary<IReadOnlyList<byte>, (SignatureBucketKey Key, string principal)> _keys = new(new SigComparer());
+        readonly Dictionary<ReadOnlyMemory<byte>, GitPublicKey> _keys = new(new SigComparer());
         DateTime? _keysRead;
 
         internal GitPublicKeyRepository(GitRepository repository)
@@ -51,16 +51,16 @@ namespace AmpScm.Git.Objects
 
         internal async ValueTask<GitPublicKey?> GetKeyAsync(ReadOnlyMemory<byte> fingerprint)
         {
-            var fpa = fingerprint.ToArray();
+            fingerprint = GitPublicKey.HashPrint(fingerprint); // Standardize format
 
-            if (_keys.TryGetValue(fpa, out var k))
-                return new GitPublicKey(k.Key);
+            if (_keys.TryGetValue(fingerprint, out var key))
+                return key;
 
             if (!_keysRead.HasValue && (await Repository.Configuration.GetPathAsync("gpg.ssh", "allowedsignersfile").ConfigureAwait(false)) is string cfg
                 && File.Exists(cfg))
             {
                 DateTime now = DateTime.Now;
-                foreach(var l in File.ReadLines(cfg))
+                foreach (var l in File.ReadLines(cfg))
                 {
                     if (string.IsNullOrWhiteSpace(l))
                         continue;
@@ -75,43 +75,42 @@ namespace AmpScm.Git.Objects
                     if (p.Length != 2)
                         continue;
 
-                    if (GitPublicKey.TryParse(p[1], out var vk))
+                    if (GitPublicKey.TryParse(p[1], out var vk, principal: p[0]))
                     {
-                        SignatureBucketKey pk = vk;
-
-                        _keys[pk.Fingerprint] = (vk, p[0]);
+                        _keys[vk.Fingerprint] = vk;
                     }
                 }
                 _keysRead = now;
             }
 
-            if (_keys.TryGetValue(fpa, out k))
-                return new GitPublicKey(k.Key);
+            if (_keys.TryGetValue(fingerprint, out key))
+                return key;
 
             return default;
         }
 
-        sealed class SigComparer : IEqualityComparer<IReadOnlyList<byte>>
+        sealed class SigComparer : IEqualityComparer<ReadOnlyMemory<byte>>
         {
-            public bool Equals(IReadOnlyList<byte>? x, IReadOnlyList<byte>? y)
+            public bool Equals(ReadOnlyMemory<byte> x, ReadOnlyMemory<byte> y)
             {
-                return x?.SequenceEqual(y ?? Enumerable.Empty<byte>()) ?? (x is null == y is null);
+                return x.Span.SequenceEqual(y.Span);
             }
 
-            public int GetHashCode(IReadOnlyList<byte> obj)
+            public int GetHashCode(ReadOnlyMemory<byte> obj)
             {
-                if (obj.Count >= 4)
+                if (obj.Length >= 4)
                 {
+                    var sp = obj.Span;
 #if NET6_0_OR_GREATER
-                    return HashCode.Combine(obj[0], obj[1], obj[2], obj[3], obj.Count);
+                    return HashCode.Combine(sp[0], sp[1], sp[sp.Length / 2], sp[(sp.Length / 2) + 1], sp.Length);
 #else
-                    return BitConverter.ToInt32(obj.Take(4).ToArray(), 00);
+                    return (sp[0] << 24 | sp[1] << 16 | sp[sp.Length / 2] << 8 | sp[(sp.Length / 2) + 1]) ^ sp.Length;
 #endif
                 }
-                else if (obj.Count >= 2)
-                    return obj.Count ^ (obj[0] | obj[0] << 8);
+                else if (obj.Length >= 2)
+                    return obj.Length ^ (obj.Span[0] | obj.Span[1] << 8);
                 else
-                    return obj.Count;
+                    return obj.Length;
             }
         }
     }

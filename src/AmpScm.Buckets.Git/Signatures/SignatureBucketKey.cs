@@ -28,14 +28,14 @@ namespace AmpScm.Buckets.Signatures
     /// </summary>
     public sealed record class SignatureBucketKey
     {
-        internal SignatureBucketKey(IReadOnlyList<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values)
+        internal SignatureBucketKey(ReadOnlyMemory<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values)
         {
             Algorithm = algorithm;
             Values = values;
             Fingerprint = fingerprint;
         }
 
-        public IReadOnlyList<byte> Fingerprint { get; }
+        public ReadOnlyMemory<byte> Fingerprint { get; }
         public SignatureBucketAlgorithm Algorithm { get; }
         public IReadOnlyList<ReadOnlyMemory<byte>> Values { get; }
         public string FingerprintString => SignatureBucket.FingerprintToString(Fingerprint);

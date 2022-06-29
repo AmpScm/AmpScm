@@ -253,7 +253,7 @@ Merge pull request #6288 from libgit2/cmn/mwindow-simplifications
 
 A couple of simplications around mwindow";
         [TestMethod]
-        public async Task ReadSignedCommit()
+        public async Task ReadPgpSignedCommit()
         {
             var src = Bucket.Create.FromASCII(SignedCommit.Replace("\r", ""));
             bool readGpg = false;

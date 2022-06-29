@@ -457,6 +457,12 @@ namespace AmpScm.Buckets.Signatures
                                         .SHA256(x => keyFingerprint = x)
                                         .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                                 }
+                                else if (version == 3)
+                                {
+                                    await bigInts.SelectMany(x => x.ToArray()).ToArray().AsBucket()
+                                        .MD5(x => keyFingerprint = x)
+                                        .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                                }
 
                                 keyFingerprint = new byte[] { version }.Concat(keyFingerprint!).ToArray();
 
@@ -576,7 +582,7 @@ namespace AmpScm.Buckets.Signatures
             }
         }
 
-        static IReadOnlyList<byte> CreateSshFingerprint(SignatureBucketAlgorithm sba, ReadOnlyMemory<byte>[] keyInts)
+        static ReadOnlyMemory<byte> CreateSshFingerprint(SignatureBucketAlgorithm sba, ReadOnlyMemory<byte>[] keyInts)
         {
             ByteCollector bb = new(4096);
 
@@ -609,7 +615,7 @@ namespace AmpScm.Buckets.Signatures
             bb.Append(NetBitConverter.GetBytes(alg.Length));
             bb.Append(Encoding.ASCII.GetBytes(alg));
 
-            for(int i = 0; i < ints.Count; i++)
+            for (int i = 0; i < ints.Count; i++)
             {
                 bb.Append(NetBitConverter.GetBytes(ints[i].Length));
                 bb.Append(ints[i]);
@@ -640,7 +646,7 @@ namespace AmpScm.Buckets.Signatures
                     {
                         // This next check matches for DSA.
                         // I'm guessing this is some magic
-                        if (bb.Span.StartsWith(new byte[] {0, 0x02, 0x81, 0x81}) || bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x80 }))
+                        if (bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x81 }) || bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x80 }))
                             vals.Add(bb.Slice(4).ToArray());
                         else
                             vals.Add(bb.ToArray());
@@ -1017,7 +1023,7 @@ namespace AmpScm.Buckets.Signatures
             return await bucket.ReadExactlyAsync(len).ConfigureAwait(false);
         }
 
-        internal static ReadOnlyMemory<byte>[] ParseSshStrings(byte[] data)
+        internal static ReadOnlyMemory<byte>[] ParseSshStrings(ReadOnlyMemory<byte> data)
         {
             List<ReadOnlyMemory<byte>> mems = new();
 
@@ -1035,21 +1041,26 @@ namespace AmpScm.Buckets.Signatures
             return mems.ToArray();
         }
 
-        public static string FingerprintToString(IReadOnlyList<byte> fingerprint)
+        internal static string FingerprintToString(ReadOnlyMemory<byte> fingerprint)
         {
-            if (fingerprint is null || fingerprint.Count == 0)
+            if (fingerprint.Length == 0)
                 throw new ArgumentNullException(nameof(fingerprint));
 
-            var b0 = fingerprint[0];
+            var b0 = fingerprint.Span[0];
 
             if (b0 >= 3 && b0 <= 5) // OpenPgp fingeprint formats 3-5
-                return string.Join("", fingerprint.Skip(1).Select(x => x.ToString("X2", CultureInfo.InvariantCulture)));
-            else if (b0 == 0 && fingerprint[1] == 0 && fingerprint[2] == 0)
+                return string.Join("", Enumerable.Range(1, fingerprint.Length - 1).Select(i => fingerprint.Span[i].ToString("X2", CultureInfo.InvariantCulture)));
+            else if (b0 == 0 && fingerprint.Span[1] == 0 && fingerprint.Span[2] == 0)
             {
-                var bytes = fingerprint as byte[] ?? fingerprint.ToArray();
-                var vals = ParseSshStrings(bytes);
+                var vals = ParseSshStrings(fingerprint);
 
-                return $"{Encoding.ASCII.GetString(vals[0].ToArray())} {Convert.ToBase64String(bytes)}";
+#if NETCOREAPP
+                string b64 = Convert.ToBase64String(fingerprint.Span);
+#else
+                string b64 = Convert.ToBase64String(fingerprint.ToArray());
+#endif
+
+                return $"{Encoding.ASCII.GetString(vals[0].ToArray())} {b64}";
             }
 
             return "";

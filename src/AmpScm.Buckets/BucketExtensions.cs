@@ -566,5 +566,10 @@ namespace AmpScm.Buckets
             }
             return -1;
         }
+
+        public static bool SequenceEqual(this ReadOnlyMemory<byte> left, ReadOnlyMemory<byte> right)
+        {
+            return left.Span.SequenceEqual(right.Span);
+        }
     }
 }
