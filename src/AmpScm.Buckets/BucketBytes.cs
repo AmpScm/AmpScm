@@ -103,6 +103,13 @@ namespace AmpScm.Buckets
         }
 
 #pragma warning disable CA2225 // Operator overloads have named alternates
+        public static implicit operator BucketBytes(Memory<byte> segment)
+#pragma warning restore CA2225 // Operator overloads have named alternates
+        {
+            return new BucketBytes(segment);
+        }
+
+#pragma warning disable CA2225 // Operator overloads have named alternates
         public static implicit operator ReadOnlyMemory<byte>(BucketBytes bytes)
 #pragma warning restore CA2225 // Operator overloads have named alternates
         {

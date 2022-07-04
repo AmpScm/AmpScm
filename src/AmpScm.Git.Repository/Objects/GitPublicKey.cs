@@ -58,6 +58,8 @@ namespace AmpScm.Git.Objects
             }
         }
 
+        public string FingerprintString => _key.FingerprintString;
+
         internal static ReadOnlyMemory<byte> HashPrint(ReadOnlyMemory<byte> fp)
         {
             if (fp.Length == 8) // 8 = PGP fingerprint

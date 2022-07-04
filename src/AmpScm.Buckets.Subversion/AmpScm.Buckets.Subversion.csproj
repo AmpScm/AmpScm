@@ -2,13 +2,14 @@
 
   <PropertyGroup>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-    <TargetFrameworks>net6.0;net47;net48;netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes'">$(TargetFrameworks);net7.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net47;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes' ">$(TargetFrameworks);net7.0</TargetFrameworks>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <RootNamespace>AmpScm.Buckets</RootNamespace>
     <NoWarn>1701;1702;1591</NoWarn>
     <WarningLevel>6</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
@@ -31,29 +32,18 @@
     <AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net47' or '$(TargetFramework)' == 'net48' ">
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
-  </ItemGroup>
-  
   <ItemGroup>
-    <PackageReference Include="zlib.managed" Version="1.1.4" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' != 'net47' ">
+    <PackageReference Include="K4os.Compression.LZ4" Version="1.2.16" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(GitHubCI)' == 'yes' ">
-    <PackageReference Include="GitVersion.MsBuild" Version="5.10.1">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  <ItemGroup>
+    <ProjectReference Include="..\AmpScm.Buckets\AmpScm.Buckets.csproj" />
   </ItemGroup>
+
 
 </Project>

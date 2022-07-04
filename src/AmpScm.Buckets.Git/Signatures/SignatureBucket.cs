@@ -457,12 +457,12 @@ namespace AmpScm.Buckets.Signatures
                                         .SHA256(x => keyFingerprint = x)
                                         .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                                 }
-                                else if (version == 3)
-                                {
-                                    await bigInts.SelectMany(x => x.ToArray()).ToArray().AsBucket()
-                                        .MD5(x => keyFingerprint = x)
-                                        .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
-                                }
+                                //else if (version == 3)
+                                //{
+                                //    await bigInts.SelectMany(x => x.ToArray()).ToArray().AsBucket()
+                                //        .MD5(x => keyFingerprint = x)
+                                //        .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                                //}
 
                                 keyFingerprint = new byte[] { version }.Concat(keyFingerprint!).ToArray();
 

@@ -354,34 +354,6 @@ namespace AmpScm.Buckets.Specialized
             return new TextRecoderBucket(bucket, sourceEncoding, targetEncoding);
         }
 
-
-        public static async ValueTask<BucketBytes> ReadExactlyAsync(this Bucket bucket, int requested)
-        {
-            if (bucket is null)
-                throw new ArgumentNullException(nameof(bucket));
-            else if (requested <= 0 || requested > Bucket.MaxRead)
-                throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
-
-            ByteCollector result = new(requested);
-            while (true)
-            {
-                var bb = await bucket.ReadAsync(requested).ConfigureAwait(false);
-
-                if (result.IsEmpty)
-                {
-                    if (bb.Length == requested || bb.IsEof)
-                        return bb;
-                }
-                else if (bb.IsEof)
-                    return result.AsBytes();
-                else if (bb.Length == requested)
-                    return result.AsBytes(bb);
-
-                result.Append(bb);
-                requested -= bb.Length;
-            }
-        }
-
         /// <summary>
         /// Tries to seek <paramref name="bucket"/> to position <paramref name="newPosition"/>, using
         /// operations like <see cref="Bucket.Reset"/> and/or <see cref="Bucket.ReadSkipAsync(long)"/>

@@ -167,6 +167,7 @@ AmpScm.Git.Objects.GitObjectWriter<TGitObject>
 AmpScm.Git.Objects.GitObjectWriterExtensions
 AmpScm.Git.Objects.GitPublicKey
 AmpScm.Git.Objects.GitPublicKey.Fingerprint.get -> System.ReadOnlyMemory<byte>
+AmpScm.Git.Objects.GitPublicKey.FingerprintString.get -> string!
 AmpScm.Git.Objects.GitPublicKey.Principal.get -> string?
 AmpScm.Git.Objects.GitPublicKey.Principal.init -> void
 AmpScm.Git.Objects.GitPublicKey.ToSignatureBucketKey() -> AmpScm.Buckets.Signatures.SignatureBucketKey!

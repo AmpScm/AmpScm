@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -113,6 +115,86 @@ namespace AmpScm
             Array.Copy(array, index, bytes, 0, length);
 
             return bytes.ReverseInPlaceIfLittleEndian();
+        }
+
+
+        public static string RunApp(this TestContext txt, string application, params string[] args)
+        {
+            FixConsoleEncoding();
+            ProcessStartInfo psi = new ProcessStartInfo(application, string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))));
+            psi.UseShellExecute = false;
+            psi.RedirectStandardInput = true;
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
+
+            using var p = Process.Start(psi);
+            Assert.IsNotNull(p);
+
+            p.StandardInput.Close();
+
+            string s;
+            Console.WriteLine(p.StandardError.ReadToEnd());
+            Console.WriteLine(s = p.StandardOutput.ReadToEnd());
+
+            p.WaitForExit();
+
+            Assert.AreEqual(0, p.ExitCode, $"Result of {application} {psi.Arguments}");
+            return s;
+        }
+
+        static void FixConsoleEncoding()
+        {
+            var ci = Console.InputEncoding;
+            if (ci == Encoding.UTF8 && ci.GetPreamble().Length > 0)
+            {
+                // Workaround CHCP 65001 / UTF8 bug, where the process will always write a BOM to each started process
+                // with Stdin redirected, which breaks processes which explicitly expect some strings as binary data
+                Console.InputEncoding = new UTF8Encoding(false, true);
+            }
+        }
+
+        static string EscapeGitCommandlineArgument(string argument)
+        {
+            if (string.IsNullOrEmpty(argument))
+                return "\"\"";
+
+            bool escape = false;
+            for (int i = 0; i < argument.Length; i++)
+            {
+                if (char.IsWhiteSpace(argument, i))
+                {
+                    escape = true;
+                    break;
+                }
+                else if (argument[i] == '\"')
+                {
+                    escape = true;
+                    break;
+                }
+            }
+
+            if (!escape)
+                return argument;
+
+            StringBuilder sb = new StringBuilder(argument.Length + 5);
+
+            sb.Append('\"');
+
+            for (int i = 0; i < argument.Length; i++)
+            {
+                switch (argument[i])
+                {
+                    case '\"':
+                        sb.Append('\\');
+                        break;
+                }
+
+                sb.Append(argument[i]);
+            }
+
+            sb.Append('\"');
+
+            return sb.ToString();
         }
 
     }

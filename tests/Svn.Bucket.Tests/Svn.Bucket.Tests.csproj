@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <TargetFrameworks>net6.0;net48;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes' ">$(TargetFrameworks);net7.0</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' != 'Unix' ">$(TargetFrameworks);net47</TargetFrameworks>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SvnBucketTests</RootNamespace>
+    <WarningLevel>6</WarningLevel>
+    <VSTestResultsDirectory Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)TestResults\$(Configuration)\$(TargetFramework)\</VSTestResultsDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="3.1.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AmpScm.Buckets\AmpScm.Buckets.csproj" />
+    <ProjectReference Include="..\..\src\AmpScm.Buckets.Subversion\AmpScm.Buckets.Subversion.csproj" />
+    <ProjectReference Include="..\Bucket.Tests\Bucket.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

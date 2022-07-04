@@ -1,0 +1,4 @@
+﻿AmpScm.Buckets.Subversion.SvnBucket
+AmpScm.Buckets.Subversion.SvnBucket.SvnBucket(AmpScm.Buckets.Bucket inner) -> void
+AmpScm.Buckets.Subversion.SvnDeltaBucket.SvnDeltaBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Bucket? deltaBase) -> void
+override AmpScm.Buckets.Subversion.SvnDeltaBucket.Position.get -> long?

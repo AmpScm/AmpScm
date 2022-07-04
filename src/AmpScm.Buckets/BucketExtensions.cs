@@ -69,6 +69,41 @@ namespace AmpScm.Buckets
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="requested"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static async ValueTask<BucketBytes> ReadExactlyAsync(this Bucket bucket, int requested)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (requested <= 0 || requested > Bucket.MaxRead)
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
+
+            ByteCollector result = new(requested);
+            while (true)
+            {
+                var bb = await bucket.ReadAsync(requested).ConfigureAwait(false);
+
+                if (result.IsEmpty)
+                {
+                    if (bb.Length == requested || bb.IsEof)
+                        return bb;
+                }
+                else if (bb.IsEof)
+                    return result.AsBytes();
+                else if (bb.Length == requested)
+                    return result.AsBytes(bb);
+
+                result.Append(bb);
+                requested -= bb.Length;
+            }
+        }
+
+        /// <summary>
         /// Takes exactly <paramref name="length"/> bytes from <paramref name="bucket"/>, providing
         /// position and remaining bytes
         /// </summary>
@@ -239,6 +274,11 @@ namespace AmpScm.Buckets
         }
 
         public static Bucket AsBucket(this ReadOnlyMemory<byte> memory)
+        {
+            return new MemoryBucket(memory);
+        }
+
+        public static Bucket AsBucket(this Memory<byte> memory)
         {
             return new MemoryBucket(memory);
         }

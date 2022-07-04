@@ -160,9 +160,10 @@ namespace AmpScm.Buckets
             int start = 0;
 
             var result = new List<BucketBytes>();
-            while(next > 0)
+            while(next >= 0)
             {
-                result.Add(Slice(start, next - start));
+                if (next > start)
+                    result.Add(Slice(start, next - start));
 
                 start = next + 1;
                 if (start >= Length)
@@ -207,17 +208,11 @@ namespace AmpScm.Buckets
 
         static bool IsWhiteSpace(byte v)
         {
-            switch (v)
+            return v switch
             {
-                case (byte)' ':
-                case (byte)'\n':
-                case (byte)'\r':
-                case (byte)'\t':
-                case (byte)'\v':
-                    return true;
-                default:
-                    return false;
-            }
+                (byte)' ' or (byte)'\n' or (byte)'\r' or (byte)'\t' or (byte)'\v' => true,
+                _ => false,
+            };
         }
 
         public bool StartsWithASCII(string value)
@@ -276,5 +271,32 @@ namespace AmpScm.Buckets
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remaining"></param>
+        /// <param name="requested"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static BucketBytes PartialReturn(ref BucketBytes remaining, int requested)
+        {
+            if (requested <= 0)
+                throw new ArgumentOutOfRangeException(nameof(requested));
+
+            BucketBytes bb;
+            if (remaining.IsEof)
+                return remaining;
+            else if (requested >= remaining.Length)
+            {
+                bb = remaining;
+                remaining = BucketBytes.Empty;
+            }
+            else
+            {
+                bb = remaining.Slice(0, requested);
+                remaining = remaining.Slice(requested);
+            }
+            return bb;
+        }
     }
 }
