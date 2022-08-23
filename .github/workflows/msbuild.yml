@@ -38,7 +38,7 @@ jobs:
 
     - name: Install NuGet dependencies
       run: dotnet restore -v:m -p:GitHubCI=yes
-      
+
     - name: Build
       run: dotnet build -v:m -c Release --no-restore -p:GitHubCI=yes
     

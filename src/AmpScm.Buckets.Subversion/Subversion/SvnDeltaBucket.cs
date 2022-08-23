@@ -243,7 +243,7 @@ namespace AmpScm.Buckets.Subversion
                 case 1 when (original_length < 512):
                     break;
                 case 1:
-                    data = new ZLibBucket(data.AsBucket(), BucketCompressionAlgorithm.ZLib, bufferSize: original_length).ToArray();
+                    data = new ZLibBucket(data.AsBucket(), BucketCompressionAlgorithm.Deflate, bufferSize: original_length).ToArray();
                     break;
                 case 2:
                     byte[] result = new byte[original_length];
