@@ -11,20 +11,22 @@ namespace AmpScm.Buckets.Subversion
     {
         Bucket DeltaBase { get; }
         byte _version;
-        bool _haveBase;
+        readonly bool _haveBase;
         BucketBytes _remaining;
         long _position;
         ReadOnlyMemory<byte> _srcView;
         long _srcViewoffset;
         byte[]? _window;
+        Action? _atEof;
 
-        public SvnDeltaBucket(Bucket inner, Bucket? deltaBase, object value)
+        public SvnDeltaBucket(Bucket inner, Bucket? deltaBase, Action? atEof = null)
             : base(inner)
         {
             DeltaBase = deltaBase ?? Bucket.Empty;
             _version = 0xFF;
 
             _haveBase = (deltaBase != null);
+            _atEof = atEof;
         }
 
         protected override void Dispose(bool disposing)
@@ -65,16 +67,27 @@ namespace AmpScm.Buckets.Subversion
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            BucketBytes bb;
-
             if (!_remaining.IsEmpty)
                 return BucketBytes.PartialReturn(ref _remaining, requested);
             else if (_remaining.IsEof)
                 return _remaining;
 
             await ReadNextWindow().ConfigureAwait(false);
-            
-            return BucketBytes.PartialReturn(ref _remaining, requested);
+
+            var bb =  BucketBytes.PartialReturn(ref _remaining, requested);
+
+            if (bb.IsEof)
+            {
+                var ae = _atEof;
+                _atEof = null;
+                ae?.Invoke();
+            }
+            else
+            {
+                _position += bb.Length;
+            }
+
+            return bb;
         }
 
         private async ValueTask ReadNextWindow()
@@ -255,11 +268,6 @@ namespace AmpScm.Buckets.Subversion
             }
         }
 
-        private void Decode(ref byte[] instructions)
-        {
-            throw new NotImplementedException();
-        }
-
         static int LengthOfLength(long value)
         {
             //#if NET6_0_OR_GREATER
@@ -294,7 +302,7 @@ namespace AmpScm.Buckets.Subversion
 
         static async ValueTask<int> ReadLengthAsync(Bucket inner)
         {
-            long l = await ReadLongLengthAsync(inner);
+            long l = await ReadLongLengthAsync(inner).ConfigureAwait(false);
 
             int i = (int)l;
 

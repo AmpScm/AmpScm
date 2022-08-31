@@ -9,15 +9,10 @@ namespace AmpScm.Buckets.Subversion
         private Action? _atEof;
         bool _readEol;
 
-        public SvnHashBucket(Bucket inner)
+        public SvnHashBucket(Bucket inner, Action? atEof = null)
             : base(inner)
         {
-        }
-
-        internal SvnHashBucket(Bucket inner, Action? atEof) 
-            : this(inner)
-        {
-            this._atEof = atEof ?? (() => { });
+            this._atEof = atEof;
         }
 
         public async ValueTask<(string key, BucketBytes value)?> ReadValue()
@@ -82,7 +77,7 @@ namespace AmpScm.Buckets.Subversion
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
         {
-            while(await ReadValue().ConfigureAwait(false) is not null)
+            while (await ReadValue().ConfigureAwait(false) is (var key, _))
             {
 
             }
