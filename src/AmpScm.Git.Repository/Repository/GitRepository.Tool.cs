@@ -40,7 +40,7 @@ namespace AmpScm.Git
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
             };
-            IEnumerable<string> allArgs = new string[] { command }.Concat(args ?? Array.Empty<string>());
+            IEnumerable<string> allArgs = CreateArgs(command).Concat(args ?? Array.Empty<string>());
 #if NETFRAMEWORK
             startInfo.Arguments = string.Join(" ", allArgs.Select(x => EscapeGitCommandlineArgument(x)));
             FixConsoleUTF8BOMEncoding();
@@ -80,7 +80,7 @@ namespace AmpScm.Git
                 RedirectStandardError = true,
                 RedirectStandardOutput = true
             };
-            IEnumerable<string> allArgs = new string[] { command }.Concat(args ?? Array.Empty<string>());
+            IEnumerable<string> allArgs = CreateArgs(command).Concat(args ?? Array.Empty<string>());
 #if NETFRAMEWORK
             startInfo.Arguments = string.Join(" ", allArgs.Select(x => EscapeGitCommandlineArgument(x)));
             FixConsoleUTF8BOMEncoding();
@@ -120,7 +120,7 @@ namespace AmpScm.Git
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
             };
-            IEnumerable<string> allArgs = new string[] { command }.Concat(args ?? Array.Empty<string>());
+            IEnumerable<string> allArgs = CreateArgs(command).Concat(args ?? Array.Empty<string>());
 #if NETFRAMEWORK
             startInfo.Arguments = string.Join(" ", allArgs.Select(x => EscapeGitCommandlineArgument(x)));
             FixConsoleUTF8BOMEncoding();
@@ -149,6 +149,11 @@ namespace AmpScm.Git
             return (p.ExitCode, rcv.StdOut, rcv.StdErr);
         }
 
+        static string[] CreateArgs(string command)
+        {
+            return new string[] { "-c", "gc.auto=0", command };
+        }
+
         protected internal async ValueTask<Bucket> RunGitCommandBucketAsync(string command, IEnumerable<string>? args, string? stdinText = null, int[]? expectedResults = null)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo(GitConfiguration.GitProgramPath)
@@ -160,7 +165,7 @@ namespace AmpScm.Git
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
             };
-            IEnumerable<string> allArgs = new string[] { command }.Concat(args ?? Array.Empty<string>());
+            IEnumerable<string> allArgs = CreateArgs(command).Concat(args ?? Array.Empty<string>());
 #if NETFRAMEWORK
             startInfo.Arguments = string.Join(" ", allArgs.Select(x => EscapeGitCommandlineArgument(x)));
             FixConsoleUTF8BOMEncoding();
@@ -212,7 +217,7 @@ namespace AmpScm.Git
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
             };
-            IEnumerable<string> allArgs = new string[] { command }.Concat(args ?? Array.Empty<string>());
+            IEnumerable<string> allArgs = CreateArgs(command).Concat(args ?? Array.Empty<string>());
 #if NETFRAMEWORK
             startInfo.Arguments = string.Join(" ", allArgs.Select(x => EscapeGitCommandlineArgument(x)));
             FixConsoleUTF8BOMEncoding();
