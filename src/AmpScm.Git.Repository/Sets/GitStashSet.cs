@@ -11,7 +11,7 @@ using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
 {
-    public class GitStashSet : GitSet<GitStash>, IQueryableAndAsyncQueryable<GitStash>, IListSource, IReadOnlyList<GitStash?>
+    public class GitStashSet : GitSet<GitStash>, IQueryableAndAsyncQueryable<GitStash>, IListSource, IReadOnlyList<GitStash>
     {
         internal GitStashSet(GitRepository repository, Expression<Func<GitStashSet>> rootExpression) : base(repository)
         {

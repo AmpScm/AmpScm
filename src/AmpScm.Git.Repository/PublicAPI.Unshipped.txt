@@ -78,6 +78,7 @@ AmpScm.Git.GitRepository.PublicKeyRepository.get -> AmpScm.Git.Objects.GitPublic
 AmpScm.Git.GitRepository.ReferenceRepository.get -> AmpScm.Git.References.GitReferenceRepository!
 AmpScm.Git.GitRepository.References.get -> AmpScm.Git.Sets.GitReferencesSet!
 AmpScm.Git.GitRepository.Remotes.get -> AmpScm.Git.Sets.GitRemotesSet!
+AmpScm.Git.GitRepository.Stashes.get -> AmpScm.Git.Sets.GitStashSet!
 AmpScm.Git.GitRepository.TagObjects.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.GitTagObject!>!
 AmpScm.Git.GitRepository.Tags.get -> AmpScm.Git.Sets.GitNamedSet<AmpScm.Git.GitTag!>!
 AmpScm.Git.GitRepository.Trees.get -> AmpScm.Git.Sets.GitObjectSet<AmpScm.Git.GitTree!>!
