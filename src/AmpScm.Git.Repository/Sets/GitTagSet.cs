@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Git.Sets
 {
-    internal class GitTagsSet : GitNamedSet<GitTag>
+    internal class GitTagSet : GitNamedSet<GitTag>
     {
-        internal GitTagsSet(GitRepository repository, Expression<Func<GitNamedSet<GitTag>>> rootExpression) : base(repository, rootExpression)
+        internal GitTagSet(GitRepository repository, Expression<Func<GitNamedSet<GitTag>>> rootExpression) : base(repository, rootExpression)
         {
         }
     }

@@ -151,7 +151,7 @@ namespace AmpScm.Git
 
         static string[] CreateArgs(string command)
         {
-            return new string[] { "-c", "gc.auto=0", command };
+            return new string[] { "-c", "gc.auto=0", "--no-pager", command };
         }
 
         protected internal async ValueTask<Bucket> RunGitCommandBucketAsync(string command, IEnumerable<string>? args, string? stdinText = null, int[]? expectedResults = null)

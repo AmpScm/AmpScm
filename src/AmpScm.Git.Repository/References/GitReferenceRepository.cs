@@ -57,5 +57,10 @@ namespace AmpScm.Git.References
         {
             return default;
         }
+
+        internal GitReference? GetUnsafe(string v)
+        {
+            return GetUnsafeAsync(v).Result;
+        }
     }
 }

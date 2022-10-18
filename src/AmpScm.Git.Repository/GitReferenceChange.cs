@@ -13,8 +13,13 @@ namespace AmpScm.Git
     public sealed class GitReferenceChange : IGitObject
     {
         object _signature;
-        internal GitReferenceChange(GitReferenceLogRecord record)
+        GitRepository _repository;
+        GitObject? _targetObject;
+        GitObject? _originalObject;
+
+        internal GitReferenceChange(GitRepository repository, GitReferenceLogRecord record)
         {
+            _repository = repository;
             OriginalId = record.Original;
             TargetId = record.Target;
             _signature = record.Signature;
@@ -26,11 +31,19 @@ namespace AmpScm.Git
         public GitSignature Signature
             => (_signature as GitSignature) ?? (GitSignature)(_signature = new GitSignature((GitSignatureRecord)_signature));
 
+
+        public GitObject? TargetObject => _targetObject ??= TargetId.IsZero ? null : _repository.Objects[TargetId];
+
+        public GitObject? OriginalObject => _originalObject ??= OriginalId.IsZero ? null : _repository.Objects[OriginalId];
+
         public string Reason { get; }
 
 
         ValueTask IGitObject.ReadAsync()
         {
+            GC.KeepAlive(TargetObject);
+            GC.KeepAlive(OriginalObject);
+
             return default;
         }
     }

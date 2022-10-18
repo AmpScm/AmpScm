@@ -23,6 +23,8 @@ namespace GitRepositoryTests.Client
         static readonly string[] ignored = new[] {
             /* gui: */ "gitk", "citool", "instaweb", "gitweb", "bugreport", "gui",
             "annotate", /* folded in blame */
+            "version", /* Not separate */
+            "scalar", /* Not really a git command */
             /* experimental: */ "restore", "switch",
             "filter-branch"
         };
@@ -59,7 +61,9 @@ namespace GitRepositoryTests.Client
                 else if (group != null)
                 {
                     var cmd = command.Trim().Split(' ')[0];
-                    if (!group.StartsWith("Low-level") && !group.Contains("Internal") && !group.Contains("External commands") && !group.Contains("Interacting with") && !plumbingCommands.Contains(cmd)
+                    if (!group.StartsWith("Low-level") && !group.Contains("Internal") && !group.Contains("External commands") && !group.Contains("Interacting with")
+                        && !group.Contains("file format") && !group.Contains("file interface")
+                        && !plumbingCommands.Contains(cmd)
                         || porcelainCommands.Contains(cmd))
                     {
                         if (ignored.Contains(cmd) || cmd.EndsWith("tool"))

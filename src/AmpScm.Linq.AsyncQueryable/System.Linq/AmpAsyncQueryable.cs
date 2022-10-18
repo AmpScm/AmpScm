@@ -99,5 +99,11 @@ namespace System.Linq
                 return (IQueryableAndAsyncQueryable)_asAsyncQueryable2.MakeGenericMethod(queryable.ElementType).Invoke(null, new[] { queryable })!;
             }
         }
+
+        /// <inheritdoc cref="Enumerable.Empty{TResult}()" />
+        public static IQueryableAndAsyncQueryable<TResult> Empty<TResult>()
+        {
+            return AsSyncAndAsyncQueryable(Enumerable.Empty<TResult>());
+        }
     }
 }

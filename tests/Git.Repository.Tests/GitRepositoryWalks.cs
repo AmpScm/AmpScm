@@ -332,5 +332,33 @@ namespace GitRepositoryTests
             Assert.IsTrue(repo.References.Any());
             Assert.AreEqual("refs/heads/MyWorkTree", repo.Head.Resolved.Name);
         }
+
+        [TestMethod]
+        public async Task StashSome()
+        {
+            var path = TestContext.PerTestDirectory();
+            {
+                using GitRepository gc = GitRepository.Open(GitTestEnvironment.GetRepository());
+                await gc.GetPorcelain().Clone(gc.FullPath, path, new() { Shared = true });
+            }
+
+            string newFile;
+            File.WriteAllText(newFile = Path.Combine(path, "newFile"), "Some text!");
+
+            using var repo = GitRepository.Open(path);
+
+            await repo.GetPorcelain().Add(newFile);
+
+            Assert.IsFalse(repo.References.Any(x => x.Name.Contains("stash")), "No stash reference found");
+
+            Assert.AreEqual(0, repo.Stashes.Count());
+
+            await repo.GetPorcelain().Stash(new GitStashArgs { Command = GitStashCommand.Push });
+
+            Assert.IsFalse(repo.References.Any(x => x.Name.Contains("stash")), "No stash reference found");
+
+            Assert.AreEqual(1, repo.Stashes.Count());
+            Assert.IsNotNull(repo.Stashes[0].Message);
+        }
     }
 }

@@ -24,5 +24,6 @@ namespace AmpScm.Git.Implementation
             where TResult : class, IGitNamedObject;
         IQueryable<GitRevision> GetRevisions(GitRevisionSet set);
         IQueryable<GitReferenceChange> GetAllReferenceChanges(GitReferenceChangeSet set);
+        IQueryable<GitStash> GetAllStashes(GitStashSet set);
     }
 }

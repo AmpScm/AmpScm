@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Git.Client
 {
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public sealed class GitCommandAttribute : Attribute
     {
         public GitCommandAttribute(string name)

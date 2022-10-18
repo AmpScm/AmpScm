@@ -28,6 +28,7 @@ namespace GitRepositoryTests
         PackedBitmapRevIdx,
         MultiPack,
         MultiPackBitmap,
+        //RefTable,
         Default,
         Bare,
     }
@@ -85,6 +86,7 @@ namespace GitRepositoryTests
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bmp-rev"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack-bmp"));
+                    //await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "reftable"), new GitCloneArgs { ForceRefTable = true });
                 }
 
                 {
@@ -248,7 +250,7 @@ namespace GitRepositoryTests
             }
         }
 
-        public static string GetRepository(GitTestDir dir)
+        public static string GetRepository(GitTestDir dir = GitTestDir.Greek)
         {
             return Path.Combine(TestRunReadOnlyDir,
                 dir switch
@@ -260,6 +262,7 @@ namespace GitRepositoryTests
                     GitTestDir.Default => "greek-packed",
                     GitTestDir.PackedBitmap => "greek-bmp",
                     GitTestDir.PackedBitmapRevIdx => "greek-bmp-rev",
+                    //GitTestDir.RefTable=> "reftable",
                     GitTestDir.Bare => "greek-bare",
                     _ => throw new ArgumentOutOfRangeException(nameof(dir))
                 });

@@ -67,9 +67,6 @@ namespace AmpScm.Git.Implementation
 
         internal IEnumerable<TResult> GetNamedEnumerable<TResult>()
         {
-            if (typeof(TResult) == typeof(GitReference))
-                return (IEnumerable<TResult>)Repository.ReferenceRepository.GetAll(new HashSet<string>()).AsNonAsyncEnumerable();
-
             return GetNamedAsyncEnumerable<TResult>(CancellationToken.None).AsNonAsyncEnumerable();
         }
 
@@ -145,6 +142,13 @@ namespace AmpScm.Git.Implementation
         }
 
         public IQueryable<GitReferenceChange> GetAllReferenceChanges(GitReferenceChangeSet set)
+        {
+#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+            return WrapEnumerable(set).AsQueryable();
+#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+        }
+
+        public IQueryable<GitStash> GetAllStashes(GitStashSet set)
         {
 #pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
             return WrapEnumerable(set).AsQueryable();

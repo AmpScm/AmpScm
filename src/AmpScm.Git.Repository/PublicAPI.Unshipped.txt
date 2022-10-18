@@ -50,9 +50,11 @@ AmpScm.Git.GitReference.ShortName.get -> string!
 AmpScm.Git.GitReference.Tree.get -> AmpScm.Git.GitTree?
 AmpScm.Git.GitReferenceChange
 AmpScm.Git.GitReferenceChange.OriginalId.get -> AmpScm.Git.GitId!
+AmpScm.Git.GitReferenceChange.OriginalObject.get -> AmpScm.Git.GitObject?
 AmpScm.Git.GitReferenceChange.Reason.get -> string!
 AmpScm.Git.GitReferenceChange.Signature.get -> AmpScm.Git.GitSignature!
 AmpScm.Git.GitReferenceChange.TargetId.get -> AmpScm.Git.GitId!
+AmpScm.Git.GitReferenceChange.TargetObject.get -> AmpScm.Git.GitObject?
 AmpScm.Git.GitRemote
 AmpScm.Git.GitRemote.Name.get -> string!
 AmpScm.Git.GitRemote.ReadAsync() -> System.Threading.Tasks.ValueTask
@@ -112,6 +114,10 @@ AmpScm.Git.GitSignature.Equals(AmpScm.Git.GitSignature? other) -> bool
 AmpScm.Git.GitSignature.GitSignature(string! name, string! email, System.DateTimeOffset now) -> void
 AmpScm.Git.GitSignature.Name.get -> string!
 AmpScm.Git.GitSignature.When.get -> System.DateTimeOffset
+AmpScm.Git.GitStash
+AmpScm.Git.GitStash.Message.get -> string!
+AmpScm.Git.GitStash.ReadAsync() -> System.Threading.Tasks.ValueTask
+AmpScm.Git.GitStash.Reason.get -> string!
 AmpScm.Git.GitTag
 AmpScm.Git.GitTag.Message.get -> string?
 AmpScm.Git.GitTag.Reference.get -> AmpScm.Git.GitReference!
@@ -254,6 +260,10 @@ AmpScm.Git.Sets.GitRemotesSet
 AmpScm.Git.Sets.GitRevisionSet
 AmpScm.Git.Sets.GitSet
 AmpScm.Git.Sets.GitSet<T>
+AmpScm.Git.Sets.GitStashSet
+AmpScm.Git.Sets.GitStashSet.Count.get -> int
+AmpScm.Git.Sets.GitStashSet.GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerator<AmpScm.Git.GitStash!>!
+AmpScm.Git.Sets.GitStashSet.this[int index].get -> AmpScm.Git.GitStash!
 AmpScm.Git.Sets.GitTreeItem
 AmpScm.Git.Sets.GitTreeItem.Entry.get -> AmpScm.Git.GitTreeEntry!
 AmpScm.Git.Sets.GitTreeItem.EntryName.get -> string!
@@ -308,6 +318,7 @@ override AmpScm.Git.Sets.GitNamedSet<T>.GetEnumerator() -> System.Collections.Ge
 override AmpScm.Git.Sets.GitObjectSet<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T!>!
 override AmpScm.Git.Sets.GitReferenceChangeSet.GetEnumerator() -> System.Collections.Generic.IEnumerator<AmpScm.Git.GitReferenceChange!>!
 override AmpScm.Git.Sets.GitRevisionSet.GetEnumerator() -> System.Collections.Generic.IEnumerator<AmpScm.Git.GitRevision!>!
+override AmpScm.Git.Sets.GitStashSet.GetEnumerator() -> System.Collections.Generic.IEnumerator<AmpScm.Git.GitStash!>!
 override AmpScm.Git.Sets.GitTreeItem.Equals(object? obj) -> bool
 override AmpScm.Git.Sets.GitTreeItem.GetHashCode() -> int
 override sealed AmpScm.Git.GitBlob.Type.get -> AmpScm.Git.GitObjectType

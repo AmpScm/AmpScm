@@ -59,6 +59,12 @@ namespace AmpScm.Git.Sets
         {
         }
 
+        internal GitSet(GitRepository repository, Expression<Func<GitSet<T>>> rootExpression)
+            : this(repository)
+        {
+            Expression = (rootExpression?.Body as MemberExpression) ?? throw new ArgumentNullException(nameof(rootExpression));
+        }
+
 #pragma warning disable CA1033 // Interface methods should be callable by child types
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         Type IQueryable.ElementType => typeof(T);

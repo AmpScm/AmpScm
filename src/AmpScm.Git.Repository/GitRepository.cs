@@ -63,6 +63,8 @@ namespace AmpScm.Git
             Branches = new (this, () => this.Branches!);
             Tags = new (this, () => this.Tags!);
 
+            Stashes = new(this, () => this.Stashes!);
+
             ObjectRepository = null!;
             GitDirectory = default!;
             FullPath = default!;
@@ -139,6 +141,8 @@ namespace AmpScm.Git
 
         public GitNamedSet<GitTag> Tags { get; }
 
+        public GitStashSet Stashes { get; }
+
         public GitReferencesSet References { get; }
         public GitRemotesSet Remotes { get; }
 
@@ -184,44 +188,25 @@ namespace AmpScm.Git
         }
 
         IQueryable<TResult> IGitQueryRoot.GetAll<TResult>()
-            where TResult : class
-        {
-            return SetQueryProvider.GetAll<TResult>();
-        }
+            where TResult : class => SetQueryProvider.GetAll<TResult>();
 
         IQueryable<TResult> IGitQueryRoot.GetAllNamed<TResult>()
-            where TResult : class
-        {
-            return SetQueryProvider.GetAllNamed<TResult>();
-        }
+            where TResult : class => SetQueryProvider.GetAllNamed<TResult>();
 
         ValueTask<TResult?> IGitQueryRoot.GetByIdAsync<TResult>(GitId id)
-            where TResult : class
-        {
-            return SetQueryProvider.GetByIdAsync<TResult>(id);
-        }
+            where TResult : class => SetQueryProvider.GetByIdAsync<TResult>(id);
 
         ValueTask<TResult?> IGitQueryRoot.GetNamedAsync<TResult>(string name)
-            where TResult : class
-        {
-            return SetQueryProvider.GetNamedAsync<TResult>(name);
-        }
+            where TResult : class => SetQueryProvider.GetNamedAsync<TResult>(name);
 
         internal ValueTask<TResult?> GetAsync<TResult>(GitId id)
-            where TResult : GitObject
-        {
-            return SetQueryProvider.GetByIdAsync<TResult>(id);
-        }
+            where TResult : GitObject => SetQueryProvider.GetByIdAsync<TResult>(id);
 
-        IQueryable<GitRevision> IGitQueryRoot.GetRevisions(GitRevisionSet set)
-        {
-            return SetQueryProvider.GetRevisions(set);
-        }
+        IQueryable<GitRevision> IGitQueryRoot.GetRevisions(GitRevisionSet set) => SetQueryProvider.GetRevisions(set);
 
-        IQueryable<GitReferenceChange> IGitQueryRoot.GetAllReferenceChanges(GitReferenceChangeSet set)
-        {
-            return SetQueryProvider.GetAllReferenceChanges(set);
-        }
+        IQueryable<GitReferenceChange> IGitQueryRoot.GetAllReferenceChanges(GitReferenceChangeSet set) => SetQueryProvider.GetAllReferenceChanges(set);
+
+        IQueryable<GitStash> IGitQueryRoot.GetAllStashes(GitStashSet set) => SetQueryProvider.GetAllStashes(set);
 
         object? IServiceProvider.GetService(Type serviceType)
         {

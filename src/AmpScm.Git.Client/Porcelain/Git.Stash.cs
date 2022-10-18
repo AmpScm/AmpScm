@@ -1,16 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Git.Client.Porcelain
 {
+    public enum GitStashCommand
+    {
+        Push,
+        Pop
+    }
+
     public class GitStashArgs : GitPorcelainArgs
     {
+        public GitStashCommand Command { get; set; }
         public override void Verify()
         {
-            throw new NotImplementedException();
+
         }
     }
 
@@ -20,9 +28,18 @@ namespace AmpScm.Git.Client.Porcelain
         public static async ValueTask Stash(this GitPorcelainClient c, GitStashArgs? options = null)
         {
             options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+            options ??= new();
 
-            await c.ThrowNotImplemented();
+            List<string> args = new();
+
+            switch (options.Command)
+            {
+                case GitStashCommand.Push:
+                    args.Add("push");
+                    break;
+            }
+
+            await c.Repository.RunGitCommandAsync("stash", args);
         }
     }
 }

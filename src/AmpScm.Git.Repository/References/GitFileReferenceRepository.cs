@@ -147,14 +147,14 @@ namespace AmpScm.Git.References
             return null;
         }
 
-        static async IAsyncEnumerable<GitReferenceChange>? GetChangesFromRefLogFile(string fileName)
+        async IAsyncEnumerable<GitReferenceChange>? GetChangesFromRefLogFile(string fileName)
         {
             var fb = FileBucket.OpenRead(fileName);
             using var gr = new GitReferenceLogBucket(fb);
 
             while (await gr.ReadGitReferenceLogRecordAsync().ConfigureAwait(false) is GitReferenceLogRecord lr)
             {
-                yield return new GitReferenceChange(lr);
+                yield return new GitReferenceChange(Repository, lr);
             }
         }
     }

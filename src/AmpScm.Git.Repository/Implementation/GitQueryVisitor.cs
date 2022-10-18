@@ -61,8 +61,12 @@ namespace AmpScm.Git.Implementation
                             newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllNamed<GitRemote>()).GetGenericMethodDefinition().MakeGenericMethod(elementType!));
                         else if (typeof(GitReferenceChange).IsAssignableFrom(elementType))
                             newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllReferenceChanges(null!)), newArguments[i]);
-                        else
+                        else if (typeof(IGitNamedObject).IsAssignableFrom(elementType))
                             newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllNamed<GitReference>()).GetGenericMethodDefinition().MakeGenericMethod(elementType!));
+                        else if (typeof(GitStash).IsAssignableFrom(elementType))
+                            newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllStashes(null!)), newArguments[i]);
+                        else
+                            throw new NotImplementedException($"Can't unwrap type {elementType}");
 
                         node = node.Update(node.Object!, newArguments);
                     }

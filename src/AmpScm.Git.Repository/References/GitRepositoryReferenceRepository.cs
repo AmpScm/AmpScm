@@ -40,6 +40,13 @@ namespace AmpScm.Git.References
                     if (!alreadyReturned.Contains(r.Name))
                     {
                         alreadyReturned.Add(r.Name);
+
+                        switch(r.Name)
+                        {
+                            case "refs/stash":
+                                continue;
+                        }
+
                         yield return r;
                     }
                 }

@@ -30,7 +30,7 @@ namespace AmpScm.Git.Client.Porcelain
         /// </summary>
         public bool? Local { get; set; }
 
-        public IEnumerable<(string, string)>? InitialConfiguration { get; set; }
+        public IEnumerable<(string Key, string Value)>? InitialConfiguration { get; set; }
         public bool Sparse { get; set; }
 
         public override void Verify()
