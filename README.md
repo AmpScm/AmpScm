@@ -72,7 +72,7 @@ intended for testing the lower layers, but probly useful for more users. May bec
 | Loose References                 | Yes           | Yes       | Yes     | Yes           |
 | Packed References                | Yes           | Yes       | Yes     | Yes           |
 | Sha256 Repositories              | Yes           | No        | No      | Yes           |
-| Reference Table format           | Expected Soon | No        | No      | Expected Soon |
+| Reference Table format           | Expected Soon | No        | Yes     | Expected Soon |
 | Reference Log                    | Yes           | Yes       | Yes     | Yes           |
 | Multipack index                  | Yes           | Yes       | No      | Yes           |
 | CommitGraph                      | Yes           | Yes       | No      | Yes           |
