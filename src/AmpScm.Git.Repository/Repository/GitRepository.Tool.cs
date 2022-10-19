@@ -29,6 +29,47 @@ namespace AmpScm.Git
         }
 #endif
 
+        static Version? _gitCliVersion;
+        public static Version GitCliVersion
+        {
+            get
+            {
+                if (_gitCliVersion is Version v)
+                    return v;
+
+                var (exitCode, version) = RunGitCommandWait("--version");
+
+                if (exitCode != 0)
+                    return _gitCliVersion = new Version(0, 0);
+                else
+                {
+                    version = version.Trim();
+                    int n = 0;
+                    while (n < version.Length && !char.IsDigit(version, n))
+                        n++;
+
+                    version = version.Substring(0, n);
+
+                    n = version.Length;
+                    for(int i = 0; i < version.Length; i++)
+                    {
+                        if (!char.IsDigit(version, i) && version[i] != '.')
+                        {
+                            n = i;
+                            break;
+                        }
+                    }
+
+                    version = version.Substring(0, n).Trim('.');
+
+                    if (Version.TryParse(version, out var v2))
+                        return _gitCliVersion = v2;
+                    else
+                        return _gitCliVersion = new Version(0, 0);
+                }
+            }
+        }
+
         protected internal async ValueTask<int> RunGitCommandAsync(string command, IEnumerable<string>? args, string? stdinText = null, int[]? expectedResults = null)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo(GitConfiguration.GitProgramPath)
@@ -105,6 +146,42 @@ namespace AmpScm.Git
 
             if (expectedResults != null ? !(expectedResults.Length == 0 || expectedResults.Contains(p.ExitCode)) : p.ExitCode != 0)
                 throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation in '{FullPath}': {rcv.StdErr}");
+
+            return (p.ExitCode, rcv.StdOut);
+        }
+
+        static (int ExitCode, string OutputText) RunGitCommandWait(string command, IEnumerable<string>? args = null)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo(GitConfiguration.GitProgramPath)
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardInput = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
+            };
+            IEnumerable<string> allArgs = CreateArgs(command).Concat(args ?? Array.Empty<string>());
+#if NETFRAMEWORK
+            startInfo.Arguments = string.Join(" ", allArgs.Select(x => EscapeGitCommandlineArgument(x)));
+            FixConsoleUTF8BOMEncoding();
+#else
+            foreach (var v in allArgs)
+                startInfo.ArgumentList.Add(v);
+#endif
+
+            using var p = Process.Start(startInfo);
+
+            if (p == null)
+                throw new GitExecCommandException($"Unable to start 'git {command}' operation");
+
+            var rcv = new OutputReceiver(p);
+
+            p.StandardInput.Close();
+
+            p.WaitForExit();
+
+            if (p.ExitCode != 0)
+                throw new GitExecCommandException($"Unexpected error {p.ExitCode} from 'git {command}' operation': {rcv.StdErr}");
 
             return (p.ExitCode, rcv.StdOut);
         }

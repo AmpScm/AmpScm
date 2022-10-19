@@ -149,6 +149,13 @@ namespace GitRepositoryTests.Client
         {
             var gca = m.GetCustomAttribute<GitCommandAttribute>() ?? throw new AssertFailedException("Attribute not found");
 
+            switch(m.Name)
+            {
+                case nameof(GitPorcelain.Diagnose) when GitRepository.GitCliVersion < new Version(2,38):
+                    Assert.Inconclusive($"git {m.Name} not supported by git {GitRepository.GitCliVersion}");
+                    return;
+            }
+
             using (var repo = GitRepository.Open(Environment.CurrentDirectory))
             {
                 var args = await repo.GetPlumbing().HelpUsage(gca.Name);

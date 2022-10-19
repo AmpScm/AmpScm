@@ -336,6 +336,7 @@ static AmpScm.Git.GitObject.operator ==(AmpScm.Git.GitObject? one, AmpScm.Git.Gi
 static AmpScm.Git.GitReference.operator !=(AmpScm.Git.GitReference? r1, AmpScm.Git.GitReference? r2) -> bool
 static AmpScm.Git.GitReference.operator ==(AmpScm.Git.GitReference? r1, AmpScm.Git.GitReference? r2) -> bool
 static AmpScm.Git.GitReference.ValidName(string! name, bool allowSpecialSymbols) -> bool
+static AmpScm.Git.GitRepository.GitCliVersion.get -> System.Version!
 static AmpScm.Git.GitRepository.Init(string! path) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.Init(string! path, AmpScm.Git.GitRepositoryInitArgs? init) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.Init(string! path, bool isBare) -> AmpScm.Git.GitRepository!
