@@ -42,7 +42,7 @@ jobs:
       run: dotnet build -v:m -c Release --no-restore -p:GitHubCI=yes
     
     - name: Test
-      run: dotnet test -v:m -c Release --no-build -p:GitHubCI=yes
+      run: dotnet test -v:m -c Release --no-build -p:GitHubCI=yes --logger "GitHubActions"
 
     - name: Pack
       if: runner.os == 'Windows'
