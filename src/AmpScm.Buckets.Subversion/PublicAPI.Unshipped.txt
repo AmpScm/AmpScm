@@ -1,7 +1,10 @@
 ﻿AmpScm.Buckets.Subversion.SvnBucket
-AmpScm.Buckets.Subversion.SvnBucket.SvnBucket(AmpScm.Buckets.Bucket inner) -> void
+AmpScm.Buckets.Subversion.SvnBucket.SvnBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Subversion.SvnDeltaBucket
 AmpScm.Buckets.Subversion.SvnDeltaBucket.SvnDeltaBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Bucket? deltaBase, System.Action? atEof = null) -> void
+AmpScm.Buckets.Subversion.SvnFsFsRevisionBucket
+AmpScm.Buckets.Subversion.SvnFsFsRevisionBucket.SvnFsFsRevisionBucket(AmpScm.Buckets.Bucket! inner, System.Func<long, long, long, System.Threading.Tasks.ValueTask<AmpScm.Buckets.Bucket!>>? fetchBase = null) -> void
 override AmpScm.Buckets.Subversion.SvnDeltaBucket.Dispose(bool disposing) -> void
 override AmpScm.Buckets.Subversion.SvnDeltaBucket.Position.get -> long?
 override AmpScm.Buckets.Subversion.SvnDeltaBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Subversion.SvnFsFsRevisionBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>

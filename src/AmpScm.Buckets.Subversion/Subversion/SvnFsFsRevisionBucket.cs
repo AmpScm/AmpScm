@@ -11,13 +11,14 @@ namespace AmpScm.Buckets.Subversion
 {
     public class SvnFsFsRevisionBucket : SvnBucket
     {
+        readonly Func<long, long, long, ValueTask<Bucket>>? _fetchBase;
         bool _reading;
         bool _readEndRep;
-        Func<long, long, long, ValueTask<Bucket>>? _fetchBase;
         int _idx;
 
-        public SvnFsFsRevisionBucket(Bucket inner) : base(inner)
+        public SvnFsFsRevisionBucket(Bucket inner, Func<long, long, long, ValueTask<Bucket>>? fetchBase = null) : base(inner)
         {
+            _fetchBase = fetchBase;
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
@@ -26,7 +27,7 @@ namespace AmpScm.Buckets.Subversion
             {
                 BucketBytes bb;
 
-                while(!(bb = await bk.ReadAsync().ConfigureAwait(false)).IsEof)
+                while (!(bb = await bk.ReadAsync().ConfigureAwait(false)).IsEof)
                 {
                     Debug.Write(bb.ToASCIIString());
                 }
@@ -38,6 +39,8 @@ namespace AmpScm.Buckets.Subversion
 
         private async ValueTask<(Bucket Bucket, int Index)?> ReadRepresentationAsync()
         {
+            if (_reading)
+                throw new InvalidOperationException();
 
             while (true)
             {
