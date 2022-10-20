@@ -30,6 +30,8 @@ namespace AmpScm.Git.Repository
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public static string GitProgramPath => _gitExePath.Value;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        public static Version GitProgramVersion => GitRepository.GitCliVersion;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public static string UserHomeDirectory => _homeDir.Value;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

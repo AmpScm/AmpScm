@@ -10,6 +10,7 @@ using AmpScm.Git;
 using AmpScm.Git.Client;
 using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;
+using AmpScm.Git.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests.Client
@@ -151,8 +152,8 @@ namespace GitRepositoryTests.Client
 
             switch(m.Name)
             {
-                case nameof(GitPorcelain.Diagnose) when GitRepository.GitCliVersion < new Version(2,38):
-                    Assert.Inconclusive($"git {m.Name} not supported by git {GitRepository.GitCliVersion}");
+                case nameof(GitPorcelain.Diagnose) when GitConfiguration.GitProgramVersion < new Version(2,38):
+                    Assert.Inconclusive($"git {m.Name} not supported by git {GitConfiguration.GitProgramVersion}");
                     return;
             }
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Git;
 using AmpScm.Git.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -17,11 +18,13 @@ namespace GitRepositoryTests
         [TestMethod]
         public void HaveShellClient()
         {
-            Assert.IsNotNull(GitConfiguration.GitProgramPath);
+            Assert.IsNotNull(GitConfiguration.GitProgramPath, "Have git executable");
 
             Assert.IsTrue(File.Exists(GitConfiguration.GitProgramPath));
 
-            foreach(var v in GitConfiguration.GetGitConfigurationFilePaths(true))
+            Assert.IsTrue(GitConfiguration.GitProgramVersion >= new Version(1, 0), "Have version of git >= 1.0");
+
+            foreach (var v in GitConfiguration.GetGitConfigurationFilePaths(true))
             {
                 TestContext.WriteLine(v);
             }

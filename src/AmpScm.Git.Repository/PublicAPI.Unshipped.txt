@@ -336,7 +336,6 @@ static AmpScm.Git.GitObject.operator ==(AmpScm.Git.GitObject? one, AmpScm.Git.Gi
 static AmpScm.Git.GitReference.operator !=(AmpScm.Git.GitReference? r1, AmpScm.Git.GitReference? r2) -> bool
 static AmpScm.Git.GitReference.operator ==(AmpScm.Git.GitReference? r1, AmpScm.Git.GitReference? r2) -> bool
 static AmpScm.Git.GitReference.ValidName(string! name, bool allowSpecialSymbols) -> bool
-static AmpScm.Git.GitRepository.GitCliVersion.get -> System.Version!
 static AmpScm.Git.GitRepository.Init(string! path) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.Init(string! path, AmpScm.Git.GitRepositoryInitArgs? init) -> AmpScm.Git.GitRepository!
 static AmpScm.Git.GitRepository.Init(string! path, bool isBare) -> AmpScm.Git.GitRepository!
@@ -367,6 +366,7 @@ static AmpScm.Git.Objects.GitTagObjectWriter.Create(AmpScm.Git.Objects.IGitLazy<
 static AmpScm.Git.Objects.GitTreeWriter.CreateEmpty() -> AmpScm.Git.Objects.GitTreeWriter!
 static AmpScm.Git.Repository.GitConfiguration.GetGitConfigurationFilePaths(bool includeSystem = true) -> System.Collections.Generic.IEnumerable<string!>!
 static AmpScm.Git.Repository.GitConfiguration.GitProgramPath.get -> string!
+static AmpScm.Git.Repository.GitConfiguration.GitProgramVersion.get -> System.Version!
 static AmpScm.Git.Repository.GitConfiguration.UserHomeDirectory.get -> string!
 static AmpScm.Git.Sets.GitTreeItem.operator !=(AmpScm.Git.Sets.GitTreeItem left, AmpScm.Git.Sets.GitTreeItem right) -> bool
 static AmpScm.Git.Sets.GitTreeItem.operator ==(AmpScm.Git.Sets.GitTreeItem left, AmpScm.Git.Sets.GitTreeItem right) -> bool

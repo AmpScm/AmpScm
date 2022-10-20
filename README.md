@@ -85,6 +85,7 @@ intended for testing the lower layers, but probly useful for more users. May bec
 | Split Directory Index format     | Yes           | No        | No      | Yes           |
 | Sparse Index (Cone) support      | Yes           | No        | No      | Yes           |
 | Fast Import support              | Yes           | No        | No      | Yes           |
+| Bundle support                   | Yes           | No        | No      | Yes           |
 | 'mergetag' (inspect) support     | Yes           | No        | No      | Yes           |
 | OpenPGP signature verification   | Yes           | No        | No      | Yes           |
 | (Open)SSH signature verification | Yes           | No        | No      | Yes           |

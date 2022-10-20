@@ -31,6 +31,7 @@ namespace GitRepositoryTests
         //RefTable,
         Default,
         Bare,
+        Sha256Greek
     }
 
 
@@ -75,6 +76,7 @@ namespace GitRepositoryTests
                 }
 
                 await CreateGreekTreeAsync(Path.Combine(ro, "greek-base"));
+                await CreateGreekTreeAsync(Path.Combine(ro, "greek-sha256-base"), gitIdType: GitIdType.Sha256);
 
                 {
                     using var p = GitRepository.Open(Path.Combine(ro, "greek-base"));
@@ -86,6 +88,7 @@ namespace GitRepositoryTests
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "greek-bmp-rev"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack"));
                     await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "multipack-bmp"));
+                    await p.GetPorcelain().Clone(Path.Combine(ro, "greek-sha256-base"), Path.Combine(ro, "gr256"));
                     //await p.GetPorcelain().Clone(Path.Combine(ro, "greek-base"), Path.Combine(ro, "reftable"), new GitCloneArgs { ForceRefTable = true });
                 }
 
@@ -131,9 +134,9 @@ namespace GitRepositoryTests
             }).Wait();
         }
 
-        private static async Task CreateGreekTreeAsync(string v)
+        private static async Task CreateGreekTreeAsync(string v, GitIdType gitIdType = GitIdType.Sha1)
         {
-            using var repo = GitRepository.Init(v, new GitRepositoryInitArgs { Bare = true });
+            using var repo = GitRepository.Init(v, new GitRepositoryInitArgs { Bare = true, IdType= gitIdType });
 
             GitCommitWriter cw = GitCommitWriter.Create(new GitCommitWriter[0]);
 
@@ -264,6 +267,7 @@ namespace GitRepositoryTests
                     GitTestDir.PackedBitmapRevIdx => "greek-bmp-rev",
                     //GitTestDir.RefTable=> "reftable",
                     GitTestDir.Bare => "greek-bare",
+                    GitTestDir.Sha256Greek => "gr256",
                     _ => throw new ArgumentOutOfRangeException(nameof(dir))
                 });
         }

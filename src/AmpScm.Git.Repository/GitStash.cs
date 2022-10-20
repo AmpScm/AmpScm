@@ -16,7 +16,7 @@ namespace AmpScm.Git
             _change = change ?? throw new ArgumentNullException(nameof(change));
         }
 
-        public string Message => (_change.TargetObject as GitCommit)?.Message;
+        public string Message => (_change.TargetObject as GitCommit)?.Message ?? "";
 
         public string Reason => _change.Reason;
 

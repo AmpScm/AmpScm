@@ -30,14 +30,14 @@ namespace AmpScm.Git
 #endif
 
         static Version? _gitCliVersion;
-        public static Version GitCliVersion
+        internal static Version GitCliVersion
         {
             get
             {
                 if (_gitCliVersion is Version v)
                     return v;
 
-                var (exitCode, version) = RunGitCommandWait("--version");
+                var (exitCode, version) = RunGitCommandWait("version");
 
                 if (exitCode != 0)
                     return _gitCliVersion = new Version(0, 0);
@@ -48,7 +48,7 @@ namespace AmpScm.Git
                     while (n < version.Length && !char.IsDigit(version, n))
                         n++;
 
-                    version = version.Substring(0, n);
+                    version = version.Substring(n);
 
                     n = version.Length;
                     for(int i = 0; i < version.Length; i++)
@@ -322,7 +322,7 @@ namespace AmpScm.Git
             bool _eof;
             string? _current;
             readonly int[]? _expectedResults;
-            ErrorReceiver _rcv;
+            readonly ErrorReceiver _rcv;
 
             public StdOutputLineWalker(Process p, string? stdinText, int[]? expectedResults)
             {
