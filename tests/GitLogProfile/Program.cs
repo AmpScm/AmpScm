@@ -12,7 +12,7 @@ namespace MyApp
 {
     public class Program
     {
-        public async static Task<int> Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             using var repo = GitRepository.Open(@"F:\git-testrepos\git-no-blob");
 

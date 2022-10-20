@@ -42,7 +42,7 @@ namespace AmpScm.Git.Client.Plumbing
         {
             if (!typeof(GitPlumbing).GetMethods().Any(x => x.GetCustomAttribute<GitCommandAttribute>()?.Name == name)
                 && !typeof(GitPorcelain).GetMethods().Any(x => x.GetCustomAttribute<GitCommandAttribute>()?.Name == name))
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(name));
 
             List<string> results = new List<string>();
             bool gotOne = false;

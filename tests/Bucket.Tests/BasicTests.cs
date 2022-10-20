@@ -180,9 +180,9 @@ namespace BucketTests
 
                 Assert.AreEqual("blob 26\0ABCDEFGHIJKLMNOPQRSTUVWXYZ", Encoding.ASCII.GetString(chars34));
 
-                var v = await r.ReadAsync();
+                await r.ReadAsync();
 
-                v = await b.ReadAsync();
+                var v = await b.ReadAsync();
                 Assert.IsFalse(v.IsEof);
                 Assert.AreEqual(3, v.Length);
             }
@@ -198,9 +198,9 @@ namespace BucketTests
 
                 Assert.AreEqual("blob 26\0ABCDEFGHIJKLMNOPQRSTUVWXYZ", Encoding.ASCII.GetString(chars34));
 
-                var v = await r.ReadAsync();
+                await r.ReadAsync();
 
-                v = await b.ReadAsync();
+                var v = await b.ReadAsync();
                 Assert.IsFalse(v.IsEof);
                 Assert.AreEqual(3, v.Length);
             }
@@ -216,9 +216,9 @@ namespace BucketTests
 
                 Assert.AreEqual("blob 26\0ABCDEFGHIJKLMNOPQRSTUVWXYZ", Encoding.ASCII.GetString(chars34));
 
-                var v = await r.ReadAsync();
+                await r.ReadAsync();
 
-                v = await b.ReadAsync();
+                var v = await b.ReadAsync();
                 Assert.IsFalse(v.IsEof);
                 Assert.AreEqual(1, v.Length);
             }
@@ -517,26 +517,15 @@ namespace BucketTests
             Assert.IsTrue(bb.ToArray().SequenceEqual(finishData));
 
             var r = await baseData.AsBucket().Compress(alg).ToArrayAsync();
-            Stream rs;
-            switch (alg)
-            {
-                case BucketCompressionAlgorithm.ZLib:
-                    rs = r.AsBucket().Decompress(BucketCompressionAlgorithm.ZLib).AsStream();
-                    break;
-                case BucketCompressionAlgorithm.GZip:
-                    rs = new System.IO.Compression.GZipStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress);
-                    break;
-                case BucketCompressionAlgorithm.Deflate:
-                    rs = new System.IO.Compression.DeflateStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress);
-                    break;
+            Stream rs = alg switch {
+                BucketCompressionAlgorithm.ZLib => r.AsBucket().Decompress(BucketCompressionAlgorithm.ZLib).AsStream(),
+                BucketCompressionAlgorithm.GZip => new System.IO.Compression.GZipStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
+                BucketCompressionAlgorithm.Deflate => rs = new System.IO.Compression.DeflateStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
 #if NET6_0_OR_GREATER
-                case BucketCompressionAlgorithm.Brotli:
-                    rs = new System.IO.Compression.BrotliStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress);
-                    break;
+                BucketCompressionAlgorithm.Brotli =>  new System.IO.Compression.BrotliStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
 #endif
-                default:
-                    throw new InvalidOperationException();
-            }
+                _ => throw new InvalidOperationException()
+            };
 
             byte[] resultBytes = new byte[4096];
             Assert.AreEqual(baseData.Length, rs.Read(resultBytes, 0, resultBytes.Length));
@@ -776,10 +765,9 @@ namespace BucketTests
             {
                 Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
 
-                using (var fb2 = fb.Duplicate(true))
-                {
-                    Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
-                }
+                using var fb2 = fb.Duplicate(true);
+
+                Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
             }
 
             File.Delete(p);

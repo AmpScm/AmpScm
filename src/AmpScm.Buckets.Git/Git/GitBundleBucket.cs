@@ -35,7 +35,7 @@ namespace AmpScm.Buckets.Git
             if (_version.HasValue)
                 return _version.Value;
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, 32);
+            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, 32).ConfigureAwait(false);
 
             if (eol == BucketEol.LF && bb.EqualsASCII("# v2 git bundle\n"))
                 _version = 2;
@@ -51,7 +51,7 @@ namespace AmpScm.Buckets.Git
         {
             while (_state != BState.Body)
             {
-                (var id, _) = await ReadReferenceAsync();
+                (var id, _) = await ReadReferenceAsync().ConfigureAwait(false);
 
                 if (id is null)
                     break;
@@ -76,9 +76,9 @@ namespace AmpScm.Buckets.Git
         {
             if (!_ret)
             {
-                var (bucket, _) = await ReadPackBucketAsync();
+                var (bucket, _) = await ReadPackBucketAsync().ConfigureAwait(false);
 
-                await bucket.ReadUntilEofAndCloseAsync();
+                await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
             }
             
             return BucketBytes.Eof;
@@ -87,7 +87,7 @@ namespace AmpScm.Buckets.Git
         public async ValueTask<(string? Key, string? Value)> ReadCapabilityAsync()
         {
             if (!_version.HasValue)
-                await ReadVersionAsync();
+                await ReadVersionAsync().ConfigureAwait(false);
 
             if (_version < 3 || _state != BState.Capabilities)
             {
@@ -97,7 +97,7 @@ namespace AmpScm.Buckets.Git
                 return (null, null);
             }
 
-            var bb = await Inner.PollAsync();
+            var bb = await Inner.PollAsync().ConfigureAwait(false);
 
             if (bb.Length > 0 && bb[0] != '@')
             {
@@ -108,7 +108,7 @@ namespace AmpScm.Buckets.Git
             BucketEol eol;
             if (bb.IsEmpty && !bb.IsEof)
             {
-                bb = await Inner.ReadAsync(1);
+                bb = await Inner.ReadAsync(1).ConfigureAwait(false);
 
                 if (bb.Length == 1 && bb[0] != '@')
                 {
@@ -127,11 +127,11 @@ namespace AmpScm.Buckets.Git
                     return (null, null);
                 }
 
-                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF);
+                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
             }
             else
             {
-                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF);
+                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                 if (!bb.IsEmpty)
                     bb = bb.Slice(1); // Skip the '@'
@@ -159,11 +159,11 @@ namespace AmpScm.Buckets.Git
         public async ValueTask<(GitId? Id, string? Comment)> ReadPrerequisiteAsync()
         {
             if (!_version.HasValue)
-                await ReadVersionAsync();
+                await ReadVersionAsync().ConfigureAwait(false);
 
             while (_state < BState.Prerequisites)
             {
-                var (key, _) = await ReadCapabilityAsync();
+                var (key, _) = await ReadCapabilityAsync().ConfigureAwait(false);
 
                 if (key is null && _state < BState.Prerequisites)
                     return (null, null); // EOF
@@ -186,7 +186,7 @@ namespace AmpScm.Buckets.Git
 
             if (!_prefetched.HasValue)
             {
-                bb = await Inner.PollAsync(1);
+                bb = await Inner.PollAsync(1).ConfigureAwait(false);
 
                 if (!bb.IsEmpty && bb[0] != '-')
                 {
@@ -195,7 +195,7 @@ namespace AmpScm.Buckets.Git
                 }
                 else if (bb.IsEmpty)
                 {
-                    bb = await Inner.ReadAsync(1);
+                    bb = await Inner.ReadAsync(1).ConfigureAwait(false);
 
                     if (bb.IsEmpty)
                     {
@@ -212,7 +212,7 @@ namespace AmpScm.Buckets.Git
             }
 
             _prefetched = null;
-            (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF);
+            (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
             var oidLen = _idType.HashLength() * 2;
 
@@ -235,11 +235,11 @@ namespace AmpScm.Buckets.Git
         public async ValueTask<(GitId? Id, string? Name)> ReadReferenceAsync()
         {
             if (!_version.HasValue)
-                await ReadVersionAsync();
+                await ReadVersionAsync().ConfigureAwait(false);
 
             while (_state < BState.References)
             {
-                (var id, _) = await ReadPrerequisiteAsync();
+                (var id, _) = await ReadPrerequisiteAsync().ConfigureAwait(false);
 
                 if (id is null && _state < BState.References)
                     return (null, null); // EOF
@@ -252,7 +252,7 @@ namespace AmpScm.Buckets.Git
             if (_prefetched.HasValue)
                 src = new[] { _prefetched.Value }.AsBucket() + Inner;
 
-            var (line, eol) = await src.ReadExactlyUntilEolAsync(BucketEol.LF);
+            var (line, eol) = await src.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
             _prefetched = null;
 

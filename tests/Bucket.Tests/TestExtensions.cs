@@ -118,14 +118,16 @@ namespace AmpScm
         }
 
 
-        public static string RunApp(this TestContext txt, string application, params string[] args)
+        public static string RunApp(this TestContext _, string application, params string[] args)
         {
             FixConsoleEncoding();
-            ProcessStartInfo psi = new ProcessStartInfo(application, string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))));
-            psi.UseShellExecute = false;
-            psi.RedirectStandardInput = true;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardError = true;
+            ProcessStartInfo psi = new ProcessStartInfo(application, string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))))
+            {
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
 
             using var p = Process.Start(psi);
             Assert.IsNotNull(p);

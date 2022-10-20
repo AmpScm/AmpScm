@@ -139,7 +139,7 @@ namespace GitRepositoryTests
 
             using var repo = GitRepository.Init(TestContext.PerTestDirectory($"{noGit}"), opts);
 
-            GitCommitWriter cw = GitCommitWriter.Create(new GitCommitWriter[0]);
+            GitCommitWriter cw = GitCommitWriter.Create(Array.Empty<GitCommit>());
 
             var items = new RepoItem[]
             {
@@ -320,7 +320,7 @@ namespace GitRepositoryTests
                     await ru.CommitAsync();
                 }
 
-                Assert.AreEqual(0, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Count(), "Files on objects/pack");
+                Assert.AreEqual(0, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Length, "Files on objects/pack");
 
                 string commitGraphPath = Path.Combine(rp.GitDirectory, "objects", "info", "commit-graph");
                 Assert.IsFalse(File.Exists(commitGraphPath), $"{commitGraphPath} does not exist");
@@ -328,10 +328,10 @@ namespace GitRepositoryTests
                 await rp.GetPorcelain().GC();
 
                 Assert.IsTrue(File.Exists(commitGraphPath), $"{commitGraphPath} does exist");
-                Assert.AreEqual(rp.IsBare ? 3 : 2, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Count(), "Files on objects/pack");
+                Assert.AreEqual(rp.IsBare ? 3 : 2, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Length, "Files on objects/pack");
 
                 // Doesn't use commit chain yet, as it wasn't detected before
-                rp.Head.Revisions.ToList();
+                Assert.IsNotNull(rp.Head.Revisions.ToList());
 
                 for (int i = 0; i < 256; i++)
                 {
@@ -341,7 +341,7 @@ namespace GitRepositoryTests
                 // Refresh object sources. Here we find the commit graph (and the pack file)
                 rp.ObjectRepository.Refresh();
 
-                rp.Head.Revisions.ToList();
+                Assert.IsNotNull(rp.Head.Revisions.ToList());
 
                 gcw = GitCommitWriter.Create(A3);
                 gcw.Message = "Next update";
@@ -358,10 +358,10 @@ namespace GitRepositoryTests
                     await ru.CommitAsync();
                 }
 
-                rp.Head.Revisions.ToList();
+                Assert.IsNotNull(rp.Head.Revisions.ToList());
 
                 await rp.GetPlumbing().Repack();
-                Assert.AreEqual(rp.IsBare ? 5 : 4, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Count(), "Files on objects/pack");
+                Assert.AreEqual(rp.IsBare ? 5 : 4, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Length, "Files on objects/pack");
 
                 await rp.GetPlumbing().CommitGraph(new() { Split = GitCommitGraphSplit.Split });
 
@@ -374,16 +374,16 @@ namespace GitRepositoryTests
 #endif
                 {
                     // We can still list the revisions old way...
-                    rp.Head.Revisions.ToList();
+                    Assert.IsNotNull(rp.Head.Revisions.ToList());
                 }
 
                 // Refresh object sources. Here we find the commit graph chain, and other pack file
                 rp.ObjectRepository.Refresh();
 
-                Assert.AreEqual(3, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "info", "commit-graphs"), "*").Count(), "Files on objects/info/commit-graphs");
+                Assert.AreEqual(3, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "info", "commit-graphs"), "*").Length, "Files on objects/info/commit-graphs");
 
                 // Walk the chained graphs
-                rp.Head.Revisions.ToList();
+                Assert.IsNotNull(rp.Head.Revisions.ToList());
 
                 for (int i = 0; i < 256; i++)
                 {

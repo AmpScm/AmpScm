@@ -98,7 +98,7 @@ namespace AmpScm.Git
 
         public static bool TryFindRoot(string path, [NotNullWhen(true)] out string? rootPath)
         {
-            var (root, type) = FindGitRoot(path);
+            var (root, _) = FindGitRoot(path);
 
             rootPath = root;
             return (root is not null);

@@ -75,7 +75,7 @@ namespace DiffTests
             Assert.AreEqual(4, diff.Sum(x => x.Modified.Length));
             Assert.IsTrue(diff.Similarity >= 0.75, $"Similarity > 75% ({diff.Similarity})");
 
-            diff = Differences.Calculate(StringComparer.Ordinal, new string[] { }, new[] { "A" });
+            diff = Differences.Calculate(StringComparer.Ordinal, Array.Empty<string>(), new[] { "A" });
             Assert.IsNotNull(diff);
             Assert.IsFalse(diff.HasConflicts);
             Assert.IsTrue(diff.HasChanges);
