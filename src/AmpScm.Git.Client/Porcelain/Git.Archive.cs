@@ -51,10 +51,10 @@ namespace AmpScm.Git.Client.Porcelain
                 }
 
             if (!string.IsNullOrEmpty(file))
-                args.Add($"--output={file.Replace(Path.DirectorySeparatorChar, '/')}");
+                args.Add($"--output={file!.Replace(Path.DirectorySeparatorChar, '/')}");
 
             if (!string.IsNullOrEmpty(options.Prefix))
-                args.Add($"--prefix={options.Prefix.Replace(Path.DirectorySeparatorChar, '/').TrimEnd('/') + '/'}");
+                args.Add($"--prefix={options.Prefix!.Replace(Path.DirectorySeparatorChar, '/').TrimEnd('/') + '/'}");
 
             if (options.WorktreeAttributes)
                 args.Add("--worktree-attributes");
