@@ -28,7 +28,7 @@ jobs:
         fetch-depth: 0
 
     - name: Setup .NET Core Versions
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
           3.1.x
@@ -51,7 +51,7 @@ jobs:
 
     - name: Package nupkg files
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: nupkg-files
         path: nupkg/Release/*nupkg
