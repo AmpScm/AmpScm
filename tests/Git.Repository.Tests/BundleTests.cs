@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -84,6 +85,25 @@ namespace GitRepositoryTests
             Assert.AreEqual("PACK", pb.GitType);
             Assert.AreEqual(2, pb.Version);
             Assert.IsTrue(pb.ObjectCount >= 27, $"ObjectCount={pb.ObjectCount}");
+        }
+
+
+        [TestMethod]
+        public async Task WriteArchive()
+        {
+            var pd = TestContext.PerTestDirectory();
+            using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Greek));
+
+            var archive = Path.Combine(pd, "my.zip");
+
+            await repo.GetPorcelain().Archive(archive, "HEAD", new() { Format = GitArchiveFormat.Zip });
+
+            Assert.IsTrue(File.Exists(archive));
+#if !NETFRAMEWORK
+            var zf = ZipFile.OpenRead(archive);
+
+            Assert.AreEqual(20, zf.Entries.Count);
+#endif
         }
     }
 }
