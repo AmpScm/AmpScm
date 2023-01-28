@@ -75,7 +75,7 @@ intended for testing the lower layers, but probly useful for more users. May bec
 | Reference Table format           | Expected Soon | No        | Yes     | Expected Soon |
 | Reference Log                    | Yes           | Yes       | Yes     | Yes           |
 | Multipack index                  | Yes           | Yes       | No      | Yes           |
-| CommitGraph                      | Yes           | Yes       | No      | Yes           |
+| CommitGraph                      | Yes           | Yes       | Soon    | Yes           |
 | Bitmap index Packfiles           | Yes           | No        | Yes     | Yes           |
 | Bitmap index Multipack Index     | Yes           | No        | No      | Yes           |
 | Reverse index Packfiles          | Yes           | No        | No      | Yes           |
