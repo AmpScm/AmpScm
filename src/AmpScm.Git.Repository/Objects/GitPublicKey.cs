@@ -30,14 +30,14 @@ namespace AmpScm.Git.Objects
             return _key;
         }
 
-        public static bool TryParse(string value, [NotNullWhen(true)] out GitPublicKey? result)
+        public static bool TryParse(string keyText, [NotNullWhen(true)] out GitPublicKey? result)
         {
-            return TryParse(value, out result, principal: null);
+            return TryParse(keyText, out result, principal: null);
         }
 
-        internal static bool TryParse(string value, [NotNullWhen(true)] out GitPublicKey? result, string? principal = null)
+        internal static bool TryParse(string keyText, [NotNullWhen(true)] out GitPublicKey? result, string? principal = null)
         {
-            if (SignatureBucketKey.TryParse(value, out var v))
+            if (SignatureBucketKey.TryParse(keyText, out var v))
             {
                 result = new(v) { Principal = principal };
                 return true;

@@ -40,18 +40,18 @@ namespace AmpScm.Buckets.Signatures
         public IReadOnlyList<ReadOnlyMemory<byte>> Values { get; }
         public string FingerprintString => SignatureBucket.FingerprintToString(Fingerprint);
 
-        public static bool TryParse(string line, [NotNullWhen(true)] out SignatureBucketKey? value)
+        public static bool TryParse(string keyText, [NotNullWhen(true)] out SignatureBucketKey? value)
         {
-            if (string.IsNullOrWhiteSpace(line))
-                throw new ArgumentNullException(nameof(line));
+            if (string.IsNullOrWhiteSpace(keyText))
+                throw new ArgumentNullException(nameof(keyText));
 
-            line = line.Trim();
+            keyText = keyText.Trim();
 
-            if (line.StartsWith("-----BEGIN ", StringComparison.Ordinal)
-                || line.StartsWith("---- BEGIN ", StringComparison.Ordinal))
-                return TryParseBlob(line, out value);
+            if (keyText.StartsWith("-----BEGIN ", StringComparison.Ordinal)
+                || keyText.StartsWith("---- BEGIN ", StringComparison.Ordinal))
+                return TryParseBlob(keyText, out value);
             else
-                return TryParseSshLine(line, out value);
+                return TryParseSshLine(keyText, out value);
         }
 
         private static bool TryParseBlob(string line, out SignatureBucketKey? value)
@@ -60,8 +60,6 @@ namespace AmpScm.Buckets.Signatures
 
             var r = new Radix64ArmorBucket(b);
             using var sig = new SignatureBucket(r);
-
-            sig.ReadAsync().AsTask().GetAwaiter().GetResult();
 
             try
             {

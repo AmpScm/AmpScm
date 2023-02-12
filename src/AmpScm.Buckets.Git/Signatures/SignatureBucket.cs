@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Numerics;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Git;
 using AmpScm.Buckets.Specialized;
 using System.Globalization;
 using AmpScm.Buckets;
-using System.Runtime.ConstrainedExecution;
 
 namespace AmpScm.Buckets.Signatures
 {
@@ -276,6 +270,20 @@ namespace AmpScm.Buckets.Signatures
                                                 case OpenPgpSubPacketType.IssuerFingerprint:
                                                     _signKeyFingerprint = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
                                                     break;
+
+                                                // Currently unhandled fields from private keys
+                                                case OpenPgpSubPacketType.KeyFlags:
+                                                case OpenPgpSubPacketType.KeyExpirationTime:
+                                                case OpenPgpSubPacketType.PreferredSymetricAlgorithms:
+                                                case OpenPgpSubPacketType.PreferredHashAlgorithms:
+                                                case OpenPgpSubPacketType.PreferredCompressionAlgorithms:
+                                                case OpenPgpSubPacketType.Features:
+                                                case OpenPgpSubPacketType.KeyServerPreferences:
+                                                case (OpenPgpSubPacketType)34: // ??
+                                                    if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
+                                                        throw new BucketEofException(subRead);
+                                                    break;
+
                                                 default:
                                                     if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
                                                         throw new BucketEofException(subRead);
@@ -372,11 +380,14 @@ namespace AmpScm.Buckets.Signatures
                             break;
                         case OpenPgpTagType.PublicKey:
                         case OpenPgpTagType.PublicSubkey:
+                        case OpenPgpTagType.SecretKey:
+                        case OpenPgpTagType.SecretSubkey:
                             {
                                 DateTime keyTime;
                                 ReadOnlyMemory<byte>[]? keyInts;
                                 byte[]? keyFingerprint = null;
                                 OpenPgpPublicKeyType keyPublicKeyType;
+                                bool hasSecretKey = (tag is OpenPgpTagType.SecretKey or OpenPgpTagType.SecretSubkey);
 
                                 var csum = bucket.NoDispose().Buffer();
                                 var len = (uint)await csum.ReadRemainingBytesAsync().ConfigureAwait(false);
@@ -404,6 +415,18 @@ namespace AmpScm.Buckets.Signatures
 
                                 List<ReadOnlyMemory<byte>> bigInts = new();
 
+                                int nrOfInts = keyPublicKeyType switch
+                                {
+                                    OpenPgpPublicKeyType.Rsa or
+                                    OpenPgpPublicKeyType.RsaEncryptOnly or
+                                    OpenPgpPublicKeyType.RsaSignOnly => 2,
+                                    OpenPgpPublicKeyType.Elgamal => 3,
+                                    OpenPgpPublicKeyType.Dsa => 4,
+                                    OpenPgpPublicKeyType.ECDH => 3,
+                                    OpenPgpPublicKeyType.ECDSA => 2,
+                                    OpenPgpPublicKeyType.EdDSA => 2,
+                                    _ => throw new NotImplementedException($"Unexpected public key type {keyPublicKeyType}")
+                                };
                                 if (keyPublicKeyType is OpenPgpPublicKeyType.EdDSA or OpenPgpPublicKeyType.ECDSA or OpenPgpPublicKeyType.ECDH)
                                 {
                                     var b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
@@ -437,9 +460,14 @@ namespace AmpScm.Buckets.Signatures
                                 }
 
 
-                                while (await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
+                                while (bigInts.Count < nrOfInts && await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
                                 {
                                     bigInts.Add(bi);
+                                }
+
+                                if (nrOfInts > bigInts.Count)
+                                {
+                                    throw new NotImplementedException($"Nr of ints for {keyPublicKeyType} should be {bigInts.Count}");
                                 }
                                 keyInts = bigInts.ToArray();
 
@@ -481,6 +509,11 @@ namespace AmpScm.Buckets.Signatures
                                 {
                                     keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
                                     keyInts = keyInts.Skip(1).ToArray();
+                                }
+
+                                if (hasSecretKey)
+                                {
+                                    await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                                 }
 
                                 _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts));
@@ -573,6 +606,10 @@ namespace AmpScm.Buckets.Signatures
                                 else
                                     await der.ReadUntilEofAsync().ConfigureAwait(false);
                             }
+                            break;
+                        case OpenPgpTagType.UserID:
+                        case OpenPgpTagType.Signature:
+                            await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                             break;
                         default:
                             await bucket.ReadUntilEofAsync().ConfigureAwait(false);

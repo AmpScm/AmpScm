@@ -967,9 +967,41 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
             }
         }
 
+        const string APrivateKey =
+@"-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lFgEY+jHGBYJKwYBBAHaRw8BAQdA4LuQh88dckAm8tn5rJS5fIzkbLKtoSRvTlA9
+gRUdsTsAAQCS0d7Q7Aly4mzeuebeddphO8s6i8XsCWDuRLFPFwkbaRGNtAtBQUFB
+QSA8QUBBPoiZBBMWCgBBFiEEBTvJdaqKWVTRQK6y4WOf/s9/93QFAmPoxxgCGwMF
+CQPCZwAFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQ4WOf/s9/93QKRAD9
+EqOwr3BNO/9+ZcVjovdGIY2bOqkNaaCzXwK/BXHEJqUBAILvjKAAHhKIqwsO9Xj0
+cYsZCutyrm7HG5BkK4bx2pgCnF0EY+jHGBIKKwYBBAGXVQEFAQEHQD3du+VhSTvQ
+fSzYKncSaG64ywISypob2HcsnxWIcj0LAwEIBwAA/3SmrDagn6JMteDoQBEPO3kA
+nWzmaWWTGa7x71JrNOk4EMKIfgQYFgoAJhYhBAU7yXWqillU0UCusuFjn/7Pf/d0
+BQJj6McYAhsMBQkDwmcAAAoJEOFjn/7Pf/d0jpgA/0vyiJ9Ov3NJIJo3NZjDU/cO
+TLQz69WEUUAtQ1SwiGAaAP9MaVfEDY7GtSZO97Vs5prfBkYhWc3qEknTOhfiZbql
+BA==
+=PIZ4
+-----END PGP PRIVATE KEY BLOCK-----";
+
+        [TestMethod]
+        public async Task ParsePrivateKey()
+        {
+            var b = Bucket.Create.FromASCII(APrivateKey);
+
+            var r = new Radix64ArmorBucket(b);
+            using var sig = new SignatureBucket(r);
+
+            await sig.ReadKeyAsync();//.AsTask().GetAwaiter().GetResult();
+
+            Assert.IsTrue(SignatureBucketKey.TryParse(APrivateKey, out var value));
+        }
+
         string RunSshKeyGen(params string[] args)
         {
             return TestContext.RunApp("ssh-keygen", args);
         }
+
+
     }
 }

@@ -111,7 +111,7 @@ static AmpScm.Buckets.Git.GitDirectoryEntry.operator >=(AmpScm.Buckets.Git.GitDi
 static AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.ForSignature(AmpScm.Buckets.Bucket! src) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ForSignature(AmpScm.Buckets.Bucket! src) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Signatures.Radix64ArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool
-static AmpScm.Buckets.Signatures.SignatureBucketKey.TryParse(string! line, out AmpScm.Buckets.Signatures.SignatureBucketKey? value) -> bool
+static AmpScm.Buckets.Signatures.SignatureBucketKey.TryParse(string! keyText, out AmpScm.Buckets.Signatures.SignatureBucketKey? value) -> bool
 static AmpScm.Git.GitId.Zero(AmpScm.Git.GitIdType type) -> AmpScm.Git.GitId!
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.HighestSupportedFormat -> int
 static readonly AmpScm.Buckets.Git.GitDirectoryBucket.LowestSupportedFormat -> int

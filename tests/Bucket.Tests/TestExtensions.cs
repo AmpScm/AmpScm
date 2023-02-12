@@ -120,6 +120,11 @@ namespace AmpScm
 
         public static string RunApp(this TestContext _, string application, params string[] args)
         {
+            return RunAppStdIn(_, application, null, args);
+        }
+
+        public static string RunAppStdIn(this TestContext _, string application, string? stdin, params string[] args)
+        {
             FixConsoleEncoding();
             ProcessStartInfo psi = new ProcessStartInfo(application, string.Join(" ", args.Select(x => EscapeGitCommandlineArgument(x.Replace('\\', '/')))))
             {
@@ -131,6 +136,9 @@ namespace AmpScm
 
             using var p = Process.Start(psi);
             Assert.IsNotNull(p);
+
+            if (stdin != null)
+                p.StandardInput.Write(stdin);
 
             p.StandardInput.Close();
 
