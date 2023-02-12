@@ -172,8 +172,7 @@ namespace AmpScm.Buckets.Signatures
 
                                 while (!(bb = await ReadSshStringAsync(bucket).ConfigureAwait(false)).IsEof)
                                 {
-                                    if (sshKeyType == null)
-                                        sshKeyType = bb.ToASCIIString();
+                                    sshKeyType ??= bb.ToASCIIString();
 
                                     bc.Append(NetBitConverter.GetBytes(bb.Length));
                                     bc.Append(bb);
@@ -465,10 +464,9 @@ namespace AmpScm.Buckets.Signatures
                                     bigInts.Add(bi);
                                 }
 
-                                if (nrOfInts > bigInts.Count)
-                                {
-                                    throw new NotImplementedException($"Nr of ints for {keyPublicKeyType} should be {bigInts.Count}");
-                                }
+                                if (nrOfInts != bigInts.Count)
+                                    throw new BucketException($"Didn't get the {nrOfInts} big integers required for a {keyPublicKeyType} key");
+
                                 keyInts = bigInts.ToArray();
 
                                 csum.Reset();

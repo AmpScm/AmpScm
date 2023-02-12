@@ -22,7 +22,7 @@ namespace AmpScm.Git
 
         public async ValueTask ReadAsync()
         {
-            await ((IGitObject)_change).ReadAsync();
+            await ((IGitObject)_change).ReadAsync().ConfigureAwait(false);
         }
     }
 }

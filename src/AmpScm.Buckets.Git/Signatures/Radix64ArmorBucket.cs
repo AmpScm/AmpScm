@@ -11,7 +11,9 @@ namespace AmpScm.Buckets.Signatures
     public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
     {
         SState _state;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         Bucket? _base64Decode;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         int? _crc24Result;
         private bool _sshBegin;
 
