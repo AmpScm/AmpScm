@@ -255,12 +255,12 @@ namespace AmpScm.Buckets.Specialized
         /// <param name="bucket"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static async ValueTask ReadUntilEofAsync(this Bucket bucket)
+        public static async ValueTask<long> ReadUntilEofAsync(this Bucket bucket)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
+            return await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -7,10 +7,10 @@ AmpScm.Diff.DiffChunk.Original.get -> AmpScm.Diff.DiffRange
 AmpScm.Diff.DiffChunk.Original.init -> void
 AmpScm.Diff.DiffChunk.Type.get -> AmpScm.Diff.DifferenceType
 AmpScm.Diff.DiffChunk.Type.init -> void
-AmpScm.Diff.Differences
-AmpScm.Diff.Differences.HasChanges.get -> bool
-AmpScm.Diff.Differences.HasConflicts.get -> bool
-AmpScm.Diff.Differences.Similarity.get -> float
+AmpScm.Diff.DifferenceSet
+AmpScm.Diff.DifferenceSet.HasChanges.get -> bool
+AmpScm.Diff.DifferenceSet.HasConflicts.get -> bool
+AmpScm.Diff.DifferenceSet.Similarity.get -> float
 AmpScm.Diff.DifferenceType
 AmpScm.Diff.DifferenceType.Conflict = 2 -> AmpScm.Diff.DifferenceType
 AmpScm.Diff.DifferenceType.Modified = 1 -> AmpScm.Diff.DifferenceType
@@ -24,6 +24,6 @@ AmpScm.Diff.DiffRange.Length.get -> int
 AmpScm.Diff.DiffRange.Start.get -> int
 AmpScm.Diff.DiffRange.ToRange() -> System.Range
 override AmpScm.Diff.DiffRange.ToString() -> string!
-static AmpScm.Diff.Differences.Calculate<TTokenizer, TToken>(TTokenizer tokenizer, System.Collections.Generic.IEnumerable<TToken>! original, System.Collections.Generic.IEnumerable<TToken>! modified) -> AmpScm.Diff.Differences!
-static AmpScm.Diff.Differences.Calculate<TTokenizer, TToken>(TTokenizer tokenizer, System.Collections.Generic.IEnumerable<TToken>! original, System.Collections.Generic.IEnumerable<TToken>! modified, System.Collections.Generic.IEnumerable<TToken>! latest) -> AmpScm.Diff.Differences!
+static AmpScm.Diff.DifferenceSet.Calculate<TTokenizer, TToken>(TTokenizer tokenizer, System.Collections.Generic.IEnumerable<TToken>! original, System.Collections.Generic.IEnumerable<TToken>! modified) -> AmpScm.Diff.DifferenceSet!
+static AmpScm.Diff.DifferenceSet.Calculate<TTokenizer, TToken>(TTokenizer tokenizer, System.Collections.Generic.IEnumerable<TToken>! original, System.Collections.Generic.IEnumerable<TToken>! modified, System.Collections.Generic.IEnumerable<TToken>! latest) -> AmpScm.Diff.DifferenceSet!
 static AmpScm.Diff.DiffRange.implicit operator System.Range(AmpScm.Diff.DiffRange cr) -> System.Range

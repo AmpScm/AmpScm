@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Diff
 {
-    public partial class Differences
+    public partial class DifferenceSet
     {
-        public static Differences Calculate<TTokenizer, TToken>(TTokenizer tokenizer, IEnumerable<TToken> original, IEnumerable<TToken> modified)
+        public static DifferenceSet Calculate<TTokenizer, TToken>(TTokenizer tokenizer, IEnumerable<TToken> original, IEnumerable<TToken> modified)
             where TTokenizer : notnull, IEqualityComparer<TToken>
             where TToken : notnull
         {
@@ -18,7 +18,7 @@ namespace AmpScm.Diff
             var mod = modified.ToArray();
 
             if (orig.Length == 0 && mod.Length == 0)
-                return new Differences(Array.Empty<DiffChunk>());
+                return new DifferenceSet(Array.Empty<DiffChunk>());
 
             var origMod = new BitArray(orig.Length);
             var modOrig = new BitArray(mod.Length);
@@ -34,7 +34,7 @@ namespace AmpScm.Diff
             Optimize(tokenizer, orig, origMod);
             Optimize(tokenizer, mod, modOrig);
 
-            return new Differences(CreateDiffs(CreateChanges(origMod, modOrig), orig.Length, mod.Length, 0));
+            return new DifferenceSet(CreateDiffs(CreateChanges(origMod, modOrig), orig.Length, mod.Length, 0));
         }
 
         private static IEnumerable<DiffChunk> CreateChanges(BitArray origMod, BitArray modMod, BitArray? lastMod = null)
@@ -116,7 +116,7 @@ namespace AmpScm.Diff
             }
         }
 
-        public static Differences Calculate<TTokenizer, TToken>(TTokenizer tokenizer, IEnumerable<TToken> original, IEnumerable<TToken> modified, IEnumerable<TToken> latest)
+        public static DifferenceSet Calculate<TTokenizer, TToken>(TTokenizer tokenizer, IEnumerable<TToken> original, IEnumerable<TToken> modified, IEnumerable<TToken> latest)
             where TTokenizer : notnull, IEqualityComparer<TToken>
             where TToken : notnull, IComparable<TToken>
         {
@@ -126,7 +126,7 @@ namespace AmpScm.Diff
             int start;
 
             if (orig.Length == 0 && mod.Length == 0 && last.Length == 0)
-                return new Differences(Enumerable.Empty<DiffChunk>());
+                return new DifferenceSet(Enumerable.Empty<DiffChunk>());
 
             start = Math.Min(orig.Length, mod.Length);
 
@@ -220,7 +220,7 @@ namespace AmpScm.Diff
             int commonTail = 0;
 
             if (origLength == 0 && modLength == 0 && lastLength == 0)
-                return new Differences(new DiffChunk[] { new() { Type = DifferenceType.None, Original = new(0, start), Modified = new(0, start), Latest = new(0, start) } });
+                return new DifferenceSet(new DiffChunk[] { new() { Type = DifferenceType.None, Original = new(0, start), Modified = new(0, start), Latest = new(0, start) } });
 
             // Drop common tail
             while (origLength > 0 && modLength > 0 && lastLength > 0)
@@ -249,7 +249,7 @@ namespace AmpScm.Diff
             if (commonTail > 0)
                 diffs.Add(new() { Type = DifferenceType.None, Original = new(orig.Length - commonTail, orig.Length), Modified = new(mod.Length - commonTail, mod.Length), Latest = new(last.Length - commonTail, last.Length) });
 
-            return new Differences(diffs);
+            return new DifferenceSet(diffs);
         }
 
         /// <summary>
@@ -444,12 +444,12 @@ namespace AmpScm.Diff
             }
             else
             {
-                // Find the middle snakea and length of an optimal path for A and B
-                var smsrd = SMS(cmp, dataA, lowerA, upperA, dataB, lowerB, upperB, downVector, upVector);
+                // Find the middle snake and length of an optimal path for A and B
+                var (x, y) = SMS(cmp, dataA, lowerA, upperA, dataB, lowerB, upperB, downVector, upVector);
 
                 // The path is from LowerX to (x,y) and (x,y) to UpperX
-                LCS(cmp, dataA, modA, lowerA, smsrd.x, dataB, modB, lowerB, smsrd.y, downVector, upVector);
-                LCS(cmp, dataA, modA, smsrd.x, upperA, dataB, modB, smsrd.y, upperB, downVector, upVector);
+                LCS(cmp, dataA, modA, lowerA, x, dataB, modB, lowerB, y, downVector, upVector);
+                LCS(cmp, dataA, modA, x, upperA, dataB, modB, y, upperB, downVector, upVector);
             }
         }
     }

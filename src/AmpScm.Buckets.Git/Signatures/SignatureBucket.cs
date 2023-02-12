@@ -511,10 +511,9 @@ namespace AmpScm.Buckets.Signatures
                                     keyInts = keyInts.Skip(1).ToArray();
                                 }
 
-                                if (hasSecretKey)
-                                {
-                                    await bucket.ReadUntilEofAsync().ConfigureAwait(false);
-                                }
+                                var rem = bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                                if (!hasSecretKey)
+                                    throw new BucketException($"Unexpected data after public {keyPublicKeyType} key");
 
                                 _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts));
                             }

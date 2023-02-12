@@ -17,9 +17,9 @@ namespace AmpScm.Diff
         Conflict,        
     }
 
-    public sealed partial class Differences : IReadOnlyCollection<DiffChunk>
+    public sealed partial class DifferenceSet : IReadOnlyCollection<DiffChunk>
     {
-        Differences(IEnumerable<DiffChunk> range)
+        DifferenceSet(IEnumerable<DiffChunk> range)
         {
             Ranges = range;
         }
