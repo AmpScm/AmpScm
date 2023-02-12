@@ -269,21 +269,23 @@ namespace AmpScm.Buckets.Git
 
         sealed class BufferObjectBucket : GitObjectBucket, IBucketSeek, IBucketPoll
         {
-            Bucket buffer;
+#pragma warning disable CA2213 // Disposable fields should be disposed
+            readonly Bucket _buffer;
+#pragma warning restore CA2213 // Disposable fields should be disposed
             public BufferObjectBucket(GitObjectBucket inner)
                 : base(inner)
             {
-                buffer = Inner.Buffer();
+                _buffer = Inner.Buffer();
             }
 
             public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
             {
-                return buffer.ReadAsync(requested);
+                return _buffer.ReadAsync(requested);
             }
 
             public override BucketBytes Peek()
             {
-                return buffer.Peek();
+                return _buffer.Peek();
             }
 
             public override ValueTask<GitObjectType> ReadTypeAsync()
@@ -291,28 +293,28 @@ namespace AmpScm.Buckets.Git
                 return ((GitObjectBucket)Inner).ReadTypeAsync();
             }
 
-            public override long? Position => buffer.Position;
+            public override long? Position => _buffer.Position;
 
             public override ValueTask<long?> ReadRemainingBytesAsync()
             {
-                return buffer.ReadRemainingBytesAsync();
+                return _buffer.ReadRemainingBytesAsync();
             }
 
-            public override bool CanReset => buffer.CanReset;
+            public override bool CanReset => _buffer.CanReset;
 
             public override void Reset()
             {
-                buffer.Reset();
+                _buffer.Reset();
             }
 
             public override ValueTask SeekAsync(long newPosition)
             {
-                return buffer.SeekAsync(newPosition);
+                return _buffer.SeekAsync(newPosition);
             }
 
             public ValueTask<BucketBytes> PollAsync(int minRequested = 1)
             {
-                return buffer.PollAsync(minRequested);
+                return _buffer.PollAsync(minRequested);
             }
         }
     }

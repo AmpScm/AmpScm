@@ -31,7 +31,7 @@ namespace AmpScm.Buckets.Signatures
         PrintableString = 19,
         T61String = 20,
     }
-    internal class DerBucket : WrappingBucket
+    internal sealed class DerBucket : WrappingBucket
     {
         bool _eof;
         bool _reading;

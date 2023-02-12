@@ -10,7 +10,9 @@ namespace AmpScm.Buckets.Git
 {
     public sealed class GitPackObjectBucket : GitObjectBucket, IBucketPoll, IBucketSeek
     {
-        Bucket? reader;
+#pragma warning disable CA2213 // Disposable fields should be disposed // Bad diagnostic
+        Bucket? _reader;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         frame_state state;
         long delta_position;
         readonly GitIdType _idType;
@@ -36,7 +38,7 @@ namespace AmpScm.Buckets.Git
         /// </summary>
         public long? BodySize { get; private set; }
 
-        public override string Name => (reader != null) ? $"GitPackFrame[{reader.Name}]>{Inner.Name}" : base.Name;
+        public override string Name => (_reader != null) ? $"GitPackFrame[{_reader.Name}]>{Inner.Name}" : base.Name;
 
         // These types are in pack files, but not real objects
         const GitObjectType GitObjectType_DeltaOffset = (GitObjectType)6;
@@ -54,28 +56,28 @@ namespace AmpScm.Buckets.Git
         {
             try
             {
-                (reader ?? Inner)?.Dispose();
+                (_reader ?? Inner)?.Dispose();
             }
             finally
             {
-                reader = Bucket.Empty;
+                _reader = Bucket.Empty;
             }
         }
 
         public override BucketBytes Peek()
         {
-            if (reader == null || state != frame_state.body)
+            if (_reader == null || state != frame_state.body)
                 return BucketBytes.Empty;
 
-            return reader.Peek();
+            return _reader.Peek();
         }
 
         async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested /*= 1*/)
         {
-            if (reader == null || state != frame_state.body)
+            if (_reader == null || state != frame_state.body)
                 return BucketBytes.Empty;
 
-            return await reader.PollAsync(minRequested).ConfigureAwait(false);
+            return await _reader.PollAsync(minRequested).ConfigureAwait(false);
         }
 
         public override async ValueTask SeekAsync(long newPosition)
@@ -86,27 +88,27 @@ namespace AmpScm.Buckets.Git
             if (state != frame_state.body)
                 await PrepareState(frame_state.body).ConfigureAwait(false);
 
-            if (reader is IBucketSeek bs)
+            if (_reader is IBucketSeek bs)
                 await bs.SeekAsync(newPosition).ConfigureAwait(false);
             else
-                await reader!.SeekAsync(newPosition).ConfigureAwait(false);
+                await _reader!.SeekAsync(newPosition).ConfigureAwait(false);
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            if (reader == null || state != frame_state.body)
+            if (_reader == null || state != frame_state.body)
             {
                 await ReadInfoAsync().ConfigureAwait(false);
             }
 
-            return await reader!.ReadAsync(requested).ConfigureAwait(false);
+            return await _reader!.ReadAsync(requested).ConfigureAwait(false);
         }
 
         public override async ValueTask<long> ReadSkipAsync(long requested)
         {
             await ReadInfoAsync().ConfigureAwait(false);
 
-            return await reader!.ReadSkipAsync(requested).ConfigureAwait(false);
+            return await _reader!.ReadSkipAsync(requested).ConfigureAwait(false);
         }
 
         public override async ValueTask<GitObjectType> ReadTypeAsync()
@@ -114,7 +116,7 @@ namespace AmpScm.Buckets.Git
             await PrepareState(frame_state.type_done).ConfigureAwait(false);
 
             if ((_type == GitObjectType.None || _type > GitObjectType.Tag)
-                && reader is GitObjectBucket gob)
+                && _reader is GitObjectBucket gob)
             {
                 return _type = await gob.ReadTypeAsync().ConfigureAwait(false);
             }
@@ -210,7 +212,7 @@ namespace AmpScm.Buckets.Git
                     _deltaId = null; // Not used any more
                 }
 
-                reader = base_reader;
+                _reader = base_reader;
                 _fetchBucketById = null;
                 state = frame_state.open_body;
             }
@@ -229,9 +231,9 @@ namespace AmpScm.Buckets.Git
 
                 var inner = new ZLibBucket(Inner.SeekOnReset(), BucketCompressionAlgorithm.ZLib, bufferSize: bufferSize);
                 if (_deltaCount != 0)
-                    reader = new GitDeltaBucket(inner, (GitObjectBucket)reader!);
+                    _reader = new GitDeltaBucket(inner, (GitObjectBucket)_reader!);
                 else
-                    reader = inner;
+                    _reader = inner;
 
                 state = frame_state.body;
             }
@@ -270,7 +272,7 @@ namespace AmpScm.Buckets.Git
         }
 
 
-        public override long? Position => (state == frame_state.body) ? reader!.Position : 0;
+        public override long? Position => (state == frame_state.body) ? _reader!.Position : 0;
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
@@ -280,9 +282,9 @@ namespace AmpScm.Buckets.Git
             }
 
             if (_deltaCount != 0)
-                return await reader!.ReadRemainingBytesAsync().ConfigureAwait(false);
+                return await _reader!.ReadRemainingBytesAsync().ConfigureAwait(false);
             else
-                return BodySize - reader!.Position;
+                return BodySize - _reader!.Position;
         }
 
         public async ValueTask<int> ReadDeltaCountAsync()
@@ -292,7 +294,7 @@ namespace AmpScm.Buckets.Git
             if (_deltaCount >= 0)
                 return _deltaCount.Value;
 
-            if (reader is GitDeltaBucket gdb && gdb.BaseBucket is GitPackObjectBucket fb)
+            if (_reader is GitDeltaBucket gdb && gdb.BaseBucket is GitPackObjectBucket fb)
             {
                 var count = await fb.ReadDeltaCountAsync().ConfigureAwait(false) + 1;
                 _deltaCount = count;
@@ -308,9 +310,9 @@ namespace AmpScm.Buckets.Git
             if (state < frame_state.body)
                 return; // Nothing to reset
 
-            reader!.Reset();
+            _reader!.Reset();
         }
 
-        public override bool CanReset => reader?.CanReset ?? Inner.CanReset;
+        public override bool CanReset => _reader?.CanReset ?? Inner.CanReset;
     }
 }
