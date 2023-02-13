@@ -69,6 +69,7 @@ AmpScm.Buckets.Git.Objects.GitSubBucketType.Signature = 1 -> AmpScm.Buckets.Git.
 AmpScm.Buckets.Git.Objects.GitSubBucketType.SignatureSha256 = 2 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadSignatureBytesAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+AmpScm.Buckets.Signatures.PgpDecryptBucket.PgpDecryptBucket(AmpScm.Buckets.Bucket! inner, System.Func<System.ReadOnlyMemory<byte>, AmpScm.Buckets.Signatures.SignatureBucketKey?>! getKey) -> void
 AmpScm.Buckets.Signatures.Radix64ArmorBucket
 AmpScm.Buckets.Signatures.Radix64ArmorBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Signatures.Radix64ArmorBucket.Radix64ArmorBucket(AmpScm.Buckets.Bucket! inner) -> void
@@ -83,6 +84,7 @@ AmpScm.Buckets.Signatures.SignatureBucketKey
 AmpScm.Buckets.Signatures.SignatureBucketKey.Algorithm.get -> AmpScm.Buckets.Signatures.SignatureBucketAlgorithm
 AmpScm.Buckets.Signatures.SignatureBucketKey.Fingerprint.get -> System.ReadOnlyMemory<byte>
 AmpScm.Buckets.Signatures.SignatureBucketKey.FingerprintString.get -> string!
+AmpScm.Buckets.Signatures.SignatureBucketKey.HasSecret.get -> bool
 AmpScm.Buckets.Signatures.SignatureBucketKey.Values.get -> System.Collections.Generic.IReadOnlyList<System.ReadOnlyMemory<byte>>!
 AmpScm.Buckets.Signatures.SignatureBucketAlgorithm
 AmpScm.Buckets.Signatures.SignatureBucketAlgorithm.Dsa = 2 -> AmpScm.Buckets.Signatures.SignatureBucketAlgorithm

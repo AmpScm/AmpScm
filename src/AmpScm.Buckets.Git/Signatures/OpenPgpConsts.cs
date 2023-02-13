@@ -68,8 +68,15 @@ namespace AmpScm.Buckets.Signatures
         ReasonForRevocation = 29,
         Features = 30,
         SignatureTarget = 31,
+
+        // GPG specific?
         EmbeddedSignature = 32,
         IssuerFingerprint = 33,
+        PreferredAeadAlgorithms = 34,
+        AttestedCertifications = 37,
+        EntireKeyUsed = 38,
+
+        FlagCritical = 128
     }
 
     enum OpenPgpHashAlgorithm : byte
@@ -105,5 +112,36 @@ namespace AmpScm.Buckets.Signatures
         // Outside PGP range, used for ssh and openpgp specialized handling
         Ed25519 = 0x1001,
         Curve25519 = 0x1002,
+    }
+
+    enum OpenPgpCipher
+    {
+        None,
+        Idea = 1,
+        T3Des = 2,
+        Cast5 = 3,
+        Blowfish128 = 4,
+        Aes = 7,
+        Aes192 = 8,
+        Aes256 = 9,
+        TwoFish = 10,
+        Camellia128 = 11,
+        Camellia192 = 12,
+        Camellia256 = 13
+    }
+
+    enum OpenPgpCompressionType
+    {
+        None,
+        Zip = 1,
+        Zlib = 2,
+        Bzip2 = 3,
+    }
+
+    enum OpenPgpAeadAlgorithm
+    {
+        None,
+        Eax = 1,
+        Ocb = 2
     }
 }

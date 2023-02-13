@@ -608,7 +608,7 @@ namespace AmpScm.Buckets.Git
         {
             await ProcessExtensionsAsync().ConfigureAwait(false);
 
-            while (0 != await Inner.ReadSkipAsync(int.MaxValue).ConfigureAwait(false))
+            while (0 != await Inner.ReadSkipAsync(Bucket.MaxRead).ConfigureAwait(false))
             {
             }
 

@@ -126,7 +126,7 @@ namespace AmpScm.Buckets
             long skipped = 0;
             while (requested > 0)
             {
-                var v = await ReadAsync((int)Math.Min(requested, int.MaxValue)).ConfigureAwait(false);
+                var v = await ReadAsync((int)Math.Min(requested, Bucket.MaxRead)).ConfigureAwait(false);
                 if (v.Length == 0)
                     break;
 

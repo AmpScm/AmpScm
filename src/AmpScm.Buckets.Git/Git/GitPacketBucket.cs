@@ -21,7 +21,7 @@ namespace AmpScm.Buckets.Git
             {
 
             }
-            while (await ReadSkipAsync(int.MaxValue).ConfigureAwait(false) > 0)
+            while (await ReadSkipAsync(Bucket.MaxRead).ConfigureAwait(false) > 0)
             {
 
             }

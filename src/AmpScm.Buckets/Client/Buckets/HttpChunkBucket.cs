@@ -60,7 +60,7 @@ namespace AmpScm.Buckets.Client.Buckets
                     }
                     else
                     {
-                        _next = await Inner.ReadAsync(int.MaxValue).ConfigureAwait(false);
+                        _next = await Inner.ReadAsync(Bucket.MaxRead).ConfigureAwait(false);
 
                         if (_next.IsEof || _next.IsEmpty)
                         {

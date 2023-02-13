@@ -273,7 +273,7 @@ namespace AmpScm.Buckets.Git
 
                 Debug.Assert(state >= delta_state.src_copy && state <= delta_state.eof);
 
-                int rq = (int)Math.Min(requested, int.MaxValue);
+                int rq = (int)Math.Min(requested, Bucket.MaxRead);
                 int r;
                 switch (state)
                 {

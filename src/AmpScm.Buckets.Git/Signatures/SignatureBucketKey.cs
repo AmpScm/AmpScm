@@ -28,17 +28,20 @@ namespace AmpScm.Buckets.Signatures
     /// </summary>
     public sealed record class SignatureBucketKey
     {
-        internal SignatureBucketKey(ReadOnlyMemory<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values)
+        internal SignatureBucketKey(ReadOnlyMemory<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values, bool hasSecret)
         {
             Algorithm = algorithm;
             Values = values;
             Fingerprint = fingerprint;
+            HasSecret = hasSecret;
         }
 
         public ReadOnlyMemory<byte> Fingerprint { get; }
         public SignatureBucketAlgorithm Algorithm { get; }
         public IReadOnlyList<ReadOnlyMemory<byte>> Values { get; }
         public string FingerprintString => SignatureBucket.FingerprintToString(Fingerprint);
+
+        public bool HasSecret { get; }
 
         public static bool TryParse(string keyText, [NotNullWhen(true)] out SignatureBucketKey? value)
         {
@@ -66,7 +69,7 @@ namespace AmpScm.Buckets.Signatures
                 value = sig.ReadKeyAsync().AsTask().GetAwaiter().GetResult();
                 return true;
             }
-            catch(BucketException)
+            catch (BucketException)
             {
                 value = null;
                 return false;
@@ -106,7 +109,8 @@ namespace AmpScm.Buckets.Signatures
                         {
                             vals[2],
                             vals[1],
-                        }
+                        },
+                        false
                     );
                     return true;
                 case "ssh-dss":
@@ -117,7 +121,8 @@ namespace AmpScm.Buckets.Signatures
                             vals[2],
                             vals[3],
                             vals[4],
-                        }
+                        },
+                        false
                     );
                     return true;
                 case "ssh-ed25519":
@@ -125,14 +130,15 @@ namespace AmpScm.Buckets.Signatures
                         new[]
                         {
                             vals[1],
-                        });
+                        },
+                        false);
                     return true;
                 case "ecdsa-sha2-nistp256":
                 case "ecdsa-sha2-nistp384":
                 case "ecdsa-sha2-nistp521":
                     {
                         var signature = SignatureBucket.GetEcdsaValues(vals.Skip(1));
-                        value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Ecdsa, signature);
+                        value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Ecdsa, signature, false);
                         return true;
                     }
                 default:
