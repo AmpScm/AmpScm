@@ -114,7 +114,7 @@ namespace AmpScm.Buckets.Signatures
         Curve25519 = 0x1002,
     }
 
-    enum OpenPgpCipher
+    enum OpenPgpSymmetricAlgorithm
     {
         None,
         Idea = 1,

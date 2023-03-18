@@ -9,7 +9,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal class WaitForDataBucket : ProxyBucket<WaitForDataBucket>, IBucketAggregation, IBucketWriter
+    internal sealed class WaitForDataBucket : ProxyBucket<WaitForDataBucket>, IBucketAggregation, IBucketWriter
     {
         bool _waitingForMore;
         bool _readEof;

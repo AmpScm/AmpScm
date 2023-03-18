@@ -7,7 +7,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal class TextNormalizeBucket : WrappingBucket, IBucketPoll
+    internal sealed class TextNormalizeBucket : WrappingBucket, IBucketPoll
     {
         Encoding _default;
         State _state;

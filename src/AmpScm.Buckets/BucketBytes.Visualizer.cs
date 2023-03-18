@@ -22,27 +22,36 @@ namespace AmpScm.Buckets
 
 
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-            public KeyValuePair<int, ByteDump>[] Items => Enumerable.Range(0, (Bytes.Length + 16 - 1) / 16).Select(
-                    (x, n) => new KeyValuePair<int, ByteDump>(x*16, new ByteDump(Bytes.Slice(n * 16, Math.Min(16, Bytes.Length - n * 16))))).ToArray();
+            public ByteDump[] Items => Enumerable.Range(0, (Bytes.Length + 16 - 1) / 16).Select(
+                    (x, n) => new ByteDump(Bytes.Slice(n * 16, Math.Min(16, Bytes.Length - n * 16)), n*16)).ToArray();
 
-            [DebuggerDisplay($"{{{nameof(DisplayValue)},nq}}")]
+            [DebuggerDisplay($"{{{nameof(DisplayValue)},nq}}", Name = $"{{{nameof(DisplayKey)},nq}}")]
             public sealed class ByteDump
             {
-                ReadOnlyMemory<byte> _bytes;
+                [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+                readonly uint _offset;
+                [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+                readonly ReadOnlyMemory<byte> _bytes;
 
-                public ByteDump(ReadOnlyMemory<byte> bytes)
+                public ByteDump(ReadOnlyMemory<byte> bytes, int offset)
                 {
+                    _offset = (uint)offset;
                     _bytes = bytes;
                 }
 
-                public string DisplayValue
+                [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+                public string DisplayKey
                 {
                     get
                     {
                         StringBuilder sb = new StringBuilder(100);
 
+                        sb.Append(_offset.ToString("X8", CultureInfo.InvariantCulture));
+                        sb.Append(" -  ");
+
+
                         var span = _bytes.Span;
-                        for(int i = 0; i < 16; i++)
+                        for (int i = 0; i < 16; i++)
                         {
                             if (i < _bytes.Length)
                                 sb.Append(span[i].ToString("X2", CultureInfo.InvariantCulture));
@@ -52,8 +61,21 @@ namespace AmpScm.Buckets
                             sb.Append(' ');
                         }
 
-                        sb.Append("\t\"");
-                        for(int i = 0; i < _bytes.Length; i++)
+                        return sb.ToString();
+                    }
+                }
+
+                [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+                public string DisplayValue
+                {
+                    get
+                    {
+                        StringBuilder sb = new StringBuilder(100);
+
+                        sb.Append(_offset.ToString("X8", CultureInfo.InvariantCulture));
+                        sb.Append("   \"");
+                        var span = _bytes.Span;
+                        for (int i = 0; i < _bytes.Length; i++)
                         {
                             char c = (char)span[i];
 
@@ -65,6 +87,7 @@ namespace AmpScm.Buckets
                                 sb.Append(c);
                         }
                         sb.Append('\"');
+
                         return sb.ToString();
                     }
                 }

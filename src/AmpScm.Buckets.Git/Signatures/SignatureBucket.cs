@@ -27,6 +27,7 @@ namespace AmpScm.Buckets.Signatures
         private ReadOnlyMemory<byte>[]? _signatureInts;
         readonly List<SignatureBucketKey> _keys = new();
         byte[]? _signKeyFingerprint;
+        private string? _userId;
         readonly Bucket _outer;
 
         new OpenPgpContainer Inner => (OpenPgpContainer)base.Inner;
@@ -103,7 +104,7 @@ namespace AmpScm.Buckets.Signatures
                                 }
 
                                 _signKeyFingerprint ??= keyFingerprint;
-                                _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(_signaturePublicKeyType), keyInts, false));
+                                _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(_signaturePublicKeyType), keyInts, _userId));
 
                                 ByteCollector signPrefix = new(512);
                                 signPrefix.Append(new byte[] { (byte)'S', (byte)'S', (byte)'H', (byte)'S', (byte)'I', (byte)'G' });
@@ -569,7 +570,7 @@ namespace AmpScm.Buckets.Signatures
                                     keyInts = keyInts.Skip(1).ToArray();
                                 }
 
-                                _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts, hasSecretKey));
+                                _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts, _userId, hasSecretKey));
                             }
                             break;
                         case OpenPgpTagType.DerValue:
@@ -607,7 +608,7 @@ namespace AmpScm.Buckets.Signatures
 
                                     var keyInts = vals.ToArray();
 
-                                    _keys.Add(new SignatureBucketKey(CreateSshFingerprint(SignatureBucketAlgorithm.Rsa, keyInts), SignatureBucketAlgorithm.Rsa, keyInts, false));
+                                    _keys.Add(new SignatureBucketKey(CreateSshFingerprint(SignatureBucketAlgorithm.Rsa, keyInts), SignatureBucketAlgorithm.Rsa, keyInts));
                                 }
                                 else if (bb.IsEmpty)
                                 {
@@ -654,13 +655,18 @@ namespace AmpScm.Buckets.Signatures
                                     else
                                         keyInts = vals.ToArray();
 
-                                    _keys.Add(new SignatureBucketKey(CreateSshFingerprint(sba, keyInts), sba, keyInts, false));
+                                    _keys.Add(new SignatureBucketKey(CreateSshFingerprint(sba, keyInts), sba, keyInts));
                                 }
                                 else
                                     await der.ReadUntilEofAsync().ConfigureAwait(false);
                             }
                             break;
                         case OpenPgpTagType.UserID:
+                            _userId = (await bucket.ReadExactlyAsync(MaxRead).ConfigureAwait(false)).ToUTF8String();
+
+                            if (_keys.Count > 1)
+                                _keys[0] = _keys[0].WithSubKeys(_keys[0].SubKeys, _userId);
+                            break;
                         case OpenPgpTagType.Signature:
                             await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                             break;
@@ -784,7 +790,7 @@ namespace AmpScm.Buckets.Signatures
             if (_keys.Count == 1)
                 return _keys[0];
 
-            return _keys[0].WithSubKeys(_keys.Skip(1));
+            return _keys[0].WithSubKeys(_keys.Skip(1), _userId);
         }
 
         static SignatureBucketAlgorithm GetKeyAlgo(OpenPgpPublicKeyType keyPublicKeyType)
@@ -899,10 +905,10 @@ namespace AmpScm.Buckets.Signatures
                         {
                             dsa.ImportParameters(new DSAParameters()
                             {
-                                P = MakeUnsignedArray(keyValues[0], align4: true),
-                                Q = MakeUnsignedArray(keyValues[1], align4: true),
-                                G = MakeUnsignedArray(keyValues[2], align4: true),
-                                Y = MakeUnsignedArray(keyValues[3], align4: true)
+                                P = MakeUnsignedArray(keyValues[0]),
+                                Q = MakeUnsignedArray(keyValues[1]),
+                                G = MakeUnsignedArray(keyValues[2]),
+                                Y = MakeUnsignedArray(keyValues[3])
                             });
                         }
                         catch (ArgumentException ex)
@@ -965,25 +971,19 @@ namespace AmpScm.Buckets.Signatures
             }
         }
 
-        static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory, bool align4)
+        internal static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory)
         {
-            if (align4)
-            {
-                int b4 = (readOnlyMemory.Length & 3);
-                if (b4 == 3)
-                    return new byte[] { 0 }.Concat(readOnlyMemory.ToArray()).ToArray();
-                else if (b4 == 0)
-                    return readOnlyMemory.ToArray();
-                else if (b4 == 2) // Very unlikely edge case
-                    return new byte[] { 0, 0 }.Concat(readOnlyMemory.ToArray()).ToArray();
-            }
-            return MakeUnsignedArray(readOnlyMemory);
-        }
+            int n = readOnlyMemory.Length & 3;
 
-        static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory)
-        {
-            if (readOnlyMemory.Span[0] == 0 && (readOnlyMemory.Length & 1) == 1)
+            if (n == 1 && readOnlyMemory.Span[0] == 0 && (readOnlyMemory.Length & 1) == 1)
                 return readOnlyMemory.Slice(1).ToArray();
+            else if (n == 3)
+            {
+                var nw = new byte[readOnlyMemory.Length + 1];
+
+                readOnlyMemory.CopyTo(new Memory<byte>(nw, 1, readOnlyMemory.Length));
+                return nw;
+            }
             else
                 return readOnlyMemory.ToArray();
         }

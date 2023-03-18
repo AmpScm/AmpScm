@@ -32,19 +32,20 @@ namespace AmpScm.Buckets.Signatures
     {
         private readonly IEnumerable<SignatureBucketKey>? _subKeys;
 
-        internal SignatureBucketKey(ReadOnlyMemory<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values, bool hasSecret, IEnumerable<SignatureBucketKey>? subKeys = null)
+        internal SignatureBucketKey(ReadOnlyMemory<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values, string? userID = null, bool hasSecret = false, IEnumerable<SignatureBucketKey>? subKeys = null)
         {
             Algorithm = algorithm;
             Values = values;
             Fingerprint = fingerprint;
+            UserID = userID;
             HasSecret = hasSecret;
             _subKeys = subKeys;
         }
 
         // Helper for easy constructing
-        internal SignatureBucketKey WithSubKeys(IEnumerable<SignatureBucketKey> enumerable)
+        internal SignatureBucketKey WithSubKeys(IEnumerable<SignatureBucketKey> enumerable, string userID)
         {
-            return new SignatureBucketKey(Fingerprint, Algorithm, Values, HasSecret, enumerable);
+            return new SignatureBucketKey(Fingerprint, Algorithm, Values, userID, HasSecret, enumerable);
         }
 
         public ReadOnlyMemory<byte> Fingerprint { get; }
@@ -53,6 +54,8 @@ namespace AmpScm.Buckets.Signatures
         public string FingerprintString => SignatureBucket.FingerprintToString(Fingerprint);
 
         public bool HasSecret { get; }
+
+        public string? UserID { get; }
 
         public IEnumerable<SignatureBucketKey> SubKeys => _subKeys ?? Enumerable.Empty<SignatureBucketKey>();
 
@@ -72,7 +75,7 @@ namespace AmpScm.Buckets.Signatures
                 return this;
             }
 
-            return _subKeys?.Select(x => x.MatchFingerprint(fingerprint)).FirstOrDefault(x=> x is { });
+            return _subKeys?.Select(x => x.MatchFingerprint(fingerprint)).FirstOrDefault(x => x is { });
         }
 
         public static bool TryParse(string keyText, [NotNullWhen(true)] out SignatureBucketKey? value)
@@ -141,8 +144,7 @@ namespace AmpScm.Buckets.Signatures
                         {
                             vals[2],
                             vals[1],
-                        },
-                        false
+                        }
                     );
                     return true;
                 case "ssh-dss":
@@ -153,8 +155,7 @@ namespace AmpScm.Buckets.Signatures
                             vals[2],
                             vals[3],
                             vals[4],
-                        },
-                        false
+                        }
                     );
                     return true;
                 case "ssh-ed25519":
@@ -162,15 +163,14 @@ namespace AmpScm.Buckets.Signatures
                         new[]
                         {
                             vals[1],
-                        },
-                        false);
+                        });
                     return true;
                 case "ecdsa-sha2-nistp256":
                 case "ecdsa-sha2-nistp384":
                 case "ecdsa-sha2-nistp521":
                     {
                         var signature = SignatureBucket.GetEcdsaValues(vals.Skip(1));
-                        value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Ecdsa, signature, false);
+                        value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Ecdsa, signature);
                         return true;
                     }
                 default:
@@ -184,6 +184,12 @@ namespace AmpScm.Buckets.Signatures
             get
             {
                 StringBuilder sb = new StringBuilder(100);
+
+                if (UserID is { })
+                {
+                    sb.Append(UserID);
+                    sb.Append(" - ");
+                }
 
                 sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", Algorithm);
 

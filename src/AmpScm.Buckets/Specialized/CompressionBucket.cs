@@ -125,7 +125,7 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        private class Writer : IBucketWriter
+        private sealed class Writer : IBucketWriter
         {
             CompressionBucket Bucket { get; }
 

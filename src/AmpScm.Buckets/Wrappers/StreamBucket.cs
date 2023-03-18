@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Wrappers
 {
-    internal class StreamBucket : Bucket
+    internal sealed class StreamBucket : Bucket
     {
         readonly Stream _stream;
         readonly byte[] _buffer;

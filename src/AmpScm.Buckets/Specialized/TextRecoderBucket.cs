@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal class TextRecoderBucket : WrappingBucket
+    internal sealed class TextRecoderBucket : WrappingBucket
     {
         readonly char[] _charBuffer;
         readonly byte[] _utfBuffer;
