@@ -466,19 +466,18 @@ namespace AmpScm.Buckets.Signatures
                                 if (nrOfInts != bigInts.Count)
                                     throw new BucketException($"Didn't get the {nrOfInts} big integers required for a {keyPublicKeyType} key");
 
-                                keyInts = bigInts.ToArray();
-
+                                long take = csum.Position ?? len;
                                 csum.Reset();
 
                                 if (version == 4)
                                 {
-                                    await (new byte[] { 0x99 }.AsBucket() + NetBitConverter.GetBytes((ushort)len).AsBucket() + csum)
+                                    await (new byte[] { 0x99 }.AsBucket() + NetBitConverter.GetBytes((ushort)take).AsBucket() + csum.Take(take))
                                         .SHA1(x => keyFingerprint = x)
                                         .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                                 }
                                 else if (version == 5)
                                 {
-                                    await (new byte[] { 0x9A }.AsBucket() + NetBitConverter.GetBytes(len).AsBucket() + csum)
+                                    await (new byte[] { 0x9A }.AsBucket() + NetBitConverter.GetBytes((int)take).AsBucket() + csum.Take(take))
                                         .SHA256(x => keyFingerprint = x)
                                         .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                                 }
@@ -491,6 +490,68 @@ namespace AmpScm.Buckets.Signatures
 
                                 keyFingerprint = new byte[] { version }.Concat(keyFingerprint!).ToArray();
 
+                                if (hasSecretKey)
+                                {
+                                    var sku = await bucket.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
+
+                                    if (sku == 0)
+                                    {
+                                        // Not encrypted
+                                    }
+                                    else if (sku is 254 or 255)
+                                    {
+                                        var symetricKeyAlgorithm = await bucket.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(bucket);
+
+                                        throw new NotImplementedException(); // More specifics based on the algorithm
+                                    }
+                                    else
+                                    {
+                                        //var akg -sju;
+                                        throw new InvalidOperationException(); // More specifics based on the algorithm
+                                    }
+
+
+                                    switch (keyPublicKeyType)
+                                    {
+                                        case OpenPgpPublicKeyType.Rsa:
+                                            nrOfInts += 4;
+                                            break;
+                                        case OpenPgpPublicKeyType.Dsa:
+                                            nrOfInts += 1;
+                                            break;
+                                        case OpenPgpPublicKeyType.Elgamal:
+                                            nrOfInts += 1;
+                                            break;
+                                        default:
+                                            if (version >= 4)
+                                                nrOfInts += 1; // Encoded in one int
+                                            else
+                                                throw new NotImplementedException($"Unexpected private key key type {keyPublicKeyType}");
+                                            break;
+                                    }
+
+                                    while (bigInts.Count < nrOfInts && await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
+                                    {
+                                        bigInts.Add(bi);
+                                    }
+
+
+                                    if (nrOfInts != bigInts.Count)
+                                        throw new BucketException($"Didn't get the {nrOfInts} big integers required for a {keyPublicKeyType} key");
+
+
+                                    if (sku is 0 or 255)
+                                    {
+                                        await bucket.ReadNetworkUInt16Async().ConfigureAwait(false);
+                                    }
+                                }
+
+                                var rem = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+
+                                if (rem > 0)
+                                    throw new BucketException($"Unexpected data after {keyPublicKeyType} key");
+
+                                keyInts = bigInts.ToArray();
                                 if (keyPublicKeyType == OpenPgpPublicKeyType.ECDSA)
                                 {
                                     keyInts = GetEcdsaValues(keyInts, true);
@@ -507,10 +568,6 @@ namespace AmpScm.Buckets.Signatures
                                     keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
                                     keyInts = keyInts.Skip(1).ToArray();
                                 }
-
-                                var rem = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
-                                if (rem > 0 && !hasSecretKey)
-                                    throw new BucketException($"Unexpected data after public {keyPublicKeyType} key");
 
                                 _keys.Add(new SignatureBucketKey(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts, hasSecretKey));
                             }
@@ -697,7 +754,7 @@ namespace AmpScm.Buckets.Signatures
             return signaturePublicKeyType == OpenPgpPublicKeyType.ECDSA && index == 0;
         }
 
-        static async ValueTask<ReadOnlyMemory<byte>?> ReadPgpMultiPrecisionInteger(Bucket sourceData)
+        internal static async ValueTask<ReadOnlyMemory<byte>?> ReadPgpMultiPrecisionInteger(Bucket sourceData)
         {
             var bb = await sourceData.ReadExactlyAsync(2).ConfigureAwait(false);
             if (bb.IsEof)
@@ -724,7 +781,10 @@ namespace AmpScm.Buckets.Signatures
         public async ValueTask<SignatureBucketKey> ReadKeyAsync()
         {
             await ReadAsync().ConfigureAwait(false);
-            return _keys.First();
+            if (_keys.Count == 1)
+                return _keys[0];
+
+            return _keys[0].WithSubKeys(_keys.Skip(1));
         }
 
         static SignatureBucketAlgorithm GetKeyAlgo(OpenPgpPublicKeyType keyPublicKeyType)
@@ -1075,9 +1135,9 @@ namespace AmpScm.Buckets.Signatures
             return "";
         }
 
-        private static ValueTask<uint?> ReadLengthAsync(Bucket bucket)
+        private static async ValueTask<uint?> ReadLengthAsync(Bucket bucket)
         {
-            return OpenPgpContainer.ReadLengthAsync(bucket);
+            return (await OpenPgpContainer.ReadLengthAsync(bucket).ConfigureAwait(false)).Length;
         }
     }
 }

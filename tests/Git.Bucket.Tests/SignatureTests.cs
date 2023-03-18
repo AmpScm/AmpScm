@@ -984,6 +984,16 @@ BA==
 =PIZ4
 -----END PGP PRIVATE KEY BLOCK-----";
 
+        const string AMessage =
+@"-----BEGIN PGP MESSAGE-----
+
+hF4DxaX2D8f75n0SAQdACeR83BHHiw1jGFVw4TcPcoHqOyZdl/9AHvY8TlkIf38w
+j7ym7GaQCbYP17fNlYSzYPsKJBF6EICRIs5p/GkleM5nCGAHlOAYaWnH594fkCC1
+1FoBCQIQ+1JDVMpNBbPXGDQrt3zEC3I7FGj2+tDrp0Bq2+kKGLfdHXxtfDsflXGq
+sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
+=Y8Z7
+-----END PGP MESSAGE-----";
+
         [TestMethod]
         public async Task ParsePrivateKey()
         {
@@ -992,16 +1002,26 @@ BA==
             var r = new Radix64ArmorBucket(b);
             using var sig = new SignatureBucket(r);
 
-            await sig.ReadKeyAsync();//.AsTask().GetAwaiter().GetResult();
+            await sig.ReadKeyAsync();
 
             Assert.IsTrue(SignatureBucketKey.TryParse(APrivateKey, out var value));
+            Assert.IsTrue(value.HasSecret);
+
+            var rb = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(AMessage).AsBucket());
+
+            var dc = new PgpDecryptBucket(rb, _ => value);
+
+
+            //var bb = await dc.ReadExactlyAsync(1024);
+            //
+            //Assert.IsNotNull(bb);
+            //Assert.AreEqual(21, bb.Length);
         }
 
         string RunSshKeyGen(params string[] args)
         {
             return TestContext.RunApp("ssh-keygen", args);
         }
-
 
     }
 }

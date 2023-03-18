@@ -125,9 +125,15 @@ namespace AmpScm.Buckets.Signatures
 
                 if (!oldFormat)
                 {
-                    var len = await ReadLengthAsync(inner).ConfigureAwait(false) ?? throw new BucketEofException(Inner);
+                    var r = await ReadLengthAsync(inner).ConfigureAwait(false);
 
-                    remaining = len;
+                    if (r.PartialResult)
+                    {
+                        _reading = true;
+                        return (new OpenPgpPartialBodyBucket(inner.NoDispose(), r.Length!.Value).AtEof(() => _reading = false), tag);
+                    }
+
+                    remaining = r.Length ?? throw new BucketEofException(Inner);
                 }
                 else if (remaining == 3)
                 {
@@ -150,28 +156,32 @@ namespace AmpScm.Buckets.Signatures
             }
         }
 
-        public static async ValueTask<uint?> ReadLengthAsync(Bucket bucket)
+        internal static async ValueTask<(uint? Length, bool PartialResult)> ReadLengthAsync(Bucket bucket)
         {
             var b = await bucket.ReadByteAsync().ConfigureAwait(false);
 
             if (!b.HasValue)
-                return null;
+                return (null, false);
 
             if (b < 192)
-                return b;
+                return (b, false);
 
             else if (b < 224)
             {
                 var b2 = await bucket.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(bucket);
 
-                return (uint)((b - 192 << 8) + b2 + 192);
+                return ((uint)((b - 192 << 8) + b2 + 192), false);
             }
             else if (b == 255)
             {
-                return await bucket.ReadNetworkUInt32Async().ConfigureAwait(false);
+                return (await bucket.ReadNetworkUInt32Async().ConfigureAwait(false), false);
             }
             else
-                throw new NotImplementedException("Partial lengths");
+            {
+                var partialBodyLen = 1u << (b & 0x1F);
+
+                return (partialBodyLen, true);
+            }
         }
     }
 }

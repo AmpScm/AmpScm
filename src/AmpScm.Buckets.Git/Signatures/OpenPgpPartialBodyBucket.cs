@@ -1,0 +1,51 @@
+﻿using System;
+using System.Threading.Tasks;
+using AmpScm.Buckets.Specialized;
+
+namespace AmpScm.Buckets.Signatures
+{
+    internal class OpenPgpPartialBodyBucket : WrappingBucket
+    {
+        private int _remaining;
+        private bool _final;
+
+        public OpenPgpPartialBodyBucket(Bucket inner, uint firstLength)
+            : base(inner)
+        {
+            _remaining = (int)firstLength;
+        }
+
+        public override BucketBytes Peek()
+        {
+            var b = Inner.Peek();
+
+            if (b.Length > _remaining)
+            {
+                return b.Slice(0, _remaining);
+            }
+
+            return b;
+        }
+
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        {
+            if (_remaining == 0 && !_final)
+            {
+                var (len, partial) = await OpenPgpContainer.ReadLengthAsync(Inner).ConfigureAwait(false);
+
+                _final = !partial;
+                _remaining = (int)len!.Value;
+            }
+
+            if (_remaining > 0)
+            {
+                var bb = await Inner.ReadAsync(Math.Min(requested, _remaining)).ConfigureAwait(false);
+
+                _remaining -= bb.Length;
+                return bb;
+            }
+            else
+                return BucketBytes.Eof;
+        }
+    }
+}

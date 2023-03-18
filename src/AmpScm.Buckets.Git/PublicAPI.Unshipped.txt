@@ -85,6 +85,7 @@ AmpScm.Buckets.Signatures.SignatureBucketKey.Algorithm.get -> AmpScm.Buckets.Sig
 AmpScm.Buckets.Signatures.SignatureBucketKey.Fingerprint.get -> System.ReadOnlyMemory<byte>
 AmpScm.Buckets.Signatures.SignatureBucketKey.FingerprintString.get -> string!
 AmpScm.Buckets.Signatures.SignatureBucketKey.HasSecret.get -> bool
+AmpScm.Buckets.Signatures.SignatureBucketKey.MatchesFingerprint(System.ReadOnlyMemory<byte> fingerprint) -> bool
 AmpScm.Buckets.Signatures.SignatureBucketKey.Values.get -> System.Collections.Generic.IReadOnlyList<System.ReadOnlyMemory<byte>>!
 AmpScm.Buckets.Signatures.SignatureBucketAlgorithm
 AmpScm.Buckets.Signatures.SignatureBucketAlgorithm.Dsa = 2 -> AmpScm.Buckets.Signatures.SignatureBucketAlgorithm

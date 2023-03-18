@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -26,14 +27,24 @@ namespace AmpScm.Buckets.Signatures
     /// <summary>
     /// Public key for usage with <see cref="SignatureBucket"/>
     /// </summary>
+    [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
     public sealed record class SignatureBucketKey
     {
-        internal SignatureBucketKey(ReadOnlyMemory<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values, bool hasSecret)
+        private readonly IEnumerable<SignatureBucketKey>? _subKeys;
+
+        internal SignatureBucketKey(ReadOnlyMemory<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values, bool hasSecret, IEnumerable<SignatureBucketKey>? subKeys = null)
         {
             Algorithm = algorithm;
             Values = values;
             Fingerprint = fingerprint;
             HasSecret = hasSecret;
+            _subKeys = subKeys;
+        }
+
+        // Helper for easy constructing
+        internal SignatureBucketKey WithSubKeys(IEnumerable<SignatureBucketKey> enumerable)
+        {
+            return new SignatureBucketKey(Fingerprint, Algorithm, Values, HasSecret, enumerable);
         }
 
         public ReadOnlyMemory<byte> Fingerprint { get; }
@@ -42,6 +53,27 @@ namespace AmpScm.Buckets.Signatures
         public string FingerprintString => SignatureBucket.FingerprintToString(Fingerprint);
 
         public bool HasSecret { get; }
+
+        public IEnumerable<SignatureBucketKey> SubKeys => _subKeys ?? Enumerable.Empty<SignatureBucketKey>();
+
+
+        /// <summary>
+        /// Returns a boolean indicating whether this key applies to the specified fingerprint (directly, or indirectly via subkeys)
+        /// </summary>
+        /// <param name="fingerprint"></param>
+        /// <returns></returns>
+        public SignatureBucketKey? MatchFingerprint(ReadOnlyMemory<byte> fingerprint)
+        {
+            int len = Math.Min(fingerprint.Length, fingerprint.Length);
+
+            if (fingerprint.Span.Slice(fingerprint.Length - len)
+                .SequenceEqual(Fingerprint.Span.Slice(Fingerprint.Length - len)))
+            {
+                return this;
+            }
+
+            return _subKeys?.Select(x => x.MatchFingerprint(fingerprint)).FirstOrDefault(x=> x is { });
+        }
 
         public static bool TryParse(string keyText, [NotNullWhen(true)] out SignatureBucketKey? value)
         {
@@ -143,6 +175,33 @@ namespace AmpScm.Buckets.Signatures
                     }
                 default:
                     throw new NotImplementedException($"SSH public key format {items[0]} not implemented yet");
+            }
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        string DebuggerDisplay
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder(100);
+
+                sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", Algorithm);
+
+                var span = Fingerprint.Span;
+                for (int i = 0; i < 16; i++)
+                {
+                    if (i < span.Length)
+                        sb.Append(span[i].ToString("X2", CultureInfo.InvariantCulture));
+                    else
+                        sb.Append("  ");
+
+                    sb.Append(' ');
+                }
+
+                if (HasSecret)
+                    sb.Append(" - Contains Private Key");
+
+                return sb.ToString();
             }
         }
     }
