@@ -225,10 +225,10 @@ namespace AmpScm.Buckets
 
         public static Bucket AsBucket(this IEnumerable<byte> bytes)
         {
+#pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
             if (bytes is null || (bytes as byte[])?.Length == 0 || !bytes.Any())
                 return Bucket.Empty;
 
-#pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
             return new MemoryBucket(bytes as byte[] ?? bytes.ToArray());
 #pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
         }
@@ -287,22 +287,27 @@ namespace AmpScm.Buckets
 
         public static Bucket AsBucket(this IEnumerable<Bucket> buckets)
         {
+#pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
             if (buckets is null || !buckets.Any())
                 return Bucket.Empty;
 
             return buckets.ToArray();
+#pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
         }
 
         public static Bucket AsBucket(this IEnumerable<ReadOnlyMemory<byte>> buffers)
         {
+#pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
             if (buffers is null || !buffers.Any())
                 return Bucket.Empty;
 
             return buffers.Select(x => x.AsBucket()).ToArray();
+#pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
         }
 
         public static Bucket AsBucket(this IEnumerable<ReadOnlyMemory<byte>> buffers, bool keepOpen)
         {
+#pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
             if (buffers is null || !buffers.Any())
                 return Bucket.Empty;
 
@@ -314,10 +319,12 @@ namespace AmpScm.Buckets
                 return new AggregateBucket.SimpleAggregate(keepOpen, arr);
             else
                 return arr;
+#pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
         }
 
         public static Bucket AsBucket(this IEnumerable<Bucket> buckets, bool keepOpen)
         {
+#pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
             if (buckets is null || !buckets.Any())
                 return Bucket.Empty;
             else if (!keepOpen)
@@ -333,6 +340,7 @@ namespace AmpScm.Buckets
                 return arr;
             else
                 return new AggregateBucket.SimpleAggregate(keepOpen, arr);
+#pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
         }
 
         public static Bucket Decompress(this Bucket bucket, BucketCompressionAlgorithm algorithm)

@@ -34,17 +34,17 @@ namespace AmpScm.Buckets.Specialized
             if (!bb.IsEof || _readEof)
                 return bb;
 
-            await BufferSomeMore().ConfigureAwait(false);
+            await BufferSomeMore(requested).ConfigureAwait(false);
 
             return await readBucket.ReadAsync(requested).ConfigureAwait(false);
         }
 
-        private async ValueTask BufferSomeMore()
+        private async ValueTask BufferSomeMore(int requested)
         {
             if (_readEof)
                 return;
 
-            var bb = await Inner.ReadAsync().ConfigureAwait(false);
+            var bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
 
             if (!bb.IsEmpty)
             {
@@ -73,7 +73,7 @@ namespace AmpScm.Buckets.Specialized
         {
             if (!_readEof && Position == _buffered)
             {
-                await BufferSomeMore().ConfigureAwait(false);
+                await BufferSomeMore(minRequested).ConfigureAwait(false);
             }
 
             return await readBucket.PollAsync(minRequested).ConfigureAwait(false);
@@ -102,7 +102,7 @@ namespace AmpScm.Buckets.Specialized
                 {
                     do
                     {
-                        await BufferSomeMore().ConfigureAwait(false);
+                        await BufferSomeMore(Bucket.MaxRead).ConfigureAwait(false);
                     }
                     while (!_size.HasValue && !_readEof);
 
@@ -126,7 +126,7 @@ namespace AmpScm.Buckets.Specialized
         {
             while(newPosition > _buffered && !_readEof)
             {
-                await BufferSomeMore().ConfigureAwait(false);
+                await BufferSomeMore((int)(newPosition - _buffered)).ConfigureAwait(false);
             }
 
             await readBucket.SeekAsync(newPosition).ConfigureAwait(false);

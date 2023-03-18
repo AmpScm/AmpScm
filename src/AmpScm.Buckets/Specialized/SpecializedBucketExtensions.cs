@@ -425,6 +425,30 @@ namespace AmpScm.Buckets.Specialized
         }
 
         /// <summary>
+        /// Reads a whole integer using <see cref="BinaryPrimitives.ReadInt16BigEndian"/>
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="BucketException">Unexpected EOF</exception>
+        public static async ValueTask<short> ReadNetworkInt16Async(this Bucket bucket)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            var bb = await bucket.ReadExactlyAsync(sizeof(int)).ConfigureAwait(false);
+
+            if (bb.Length != sizeof(short))
+            {
+                if (bb.IsEof)
+                    throw new BucketEofException(bucket);
+                else
+                    throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
+            }
+
+            return BinaryPrimitives.ReadInt16BigEndian(bb.Span);
+        }
+
+        /// <summary>
         /// Reads a whole integer using <see cref="BinaryPrimitives.ReadInt32BigEndian"/>
         /// </summary>
         /// <param name="bucket"></param>

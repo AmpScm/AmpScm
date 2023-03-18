@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets
 {
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
     public readonly partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
     {
         public ReadOnlyMemory<byte> Memory { get; }
