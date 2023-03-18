@@ -225,10 +225,12 @@ namespace AmpScm.Buckets
 
         public static Bucket AsBucket(this IEnumerable<byte> bytes)
         {
-            if (bytes is null || !bytes.Any())
+            if (bytes is null || (bytes as byte[])?.Length == 0 || !bytes.Any())
                 return Bucket.Empty;
 
+#pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
             return new MemoryBucket(bytes as byte[] ?? bytes.ToArray());
+#pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
         }
 
         public static Bucket AsBucket(this byte[] bytes, bool copy)

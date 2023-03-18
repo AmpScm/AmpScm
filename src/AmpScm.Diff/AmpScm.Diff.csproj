@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-    <TargetFrameworks>net6.0;net47;netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes'">$(TargetFrameworks);net7.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net47;net7.0</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes'">$(TargetFrameworks);net8.0</TargetFrameworks>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <SignAssembly>True</SignAssembly>
