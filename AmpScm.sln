@@ -39,9 +39,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diff.Tests", "tests\Diff.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Git.Bucket.Tests", "tests\Git.Bucket.Tests\Git.Bucket.Tests.csproj", "{79E01CAD-2D2A-4F8F-815B-4BA785B21522}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmpScm.Buckets.Subversion", "src\AmpScm.Buckets.Subversion\AmpScm.Buckets.Subversion.csproj", "{5ADF034D-CA66-400C-811C-81A364BA0998}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmpScm.Buckets.Subversion", "src\AmpScm.Buckets.Subversion\AmpScm.Buckets.Subversion.csproj", "{5ADF034D-CA66-400C-811C-81A364BA0998}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Svn.Bucket.Tests", "tests\Svn.Bucket.Tests\Svn.Bucket.Tests.csproj", "{01A15A7A-5661-49F6-99CA-6E241248C8F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Svn.Bucket.Tests", "tests\Svn.Bucket.Tests\Svn.Bucket.Tests.csproj", "{01A15A7A-5661-49F6-99CA-6E241248C8F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmpScm.Buckets.Security", "src\AmpScm.Buckets.Security\AmpScm.Buckets.Security.csproj", "{4A432E0A-AB75-4C22-9E16-A257154AEB38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +103,10 @@ Global
 		{01A15A7A-5661-49F6-99CA-6E241248C8F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01A15A7A-5661-49F6-99CA-6E241248C8F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01A15A7A-5661-49F6-99CA-6E241248C8F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A432E0A-AB75-4C22-9E16-A257154AEB38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A432E0A-AB75-4C22-9E16-A257154AEB38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A432E0A-AB75-4C22-9E16-A257154AEB38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A432E0A-AB75-4C22-9E16-A257154AEB38}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,6 +125,7 @@ Global
 		{79E01CAD-2D2A-4F8F-815B-4BA785B21522} = {78BFCCE6-51F9-49B2-B94A-00698882EE67}
 		{5ADF034D-CA66-400C-811C-81A364BA0998} = {808AB523-2A80-4630-A13C-A54CBDF95D51}
 		{01A15A7A-5661-49F6-99CA-6E241248C8F4} = {78BFCCE6-51F9-49B2-B94A-00698882EE67}
+		{4A432E0A-AB75-4C22-9E16-A257154AEB38} = {808AB523-2A80-4630-A13C-A54CBDF95D51}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {87E00793-7FC0-4CBC-BCA7-7F684F515F8F}

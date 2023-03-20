@@ -40,7 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AmpScm.Buckets.Security\AmpScm.Buckets.Security.csproj" />
     <ProjectReference Include="..\AmpScm.Buckets\AmpScm.Buckets.csproj" />
   </ItemGroup>
 
