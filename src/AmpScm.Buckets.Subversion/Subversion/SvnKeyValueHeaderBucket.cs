@@ -22,7 +22,7 @@ namespace AmpScm.Buckets.Subversion
 
             if (bb.IsEof || bb.Slice(eol).IsEmpty)
             {
-                _atEof?.Invoke();
+                _atEof.Invoke();
                 _atEof = null;
                 return null;
             }

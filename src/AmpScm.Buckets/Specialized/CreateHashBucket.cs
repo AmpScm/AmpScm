@@ -15,6 +15,7 @@ namespace AmpScm.Buckets.Specialized
         byte[]? _result;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         Action<byte[]>? _onResult;
+        bool _complete;
 
         public CreateHashBucket(Bucket inner, HashAlgorithm hasher)
             : base(inner)
@@ -26,6 +27,13 @@ namespace AmpScm.Buckets.Specialized
             : this(inner, hasher)
         {
             _onResult = hashCreated;
+        }
+
+        public CreateHashBucket(Bucket inner, HashAlgorithm hasher, Action<Func<byte[]?, byte[]?>> completer)
+            : this(inner, hasher)
+        {
+            _onResult = (_ => completer(CompleteHandler));
+            _complete = true;
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
@@ -47,20 +55,45 @@ namespace AmpScm.Buckets.Specialized
         {
             if (_result == null && _hasher != null)
             {
-                _hasher.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-                _result = _hasher.Hash;
-                if (_result != null)
+                if (_complete)
                 {
                     try
                     {
-                        _onResult?.Invoke(_result);
+                        _onResult?.Invoke(null!);
                     }
                     finally
                     {
                         _onResult = null;
                     }
                 }
+                else
+                {
+                    _hasher.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                    _result = _hasher.Hash;
+                    if (_result != null)
+                    {
+                        try
+                        {
+                            _onResult?.Invoke(_result);
+                        }
+                        finally
+                        {
+                            _onResult = null;
+                        }
+                    }
+                }
             }
+        }
+
+        byte[]? CompleteHandler(byte[]? suffix)
+        {
+            if (_hasher != null)
+            {
+                _hasher.TransformFinalBlock(suffix ?? Array.Empty<byte>(), 0, 0);
+                return _hasher.Hash;
+            }
+            else
+                return null!;
         }
 
         public override BucketBytes Peek()

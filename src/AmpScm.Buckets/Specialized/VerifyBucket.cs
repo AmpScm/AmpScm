@@ -29,7 +29,7 @@ namespace AmpScm.Buckets.Specialized
                 throw new InvalidOperationException($"{typeof(TBucket)}.ReadAsync returns 0 length date, which is not EOF");
             else if (_atEof && r.Length > 0)
                 throw new InvalidOperationException("Reading more after eof");
-            else if (requested > r.Length)
+            else if (requested < r.Length)
                 throw new InvalidOperationException("Over read");
             else if (r.Length == 0)
                 _atEof = true;

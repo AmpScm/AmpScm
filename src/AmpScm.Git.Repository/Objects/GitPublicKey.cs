@@ -11,21 +11,21 @@ namespace AmpScm.Git.Objects
 {
     public sealed class GitPublicKey
     {
-        SignatureBucketKey _key;
+        Signature _key;
         ReadOnlyMemory<byte> _fingerprint;
 
         public string? Principal { get; init; }
 
-        internal GitPublicKey(SignatureBucketKey key)
+        internal GitPublicKey(Signature key)
         {
             _key = key;
         }
 
 
         [return: NotNullIfNotNull("k")]
-        public static implicit operator SignatureBucketKey?(GitPublicKey k) => k?._key;
+        public static implicit operator Signature?(GitPublicKey k) => k?._key;
 
-        public SignatureBucketKey ToSignatureBucketKey()
+        public Signature ToSignatureBucketKey()
         {
             return _key;
         }
@@ -37,7 +37,7 @@ namespace AmpScm.Git.Objects
 
         internal static bool TryParse(string keyText, [NotNullWhen(true)] out GitPublicKey? result, string? principal = null)
         {
-            if (SignatureBucketKey.TryParse(keyText, out var v))
+            if (Signature.TryParse(keyText, out var v))
             {
                 result = new(v) { Principal = principal };
                 return true;

@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
@@ -76,19 +77,38 @@ namespace AmpScm.Buckets.Specialized
         /// 
         /// </summary>
         /// <param name="bucket"></param>
-        /// <param name="algorithmInstance"></param>
+        /// <param name="hashAlgorithm"></param>
         /// <param name="created"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static Bucket Hash(this Bucket bucket, System.Security.Cryptography.HashAlgorithm algorithmInstance, Action<byte[]> created)
+        public static Bucket Hash(this Bucket bucket, HashAlgorithm hashAlgorithm, Action<byte[]> created)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
-            else if (algorithmInstance is null)
-                throw new ArgumentNullException(nameof(algorithmInstance));
+            else if (hashAlgorithm is null)
+                throw new ArgumentNullException(nameof(hashAlgorithm));
 
-            return new CreateHashBucket(bucket, algorithmInstance, created);
+            return new CreateHashBucket(bucket, hashAlgorithm, created);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="hashAlgorithm"></param>
+        /// <param name="completer"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static Bucket Hash(this Bucket bucket, HashAlgorithm hashAlgorithm, Action<Func<byte[]?, byte[]?>> completer)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (hashAlgorithm is null)
+                throw new ArgumentNullException(nameof(hashAlgorithm));
+
+            return new CreateHashBucket(bucket, hashAlgorithm, completer);
+        }
+
 
         /// <summary>
         /// Wraps the bucket with an <see cref="System.Security.Cryptography.MD5"/> calculator that reports the result on EOF

@@ -8,6 +8,8 @@ using AmpScm.Buckets.Specialized;
 using AmpScm.Buckets.Interfaces;
 using System.ComponentModel;
 using System.Threading;
+using System.Diagnostics;
+using System.Collections.Concurrent;
 
 namespace AmpScm.Buckets
 {
@@ -100,6 +102,50 @@ namespace AmpScm.Buckets
 
                 result.Append(bb);
                 requested -= bb.Length;
+            }
+        }
+
+        /// <summary>
+        /// Reads data with exact blockSize
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="blockSize"></param>
+        /// <param name="requested"></param>
+        /// <param name="failOnPartial"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static async ValueTask<BucketBytes> ReadBlocksAsync(this Bucket bucket, int blockSize, int requested, bool failOnPartial = true)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (blockSize < 2)
+                throw new ArgumentOutOfRangeException(nameof(blockSize), blockSize, null);
+            else if (requested < blockSize || requested > Bucket.MaxRead)
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
+
+            var bb = bucket.Peek();
+
+            if (bb.Length >= blockSize)
+            {
+                int fetch = bb.Length - bb.Length % blockSize;
+
+                Debug.Assert(fetch > 0 && fetch >= blockSize && fetch <= requested);
+
+                bb = await bucket.ReadAsync(fetch).ConfigureAwait(false);
+
+                Debug.Assert(bb.Length > 0 && bb.Length % blockSize == 0);
+
+                return bb;
+            }
+            else
+            {
+                bb = await bucket.ReadExactlyAsync(blockSize).ConfigureAwait(false);
+
+                if (bb.Length % blockSize != 0)
+                    throw new BucketException();
+
+                return bb;
             }
         }
 
@@ -620,6 +666,11 @@ namespace AmpScm.Buckets
         public static bool SequenceEqual(this ReadOnlyMemory<byte> left, ReadOnlyMemory<byte> right)
         {
             return left.Span.SequenceEqual(right.Span);
+        }
+
+        public static string HashToString(this ReadOnlyMemory<byte> bytes)
+        {
+            return string.Join("", Enumerable.Range(1, bytes.Length - 1).Select(i => bytes.Span[i].ToString("X2", System.Globalization.CultureInfo.InvariantCulture)));
         }
     }
 }

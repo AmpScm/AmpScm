@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Subversion
 {
-    internal class SvnHashBucket : SvnBucket
+    internal sealed class SvnHashBucket : SvnBucket
     {
         private Action? _atEof;
         bool _readEol;
@@ -12,7 +12,7 @@ namespace AmpScm.Buckets.Subversion
         public SvnHashBucket(Bucket inner, Action? atEof = null)
             : base(inner)
         {
-            this._atEof = atEof;
+            this._atEof = atEof ?? (() => { });
         }
 
         public async ValueTask<(string key, BucketBytes value)?> ReadValue()
@@ -36,7 +36,7 @@ namespace AmpScm.Buckets.Subversion
             {
                 if (bb.StartsWithASCII("END") && bb.Slice(3, eol).IsEmpty)
                 {
-                    _atEof?.Invoke();
+                    _atEof.Invoke();
                     _atEof = null;
                     return null;
                 }

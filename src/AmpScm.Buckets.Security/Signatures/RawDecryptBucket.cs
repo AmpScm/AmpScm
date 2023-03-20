@@ -16,7 +16,7 @@ namespace AmpScm.Buckets.Signatures
         readonly int _blocksizeBytes;
 
         public RawDecryptBucket(Bucket inner, SymmetricAlgorithm algorithm, bool decrypt)
-            : base(inner)
+            : base(inner.VerifyBehavior())
         {
             _algorithm = algorithm;
             _decrypt = decrypt;
@@ -52,7 +52,7 @@ namespace AmpScm.Buckets.Signatures
                     _byteCollector.Append(toConvert.AsMemory(convertSize).ToArray());
                 }
 
-                int n = _transform.TransformBlock(toConvert, 0, convertSize, _buffer, 0);
+                int n = _transform.TransformBlock(toConvert, 0, convertSize, _buffer!, 0);
 
                 Debug.Assert(n == convertSize);
 
@@ -67,12 +67,21 @@ namespace AmpScm.Buckets.Signatures
 
         protected override async ValueTask<BucketBytes> InnerReadAsync(int requested = 2146435071)
         {
+            //return await Inner.ReadBlocksAsync(_transform.OutputBlockSize * 32, requested, true).ConfigureAwait(false);
             // HACK: Hides an issue in the AES code,
             var b = Inner.Buffer(16 * 1024 * 1024);
             await b.ReadUntilEofAsync().ConfigureAwait(false);
             b.Reset();
 
-            return await b.ReadExactlyAsync(requested);
+            var bb = await b.ReadExactlyAsync(MaxRead);
+
+            System.IO.File.WriteAllBytes(@"f:\raw.bin", bb.ToArray());
+
+            b.Reset();
+
+            bb = await b.ReadExactlyAsync(requested);
+
+            return bb;
         }
 
         protected override void InnerDispose()

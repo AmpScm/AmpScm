@@ -366,7 +366,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 -----END PGP PUBLIC KEY BLOCK-----
 ";
 
-        static async ValueTask<SignatureBucketKey> GetKey(string keyData = PublicKeyOfSignedTag)
+        static async ValueTask<Signature> GetKey(string keyData = PublicKeyOfSignedTag)
         {
             var key = Bucket.Create.FromASCII(keyData.Replace("\r", ""));
 
@@ -394,7 +394,7 @@ DDMeh6j80WT7cgoX7V7xqJOxrfrqPEthQ3hgHIm7b5MPQlUr2q+UPL22t/I+ESF6
 j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 =HXDP
 -----END PGP PUBLIC KEY BLOCK-----";
-        static async ValueTask<SignatureBucketKey> GetGitHubWebFlowKey()
+        static async ValueTask<Signature> GetGitHubWebFlowKey()
         {
             var key = Bucket.Create.FromASCII(WebFlowKey.Replace("\r", ""));
 
@@ -459,7 +459,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(SshSig));
             using var gpg = new SignatureBucket(rdx);
 
-            Assert.IsTrue(SignatureBucketKey.TryParse("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQD+aILyycyvtatnMCeyucurSCkXPcuML/bgJOHFCwjeFA8CAXBlOEIgMblj7II8SpKP6mkDEFgXQXAFF6i00UAu8/NBEcW1xdLh0/12X2wlbZIPacMbGI/JbaYD5kznyDhsdyMmMfpbiZIOXPomoVbqcXh8wRqENqu1OTL5zIQBJBflEeZVG4X6oRDquklhrAcna9yPzgqwGHAQTtXpV4n//6bVzus9mTskCNFi+cKvmqifFVAwiG328VkGIrKj/EkB4MB37mIZKYn6Od+0vvzwH+1B5iW66Tjo/A2fx65spqolPLhFR2bmRSxP4Lxsg4R+TBmMDMsDPgeJfD6Iu0efs1s2rqL9VGbVC0Fgw4ds9qCfv2rLO2a+9/U5oopXbgUBlRDXiiX/zer3AFuyieWI3jevrFbRQqhlm08aWM/CP3wrpYikemXydHuxv5YUwJRaCmedOIsz5tVftfD3E+cEOIoLUTkoZwt9Ygywo+pccbTjRFouOcCT1Ib0g+6zgE0= me@pc", out var pk));
+            Assert.IsTrue(Signature.TryParse("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQD+aILyycyvtatnMCeyucurSCkXPcuML/bgJOHFCwjeFA8CAXBlOEIgMblj7II8SpKP6mkDEFgXQXAFF6i00UAu8/NBEcW1xdLh0/12X2wlbZIPacMbGI/JbaYD5kznyDhsdyMmMfpbiZIOXPomoVbqcXh8wRqENqu1OTL5zIQBJBflEeZVG4X6oRDquklhrAcna9yPzgqwGHAQTtXpV4n//6bVzus9mTskCNFi+cKvmqifFVAwiG328VkGIrKj/EkB4MB37mIZKYn6Od+0vvzwH+1B5iW66Tjo/A2fx65spqolPLhFR2bmRSxP4Lxsg4R+TBmMDMsDPgeJfD6Iu0efs1s2rqL9VGbVC0Fgw4ds9qCfv2rLO2a+9/U5oopXbgUBlRDXiiX/zer3AFuyieWI3jevrFbRQqhlm08aWM/CP3wrpYikemXydHuxv5YUwJRaCmedOIsz5tVftfD3E+cEOIoLUTkoZwt9Ygywo+pccbTjRFouOcCT1Ib0g+6zgE0= me@pc", out var pk));
 
             var ok = await gpg.VerifyAsync(src, pk);
             Assert.IsTrue(ok, "RSA ok");
@@ -494,7 +494,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
             Console.WriteLine($"Public key: {publicKey}");
 
-            Assert.IsTrue(SignatureBucketKey.TryParse(publicKey, out var k));
+            Assert.IsTrue(Signature.TryParse(publicKey, out var k));
 
             int n = publicKey.IndexOf(' ', 32);
             Assert.AreEqual(publicKey.Substring(0, n), k.FingerprintString);
@@ -556,11 +556,11 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 
 
             string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
-            Assert.IsTrue(SignatureBucketKey.TryParse(publicKey, out var k), "Parse public key");
+            Assert.IsTrue(Signature.TryParse(publicKey, out var k), "Parse public key");
 
-            Assert.IsTrue(SignatureBucketKey.TryParse(publicKeyPem, out var kPem), "Parse public key pem");
+            Assert.IsTrue(Signature.TryParse(publicKeyPem, out var kPem), "Parse public key pem");
 
-            Assert.IsTrue(SignatureBucketKey.TryParse(publicKeyRfc4716, out var kRfc4716), "Parse");
+            Assert.IsTrue(Signature.TryParse(publicKeyRfc4716, out var kRfc4716), "Parse");
 
             Console.WriteLine(k.FingerprintString);
             Console.WriteLine(kPem.FingerprintString);
@@ -680,7 +680,7 @@ izD0ZbH6Qw==
             var fp = await gpg.ReadFingerprintAsync();
             Assert.IsNotNull(fp, "Have fingerprint");
 
-            Assert.AreEqual(SignatureBucketAlgorithm.Ecdsa, key.Algorithm);
+            Assert.AreEqual(SignatureAlgorithm.Ecdsa, key.Algorithm);
             Assert.AreEqual("4896279E431617C5EF962DFE816312A7E06A1E1E", key.FingerprintString);
 
             Assert.IsTrue(fp.Span.SequenceEqual(key.Fingerprint.ToArray()), "Fingerprints match");
@@ -738,7 +738,7 @@ R74grCkxsuX711oRA0zFfP30qi/UzDM=
             var fp = await gpg.ReadFingerprintAsync();
             Assert.IsNotNull(fp, "Have fingerprint");
 
-            Assert.AreEqual(SignatureBucketAlgorithm.Ecdsa, key.Algorithm);
+            Assert.AreEqual(SignatureAlgorithm.Ecdsa, key.Algorithm);
             Assert.AreEqual("42D13776DBAB5FB1333E547DC71543FA47B209D0", key.FingerprintString);
 
             Assert.IsTrue(fp.Span.SequenceEqual(key.Fingerprint.ToArray()), "Fingerprints match");
@@ -827,7 +827,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
             var fp = await gpg.ReadFingerprintAsync();
             Assert.IsNotNull(fp, "Have fingerprint");
 
-            Assert.AreEqual(SignatureBucketAlgorithm.Dsa, key.Algorithm);
+            Assert.AreEqual(SignatureAlgorithm.Dsa, key.Algorithm);
             Assert.AreEqual("900FFBB60547D484B3A4A3DB7E91C4ED187DC432", key.FingerprintString);
 
             Assert.IsTrue(fp.Span.SequenceEqual(key.Fingerprint.ToArray()), "Fingerprints match");
@@ -933,7 +933,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
 
 
             string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
-            Assert.IsTrue(SignatureBucketKey.TryParse(publicKey, out var k));
+            Assert.IsTrue(Signature.TryParse(publicKey, out var k));
             File.WriteAllText(signersFile, "me@me " + k.FingerprintString + " me@my-pc" + Environment.NewLine);
 
             // TODO: Verify using our infra
@@ -1002,26 +1002,30 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
             var r = new Radix64ArmorBucket(b);
             using var sig = new SignatureBucket(r);
 
-            await sig.ReadKeyAsync();
+            var key = await sig.ReadKeyAsync();
 
-            Assert.IsTrue(SignatureBucketKey.TryParse(APrivateKey, out var value));
+            Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", key.FingerprintString);
+            Assert.AreEqual(SignatureAlgorithm.Ed25519, key.Algorithm);
+
+            Assert.IsTrue(Signature.TryParse(APrivateKey, out var value));
             Assert.IsTrue(value.HasSecret);
+
+            Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
 
             var rb = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(AMessage).AsBucket());
 
             var dc = new PgpDecryptBucket(rb, _ => value);
 
 
-            //var bb = await dc.ReadExactlyAsync(1024);
-            //
-            //Assert.IsNotNull(bb);
-            //Assert.AreEqual(21, bb.Length);
+            var bb = await dc.ReadExactlyAsync(1024);
+            
+            Assert.IsNotNull(bb);
+            Assert.AreEqual(21, bb.Length);
         }
 
         string RunSshKeyGen(params string[] args)
         {
             return TestContext.RunApp("ssh-keygen", args);
         }
-
     }
 }

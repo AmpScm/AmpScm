@@ -12,7 +12,7 @@ using AmpScm.Buckets;
 
 namespace AmpScm.Buckets.Signatures
 {
-    public enum SignatureBucketAlgorithm
+    public enum SignatureAlgorithm
     {
         None,
         Rsa,
@@ -28,36 +28,36 @@ namespace AmpScm.Buckets.Signatures
     /// Public key for usage with <see cref="SignatureBucket"/>
     /// </summary>
     [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-    public sealed record class SignatureBucketKey
+    public sealed record class Signature
     {
-        private readonly IEnumerable<SignatureBucketKey>? _subKeys;
+        private readonly IEnumerable<Signature>? _subKeys;
 
-        internal SignatureBucketKey(ReadOnlyMemory<byte> fingerprint, SignatureBucketAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values, string? userID = null, bool hasSecret = false, IEnumerable<SignatureBucketKey>? subKeys = null)
+        internal Signature(ReadOnlyMemory<byte> fingerprint, SignatureAlgorithm algorithm, IReadOnlyList<ReadOnlyMemory<byte>> values, System.Net.Mail.MailAddress? mailAddress = null, bool hasSecret = false, IEnumerable<Signature>? subKeys = null)
         {
             Algorithm = algorithm;
             Values = values;
             Fingerprint = fingerprint;
-            UserID = userID;
+            MailAddress = mailAddress;
             HasSecret = hasSecret;
             _subKeys = subKeys;
         }
 
         // Helper for easy constructing
-        internal SignatureBucketKey WithSubKeys(IEnumerable<SignatureBucketKey> enumerable, string userID)
+        internal Signature WithSubKeys(IEnumerable<Signature> enumerable, System.Net.Mail.MailAddress? mailAddress)
         {
-            return new SignatureBucketKey(Fingerprint, Algorithm, Values, userID, HasSecret, enumerable);
+            return new Signature(Fingerprint, Algorithm, Values, mailAddress, HasSecret, enumerable);
         }
 
         public ReadOnlyMemory<byte> Fingerprint { get; }
-        public SignatureBucketAlgorithm Algorithm { get; }
+        public SignatureAlgorithm Algorithm { get; }
         public IReadOnlyList<ReadOnlyMemory<byte>> Values { get; }
         public string FingerprintString => SignatureBucket.FingerprintToString(Fingerprint);
 
         public bool HasSecret { get; }
 
-        public string? UserID { get; }
+        public System.Net.Mail.MailAddress? MailAddress { get; }
 
-        public IEnumerable<SignatureBucketKey> SubKeys => _subKeys ?? Enumerable.Empty<SignatureBucketKey>();
+        public IEnumerable<Signature> SubKeys => _subKeys ?? Enumerable.Empty<Signature>();
 
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace AmpScm.Buckets.Signatures
         /// </summary>
         /// <param name="fingerprint"></param>
         /// <returns></returns>
-        public SignatureBucketKey? MatchFingerprint(ReadOnlyMemory<byte> fingerprint)
+        public Signature? MatchFingerprint(ReadOnlyMemory<byte> fingerprint)
         {
             int len = Math.Min(fingerprint.Length, fingerprint.Length);
 
@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Signatures
             return _subKeys?.Select(x => x.MatchFingerprint(fingerprint)).FirstOrDefault(x => x is { });
         }
 
-        public static bool TryParse(string keyText, [NotNullWhen(true)] out SignatureBucketKey? value)
+        public static bool TryParse(string keyText, [NotNullWhen(true)] out Signature? value)
         {
             if (string.IsNullOrWhiteSpace(keyText))
                 throw new ArgumentNullException(nameof(keyText));
@@ -92,7 +92,7 @@ namespace AmpScm.Buckets.Signatures
                 return TryParseSshLine(keyText, out value);
         }
 
-        private static bool TryParseBlob(string line, out SignatureBucketKey? value)
+        private static bool TryParseBlob(string line, out Signature? value)
         {
             var b = Bucket.Create.FromASCII(line);
 
@@ -111,7 +111,7 @@ namespace AmpScm.Buckets.Signatures
             }
         }
 
-        internal static bool TryParseSshLine(string line, [NotNullWhen(true)] out SignatureBucketKey? value)
+        internal static bool TryParseSshLine(string line, [NotNullWhen(true)] out Signature? value)
         {
             if (string.IsNullOrWhiteSpace(line))
                 throw new ArgumentNullException(nameof(line));
@@ -139,7 +139,7 @@ namespace AmpScm.Buckets.Signatures
             switch (alg)
             {
                 case "ssh-rsa":
-                    value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Rsa,
+                    value = new Signature(data, SignatureAlgorithm.Rsa,
                         new[]
                         {
                             vals[2],
@@ -148,7 +148,7 @@ namespace AmpScm.Buckets.Signatures
                     );
                     return true;
                 case "ssh-dss":
-                    value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Dsa,
+                    value = new Signature(data, SignatureAlgorithm.Dsa,
                         new[]
                         {
                             vals[1],
@@ -159,7 +159,7 @@ namespace AmpScm.Buckets.Signatures
                     );
                     return true;
                 case "ssh-ed25519":
-                    value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Ed25519,
+                    value = new Signature(data, SignatureAlgorithm.Ed25519,
                         new[]
                         {
                             vals[1],
@@ -170,7 +170,7 @@ namespace AmpScm.Buckets.Signatures
                 case "ecdsa-sha2-nistp521":
                     {
                         var signature = SignatureBucket.GetEcdsaValues(vals.Skip(1));
-                        value = new SignatureBucketKey(data, SignatureBucketAlgorithm.Ecdsa, signature);
+                        value = new Signature(data, SignatureAlgorithm.Ecdsa, signature);
                         return true;
                     }
                 default:
@@ -185,9 +185,9 @@ namespace AmpScm.Buckets.Signatures
             {
                 StringBuilder sb = new StringBuilder(100);
 
-                if (UserID is { })
+                if (MailAddress is { })
                 {
-                    sb.Append(UserID);
+                    sb.Append(MailAddress);
                     sb.Append(" - ");
                 }
 

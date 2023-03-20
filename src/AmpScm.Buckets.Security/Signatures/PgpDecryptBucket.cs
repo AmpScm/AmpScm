@@ -16,17 +16,21 @@ namespace AmpScm.Buckets.Signatures
 {
     public class PgpDecryptBucket : WrappingBucket
     {
-        private readonly Func<ReadOnlyMemory<byte>, SignatureBucketKey?> _getKey;
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        private readonly Func<ReadOnlyMemory<byte>, Signature?> _getKey;
         bool _inBody;
         OpenPgpContainer _container;
         Bucket? _reader;
-        private SignatureBucketKey? _decryptKey; // Key towards decrypted
+        private Signature? _decryptKey; // Key towards decrypted
         private OpenPgpSymmetricAlgorithm _sessionAlgorithm;
         private ReadOnlyMemory<byte> _sessionKey; // The symetric key
-        private string _fileName;
-        OpenPgpContainer _q;
+        private string? _fileName;
+        private DateTime? _fileDate;
+        private OpenPgpContainer _q;
+        private Stack<PgpSignature> _sigs = new();
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public PgpDecryptBucket(Bucket inner, Func<ReadOnlyMemory<byte>, SignatureBucketKey?> getKey)
+        public PgpDecryptBucket(Bucket inner, Func<ReadOnlyMemory<byte>, Signature?> getKey)
             : base(inner)
         {
             _getKey = getKey;
@@ -68,7 +72,7 @@ namespace AmpScm.Buckets.Signatures
                                     throw new NotImplementedException($"Compression algorithm {(OpenPgpCompressionType)b} not implemented");
                             }
 
-                            _q = new OpenPgpContainer(rd.AtEof(() => { }));
+                            _q = new OpenPgpContainer(rd);
                             continue;
                         }
 
@@ -90,7 +94,7 @@ namespace AmpScm.Buckets.Signatures
 
                             switch (matchedKey.Algorithm)
                             {
-                                case SignatureBucketAlgorithm.Rsa:
+                                case SignatureAlgorithm.Rsa:
                                     using (var rsa = RSA.Create())
                                     {
                                         BigInteger D = MakeBigInt(keyValues[2]);
@@ -128,7 +132,7 @@ namespace AmpScm.Buckets.Signatures
                                     }
                                     break;
 
-                                case SignatureBucketAlgorithm.Curve25519:
+                                case SignatureAlgorithm.Curve25519:
 
 
                                 default:
@@ -139,16 +143,17 @@ namespace AmpScm.Buckets.Signatures
                     case OpenPgpTagType.OnePassSignature:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-                            byte signatureType = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                            var signatureType = (OpenPgpSignatureType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                             var hashAlgorithm = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
-                            var pca = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                            var pkt = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                            OpenPgpPublicKeyType pkt = (OpenPgpPublicKeyType)pca;
                             var signer = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
 
                             byte flag = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
                             GC.KeepAlive(flag);
+
+                            _sigs.Push(new(signatureType, hashAlgorithm, pkt, signer));
                         }
                         break;
                     case OpenPgpTagType.AEADEncryptedData:
@@ -179,14 +184,16 @@ namespace AmpScm.Buckets.Signatures
                             switch (_sessionAlgorithm)
                             {
                                 case OpenPgpSymmetricAlgorithm.Aes:
+                                case OpenPgpSymmetricAlgorithm.Aes192:
                                 case OpenPgpSymmetricAlgorithm.Aes256:
-                                    Aes aes = Aes.Create();
+                                    var aes = Aes.Create();
+#pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
                                     aes.Mode = CipherMode.CFB;
+#pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
                                     aes.Key = _sessionKey.ToArray();
-                                    aes.IV = new byte[aes.IV.Length];
+                                    aes.IV = new byte[aes.BlockSize / 8];
                                     aes.Padding = PaddingMode.None;
                                     aes.FeedbackSize = aes.BlockSize;
-
                                     var dcb = new RawDecryptBucket(bucket, aes, true);
 
                                     var bb = await dcb.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
@@ -199,8 +206,6 @@ namespace AmpScm.Buckets.Signatures
                                 default:
                                     throw new NotImplementedException();
                             }
-
-                            return;
                         }
                     case OpenPgpTagType.UserID:
 #if DEBUG
@@ -225,8 +230,22 @@ namespace AmpScm.Buckets.Signatures
                                 _fileName = "";
 
                             var dt = await bucket.ReadExactlyAsync(4).ConfigureAwait(false); // Date
-
+                            _fileDate = DateTimeOffset.FromUnixTimeSeconds(NetBitConverter.ToUInt32(dt, 0)).DateTime;
                             _inBody = true;
+
+                            foreach (var s in _sigs)
+                            {
+                                switch (s.HashAlgorithm)
+                                {
+                                    case OpenPgpHashAlgorithm.SHA512:
+                                        {
+                                            var s2 = s;
+                                            bucket = bucket.Hash(SHA512.Create(), x => s.Completer = x);
+                                        }
+                                        break;
+                                }
+                            }
+
                             _reader = bucket.AtEof(() =>
                                 {
                                     _reader = null;
@@ -236,7 +255,19 @@ namespace AmpScm.Buckets.Signatures
                         }
                         break;
                     case OpenPgpTagType.SymetricSessionKey:
+                        break;
                     case OpenPgpTagType.Signature:
+                        {
+                            var r = await SignatureBucket.ParseSignatureAsync(bucket).ConfigureAwait(false);
+
+                            var p = _sigs.Pop();
+
+                            var hashValue = p.Completer(r.signBlob);
+                            Trace.WriteLine(BucketExtensions.HashToString(hashValue));
+
+                            if (NetBitConverter.ToUInt16(hashValue, 0) != r.hashStart)
+                                throw new BucketException("Hash failed");
+                        }
                         break;
                     default:
                         break;
@@ -270,6 +301,13 @@ namespace AmpScm.Buckets.Signatures
             }
         }
 
+        public async ValueTask<(string? fileName, DateTime? fileTime)> ReadFileInfo()
+        {
+            await ReadHeader().ConfigureAwait(false);
+
+            return (_fileName, _fileDate);
+        }
+
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
         {
             await ReadHeader();
@@ -281,11 +319,49 @@ namespace AmpScm.Buckets.Signatures
                 await ReadHeader();
 
             return bb;
+
+            //while (true)
+            //{
+            //    if (_reader != null)
+            //    {
+            //        var bb = await _reader.ReadAsync().ConfigureAwait(false);
+            //
+            //        if (!bb.IsEof)
+            //            return bb;
+            //    }
+            //
+            //    await ReadHeader().ConfigureAwait(false);
+            //
+            //    if (_reader == null)
+            //    {
+            //        var bb = await _container.ReadAsync().ConfigureAwait(false);
+            //
+            //        return bb;
+            //    }
+            //
+            //}
         }
 
         public override BucketBytes Peek()
         {
             return base.Peek();
+        }
+
+        record PgpSignature
+        {
+            public PgpSignature(OpenPgpSignatureType signatureType, OpenPgpHashAlgorithm hashAlgorithm, OpenPgpPublicKeyType pkt, byte[] signer)
+            {
+                SignatureType = signatureType;
+                HashAlgorithm = hashAlgorithm;
+                Pkt = pkt;
+                Signer = signer;
+            }
+
+            public OpenPgpSignatureType SignatureType { get; }
+            public OpenPgpHashAlgorithm HashAlgorithm { get; }
+            public OpenPgpPublicKeyType Pkt { get; }
+            public byte[] Signer { get; }
+            public Func<byte[]?, byte[]?> Completer { get; internal set; }
         }
     }
 }

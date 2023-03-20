@@ -1,0 +1,38 @@
+﻿#nullable enable
+AmpScm.Buckets.Signatures.PgpDecryptBucket
+AmpScm.Buckets.Signatures.PgpDecryptBucket.PgpDecryptBucket(AmpScm.Buckets.Bucket! inner, System.Func<System.ReadOnlyMemory<byte>, AmpScm.Buckets.Signatures.Signature?>! getKey) -> void
+AmpScm.Buckets.Signatures.Radix64ArmorBucket
+AmpScm.Buckets.Signatures.Radix64ArmorBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+AmpScm.Buckets.Signatures.Radix64ArmorBucket.Radix64ArmorBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Signatures.Radix64ArmorBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+AmpScm.Buckets.Signatures.Signature
+AmpScm.Buckets.Signatures.Signature.Algorithm.get -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.Signature.Fingerprint.get -> System.ReadOnlyMemory<byte>
+AmpScm.Buckets.Signatures.Signature.FingerprintString.get -> string!
+AmpScm.Buckets.Signatures.Signature.HasSecret.get -> bool
+AmpScm.Buckets.Signatures.Signature.MailAddress.get -> System.Net.Mail.MailAddress?
+AmpScm.Buckets.Signatures.Signature.MatchFingerprint(System.ReadOnlyMemory<byte> fingerprint) -> AmpScm.Buckets.Signatures.Signature?
+AmpScm.Buckets.Signatures.Signature.SubKeys.get -> System.Collections.Generic.IEnumerable<AmpScm.Buckets.Signatures.Signature!>!
+AmpScm.Buckets.Signatures.Signature.Values.get -> System.Collections.Generic.IReadOnlyList<System.ReadOnlyMemory<byte>>!
+AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureAlgorithm.Curve25519 = 6 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureAlgorithm.Dsa = 2 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureAlgorithm.Ecdh = 5 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureAlgorithm.Ecdsa = 3 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureAlgorithm.Ed25519 = 4 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureAlgorithm.Elgamal = 7 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureAlgorithm.None = 0 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureAlgorithm.Rsa = 1 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
+AmpScm.Buckets.Signatures.SignatureBucket
+AmpScm.Buckets.Signatures.SignatureBucket.ReadAsync() -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Signatures.SignatureBucket.ReadFingerprintAsync() -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>
+AmpScm.Buckets.Signatures.SignatureBucket.ReadKeyAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Signatures.Signature!>
+AmpScm.Buckets.Signatures.SignatureBucket.SignatureBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Signatures.SignatureBucket.VerifyAsync(AmpScm.Buckets.Bucket! sourceData, AmpScm.Buckets.Signatures.Signature? key) -> System.Threading.Tasks.ValueTask<bool>
+override AmpScm.Buckets.Signatures.PgpDecryptBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Signatures.PgpDecryptBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Signatures.Radix64ArmorBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Signatures.Radix64ArmorBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Signatures.SignatureBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+static AmpScm.Buckets.Signatures.Radix64ArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool
+static AmpScm.Buckets.Signatures.Signature.TryParse(string! keyText, out AmpScm.Buckets.Signatures.Signature? value) -> bool

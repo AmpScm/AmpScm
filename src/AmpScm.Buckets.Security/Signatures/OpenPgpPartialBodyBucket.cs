@@ -4,7 +4,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
 {
-    internal class OpenPgpPartialBodyBucket : WrappingBucket
+    internal sealed class OpenPgpPartialBodyBucket : WrappingBucket
     {
         private int _remaining;
         private bool _final;

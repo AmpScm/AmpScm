@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\AmpScm.Buckets.Security\AmpScm.Buckets.Security.csproj" />
     <ProjectReference Include="..\..\src\AmpScm.Buckets\AmpScm.Buckets.csproj" />
     <ProjectReference Include="..\..\src\AmpScm.Linq.AsyncQueryable\AmpScm.Linq.AsyncQueryable.csproj" />
   </ItemGroup>

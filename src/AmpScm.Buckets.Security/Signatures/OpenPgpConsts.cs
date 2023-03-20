@@ -40,6 +40,11 @@ namespace AmpScm.Buckets.Signatures
     {
         BinaryDocument = 0x00,
         CanonicalTextDocument = 0x01, // EOL -> CRLF
+        Standalone = 0x02,
+        GenericCertification = 0x10,
+        PersonaCertification = 0x11,
+        CasualCertification = 0x12,
+        PositiveCertification = 0x13,
     }
 
     enum OpenPgpSubPacketType : byte
@@ -68,9 +73,9 @@ namespace AmpScm.Buckets.Signatures
         ReasonForRevocation = 29,
         Features = 30,
         SignatureTarget = 31,
+        EmbeddedSignature = 32,
 
         // GPG specific?
-        EmbeddedSignature = 32,
         IssuerFingerprint = 33,
         PreferredAeadAlgorithms = 34,
         AttestedCertifications = 37,
