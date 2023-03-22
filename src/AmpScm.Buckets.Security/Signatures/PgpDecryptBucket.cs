@@ -17,7 +17,6 @@ namespace AmpScm.Buckets.Signatures
     public class PgpDecryptBucket : WrappingBucket
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly Func<ReadOnlyMemory<byte>, Signature?> _getKey;
         bool _inBody;
         OpenPgpContainer _container;
         Bucket? _reader;
@@ -30,13 +29,17 @@ namespace AmpScm.Buckets.Signatures
         private Stack<PgpSignature> _sigs = new();
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public PgpDecryptBucket(Bucket inner, Func<ReadOnlyMemory<byte>, Signature?> getKey)
+        public PgpDecryptBucket(Bucket inner, Func<ReadOnlyMemory<byte>, Signature?>? getKey)
             : base(inner)
         {
-            _getKey = getKey;
+            GetKey = getKey;
             _container = new OpenPgpContainer(inner);
             _q = _container;
         }
+
+
+        public Func<ReadOnlyMemory<byte>, Signature?>? GetKey { get; init; }
+        public Func<string>? GetPassword { get; init; }
 
         async ValueTask ReadHeader()
         {
@@ -83,9 +86,12 @@ namespace AmpScm.Buckets.Signatures
                             // Read the public key, for who the file is encrypted
                             var bb = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false));
 
-                            var key = _getKey(bb);
+                            if (!_sessionKey.IsEmpty)
+                                break; // Skip packet, we already have a session
 
-                            if (!_sessionKey.IsEmpty || key?.MatchFingerprint(bb) is not { } matchedKey)
+                            var key = GetKey?.Invoke(bb);
+
+                            if (key?.MatchFingerprint(bb) is not { } matchedKey)
                                 break; // Ignore rest of packet
 
                             var pca = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
@@ -156,18 +162,33 @@ namespace AmpScm.Buckets.Signatures
                             _sigs.Push(new(signatureType, hashAlgorithm, pkt, signer));
                         }
                         break;
-                    case OpenPgpTagType.AEADEncryptedData:
+                    case OpenPgpTagType.OCBEncryptedData:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-                            byte cipherAlgorithm = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                            var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                             byte aeadAlgorithm = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                             byte chunkVal = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
-                            long chunk_size = 1L << (chunkVal + 6);
+                            long chunk_size = 1L << (chunkVal + 6); // Usually 4MB
 
-                            // Starting vector (aead specific)
+                            if (_sessionKey.IsEmpty)
+                                throw new BucketException("Can't decrypt without valid session key");
+                            else if (cipherAlgorithm != _sessionAlgorithm)
+                                throw new BucketException("Session key is for different algorithm");
+
+                            // Starting vector (OCB specific)
+                            var startingVector = (await bucket.ReadExactlyAsync(15).ConfigureAwait(false)).ToArray();
 
                             // Encrypted data
+
+                            Bucket b = await StartDecrypt(bucket, startingVector, chunk_size).ConfigureAwait(false);
+
+                            _q = new OpenPgpContainer(b);
+
+                            //Aes a;
+                            //a.
+
+                            continue;
 
                             var pca = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
@@ -180,32 +201,10 @@ namespace AmpScm.Buckets.Signatures
                     case OpenPgpTagType.SymetricEncryptedIntegrity:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                            var b = await StartDecrypt(bucket, null, 0).ConfigureAwait(false);
 
-                            switch (_sessionAlgorithm)
-                            {
-                                case OpenPgpSymmetricAlgorithm.Aes:
-                                case OpenPgpSymmetricAlgorithm.Aes192:
-                                case OpenPgpSymmetricAlgorithm.Aes256:
-                                    var aes = Aes.Create();
-#pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
-                                    aes.Mode = CipherMode.CFB;
-#pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
-                                    aes.Key = _sessionKey.ToArray();
-                                    aes.IV = new byte[aes.BlockSize / 8];
-                                    aes.Padding = PaddingMode.None;
-                                    aes.FeedbackSize = aes.BlockSize;
-                                    var dcb = new RawDecryptBucket(bucket, aes, true);
-
-                                    var bb = await dcb.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
-
-                                    if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
-                                        throw new InvalidOperationException("AES-256 decrypt failed");
-
-                                    _q = new OpenPgpContainer(dcb);
-                                    continue;
-                                default:
-                                    throw new NotImplementedException();
-                            }
+                            _q = new OpenPgpContainer(b);
+                            continue;
                         }
                     case OpenPgpTagType.UserID:
 #if DEBUG
@@ -255,6 +254,40 @@ namespace AmpScm.Buckets.Signatures
                         }
                         break;
                     case OpenPgpTagType.SymetricSessionKey:
+                        {
+                            byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                            var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                            if (version == 5)
+                            {
+                                var ocb = (await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+
+                                Debug.Assert(ocb == 2);
+                            }
+
+                            var s2k = await SignatureBucket.ReadPgpS2kSpecifierAsync(bucket).ConfigureAwait(false);
+
+                            byte[]? key = null;
+                            if (GetPassword?.Invoke() is { } password)
+                            {
+                                key = SignatureBucket.DeriveS2kKey(cipherAlgorithm, s2k, password);
+                            }
+
+                            if (version == 5 && key is { })
+                            {
+                                byte[] iv = (await bucket.ReadExactlyAsync(15).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
+
+                                var bb = await bucket.ReadExactlyAsync(16+16).ConfigureAwait(false);
+
+                                var ocb = new OCBDecoder(bb.Memory.AsBucket(), OCBDecoder.SetupAes(key), 8192, 16, iv);
+
+                                var k = await ocb.ReadExactlyAsync(16).ConfigureAwait(false);
+
+
+                                //byte[] encryptedKey = (await bucket.ReadExactlyAsync(16).ConfigureAwait(false)).ToArray(); // Length of cipher-alg key
+                                //byte[] authTag = (await bucket.ReadExactlyAsync(16).ConfigureAwait(false)).ToArray(); // For OCB
+                            }
+
+                        }
                         break;
                     case OpenPgpTagType.Signature:
                         {
@@ -298,6 +331,44 @@ namespace AmpScm.Buckets.Signatures
                 Array.Reverse(b);
 
                 return MakeUnsignedArray(b);
+            }
+        }
+
+        private async ValueTask<Bucket> StartDecrypt(Bucket bucket, byte[]? iv, long chunkSize)
+        {
+            switch (_sessionAlgorithm)
+            {
+                case OpenPgpSymmetricAlgorithm.Aes:
+                case OpenPgpSymmetricAlgorithm.Aes192:
+                case OpenPgpSymmetricAlgorithm.Aes256:
+                    var aes = Aes.Create();
+#pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
+                    aes.Mode = CipherMode.CFB;
+#pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
+                    aes.Key = _sessionKey.ToArray();
+                    aes.IV = new byte[aes.BlockSize / 8];
+                    aes.Padding = PaddingMode.None;
+                    aes.FeedbackSize = aes.BlockSize;
+
+                    if (iv is { })
+                    {
+                        return new OCBDecoder(bucket, aes, chunkSize, 16, iv);
+                    }
+                    else
+                    {
+                        var dcb = new RawDecryptBucket(bucket, aes, true);
+
+                        var bb = await dcb.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
+
+                        if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
+                            throw new InvalidOperationException("AES-256 decrypt failed");
+
+                        return dcb;
+                    }
+
+
+                default:
+                    throw new NotImplementedException();
             }
         }
 

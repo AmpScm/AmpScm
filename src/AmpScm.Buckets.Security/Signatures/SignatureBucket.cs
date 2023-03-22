@@ -1177,6 +1177,83 @@ namespace AmpScm.Buckets.Signatures
         {
             return (await OpenPgpContainer.ReadLengthAsync(bucket).ConfigureAwait(false)).Length;
         }
+
+        internal static async ValueTask<(OpenPgpHashAlgorithm Algorithm, byte[]? Salt, int HashByteCount)> ReadPgpS2kSpecifierAsync(Bucket bucket)
+        {
+            byte type = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+            OpenPgpHashAlgorithm alg;
+            byte[] salt;
+
+            switch (type)
+            {
+                case 0:
+                    { // Simple S2K
+                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+
+                        return (alg, null, 0);
+                    }
+                case 1:
+                    { // Salted S2k
+                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                        salt = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
+
+                        return (alg, salt, 0);
+                    }
+                // 2 : reserved
+                case 3:
+                    { // Iterated and Salted S2K
+                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                        salt = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
+                        int count = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+
+                        var c = 16 + (count & 0xF) << ((count >> 4) + 6);
+
+                        return (alg, salt, c);
+                    }
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        internal static byte[] DeriveS2kKey(OpenPgpSymmetricAlgorithm cipherAlgorithm, (OpenPgpHashAlgorithm Algorithm, byte[]? Salt, int HashByteCount) s2k, string password)
+        {
+            byte[] pwd = Encoding.UTF8.GetBytes(password);
+
+            if (s2k.Salt != null)
+            {
+                pwd = s2k.Salt.Concat(pwd).ToArray();
+            }
+
+            using HashAlgorithm ha = s2k.Algorithm switch
+            {
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
+                OpenPgpHashAlgorithm.SHA1 => SHA1.Create(),
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
+                OpenPgpHashAlgorithm.SHA256 => SHA256.Create(),
+                _ => throw new InvalidOperationException()
+            };
+
+            if (s2k.HashByteCount < 1)
+            {
+                return ha.ComputeHash(pwd);
+            }
+
+
+            int nHashBytes = s2k.HashByteCount;
+            byte[] r = pwd;
+            do
+            {
+                int n = Math.Min(nHashBytes, pwd.Length);
+                ha.TransformBlock(pwd, 0, n, null, 0);
+
+                nHashBytes -= n;
+            }
+            while (nHashBytes > 0);
+
+            ha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+            return ha.Hash!;
+        }
     }
 }
 

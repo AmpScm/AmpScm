@@ -10,16 +10,14 @@ namespace AmpScm.Buckets.Signatures
     {
         readonly SymmetricAlgorithm _algorithm;
         readonly ICryptoTransform _transform;
-        readonly bool _decrypt;
         byte[]? _buffer;
         ByteCollector _byteCollector;
         readonly int _blocksizeBytes;
 
         public RawDecryptBucket(Bucket inner, SymmetricAlgorithm algorithm, bool decrypt)
-            : base(inner.VerifyBehavior())
+            : base(inner)
         {
             _algorithm = algorithm;
-            _decrypt = decrypt;
 
             if (decrypt)
                 _transform = _algorithm.CreateDecryptor();
@@ -32,9 +30,7 @@ namespace AmpScm.Buckets.Signatures
         protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
         {
             _byteCollector.Append(sourceData);
-
-            if ((_buffer?.Length ?? 0) < _byteCollector.Length)
-                _buffer = new byte[_byteCollector.Length];
+            sourceData = BucketBytes.Empty;
 
             if (final)
             {
@@ -46,42 +42,34 @@ namespace AmpScm.Buckets.Signatures
                 byte[] toConvert = _byteCollector.ToArray();
                 int convertSize = _byteCollector.Length - _byteCollector.Length % _blocksizeBytes;
 
+                _buffer ??= new byte[1024];
+
                 _byteCollector.Clear();
                 if (convertSize < toConvert.Length)
                 {
                     _byteCollector.Append(toConvert.AsMemory(convertSize).ToArray());
                 }
 
-                int n = _transform.TransformBlock(toConvert, 0, convertSize, _buffer!, 0);
+                int n;
+                if (convertSize > 0)
+                    n = _transform.TransformBlock(toConvert, 0, convertSize, _buffer!, 0);
+                else
+                    n = 0;
 
                 Debug.Assert(n == convertSize);
 
-                return new BucketBytes(_buffer, 0, n);
+                return new BucketBytes(_buffer!, 0, n);
             }
         }
 
         protected override int ConvertRequested(int requested)
         {
-            return MaxRead;// Math.Min(Math.Min(requested - requested % _blocksizeBytes, _blocksizeBytes), 8192);
-        }
+            int needForRead = _blocksizeBytes - _byteCollector.Length;
 
-        protected override async ValueTask<BucketBytes> InnerReadAsync(int requested = 2146435071)
-        {
-            //return await Inner.ReadBlocksAsync(_transform.OutputBlockSize * 32, requested, true).ConfigureAwait(false);
-            // HACK: Hides an issue in the AES code,
-            var b = Inner.Buffer(16 * 1024 * 1024);
-            await b.ReadUntilEofAsync().ConfigureAwait(false);
-            b.Reset();
-
-            var bb = await b.ReadExactlyAsync(MaxRead);
-
-            System.IO.File.WriteAllBytes(@"f:\raw.bin", bb.ToArray());
-
-            b.Reset();
-
-            bb = await b.ReadExactlyAsync(requested);
-
-            return bb;
+            if (requested < needForRead)
+                return needForRead;
+            else
+                return requested;
         }
 
         protected override void InnerDispose()

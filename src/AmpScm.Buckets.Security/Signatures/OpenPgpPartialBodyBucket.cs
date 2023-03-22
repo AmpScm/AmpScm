@@ -29,6 +29,9 @@ namespace AmpScm.Buckets.Signatures
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
         {
+            if (requested < 1)
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
+
             if (_remaining == 0 && !_final)
             {
                 var (len, partial) = await OpenPgpContainer.ReadLengthAsync(Inner).ConfigureAwait(false);

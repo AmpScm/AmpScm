@@ -27,7 +27,7 @@ namespace AmpScm.Buckets.Signatures
         UserAttributePacket = 17,
         SymetricEncryptedIntegrity = 18,
         ModificationDetected = 19,
-        AEADEncryptedData = 20,
+        OCBEncryptedData = 20,
 
         // 21-59 undefined yet
         //60 to 63 -- Private or Experimental Values
