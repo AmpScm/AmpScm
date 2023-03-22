@@ -320,6 +320,12 @@ namespace AmpScm.Buckets
             return Length;
         }
 
+        public void CopyTo(Span<byte> buffer)
+        {
+            // TODO: Optimize :-)
+            AsBytes().CopyTo(buffer);
+        }
+
         public static bool operator ==(ByteCollector left, ByteCollector right)
         {
             return left.Equals(right);

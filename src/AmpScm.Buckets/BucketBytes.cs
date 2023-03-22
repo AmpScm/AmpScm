@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -256,45 +257,17 @@ namespace AmpScm.Buckets
             return Expression.Lambda<Func<ReadOnlyMemory<byte>, (object, int)>>(c, p).Compile();
         }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        static Func<Memory<byte>, (object, int)> MemoryExpander { get; } = FindMemoryExpander();
-
-        static Func<Memory<byte>, (object, int)> FindMemoryExpander()
+        internal static (byte[]?, int) ExpandToArray(ReadOnlyMemory<byte> data)
         {
-            ParameterExpression p = Expression.Parameter(typeof(Memory<byte>), "x");
-
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-            var c = Expression.New(typeof((object, int)).GetConstructors().OrderByDescending(x => x.GetParameters().Length).First(),
-                       Expression.Field(p, "_object"),
-                       Expression.Field(p, "_index"));
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-            return Expression.Lambda<Func<Memory<byte>, (object, int)>>(c, p).Compile();
-        }
-
-        internal static (byte[]?, int) ExpandToArray(Memory<byte> _data)
-        {
-            if (_data.Length == 0)
+            if (data.Length == 0)
                 return (Array.Empty<byte>(), 0);
 
-            var (ob, index) = MemoryExpander(_data);
+            if (MemoryMarshal.TryGetArray(data, out var segment))
+            {
+                return (segment.Array, segment.Offset);
+            }
 
-            if (ob is byte[] arr)
-                return (arr, index);
-            else
-                return (null, -1);
-        }
-
-        internal static (byte[]?, int) ExpandToArray(ReadOnlyMemory<byte> _data)
-        {
-            if (_data.Length == 0)
-                return (Array.Empty<byte>(), 0);
-
-            var (ob, index) = ReadOnlyMemoryExpander(_data);
-
-            if (ob is byte[] arr)
-                return (arr, index);
-            else
-                return (null, -1);
+            return (null, -1);
         }
 
         internal (byte[] Bytes, int Index) ExpandToArray()
@@ -302,28 +275,27 @@ namespace AmpScm.Buckets
             if (Memory.Length == 0)
                 return (Array.Empty<byte>(), 0);
 
-            var (ob, index) = ReadOnlyMemoryExpander(Memory);
+            if (MemoryMarshal.TryGetArray(Memory, out var segment))
+            {
+                return (segment.Array!, segment.Offset);
+            }
 
-            if (ob is byte[] arr)
-                return (arr, index);
-
-            byte[] data = ToArray();
-
-            return (data, 0);
+            return (ToArray(), 0);
         }
 
         internal void Deconstruct(out byte[]? array, out int offset)
         {
-            if (Memory.Length == 0)
+            if (Memory.Length > 0 && MemoryMarshal.TryGetArray(Memory, out var segment))
+            {
+                array = segment.Array;
+                offset = segment.Offset;
+            }
+            else
             {
                 array = null;
                 offset = 0;
                 return;
             }
-
-            object ob;
-            (ob, offset) = ReadOnlyMemoryExpander(Memory);
-            array = ob as byte[];
         }
 
         public static bool operator ==(BucketBytes left, BucketBytes right)

@@ -5,6 +5,8 @@ abstract AmpScm.Buckets.Specialized.ConversionBucket.ConvertData(ref AmpScm.Buck
 AmpScm.Buckets.AggregateBucket.HasMultipleDisposers() -> bool
 AmpScm.Buckets.AggregateBucket.NoDispose() -> void
 AmpScm.Buckets.BucketBytes.EndsWithASCII(string! value) -> bool
+AmpScm.Buckets.ByteCollector.CopyTo(System.Memory<byte> buffer) -> void
+AmpScm.Buckets.ByteCollector.CopyTo(System.Span<byte> buffer) -> void
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.get -> string?
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.set -> void
@@ -176,6 +178,7 @@ virtual AmpScm.Buckets.Client.ResponseBucket.Headers.get -> AmpScm.Buckets.Clien
 virtual AmpScm.Buckets.Client.ResponseBucket.ReadHeaders() -> System.Threading.Tasks.ValueTask
 virtual AmpScm.Buckets.Client.ResponseBucket.SupportsHeaders.get -> bool
 virtual AmpScm.Buckets.Specialized.ConversionBucket.ConvertRequested(int requested) -> int
+virtual AmpScm.Buckets.Specialized.ConversionBucket.InnerPeek() -> AmpScm.Buckets.BucketBytes
 virtual AmpScm.Buckets.Specialized.ConversionBucket.InnerReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 virtual AmpScm.Buckets.Specialized.WrappingBucket.HasMultipleDisposers() -> bool
 virtual AmpScm.Buckets.Specialized.WrappingBucket.InnerDispose() -> void

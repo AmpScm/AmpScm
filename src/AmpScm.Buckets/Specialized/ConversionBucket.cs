@@ -42,7 +42,7 @@ namespace AmpScm.Buckets.Specialized
                     return _remaining;
             }
 
-            var bb = Inner.Peek();
+            var bb = InnerPeek();
 
             if (!bb.IsEmpty && _skipFirst > 0)
                 bb = bb.Slice(_skipFirst);
@@ -72,7 +72,7 @@ namespace AmpScm.Buckets.Specialized
             while (_skipFirst > 0)
             {
                 var skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
-                _skipFirst -= (int)skipped;
+                _skipFirst -= skipped;
             }
 
             do
@@ -103,7 +103,7 @@ namespace AmpScm.Buckets.Specialized
             while (_skipFirst > 0)
             {
                 var skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
-                _skipFirst -= (int)skipped;
+                _skipFirst -= skipped;
             }
 
             do
@@ -123,6 +123,9 @@ namespace AmpScm.Buckets.Specialized
 
         protected virtual ValueTask<BucketBytes> InnerReadAsync(int requested = MaxRead)
             => Inner.ReadAsync(requested);
+
+        protected virtual BucketBytes InnerPeek()
+            => Inner.Peek();
 
         protected virtual int ConvertRequested(int requested)
         {
