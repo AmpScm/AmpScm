@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,16 +45,16 @@ namespace AmpScm.Buckets
             if (_bytes is null)
                 return sq.Length == 0;
 
+            if (sq.Length != Length)
+                return false;
+
             int i = 0;
             foreach (var v in (_expected > 0) ? _bytes.Take(Length) : _bytes)
             {
-                if (i >= sq.Length)
+                if (v != sq[i++])
                     return false;
-                else if (v != sq[i])
-                    return false;
-                i++;
             }
-            return i == sq.Length;
+            return true;
         }
 
         public void Append(BucketBytes bytes)
@@ -324,6 +325,11 @@ namespace AmpScm.Buckets
         {
             // TODO: Optimize :-)
             AsBytes().CopyTo(buffer);
+        }
+
+        public ReadOnlyMemory<byte> ToMemory()
+        {
+            return new(ToArray());
         }
 
         public static bool operator ==(ByteCollector left, ByteCollector right)

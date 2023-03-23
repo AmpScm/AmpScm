@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
@@ -18,17 +22,14 @@ namespace AmpScm.Buckets.Signatures
         private readonly long _chunkSize;
         const int _blocksize = 16;
         private ICryptoTransform _dc;
-        byte[]? _buffer;
         byte[]? _buffer2;
         ulong _nextBlockNr;
-        long _inChunkPos;
         int _inChunkBlock;
-        byte[]? _additional;
-        byte[]? _16tmp;
         ByteCollector _byteCollector;
         byte[] _offset;
-        byte[] _l0;
         static readonly byte[] _zero16 = new byte[16];
+        byte[] _checksum;
+        byte[]? _buf16;
 
 
         public OCBDecoder(Bucket inner, Aes aes, long chunkSize, int tagLen, ReadOnlyMemory<byte> nonce)
@@ -41,7 +42,7 @@ namespace AmpScm.Buckets.Signatures
             _chunkSize = chunkSize;
             var nnonce = new byte[16];
 
-            //Aes.
+            _dc = _aes.CreateDecryptor();
 
             nonce.CopyTo(nnonce.AsMemory(16 - nonce.Length));
             nnonce[16 - nonce.Length - 1] = 0x01; // Set lowest bit
@@ -49,20 +50,18 @@ namespace AmpScm.Buckets.Signatures
             var bottom = nnonce[15] & ~0b11000000;
             nnonce[15] &= 0b11000000;
 
-            //aes.IV = nnonce;
+            var kTop = Encipher(nnonce);
 
-            _dc = _aes.CreateDecryptor();
-            _l0 = Encipher(_zero16).AsMemory(0,16).ToArray();
+            var stretched = kTop.Concat(ArrayXor(kTop.AsMemory(0, 8).ToArray(), kTop.AsMemory(1, 8))).ToArray();
 
-            var kTop = Encipher(nnonce).AsMemory(0, 16);
-
-            var stretched = kTop.ToArray().Concat(ArrayXor(kTop.Slice(0, 8).ToArray(), kTop.Slice(1, 8))).ToArray();
-
-            //Trace.WriteLine($"kTop:      {DumpData(kTop.Span)}");
-            //Trace.WriteLine($"Stretched: {DumpData(stretched)}");
+            //Debug.WriteLine($"kTop:      {DumpData(kTop.Span)}");
+            //Debug.WriteLine($"Stretched: {DumpData(stretched)}");
 
             _offset = GetBits(stretched, bottom, 128);
-            //Trace.WriteLine($"Offset_0: {DumpData(_offset)}");
+
+            Trace.WriteLine($"Offset_0: {DumpData(_offset)}");
+
+            _checksum = new byte[16];
         }
 
         static string DumpData(Span<byte> span)
@@ -136,7 +135,8 @@ namespace AmpScm.Buckets.Signatures
             {
                 data[i] = (byte)(from[i] << 1 | from[i + 1] >> 7);
             }
-            data[last] = (byte)(from[last] ^ ((data[0] >> 7) & 0x87));
+            Trace.WriteLine($"D: {(from[0] >> 7)}");
+            data[last] = (byte)(from[last] << 1 ^ ((from[0] >> 7) * 0b10000111));
         }
 
         static byte[] GetBits(byte[] array, int pos, int bits)
@@ -161,40 +161,61 @@ namespace AmpScm.Buckets.Signatures
             return result;
         }
 
-        ulong ntz(ulong n)
+        static int TrailingZeros(int n)
         {
-            var ntz = 0ul;
-            for (ulong i = 1; (n & i) == 0; i <<= 1)
+#if NETCOREAPP
+            return BitOperations.TrailingZeroCount(n);
+#else
+            var ntz = 0;
+            for (int i = 1; (n & i) == 0; i <<= 1)
             {
                 ntz++;
             }
             return ntz;
+#endif
         }
 
         byte[] Encipher(byte[] input)
         {
 #if NETCOREAPP
-            return _aes.EncryptCbc(input, _zero16);
+            return _aes.EncryptCbc(input, _zero16, PaddingMode.None);
 #else
             using var ec = _aes.CreateEncryptor();
             return ec.TransformFinalBlock(input, 0, input.Length);
 #endif
         }
 
+        byte[] Decrypt(ReadOnlyMemory<byte> input)
+        {
+#if NETCOREAPP
+            return _aes.DecryptCbc(input.Span, _zero16, PaddingMode.None);
+#else
+            if (!MemoryMarshal.TryGetArray(input, out var seg))
+                throw new InvalidOperationException();
+
+            using var ec = _aes.CreateEncryptor();
+            return ec.TransformFinalBlock(seg.Array!, seg.Offset, seg.Count);
+#endif
+        }
+
+        void Decrypt(ReadOnlyMemory<byte> src, Span<byte> dest)
+        {
+            var d = Decrypt(src);
+
+            d.AsSpan().CopyTo(dest);
+        }
+
         readonly List<byte[]> _masks = new();
         byte[] GetMask(int n)
         {
+            n += 2;
+
             if (n >= _masks.Count)
             {
-
                 if (_masks.Count == 0)
                 {
                     // L_* = ENCCIPHER(K, zeros(128)
-                    var b0 = _l0.ToArray();
-                    var b1 = new byte[16];
-                    SpanDouble(b1, b0); // L_$ = double(L_*)
-                    SpanDouble(b0, b1); // L_0 = double(L_$)
-                    _masks.Add(b0);
+                    _masks.Add(Encipher(_zero16));
                 }
 
                 while (n >= _masks.Count)
@@ -202,6 +223,7 @@ namespace AmpScm.Buckets.Signatures
                     var b = new byte[16];
                     SpanDouble(b, _masks[_masks.Count - 1]); // L_i = double(L_{i-1})
 
+                    //Debug.WriteLine($"L_{_masks.Count}: {DumpData(b)}");
                     _masks.Add(b);
                 }
             }
@@ -209,77 +231,137 @@ namespace AmpScm.Buckets.Signatures
             return _masks[n];
         }
 
+        const int TagSize = 16;
 
         protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
         {
-            _buffer ??= new byte[1024];
-            _buffer2 ??= new byte[1024];
-            _16tmp = new byte[16];
+            // We don't want to convert the final TagSize bytes using the normal convert
+            int available = _byteCollector.Length + sourceData.Length;
 
-            // TODO: Limit conversion to whatis in current chunk
-            int toConvert;
-            int convertBlocks;
+            return DoConvertData(ref sourceData, available - TagSize, final);
+        }
+
+        protected override async ValueTask<(BucketBytes Result, BucketBytes SourceData)> ConvertDataAsync(BucketBytes sourceData, bool final)
+        {
+            int available = _byteCollector.Length + sourceData.Length;
+
+            var rem = final ? 0 : await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+
+            // TODO: If 'rem' = 0, then we can pass final as true and complete in one step.
+
+            if (!(rem > 16))
+                available -= 16 - (int)(rem ?? 0);
+
+            var r = DoConvertData(ref sourceData, available, final);
+
+            return (r, sourceData);
+        }
+
+        protected BucketBytes DoConvertData(ref BucketBytes sourceData, int available, bool final)
+        {
+            ReadOnlyMemory<byte> srcData;
+            var src = _buf16 ??= new byte[16];
+
+            // For the normal reads, we never want to read the final 16 bytes "TAG"
+            if (available < TagSize)
             {
-                int haveBytes = _byteCollector.Length + sourceData.Length;
-                toConvert = haveBytes - haveBytes % _blocksize;
+                _byteCollector.Append(sourceData);
+                sourceData = final ? BucketBytes.Eof : BucketBytes.Empty;
 
-                if (toConvert == 0)
+                if (!final)
+                    return BucketBytes.Empty;
+
+                srcData = _byteCollector.ToArray();
+                _byteCollector.Clear();
+
+                if (available > 0)
                 {
-                    // Can't convert anything. Store in buffer + refill
-                    _byteCollector.Append(sourceData);
+                    // We have remaining data
+                    srcData.Slice(0, available).CopyTo(src);
 
-                    if (sourceData.IsEof)
-                    {
-                        if (!_byteCollector.IsEmpty)
-                            throw new BucketEofException("Not enough OCB crypto data");
+                    // Offset_* = Offset_m xor L_*
+                    SpanXor(_offset, GetMask(-2));
+                    // Pad = ENCIPHER(K, Offset_*)
+                    // P_ * = C_ * xor Pad[1..bitlen(C_ *)]
+                    SpanXor(src, Encipher(_offset));
 
-                        return sourceData;
-                    }
-                    else
-                        return sourceData = BucketBytes.Empty;
+                    // Checksum_* = Checksum_m xor (P_* || 1 || zeros(127-bitlen(P_*)))
+                    src[available] = 0x80;
+                    if (available < _blocksize)
+                        Array.Clear(src, available + 1, src.Length - available - 1);
+
+                    Debug.WriteLine($"P*: {DumpData(src.AsSpan(0, available))}");
+
+                    SpanXor(_checksum, _buf16);
+
+
+                    SpanXor(_checksum, _offset);
+                    SpanXor(_checksum, GetMask(-1));
+
+                    var tag = Encipher(_checksum);
+                    //SpanXor(tag, )
                 }
 
-                convertBlocks = toConvert / _blocksize;
 
-                if (!_byteCollector.IsEmpty)
-                {
-                    _byteCollector.CopyTo(_buffer);
-                    int s = toConvert - _byteCollector.Length;
-                    sourceData.Slice(0, s).CopyTo(_buffer.AsSpan(_byteCollector.Length));
-                    _byteCollector.Clear();
-                    sourceData = sourceData.Slice(s);
-                }
-                else
-                {
-                    sourceData.Slice(0, toConvert).CopyTo(_buffer);
-                    sourceData = sourceData.Slice(toConvert);
-
-                }
+                return available > 0 ? new(src, 0, available) : BucketBytes.Eof;
             }
+
+            available -= available % _blocksize;
+
+            
+            if (_byteCollector.Length > 0)
+            {
+                _byteCollector.Append(sourceData);
+
+                srcData = _byteCollector.ToMemory();
+                _byteCollector.Clear();
+
+                _byteCollector.Append(srcData.Slice(available).ToArray());
+                srcData = srcData.Slice(0, available);
+            }
+            else
+            {
+                _byteCollector.Append(sourceData.Slice(available).ToArray());
+                srcData = sourceData.Slice(0, available);
+            }
+            sourceData = BucketBytes.Empty;
+
+            _buffer2 ??= new byte[1024];
+            
+            int convertBlocks = available / _blocksize;
 
             for (int i = 0; i < convertBlocks; i++)
             {
-                SpanXor(_offset, GetMask(i + 1));
+                ++_inChunkBlock;
 
-                SpanXor(_buffer.AsSpan(i * _blocksize, 16), _offset);
+                Debug.WriteLine($"trailing zeros of {_inChunkBlock} is {TrailingZeros(_inChunkBlock)}");
+                Debug.WriteLine($"L_{TrailingZeros(_inChunkBlock)} is {DumpData(GetMask(TrailingZeros(_inChunkBlock)))}");
 
-                _dc.TransformBlock(_buffer, i * _blocksize, 16, _buffer2, i * _blocksize);
+                SpanXor(_offset, GetMask(TrailingZeros(_inChunkBlock)));
 
-                SpanXor(_buffer2.AsSpan(i * _blocksize, 16), _offset);
+                Debug.WriteLine($"Offset_{_inChunkBlock} = {DumpData(_offset)}");
+
+                Array.Clear(_buf16, 0, 16);
+                srcData.Slice(i * _blocksize, _blocksize).CopyTo(_buf16);
+                Span<byte> dest = _buffer2.AsSpan(i * _blocksize, _blocksize);
+
+                SpanXor(src, _offset);
+                Decrypt(src, dest);
+                SpanXor(dest, _offset);
+
+                SpanXor(_checksum, dest);
             }
 
-            _inChunkBlock += convertBlocks;
-            _inChunkPos += toConvert;
 
-            return new BucketBytes(_buffer2, 0, toConvert);
+            Debug.WriteLine($"P: {DumpData(_buffer2.AsSpan(0, available))}");
+
+            return new BucketBytes(_buffer2, 0, available);
         }
 
         protected override int ConvertRequested(int requested)
         {
-            int needForRead = _blocksize - _byteCollector.Length;
-
-            if (requested < needForRead)
-                return needForRead;
+            if (requested < 16)
+                return 16;
             else
                 return requested;
         }

@@ -5,8 +5,8 @@ abstract AmpScm.Buckets.Specialized.ConversionBucket.ConvertData(ref AmpScm.Buck
 AmpScm.Buckets.AggregateBucket.HasMultipleDisposers() -> bool
 AmpScm.Buckets.AggregateBucket.NoDispose() -> void
 AmpScm.Buckets.BucketBytes.EndsWithASCII(string! value) -> bool
-AmpScm.Buckets.ByteCollector.CopyTo(System.Memory<byte> buffer) -> void
 AmpScm.Buckets.ByteCollector.CopyTo(System.Span<byte> buffer) -> void
+AmpScm.Buckets.ByteCollector.ToMemory() -> System.ReadOnlyMemory<byte>
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.get -> string?
 AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs.Password.set -> void
@@ -177,6 +177,7 @@ virtual AmpScm.Buckets.Client.ResponseBucket.ContentType.get -> string?
 virtual AmpScm.Buckets.Client.ResponseBucket.Headers.get -> AmpScm.Buckets.Client.WebHeaderDictionary!
 virtual AmpScm.Buckets.Client.ResponseBucket.ReadHeaders() -> System.Threading.Tasks.ValueTask
 virtual AmpScm.Buckets.Client.ResponseBucket.SupportsHeaders.get -> bool
+virtual AmpScm.Buckets.Specialized.ConversionBucket.ConvertDataAsync(AmpScm.Buckets.BucketBytes sourceData, bool final) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes Result, AmpScm.Buckets.BucketBytes SourceData)>
 virtual AmpScm.Buckets.Specialized.ConversionBucket.ConvertRequested(int requested) -> int
 virtual AmpScm.Buckets.Specialized.ConversionBucket.InnerPeek() -> AmpScm.Buckets.BucketBytes
 virtual AmpScm.Buckets.Specialized.ConversionBucket.InnerReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>

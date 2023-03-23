@@ -60,6 +60,13 @@ namespace AmpScm.Buckets.Specialized
 
         protected abstract BucketBytes ConvertData(ref BucketBytes sourceData, bool final);
 
+        protected virtual ValueTask<(BucketBytes Result, BucketBytes SourceData)> ConvertDataAsync(BucketBytes sourceData, bool final)
+        {
+            var r = ConvertData(ref sourceData, final);
+
+            return new((r, sourceData));
+        }
+
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (!_remaining.IsEmpty)
@@ -80,7 +87,7 @@ namespace AmpScm.Buckets.Specialized
                 if (_readLeft.IsEmpty)
                     _readLeft = await InnerReadAsync(ConvertRequested(requested)).ConfigureAwait(false);
 
-                _remaining = ConvertData(ref _readLeft, _readLeft.IsEof);
+                (_remaining, _readLeft) = await ConvertDataAsync(_readLeft, _readLeft.IsEof).ConfigureAwait(false);
 
                 if (!_remaining.IsEmpty)
                 {
@@ -111,7 +118,7 @@ namespace AmpScm.Buckets.Specialized
                 if (_readLeft.IsEmpty)
                     _readLeft = await InnerReadAsync(ConvertRequested(Math.Max(512, minRequested))).ConfigureAwait(false);
 
-                _remaining = ConvertData(ref _readLeft, _readLeft.IsEof);
+                (_remaining, _readLeft) = await ConvertDataAsync(_readLeft, _readLeft.IsEof).ConfigureAwait(false);
 
                 if (!_remaining.IsEmpty)
                     return _remaining;
