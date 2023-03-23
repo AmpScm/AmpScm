@@ -181,27 +181,16 @@ namespace AmpScm.Buckets.Signatures
 
                             // Encrypted data
 
-                            Bucket b = await StartDecrypt(bucket, startingVector, chunk_size).ConfigureAwait(false);
+                            Bucket b = new OcbDecodeBucket(bucket, OcbDecodeBucket.SetupAes(_sessionKey.ToArray()), chunk_size, 128, startingVector, new byte[] { /* Assoicated data */ });
 
                             _q = new OpenPgpContainer(b);
 
-                            //Aes a;
-                            //a.
-
                             continue;
-
-                            var pca = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-
-                            OpenPgpPublicKeyType pkt = (OpenPgpPublicKeyType)pca;
-                            var signer = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
-
-                            byte flag = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                         }
-                        break;
                     case OpenPgpTagType.SymetricEncryptedIntegrity:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-                            var b = await StartDecrypt(bucket, null, 0).ConfigureAwait(false);
+                            var b = await StartDecrypt(bucket).ConfigureAwait(false);
 
                             _q = new OpenPgpContainer(b);
                             continue;
@@ -276,9 +265,9 @@ namespace AmpScm.Buckets.Signatures
                             {
                                 byte[] iv = (await bucket.ReadExactlyAsync(15).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
 
-                                var bb = await bucket.ReadExactlyAsync(16+16).ConfigureAwait(false);
+                                var bb = await bucket.ReadExactlyAsync(16 + 16).ConfigureAwait(false);
 
-                                var ocb = new OCBDecoder(bb.Memory.AsBucket(), OCBDecoder.SetupAes(key), 8192, 16, iv);
+                                var ocb = new OcbDecodeBucket(bb.Memory.AsBucket(), OcbDecodeBucket.SetupAes(key), 8192, 16, iv, new byte[] { });
 
                                 var k = await ocb.ReadExactlyAsync(16).ConfigureAwait(false);
 
@@ -334,7 +323,7 @@ namespace AmpScm.Buckets.Signatures
             }
         }
 
-        private async ValueTask<Bucket> StartDecrypt(Bucket bucket, byte[]? iv, long chunkSize)
+        private async ValueTask<Bucket> StartDecrypt(Bucket bucket)
         {
             switch (_sessionAlgorithm)
             {
@@ -350,22 +339,14 @@ namespace AmpScm.Buckets.Signatures
                     aes.Padding = PaddingMode.None;
                     aes.FeedbackSize = aes.BlockSize;
 
-                    if (iv is { })
-                    {
-                        return new OCBDecoder(bucket, aes, chunkSize, 16, iv);
-                    }
-                    else
-                    {
-                        var dcb = new RawDecryptBucket(bucket, aes, true);
+                    var dcb = new RawDecryptBucket(bucket, aes, true);
 
-                        var bb = await dcb.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
+                    var bb = await dcb.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
 
-                        if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
-                            throw new InvalidOperationException("AES-256 decrypt failed");
+                    if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
+                        throw new InvalidOperationException("AES-256 decrypt failed");
 
-                        return dcb;
-                    }
-
+                    return dcb;
 
                 default:
                     throw new NotImplementedException();

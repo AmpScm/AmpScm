@@ -5,34 +5,30 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
 {
 #pragma warning disable RS0016 // Add public types and members to the declared API
-    public class OCBDecoder : ConversionBucket
+    public class OcbDecodeBucket : ConversionBucket
     {
+        static readonly byte[] _zero16 = new byte[16];
         private readonly Aes _aes;
         private readonly long _chunkSize;
+        private readonly ReadOnlyMemory<byte> _associatedData;
         const int _blocksize = 16;
-        private ICryptoTransform _dc;
         byte[]? _buffer2;
-        ulong _nextBlockNr;
         int _inChunkBlock;
         ByteCollector _byteCollector;
         byte[] _offset;
-        static readonly byte[] _zero16 = new byte[16];
         byte[] _checksum;
         byte[]? _buf16;
 
-
-        public OCBDecoder(Bucket inner, Aes aes, long chunkSize, int tagLen, ReadOnlyMemory<byte> nonce)
+        public OcbDecodeBucket(Bucket inner, Aes aes, long chunkSize, int tagLen, ReadOnlyMemory<byte> nonce, ReadOnlyMemory<byte> associatedData)
             : base(inner)
         {
             if (aes is null)
@@ -40,9 +36,8 @@ namespace AmpScm.Buckets.Signatures
 
             _aes = aes;
             _chunkSize = chunkSize;
+            _associatedData = associatedData;
             var nnonce = new byte[16];
-
-            _dc = _aes.CreateDecryptor();
 
             nonce.CopyTo(nnonce.AsMemory(16 - nonce.Length));
             nnonce[16 - nonce.Length - 1] = 0x01; // Set lowest bit
@@ -59,11 +54,12 @@ namespace AmpScm.Buckets.Signatures
 
             _offset = GetBits(stretched, bottom, 128);
 
-            Trace.WriteLine($"Offset_0: {DumpData(_offset)}");
+            //Debug.WriteLine($"Offset_0: {DumpData(_offset)}");
 
             _checksum = new byte[16];
         }
 
+#if DEBUG
         static string DumpData(Span<byte> span)
         {
             StringBuilder sb = new StringBuilder();
@@ -75,6 +71,7 @@ namespace AmpScm.Buckets.Signatures
 
             return sb.ToString();
         }
+#endif
 
         public static Aes SetupAes(byte[] key)
         {
@@ -135,7 +132,7 @@ namespace AmpScm.Buckets.Signatures
             {
                 data[i] = (byte)(from[i] << 1 | from[i + 1] >> 7);
             }
-            Trace.WriteLine($"D: {(from[0] >> 7)}");
+            //Debug.WriteLine($"D: {(from[0] >> 7)}");
             data[last] = (byte)(from[last] << 1 ^ ((from[0] >> 7) * 0b10000111));
         }
 
@@ -290,7 +287,7 @@ namespace AmpScm.Buckets.Signatures
                     if (available < _blocksize)
                         Array.Clear(src, available + 1, src.Length - available - 1);
 
-                    Debug.WriteLine($"P*: {DumpData(src.AsSpan(0, available))}");
+                    //Debug.WriteLine($"P*: {DumpData(src.AsSpan(0, available))}");
 
                     SpanXor(_checksum, _buf16);
 
@@ -299,7 +296,10 @@ namespace AmpScm.Buckets.Signatures
                     SpanXor(_checksum, GetMask(-1));
 
                     var tag = Encipher(_checksum);
-                    //SpanXor(tag, )
+                    SpanXor(tag, Hash(_associatedData).Span);
+
+                    if (!tag.AsSpan().SequenceEqual(srcData.Slice(available).Span))
+                        throw new BucketException("Decrypted data not valid");
                 }
 
 
@@ -308,7 +308,7 @@ namespace AmpScm.Buckets.Signatures
 
             available -= available % _blocksize;
 
-            
+
             if (_byteCollector.Length > 0)
             {
                 _byteCollector.Append(sourceData);
@@ -327,19 +327,19 @@ namespace AmpScm.Buckets.Signatures
             sourceData = BucketBytes.Empty;
 
             _buffer2 ??= new byte[1024];
-            
+
             int convertBlocks = available / _blocksize;
 
             for (int i = 0; i < convertBlocks; i++)
             {
                 ++_inChunkBlock;
 
-                Debug.WriteLine($"trailing zeros of {_inChunkBlock} is {TrailingZeros(_inChunkBlock)}");
-                Debug.WriteLine($"L_{TrailingZeros(_inChunkBlock)} is {DumpData(GetMask(TrailingZeros(_inChunkBlock)))}");
+                //Debug.WriteLine($"trailing zeros of {_inChunkBlock} is {TrailingZeros(_inChunkBlock)}");
+                //Debug.WriteLine($"L_{TrailingZeros(_inChunkBlock)} is {DumpData(GetMask(TrailingZeros(_inChunkBlock)))}");
 
                 SpanXor(_offset, GetMask(TrailingZeros(_inChunkBlock)));
 
-                Debug.WriteLine($"Offset_{_inChunkBlock} = {DumpData(_offset)}");
+                //Debug.WriteLine($"Offset_{_inChunkBlock} = {DumpData(_offset)}");
 
                 Array.Clear(_buf16, 0, 16);
                 srcData.Slice(i * _blocksize, _blocksize).CopyTo(_buf16);
@@ -353,9 +353,45 @@ namespace AmpScm.Buckets.Signatures
             }
 
 
-            Debug.WriteLine($"P: {DumpData(_buffer2.AsSpan(0, available))}");
+            //Debug.WriteLine($"P: {DumpData(_buffer2.AsSpan(0, available))}");
 
             return new BucketBytes(_buffer2, 0, available);
+        }
+
+        private ReadOnlyMemory<byte>Hash(ReadOnlyMemory<byte> associatedData)
+        {
+            var sum = new byte[16];
+            var offset = new byte[16];
+            var tmp = new byte[16];
+            int blockNr = 1;
+
+            while (blockNr * _blocksize < associatedData.Length)
+            {
+                SpanXor(offset, GetMask(blockNr));
+
+                associatedData.Slice(blockNr * _blocksize, _blocksize).Span.CopyTo(tmp);
+                SpanXor(tmp, offset);
+
+                SpanXor(sum, Encipher(tmp));
+            }
+
+            int remaining = associatedData.Length % _blocksize;
+
+            if (remaining > 0)
+            {
+                SpanXor(offset, GetMask(-2));
+
+                Array.Clear(tmp, 0, 16);
+                associatedData.Slice(associatedData.Length-remaining).CopyTo(tmp);
+                tmp[remaining] = 0x80;
+
+                SpanXor(tmp, offset);
+
+                SpanXor(sum, Encipher(tmp));
+            }
+            // else sum = sim
+
+            return sum;
         }
 
         protected override int ConvertRequested(int requested)
