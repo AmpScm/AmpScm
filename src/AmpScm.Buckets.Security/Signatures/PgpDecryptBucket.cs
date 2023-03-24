@@ -288,13 +288,12 @@ namespace AmpScm.Buckets.Signatures
                             {
                                 byte[] nonce = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
 
-                                var bb = await bucket.ReadExactlyAsync(16 + 16).ConfigureAwait(false);
-
                                 bool? verified_as_ok = null;
 
-                                using var ocb = new OcbDecodeBucket(bb.Memory.AsBucket(), key.ToArray(), 128, nonce, verifyResult: (result) => verified_as_ok = result);
+                                using var ocb = new OcbDecodeBucket(bucket, key.ToArray(), 128, nonce,
+                                    associatedData: new byte[] { (byte)(0xc0 | (int)tag), version, (byte)cipherAlgorithm, 0x02 /* s2k type */ },
+                                    verifyResult: (result) => verified_as_ok = result);
 
-                                
                                 var k = await ocb.ReadExactlyAsync(17).ConfigureAwait(false);
 
                                 Debug.Assert(verified_as_ok != null, "Verify not called");

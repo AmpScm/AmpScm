@@ -49,4 +49,5 @@ override AmpScm.Buckets.Signatures.Radix64ArmorBucket.ReadAsync(int requested = 
 override AmpScm.Buckets.Signatures.SignatureBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Signatures.Radix64ArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool
 static AmpScm.Buckets.Signatures.Signature.TryParse(string! keyText, out AmpScm.Buckets.Signatures.Signature? value) -> bool
+static AmpScm.Buckets.Signatures.Signature.TryParse(string! keyText, System.Func<AmpScm.Buckets.Signatures.SignaturePromptContext!, string!>? getPassPhrase, out AmpScm.Buckets.Signatures.Signature? value) -> bool
 static AmpScm.Buckets.Signatures.SignaturePromptContext.Empty.get -> AmpScm.Buckets.Signatures.SignaturePromptContext!

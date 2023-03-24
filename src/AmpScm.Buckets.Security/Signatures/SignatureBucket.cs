@@ -39,7 +39,7 @@ namespace AmpScm.Buckets.Signatures
             _outer = inner;
         }
 
-        public Func<SignaturePromptContext, string>? GetPassword { get; init; }
+        public Func<SignaturePromptContext, string>? GetPassPhrase { get; init; }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
@@ -321,7 +321,7 @@ namespace AmpScm.Buckets.Signatures
 
                                         var s2k = await ReadPgpS2kSpecifierAsync(bucket).ConfigureAwait(false);
 
-                                        if (GetPassword?.Invoke(SignaturePromptContext.Empty) is { } password)
+                                        if (GetPassPhrase?.Invoke(SignaturePromptContext.Empty) is { } password)
                                         {
                                             var key = DeriveS2kKey(cipherAlgorithm, s2k, password);
                                         }
@@ -1246,8 +1246,12 @@ namespace AmpScm.Buckets.Signatures
 
                 if (s2k.Salt != null)
                 {
-                    pwd = Enumerable.Range(0, zeros).Select(_=>(byte)0).Concat(s2k.Salt).Concat(pwd);
+                    pwd = s2k.Salt.Concat(pwd);
                 }
+
+                if (zeros > 0)
+                    pwd = Enumerable.Range(0, zeros).Select(_ => (byte)0).Concat(pwd);
+                zeros++;
 
                 var toHash = pwd.ToArray();
 
