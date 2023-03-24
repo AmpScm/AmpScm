@@ -88,6 +88,7 @@ public class OcbDecodeBucket : ConversionBucket
         _checksum = new byte[16];
         TagSize = tagLen / 8;
         _verified = verifyResult;
+        _associatedData = associatedData;
     }
 
     protected override void InnerDispose()
@@ -410,14 +411,15 @@ public class OcbDecodeBucket : ConversionBucket
         var tmp = new byte[16];
         int blockNr = 1;
 
-        while (blockNr * BlockLength < associatedData.Length)
+        while (blockNr * BlockLength <= associatedData.Length)
         {
-            SpanXor(offset, GetMask(blockNr));
+            SpanXor(offset, GetMask(TrailingZeros(blockNr)));
 
-            associatedData.Slice(blockNr * BlockLength, BlockLength).Span.CopyTo(tmp);
+            associatedData.Slice((blockNr-1) * BlockLength, BlockLength).Span.CopyTo(tmp);
             SpanXor(tmp, offset);
 
             SpanXor(sum, Encipher(tmp));
+            blockNr++;
         }
 
         int remaining = associatedData.Length % BlockLength;

@@ -294,7 +294,7 @@ namespace BucketTests.Security
                 inner: Dec("4412923493C57D5DE0D700F753CCE0D1D2D95060122E9F15A5DDBFC5787E50B5CC55EE507BCB084E479AD363AC366B95A98CA5F3000B1479").AsBucket(),
                 Key, 128,
                 nonce: Dec("BBAA9988776655443322110F"),
-                associatedData: Dec("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"),
+                associatedData: default,
                 verifyResult: r => ok = r);
 
 
