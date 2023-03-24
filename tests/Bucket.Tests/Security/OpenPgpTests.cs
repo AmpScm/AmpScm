@@ -335,7 +335,7 @@ cEgAjelaGkn3RJOwXWoJbA==
 ";
 
 
-    [TestMethod, Ignore]
+    [TestMethod]
     public async Task TestPrivateKeys()
     {
         Assert.IsTrue(Signature.TryParse(rsa_key1, out var key1));
@@ -360,7 +360,7 @@ cEgAjelaGkn3RJOwXWoJbA==
         Assert.AreEqual("", bb.ToUTF8String());
     }
 
-    [TestMethod, Ignore]
+    [TestMethod]
     public async Task TestOCBTestData()
     {
         ReadOnlyMemory<byte> r = new byte[]
@@ -399,19 +399,21 @@ cEgAjelaGkn3RJOwXWoJbA==
             var bb = await b.ReadAsync(1024);
 
             var part = bb.ToASCIIString();
-            result += bb;
+            result += part;
             Trace.Write(part);
 
             if (bb.IsEof)
                 break;
         }
 
-        Assert.AreEqual("", result);
+        Assert.AreEqual("Hello, world!\n", result);
     }
 
     [TestMethod]
     public async Task TestOCBSplit()
     {
+        OCBTests.InconclusiveOnMono();
+
         byte[] key = new byte[] { 0xeb, 0x9d, 0xa7, 0x8a, 0x9d, 0x5d, 0xf8, 0x0e, 0xc7, 0x02, 0x05, 0x96, 0x39, 0x9b, 0x65, 0x08 };
         byte[] nonce = new byte[] { 0x99, 0xe3, 0x26, 0xe5, 0x40, 0x0a, 0x90, 0x93, 0x6c, 0xef, 0xb4, 0xe8, 0xeb, 0xa0, 0x8c };
         byte[] authenticated = new byte[] { 0xc3, 0x05, 0x07, 0x02 };
@@ -442,6 +444,7 @@ cEgAjelaGkn3RJOwXWoJbA==
     [TestMethod]
     public async Task TestOCB()
     {
+        OCBTests.InconclusiveOnMono();
         var key = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }.ToArray();
 
         var crypted = new byte[]

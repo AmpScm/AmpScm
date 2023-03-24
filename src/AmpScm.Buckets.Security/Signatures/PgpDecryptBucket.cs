@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Client;
+using AmpScm.Buckets.Security;
 using AmpScm.Buckets.Specialized;
 
 // https://www.rfc-editor.org/rfc/rfc4880
@@ -200,7 +201,11 @@ namespace AmpScm.Buckets.Signatures
 
                                     OcbDecodeBucket.SpanXor(sv.AsSpan(sv.Length - 4), NetBitConverter.GetBytes(n));
 
-                                    return new OcbDecodeBucket(data, _sessionKey.ToArray(), 128, sv, associatedData);
+                                    return new OcbDecodeBucket(data, _sessionKey.ToArray(), 128, sv, associatedData, verifyResult: x =>
+                                    {
+                                        if (!x)
+                                            throw new BucketDecryptException($"Verification of chunk {n + 1} in {data} bucket failed");
+                                    });
                                 });
 
                             _q = new OpenPgpContainer(bucket);

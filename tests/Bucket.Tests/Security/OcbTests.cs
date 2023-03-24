@@ -15,9 +15,19 @@ namespace BucketTests.Security
     {
         static readonly byte[] Key = Dec("000102030405060708090A0B0C0D0E0F");
 
+        internal static void InconclusiveOnMono()
+        {
+#if NETFRAMEWORK
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                Assert.Inconclusive("OCB/AES doesn't work nicely on mono. Please use .Net Core");
+#endif
+        }
+
         [TestMethod]
         public async Task Ocb_00_Empty()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -36,6 +46,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_01_Basic()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -54,6 +66,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_02_Associated()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -72,6 +86,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_03_NoAssociated()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -90,6 +106,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_04_Longer()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -108,6 +126,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_05_EmptyLonger()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -126,6 +146,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_06_NoAssociatedLonger()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -144,6 +166,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_07_Longer()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -162,6 +186,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_08_LongerEmpty()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -180,6 +206,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_09_LongerNoAssociated()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -198,6 +226,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_10_Longer()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -216,6 +246,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_11_LongerEmpty()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -234,6 +266,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_12_LongerNoAssociated()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -252,6 +286,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_13_Longer()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -270,6 +306,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_14_LongerEmpty()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(
@@ -288,6 +326,8 @@ namespace BucketTests.Security
         [TestMethod]
         public async Task Ocb_15_LongerNoAssociated()
         {
+            InconclusiveOnMono();
+
             bool? ok = null;
 
             var b = new OcbDecodeBucket(

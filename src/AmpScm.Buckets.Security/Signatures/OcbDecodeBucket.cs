@@ -24,7 +24,6 @@ public class OcbDecodeBucket : ConversionBucket
     ByteCollector _byteCollector;
     byte[] _offset;
     byte[] _checksum;
-    private readonly int _tagLen;
     byte[]? _buf16;
     Action<bool>? _verified;
 
@@ -345,7 +344,7 @@ public class OcbDecodeBucket : ConversionBucket
             bool ok = tag.AsSpan(0, TagSize).SequenceEqual(srcData.Slice(available, TagSize).Span);
             if (_verified is { })
                 _verified(ok);
-            else
+            else if (!ok)
                 throw new BucketDecryptException($"Decrypted data in {this} bucket not valid");
 
 
@@ -415,7 +414,7 @@ public class OcbDecodeBucket : ConversionBucket
         {
             SpanXor(offset, GetMask(TrailingZeros(blockNr)));
 
-            associatedData.Slice((blockNr-1) * BlockLength, BlockLength).Span.CopyTo(tmp);
+            associatedData.Slice((blockNr - 1) * BlockLength, BlockLength).Span.CopyTo(tmp);
             SpanXor(tmp, offset);
 
             SpanXor(sum, Encipher(tmp));
