@@ -32,7 +32,7 @@ namespace AmpScm.Buckets.Client
             Keys = new KeysCollection(this);
         }
 
-        BaseWhc BaseWhc => this;
+        private BaseWhc BaseWhc => this;
 
         string IDictionary<string, string>.this[string key]
         {
@@ -40,7 +40,7 @@ namespace AmpScm.Buckets.Client
             {
                 if (key is null)
                     throw new ArgumentNullException(nameof(key));
-                var v = BaseWhc[key];
+                string? v = BaseWhc[key];
 
                 if (v is null)
                     throw new KeyNotFoundException();
@@ -115,7 +115,7 @@ namespace AmpScm.Buckets.Client
 
         bool ICollection<KeyValuePair<string, string>>.Remove(KeyValuePair<string, string> item)
         {
-            var v = base[item.Key];
+            string? v = base[item.Key];
             if (v == item.Value)
             {
                 base.Remove(item.Key);
@@ -137,13 +137,13 @@ namespace AmpScm.Buckets.Client
         public new sealed class KeysCollection : IReadOnlyList<string>, ICollection<string>
 #pragma warning restore CA1034 // Nested types should not be visible
         {
-            readonly WebHeaderDictionary _whc;
+            private readonly WebHeaderDictionary _whc;
             internal KeysCollection(WebHeaderDictionary whc)
             {
                 _whc = whc ?? throw new ArgumentNullException(nameof(whc));
             }
 
-            BaseWhc BaseWhc => _whc;
+            private BaseWhc BaseWhc => _whc;
 
             public string this[int index] => BaseWhc.Keys[index]!;
 
@@ -189,15 +189,15 @@ namespace AmpScm.Buckets.Client
             }
         }
 
-        sealed class ValuesCollection : IReadOnlyList<string>, ICollection<string>
+        private sealed class ValuesCollection : IReadOnlyList<string>, ICollection<string>
         {
-            readonly WebHeaderDictionary _whc;
+            private readonly WebHeaderDictionary _whc;
             internal ValuesCollection(WebHeaderDictionary whc)
             {
                 _whc = whc ?? throw new ArgumentNullException(nameof(whc));
             }
 
-            BaseWhc BaseWhc => _whc;
+            private BaseWhc BaseWhc => _whc;
 
             public string this[int index] => _whc[index]!;
 

@@ -9,7 +9,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets
 {
-    partial class BucketExtensions
+    public partial class BucketExtensions
     {
 
         public static ValueTask<BucketBytes> PollAsync(this Bucket bucket, int minRequested = 1)
@@ -96,7 +96,7 @@ namespace AmpScm.Buckets
             {
                 StringBuilder sb = new StringBuilder("\"");
 
-                foreach (var b in Data.Span)
+                foreach (byte b in Data.Span)
                 {
                     if (b > 0 && b < 128 && !char.IsControl((char)b))
                         sb.Append((char)b);

@@ -7,7 +7,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
 {
-    enum DerType : byte
+    internal enum DerType : byte
     {
         Eof = 0,
         Boolean = 1,
@@ -34,8 +34,8 @@ namespace AmpScm.Buckets.Signatures
 
     internal sealed class DerBucket : WrappingBucket
     {
-        bool _eof;
-        bool _reading;
+        private bool _eof;
+        private bool _reading;
 
         public DerBucket(Bucket inner) : base(inner)
         {

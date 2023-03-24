@@ -9,9 +9,9 @@ namespace AmpScm.Buckets.Specialized
 {
     public class BitwiseAndBucket : CombineBucket
     {
-        readonly byte[] _buffer;
-        BucketBytes _bbLeft;
-        BucketBytes _bbRight;
+        private readonly byte[] _buffer;
+        private BucketBytes _bbLeft;
+        private BucketBytes _bbRight;
 
         public BitwiseAndBucket(Bucket left, Bucket right) : base(left, right)
         {
@@ -88,7 +88,7 @@ namespace AmpScm.Buckets.Specialized
             return base.ReadSkipAsync(requested);
         }
 
-        int Process()
+        private int Process()
         {
             int got = Math.Min(_bbLeft.Length, _bbRight.Length);
 
@@ -115,8 +115,8 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
-            var l1 = await Left.ReadRemainingBytesAsync().ConfigureAwait(false);
-            var l2 = await Right.ReadRemainingBytesAsync().ConfigureAwait(false);
+            long? l1 = await Left.ReadRemainingBytesAsync().ConfigureAwait(false);
+            long? l2 = await Right.ReadRemainingBytesAsync().ConfigureAwait(false);
 
             if (l1.HasValue && l2.HasValue)
                 return Math.Max(l1.Value, l2.Value);

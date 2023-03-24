@@ -4,12 +4,12 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
 {
-    sealed class OpenPgpContainer : WrappingBucket
+    internal sealed class OpenPgpContainer : WrappingBucket
     {
-        bool _notFirst;
-        bool _isSsh;
-        bool _reading;
-        bool _isDer;
+        private bool _notFirst;
+        private bool _isSsh;
+        private bool _reading;
+        private bool _isDer;
 
         public OpenPgpContainer(Bucket inner) : base(inner)
         {
@@ -33,12 +33,12 @@ namespace AmpScm.Buckets.Signatures
             if (_reading)
                 throw new BucketException("Can't obtain new packet, when the last one is not completely read");
 
-            var first = false;
+            bool first = false;
             var inner = Inner;
             bool sshPublicKey = false;
             if (!_notFirst)
             {
-                var didRead = false;
+                bool didRead = false;
                 var bb = await Inner.PollAsync().ConfigureAwait(false);
 
                 if (bb.Length < 6)
@@ -102,12 +102,12 @@ namespace AmpScm.Buckets.Signatures
             }
             else
             {
-                var bq = await inner.ReadByteAsync().ConfigureAwait(false);
+                byte? bq = await inner.ReadByteAsync().ConfigureAwait(false);
 
                 if (bq is null)
                     return (null, default);
 
-                var b = bq.Value;
+                byte b = bq.Value;
                 bool oldFormat;
                 OpenPgpTagType tag;
                 uint remaining = 0;
@@ -159,7 +159,7 @@ namespace AmpScm.Buckets.Signatures
 
         internal static async ValueTask<(uint? Length, bool PartialResult)> ReadLengthAsync(Bucket bucket)
         {
-            var b = await bucket.ReadByteAsync().ConfigureAwait(false);
+            byte? b = await bucket.ReadByteAsync().ConfigureAwait(false);
 
             if (!b.HasValue)
                 return (null, false);
@@ -169,7 +169,7 @@ namespace AmpScm.Buckets.Signatures
 
             else if (b < 224)
             {
-                var b2 = await bucket.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(bucket);
+                byte b2 = await bucket.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(bucket);
 
                 return ((uint)((b - 192 << 8) + b2 + 192), false);
             }
@@ -179,7 +179,7 @@ namespace AmpScm.Buckets.Signatures
             }
             else
             {
-                var partialBodyLen = 1u << (b & 0x1F);
+                uint? partialBodyLen = 1u << (b & 0x1F);
 
                 return (partialBodyLen, true);
             }

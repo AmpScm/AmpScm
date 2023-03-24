@@ -13,8 +13,8 @@ namespace AmpScm.Buckets.Wrappers
 {
     internal partial class BucketStream : Stream
     {
-        bool _gotLength;
-        long _length;
+        private bool _gotLength;
+        private long _length;
 
         public BucketStream(Bucket bucket)
         {
@@ -58,12 +58,12 @@ namespace AmpScm.Buckets.Wrappers
                 {
                     _gotLength = true;
 
-                    var p = Bucket.Position;
+                    long? p = Bucket.Position;
 
                     if (!p.HasValue)
                         return -1L;
 
-                    var r = Bucket.ReadRemainingBytesAsync().AsTask().Result; // BAD async
+                    long? r = Bucket.ReadRemainingBytesAsync().AsTask().Result; // BAD async
 
                     if (r.HasValue)
                         _length = r.Value + p.Value;
@@ -90,7 +90,7 @@ namespace AmpScm.Buckets.Wrappers
             return await DoReadAsync(new Memory<byte>(buffer, offset, count)).ConfigureAwait(false);
         }
 
-        async ValueTask<int> DoReadAsync(Memory<byte> buffer)
+        private async ValueTask<int> DoReadAsync(Memory<byte> buffer)
         {
             var r = await Bucket.ReadAsync(buffer.Length).ConfigureAwait(false);
 
@@ -175,7 +175,7 @@ namespace AmpScm.Buckets.Wrappers
             }
         }
 
-        sealed class SyncDone : IAsyncResult
+        private sealed class SyncDone : IAsyncResult
         {
             public object? AsyncState { get; set; }
 

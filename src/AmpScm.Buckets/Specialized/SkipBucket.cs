@@ -8,9 +8,9 @@ namespace AmpScm.Buckets.Specialized
     internal sealed class SkipBucket : PositionBucket, IBucketSkip
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _ensure;
+        private bool _ensure;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _skipped;
+        private bool _skipped;
 
         public long FirstPosition { get; private set; }
 
@@ -119,7 +119,7 @@ namespace AmpScm.Buckets.Specialized
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
 
-            var p = bucket.Position;
+            long? p = bucket.Position;
 
             if (p.HasValue)
             {

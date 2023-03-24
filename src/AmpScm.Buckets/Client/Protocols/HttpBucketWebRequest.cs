@@ -14,7 +14,8 @@ namespace AmpScm.Buckets.Client
     {
         internal BucketClientChannel? Channel { get; set; }
         internal int MaxRedirects { get; set; } = 10;
-        HttpResponseBucket? _redirectResponse;
+
+        private HttpResponseBucket? _redirectResponse;
 
         internal HttpBucketWebRequest(BucketWebClient client, Uri uri) : base(client, uri)
         {
@@ -51,7 +52,7 @@ namespace AmpScm.Buckets.Client
             }
         }
 
-        Encoding RequestEncoding { get; set; } = Encoding.UTF8;
+        private Encoding RequestEncoding { get; set; } = Encoding.UTF8;
 
         private protected async ValueTask<BucketClientChannel> SetupChannel()
         {
@@ -155,7 +156,7 @@ namespace AmpScm.Buckets.Client
 
         private void CopyFrom(HttpBucketWebRequest from)
         {
-            foreach (var k in from.Headers)
+            foreach (string k in from.Headers)
             {
                 Headers[k] = from.Headers[k];
             }

@@ -5,15 +5,15 @@ using AmpScm.Buckets.Interfaces;
 namespace AmpScm.Buckets.Specialized
 {
     // Marker only interface
-    interface IBucketVerify
+    internal interface IBucketVerify
     {
 
     }
 
-    sealed class VerifyBucket<TBucket> : ProxyBucket<VerifyBucket<TBucket>>, IBucketAggregation, IBucketVerify
+    internal sealed class VerifyBucket<TBucket> : ProxyBucket<VerifyBucket<TBucket>>, IBucketAggregation, IBucketVerify
         where TBucket : Bucket
     {
-        bool _atEof;
+        private bool _atEof;
 
         public VerifyBucket(Bucket inner)
             : base(inner)
@@ -39,7 +39,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<long> ReadSkipAsync(long requested)
         {
-            var r = await Inner.ReadSkipAsync(requested).ConfigureAwait(false);
+            long r = await Inner.ReadSkipAsync(requested).ConfigureAwait(false);
 
             if (_atEof && r > 0)
                 throw new InvalidOperationException("Reading after EOF");

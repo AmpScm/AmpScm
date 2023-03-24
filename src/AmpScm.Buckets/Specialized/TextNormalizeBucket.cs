@@ -9,12 +9,12 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class TextNormalizeBucket : WrappingBucket, IBucketPoll
     {
-        Encoding _default;
-        State _state;
-        Bucket _inner;
-        long _position;
+        private Encoding _default;
+        private State _state;
+        private Bucket _inner;
+        private long _position;
 
-        enum State
+        private enum State
         {
             Done,
             Init,
@@ -364,7 +364,7 @@ namespace AmpScm.Buckets.Specialized
                     }
                     else if (i == bb.Length - 1 && maybeUtf8 == 0)
                     {
-                        var a = bb.ToArray();
+                        byte[] a = bb.ToArray();
 
                         if (await Inner.ReadByteAsync().ConfigureAwait(false) is byte b)
                         {

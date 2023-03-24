@@ -18,16 +18,16 @@ namespace AmpScm.Buckets.Signatures
     public class PgpDecryptBucket : WrappingBucket
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        bool _inBody;
-        OpenPgpContainer _container;
-        Bucket? _reader;
+        private bool _inBody;
+        private readonly OpenPgpContainer _container;
+        private Bucket? _reader;
         private Signature? _decryptKey; // Key towards decrypted
         private OpenPgpSymmetricAlgorithm _sessionAlgorithm;
         private ReadOnlyMemory<byte> _sessionKey; // The symetric key
         private string? _fileName;
         private DateTime? _fileDate;
         private OpenPgpContainer _q;
-        private Stack<PgpSignature> _sigs = new();
+        private readonly Stack<PgpSignature> _sigs = new();
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
         public PgpDecryptBucket(Bucket inner, Func<ReadOnlyMemory<byte>, Signature?>? getKey)
@@ -42,7 +42,7 @@ namespace AmpScm.Buckets.Signatures
         public Func<ReadOnlyMemory<byte>, Signature?>? GetKey { get; init; }
         public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
-        async ValueTask ReadHeader()
+        private async ValueTask ReadHeader()
         {
             if (_inBody)
                 return;
@@ -133,7 +133,7 @@ namespace AmpScm.Buckets.Signatures
 
                                         rsa.ImportParameters(p);
 
-                                        var data = rsa.Decrypt(bi.Value.ToArray(), RSAEncryptionPadding.Pkcs1);
+                                        byte[] data = rsa.Decrypt(bi.Value.ToArray(), RSAEncryptionPadding.Pkcs1);
                                         ushort checksum = NetBitConverter.ToUInt16(data, data.Length - 2);
 
                                         if (checksum == data.Skip(1).Take(data.Length - 3).Sum(x => (ushort)x))
@@ -160,7 +160,7 @@ namespace AmpScm.Buckets.Signatures
                             var hashAlgorithm = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                             var pkt = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                            var signer = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
+                            byte[] signer = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
 
                             byte flag = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
@@ -184,7 +184,7 @@ namespace AmpScm.Buckets.Signatures
                                 throw new BucketException("Session key is for different algorithm");
 
                             // Starting vector (OCB specific)
-                            var startingVector = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray();
+                            byte[] startingVector = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray();
 
                             // Encrypted data
 
@@ -193,11 +193,11 @@ namespace AmpScm.Buckets.Signatures
                             bucket = new AeadChunkReader(bucket, (int)chunk_size, 16,
                                 (n, data) =>
                                 {
-                                    var associatedData = new byte[] { 0xC0 | (int)OpenPgpTagType.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
+                                    byte[] associatedData = new byte[] { 0xC0 | (int)OpenPgpTagType.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
                                         .Concat(NetBitConverter.GetBytes((long)n)).ToArray();
 
 
-                                    var sv = startingVector.ToArray();
+                                    byte[] sv = startingVector.ToArray();
 
                                     OcbDecodeBucket.SpanXor(sv.AsSpan(sv.Length - 4), NetBitConverter.GetBytes(n));
 
@@ -276,7 +276,7 @@ namespace AmpScm.Buckets.Signatures
                             var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                             if (version == 5)
                             {
-                                var ocb = (await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                                byte ocb = (await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
                                 Debug.Assert(ocb == 2);
                             }
@@ -319,7 +319,7 @@ namespace AmpScm.Buckets.Signatures
 
                             var p = _sigs.Pop();
 
-                            var hashValue = p.Completer(r.signBlob);
+                            byte[]? hashValue = p.Completer(r.signBlob);
                             Trace.WriteLine(BucketExtensions.HashToString(hashValue));
 
                             if (NetBitConverter.ToUInt16(hashValue, 0) != r.hashStart)
@@ -331,7 +331,7 @@ namespace AmpScm.Buckets.Signatures
                         break;
                 }
 
-                var n = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                long n = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                 Debug.Assert(n == 0, $"Unread data left in {bucket} of tagType {tag}");
             }
 
@@ -353,7 +353,7 @@ namespace AmpScm.Buckets.Signatures
 
             static byte[] BIToArray(BigInteger value)
             {
-                var b = value.ToByteArray();
+                byte[] b = value.ToByteArray();
                 Array.Reverse(b);
 
                 return MakeUnsignedArray(b);
@@ -436,7 +436,7 @@ namespace AmpScm.Buckets.Signatures
             return base.Peek();
         }
 
-        record PgpSignature
+        private record PgpSignature
         {
             public PgpSignature(OpenPgpSignatureType signatureType, OpenPgpHashAlgorithm hashAlgorithm, OpenPgpPublicKeyType pkt, byte[] signer)
             {

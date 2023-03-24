@@ -7,9 +7,9 @@ namespace AmpScm.Buckets.Specialized
     public abstract class BlockCombineBucket : CombineBucket
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        BucketBytes _bbLeft;
+        private BucketBytes _bbLeft;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        BucketBytes _bbRight;
+        private BucketBytes _bbRight;
 
         protected BlockCombineBucket(Bucket left, Bucket right) : base(left, right)
         {

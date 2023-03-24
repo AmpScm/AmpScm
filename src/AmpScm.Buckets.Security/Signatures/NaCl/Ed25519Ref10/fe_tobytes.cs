@@ -118,16 +118,16 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
             h0 += 19 * q;
             /* Goal: Output h-2^255 q, which is between 0 and 2^255-20. */
 
-            var carry0 = h0 >> 26; h1 += carry0; h0 -= carry0 << 26;
-            var carry1 = h1 >> 25; h2 += carry1; h1 -= carry1 << 25;
-            var carry2 = h2 >> 26; h3 += carry2; h2 -= carry2 << 26;
-            var carry3 = h3 >> 25; h4 += carry3; h3 -= carry3 << 25;
-            var carry4 = h4 >> 26; h5 += carry4; h4 -= carry4 << 26;
-            var carry5 = h5 >> 25; h6 += carry5; h5 -= carry5 << 25;
-            var carry6 = h6 >> 26; h7 += carry6; h6 -= carry6 << 26;
-            var carry7 = h7 >> 25; h8 += carry7; h7 -= carry7 << 25;
-            var carry8 = h8 >> 26; h9 += carry8; h8 -= carry8 << 26;
-            var carry9 = h9 >> 25; h9 -= carry9 << 25;
+            int carry0 = h0 >> 26; h1 += carry0; h0 -= carry0 << 26;
+            int carry1 = h1 >> 25; h2 += carry1; h1 -= carry1 << 25;
+            int carry2 = h2 >> 26; h3 += carry2; h2 -= carry2 << 26;
+            int carry3 = h3 >> 25; h4 += carry3; h3 -= carry3 << 25;
+            int carry4 = h4 >> 26; h5 += carry4; h4 -= carry4 << 26;
+            int carry5 = h5 >> 25; h6 += carry5; h5 -= carry5 << 25;
+            int carry6 = h6 >> 26; h7 += carry6; h6 -= carry6 << 26;
+            int carry7 = h7 >> 25; h8 += carry7; h7 -= carry7 << 25;
+            int carry8 = h8 >> 26; h9 += carry8; h8 -= carry8 << 26;
+            int carry9 = h9 >> 25; h9 -= carry9 << 25;
             /* h10 = carry9 */
 
             hr.x0 = h0;

@@ -11,17 +11,18 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class WaitForDataBucket : ProxyBucket<WaitForDataBucket>, IBucketAggregation, IBucketWriter
     {
-        bool _waitingForMore;
-        bool _readEof;
-        TaskCompletionSource<bool>? _waiter;
-        readonly object _l = new();
+        private bool _waitingForMore;
+        private bool _readEof;
+        private TaskCompletionSource<bool>? _waiter;
+        private readonly object _l = new();
 
         public WaitForDataBucket()
             : base(new AggregateBucket())
         {
             Aggregation = (AggregateBucket)Inner;
         }
-        AggregateBucket Aggregation { get; }
+
+        private AggregateBucket Aggregation { get; }
 
         Bucket IBucketAggregation.Append(Bucket bucket)
         {

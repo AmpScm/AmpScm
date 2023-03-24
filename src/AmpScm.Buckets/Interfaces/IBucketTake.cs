@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Interfaces
 {
-    interface IBucketTake
+    internal interface IBucketTake
     {
         Bucket Take(long limit, bool ensure = true);
     }

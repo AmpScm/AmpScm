@@ -32,7 +32,7 @@ namespace AmpScm.Buckets.Client
 
         internal bool ReadOneEol { get; set; }
 
-        void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

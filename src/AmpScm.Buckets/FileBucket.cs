@@ -13,23 +13,23 @@ namespace AmpScm.Buckets
     public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBucketSkip, IBucketSeekOnReset, IBucketNoDispose, IBucketDuplicateSeekedAsync
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        FileHolder _holder;
+        private FileHolder _holder;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly byte[] _buffer;
+        private readonly byte[] _buffer;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _size;
+        private int _size;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _pos;
+        private int _pos;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _filePos;
+        private long _filePos;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _bufStart;
+        private long _bufStart;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _resetPosition;
+        private long _resetPosition;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _nDispose;
+        private int _nDispose;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly int _chunkSizeMinus1;
+        private readonly int _chunkSizeMinus1;
 
         private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 4096)
         {
@@ -91,7 +91,7 @@ namespace AmpScm.Buckets
             }
         }
 
-        void InnerDispose()
+        private void InnerDispose()
         {
             try
             {
@@ -217,7 +217,7 @@ namespace AmpScm.Buckets
         {
             if (_size - _pos > skipBytes)
             {
-                var skip = (int)skipBytes;
+                int skip = (int)skipBytes;
 
                 _pos += skip;
                 _filePos += skip;
@@ -255,7 +255,7 @@ namespace AmpScm.Buckets
             return fbNew;
         }
 
-        const int MinCache = 16; // Only use the existing cache instead of seek when at least this many bytes are available
+        private const int MinCache = 16; // Only use the existing cache instead of seek when at least this many bytes are available
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
@@ -392,7 +392,7 @@ namespace AmpScm.Buckets
             return new FileBucket(OpenHolder(path, forAsync));
         }
 
-        static FileHolder OpenHolder(string path, bool forAsync)
+        private static FileHolder OpenHolder(string path, bool forAsync)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
             if (string.IsNullOrEmpty(path))
@@ -442,6 +442,6 @@ namespace AmpScm.Buckets
         //}
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string PeekDisplay => ((_size - _pos > 0) ? _buffer.AsMemory(_pos, _size - _pos) : new Memory<byte>()).AsDebuggerDisplay();
+        private string PeekDisplay => ((_size - _pos > 0) ? _buffer.AsMemory(_pos, _size - _pos) : new Memory<byte>()).AsDebuggerDisplay();
     }
 }

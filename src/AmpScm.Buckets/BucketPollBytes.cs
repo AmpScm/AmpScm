@@ -11,7 +11,7 @@ namespace AmpScm.Buckets
     [DebuggerDisplay($"Length={{{nameof(Length)}}}-{{{nameof(AlreadyRead)}}}, Data={{{nameof(DebuggerDisplay)},nq}}")]
     public sealed class BucketPollBytes : IDisposable
     {
-        Bucket Bucket { get; }
+        private Bucket Bucket { get; }
         public BucketBytes Data { get; private set; }
         public int AlreadyRead { get; private set; }
 
@@ -146,6 +146,6 @@ namespace AmpScm.Buckets
         public bool IsEof => Data.IsEof;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string DebuggerDisplay => Data.AsDebuggerDisplay();
+        private string DebuggerDisplay => Data.AsDebuggerDisplay();
     }
 }

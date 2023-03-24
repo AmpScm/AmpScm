@@ -11,13 +11,13 @@ namespace AmpScm.Buckets.Specialized
     public abstract class ConversionBucket : WrappingBucket, IBucketPoll
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        BucketBytes _remaining;
+        private BucketBytes _remaining;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _skipFirst;
+        private int _skipFirst;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        BucketBytes _readLeft;
+        private BucketBytes _readLeft;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _position;
+        private long _position;
 
         protected ConversionBucket(Bucket inner) : base(inner)
         {
@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Specialized
             }
             while (_skipFirst > 0)
             {
-                var skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
+                int skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
                 _skipFirst -= skipped;
             }
 
@@ -117,7 +117,7 @@ namespace AmpScm.Buckets.Specialized
 
             while (_skipFirst > 0)
             {
-                var skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
+                int skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
                 _skipFirst -= skipped;
             }
 

@@ -9,7 +9,7 @@ namespace AmpScm.Buckets.Specialized
 {
     public sealed class BitwiseNotBucket : WrappingBucket
     {
-        readonly byte[] _buffer;
+        private readonly byte[] _buffer;
 
         public BitwiseNotBucket(Bucket inner, int bufferSize=4096)
             : base(inner)

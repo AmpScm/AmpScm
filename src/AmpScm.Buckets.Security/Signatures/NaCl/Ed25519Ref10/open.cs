@@ -70,7 +70,7 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 
             ScalarOperations.sc_reduce(h);
 
-            var sm32 = new byte[32];//todo: remove allocation
+            byte[] sm32 = new byte[32];//todo: remove allocation
             Array.Copy(sig, 32, sm32, 0, 32);
             GroupOperations.ge_double_scalarmult_vartime(out R, h, ref A, sm32);
             GroupOperations.ge_tobytes(checkr, 0, ref R);

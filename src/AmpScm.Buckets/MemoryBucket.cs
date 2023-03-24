@@ -112,6 +112,6 @@ namespace AmpScm.Buckets
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string DebuggerDisplay => Data.Slice(Offset).AsDebuggerDisplay();
+        private string DebuggerDisplay => Data.Slice(Offset).AsDebuggerDisplay();
     }
 }

@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
 {
-    sealed class AlsoReadBucket : WrappingBucket
+    internal sealed class AlsoReadBucket : WrappingBucket
     {
-        Func<BucketBytes, ValueTask>? _reader;
+        private Func<BucketBytes, ValueTask>? _reader;
 
         public AlsoReadBucket(Bucket inner, Func<BucketBytes, ValueTask> reader)
             : base(inner)

@@ -123,12 +123,12 @@ namespace AmpScm.Buckets.Signatures
 
             line = line.Trim();
 
-            var items = line.Split(new char[] { ' ' }, 3);
-            var data = Convert.FromBase64String(items[1]);
+            string[] items = line.Split(new char[] { ' ' }, 3);
+            byte[] data = Convert.FromBase64String(items[1]);
 
             var vals = SignatureBucket.ParseSshStrings(data);
 
-            var name = Encoding.ASCII.GetString(vals[0].ToArray());
+            string name = Encoding.ASCII.GetString(vals[0].ToArray());
 
             if (name != items[0])
             {
@@ -136,7 +136,7 @@ namespace AmpScm.Buckets.Signatures
                 return false;
             }
 
-            var alg = items[0];
+            string alg = items[0];
 
             if (alg.StartsWith("sk-", StringComparison.Ordinal))
                 alg = alg.Substring(3);
@@ -184,7 +184,7 @@ namespace AmpScm.Buckets.Signatures
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string DebuggerDisplay
+        private string DebuggerDisplay
         {
             get
             {

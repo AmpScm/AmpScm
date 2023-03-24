@@ -11,11 +11,11 @@ namespace AmpScm.Buckets
 {
     public class SocketBucket : Bucket, IBucketWriter, IBucketWriterStats
     {
-        byte[] _inputBuffer;
-        BucketBytes _unread;
-        bool _readEof, _writeEof;
-        Task? _writing;
-        long _bytesRead;
+        private byte[] _inputBuffer;
+        private BucketBytes _unread;
+        private bool _readEof, _writeEof;
+        private Task? _writing;
+        private long _bytesRead;
         private protected Socket Socket { get; }
 
         internal WaitForDataBucket WriteBucket { get; } = new WaitForDataBucket();
@@ -76,7 +76,7 @@ namespace AmpScm.Buckets
             return _unread;
         }
 
-        async Task<BucketBytes> DoRead(int requested)
+        private async Task<BucketBytes> DoRead(int requested)
         {
             if (_unread.Length > 0)
             {
@@ -116,7 +116,7 @@ namespace AmpScm.Buckets
 #pragma warning restore CA1033 // Interface methods should be callable by child types
         internal long BytesWritten { get; private set; }
 
-        async Task HandleWriting()
+        private async Task HandleWriting()
         {
             while (true)
             {

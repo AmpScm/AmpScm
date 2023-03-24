@@ -2,12 +2,12 @@
 {
     internal sealed class Base64EncodeBucket : ConversionBucket
     {
-        readonly bool _wrapLines;
-        readonly bool _addPadding;
-        byte[]? buffer;
-        uint bits;
-        int state;
-        int nl;
+        private readonly bool _wrapLines;
+        private readonly bool _addPadding;
+        private byte[]? buffer;
+        private uint bits;
+        private int state;
+        private int nl;
 
 
         public Base64EncodeBucket(Bucket bucket, bool wrapLines, bool addPadding)

@@ -16,16 +16,16 @@ namespace AmpScm.Buckets.Signatures;
 
 public class OcbDecodeBucket : ConversionBucket
 {
-    static readonly byte[] _zero16 = new byte[16];
+    private static readonly byte[] _zero16 = new byte[16];
     private readonly Aes _aes;
     private readonly ReadOnlyMemory<byte> _associatedData;
-    byte[]? _buffer2;
-    int _inChunkBlock;
-    ByteCollector _byteCollector;
-    byte[] _offset;
-    byte[] _checksum;
-    byte[]? _buf16;
-    Action<bool>? _verified;
+    private byte[]? _buffer2;
+    private int _inChunkBlock;
+    private ByteCollector _byteCollector;
+    private readonly byte[] _offset;
+    private readonly byte[] _checksum;
+    private byte[]? _buf16;
+    private readonly Action<bool>? _verified;
 
 
     public const int MaxNonceLength = 15;
@@ -65,17 +65,17 @@ public class OcbDecodeBucket : ConversionBucket
         _aes.FeedbackSize = _aes.BlockSize;
 
         // We use the public 15 byte nonce to construct an internal 16 byte nonce, see RFC2753
-        var nnonce = new byte[16];
+        byte[] nnonce = new byte[16];
 
         nonce.CopyTo(nnonce.AsMemory(16 - nonce.Length));
         nnonce[16 - nonce.Length - 1] = 0x01; // Set lowest bit
         nnonce[0] |= (byte)(tagLen << 1); // Set highest 7 bits
-        var bottom = nnonce[15] & ~0b11000000;
+        int bottom = nnonce[15] & ~0b11000000;
         nnonce[15] &= 0b11000000;
 
-        var kTop = Encipher(nnonce);
+        byte[] kTop = Encipher(nnonce);
 
-        var stretched = kTop.Concat(ArrayXor(kTop.AsMemory(0, 8).ToArray(), kTop.AsMemory(1, 8))).ToArray();
+        byte[] stretched = kTop.Concat(ArrayXor(kTop.AsMemory(0, 8).ToArray(), kTop.AsMemory(1, 8))).ToArray();
 
         //Debug.WriteLine($"kTop:      {DumpData(kTop.Span)}");
         //Debug.WriteLine($"Stretched: {DumpData(stretched)}");
@@ -103,7 +103,7 @@ public class OcbDecodeBucket : ConversionBucket
     }
 
 #if DEBUG
-    static string DumpData(Span<byte> span)
+    private static string DumpData(Span<byte> span)
     {
         StringBuilder sb = new StringBuilder();
 
@@ -126,7 +126,7 @@ public class OcbDecodeBucket : ConversionBucket
         }
     }
 
-    static byte[] ArrayXor(ReadOnlyMemory<byte> a, ReadOnlyMemory<byte> b)
+    private static byte[] ArrayXor(ReadOnlyMemory<byte> a, ReadOnlyMemory<byte> b)
     {
         byte[] result = a.ToArray();
 
@@ -135,7 +135,7 @@ public class OcbDecodeBucket : ConversionBucket
         return result;
     }
 
-    static void XorPosition(Span<byte> buf, ulong pos)
+    private static void XorPosition(Span<byte> buf, ulong pos)
     {
         unchecked
         {
@@ -154,7 +154,7 @@ public class OcbDecodeBucket : ConversionBucket
     // then 2* the from value, otherwise 2* the from value ^ 0x87
     //
     // Note that this function is documented as SHOULD BE constant time, for security reasons.
-    static void SpanDouble(Span<byte> data, ReadOnlySpan<byte> from)
+    private static void SpanDouble(Span<byte> data, ReadOnlySpan<byte> from)
     {
         Debug.Assert(data.Length == from.Length);
 
@@ -167,12 +167,12 @@ public class OcbDecodeBucket : ConversionBucket
         data[last] = (byte)(from[last] << 1 ^ ((from[0] >> 7) * 0b10000111));
     }
 
-    static byte[] GetBits(byte[] array, int pos, int bits)
+    private static byte[] GetBits(byte[] array, int pos, int bits)
     {
         if (pos + bits > array.Length * 8)
             throw new ArgumentOutOfRangeException(nameof(bits));
 
-        var bytes = bits / 8;
+        int bytes = bits / 8;
 
         int nByteStart = pos / 8;
         int nBitStart = pos % 8;
@@ -189,7 +189,7 @@ public class OcbDecodeBucket : ConversionBucket
         return result;
     }
 
-    static int TrailingZeros(int n)
+    private static int TrailingZeros(int n)
     {
 #if NETCOREAPP
         return BitOperations.TrailingZeroCount(n);
@@ -203,7 +203,7 @@ public class OcbDecodeBucket : ConversionBucket
 #endif
     }
 
-    byte[] Encipher(byte[] input)
+    private byte[] Encipher(byte[] input)
     {
 #if NETCOREAPP
         return _aes.EncryptCbc(input, _zero16, PaddingMode.None);
@@ -213,7 +213,7 @@ public class OcbDecodeBucket : ConversionBucket
 #endif
     }
 
-    byte[] Decrypt(ReadOnlyMemory<byte> input)
+    private byte[] Decrypt(ReadOnlyMemory<byte> input)
     {
 #if NETCOREAPP
         return _aes.DecryptCbc(input.Span, _zero16, PaddingMode.None);
@@ -226,15 +226,16 @@ public class OcbDecodeBucket : ConversionBucket
 #endif
     }
 
-    void Decrypt(ReadOnlyMemory<byte> src, Span<byte> dest)
+    private void Decrypt(ReadOnlyMemory<byte> src, Span<byte> dest)
     {
-        var d = Decrypt(src);
+        byte[] d = Decrypt(src);
 
         d.AsSpan().CopyTo(dest);
     }
 
-    readonly List<byte[]> _masks = new();
-    byte[] GetMask(int n)
+    private readonly List<byte[]> _masks = new();
+
+    private byte[] GetMask(int n)
     {
         n += 2;
 
@@ -248,7 +249,7 @@ public class OcbDecodeBucket : ConversionBucket
 
             while (n >= _masks.Count)
             {
-                var b = new byte[16];
+                byte[] b = new byte[16];
                 SpanDouble(b, _masks[_masks.Count - 1]); // L_i = double(L_{i-1})
 
                 //Debug.WriteLine($"L_{_masks.Count}: {DumpData(b)}");
@@ -271,7 +272,7 @@ public class OcbDecodeBucket : ConversionBucket
     {
         int available = _byteCollector.Length + sourceData.Length;
 
-        var rem = final ? 0 : await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+        long? rem = final ? 0 : await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
 
         // TODO: If 'rem' = 0, then we can pass final as true and complete in one step.
 
@@ -286,7 +287,7 @@ public class OcbDecodeBucket : ConversionBucket
     protected BucketBytes DoConvertData(ref BucketBytes sourceData, int available, bool final)
     {
         ReadOnlyMemory<byte> srcData;
-        var src = _buf16 ??= new byte[16];
+        byte[] src = _buf16 ??= new byte[16];
 
         // For the normal reads, we never want to read the final 16 bytes "TAG"
         if (available < TagSize)
@@ -338,7 +339,7 @@ public class OcbDecodeBucket : ConversionBucket
             }
 
 
-            var tag = Encipher(_checksum);
+            byte[] tag = Encipher(_checksum);
             SpanXor(tag, Hash(_associatedData).Span);
 
             bool ok = tag.AsSpan(0, TagSize).SequenceEqual(srcData.Slice(available, TagSize).Span);
@@ -405,9 +406,9 @@ public class OcbDecodeBucket : ConversionBucket
 
     private ReadOnlyMemory<byte> Hash(ReadOnlyMemory<byte> associatedData)
     {
-        var sum = new byte[16];
-        var offset = new byte[16];
-        var tmp = new byte[16];
+        byte[] sum = new byte[16];
+        byte[] offset = new byte[16];
+        byte[] tmp = new byte[16];
         int blockNr = 1;
 
         while (blockNr * BlockLength <= associatedData.Length)

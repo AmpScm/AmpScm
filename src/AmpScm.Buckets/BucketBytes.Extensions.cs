@@ -7,7 +7,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets
 {
-    partial struct BucketBytes
+    public partial struct BucketBytes
     {
         public string ToASCIIString()
         {
@@ -206,7 +206,7 @@ namespace AmpScm.Buckets
             return result.ToArray();
         }
 
-        static bool IsWhiteSpace(byte v)
+        private static bool IsWhiteSpace(byte v)
         {
             return v switch
             {

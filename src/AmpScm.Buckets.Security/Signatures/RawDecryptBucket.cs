@@ -6,13 +6,13 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
 {
-    sealed class RawDecryptBucket : ConversionBucket
+    internal sealed class RawDecryptBucket : ConversionBucket
     {
-        readonly SymmetricAlgorithm _algorithm;
-        readonly ICryptoTransform _transform;
-        byte[]? _buffer;
-        ByteCollector _byteCollector;
-        readonly int _blocksizeBytes;
+        private readonly SymmetricAlgorithm _algorithm;
+        private readonly ICryptoTransform _transform;
+        private byte[]? _buffer;
+        private ByteCollector _byteCollector;
+        private readonly int _blocksizeBytes;
 
         public RawDecryptBucket(Bucket inner, SymmetricAlgorithm algorithm, bool decrypt)
             : base(inner)

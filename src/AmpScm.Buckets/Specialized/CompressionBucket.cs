@@ -11,11 +11,12 @@ namespace AmpScm.Buckets.Specialized
     {
         private protected Stream Src { get; }
         protected Stream Processed { get; }
-        byte[]? _buffer;
-        bool _eof;
-        bool _writeCompression;
-        AggregateBucket? _written;
-        BucketBytes _remaining;
+
+        private byte[]? _buffer;
+        private bool _eof;
+        private bool _writeCompression;
+        private AggregateBucket? _written;
+        private BucketBytes _remaining;
 
         public CompressionBucket(Bucket inner, Func<Stream, Stream> compressor) : base(inner.NoDispose())
         {
@@ -70,7 +71,7 @@ namespace AmpScm.Buckets.Specialized
             return BucketBytes.Eof;
         }
 
-        async ValueTask Refill()
+        private async ValueTask Refill()
         {
             if (!_writeCompression)
             {
@@ -127,7 +128,7 @@ namespace AmpScm.Buckets.Specialized
 
         private sealed class Writer : IBucketWriter
         {
-            CompressionBucket Bucket { get; }
+            private CompressionBucket Bucket { get; }
 
             public Writer(CompressionBucket bucket)
             {

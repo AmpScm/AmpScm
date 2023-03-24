@@ -8,7 +8,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Client.Protocols
 {
-    sealed class HttpsBucketWebRequest : HttpBucketWebRequest
+    internal sealed class HttpsBucketWebRequest : HttpBucketWebRequest
     {
         public HttpsBucketWebRequest(Client.BucketWebClient client, Uri uri)
             : base(client, uri, true)

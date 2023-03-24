@@ -10,12 +10,12 @@ namespace AmpScm.Buckets.Specialized
     internal sealed class CreateHashBucket : WrappingBucket, IBucketPoll
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        HashAlgorithm? _hasher;
+        private HashAlgorithm? _hasher;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        byte[]? _result;
+        private byte[]? _result;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        Action<byte[]>? _onResult;
-        bool _complete;
+        private Action<byte[]>? _onResult;
+        private bool _complete;
 
         public CreateHashBucket(Bucket inner, HashAlgorithm hasher)
             : base(inner)
@@ -51,7 +51,7 @@ namespace AmpScm.Buckets.Specialized
             return r;
         }
 
-        void FinishHashing()
+        private void FinishHashing()
         {
             if (_result == null && _hasher != null)
             {
@@ -85,7 +85,7 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        byte[]? CompleteHandler(byte[]? suffix)
+        private byte[]? CompleteHandler(byte[]? suffix)
         {
             if (_hasher != null)
             {
@@ -163,11 +163,10 @@ namespace AmpScm.Buckets.Specialized
         /// </remarks>
         internal sealed class Crc32 : HashAlgorithm
         {
-            const uint DefaultPolynomial = 0xedb88320u;
-            const uint DefaultSeed = 0xffffffffu;
-
-            static readonly uint[] _table = InitializeTable();
-            uint hash;
+            private const uint DefaultPolynomial = 0xedb88320u;
+            private const uint DefaultSeed = 0xffffffffu;
+            private static readonly uint[] _table = InitializeTable();
+            private uint hash;
 
             private Crc32()
             {
@@ -186,20 +185,20 @@ namespace AmpScm.Buckets.Specialized
 
             protected override byte[] HashFinal()
             {
-                var hashBuffer = BitConverter.GetBytes(~hash);
+                byte[] hashBuffer = BitConverter.GetBytes(~hash);
                 HashValue = hashBuffer;
                 return hashBuffer;
             }
 
             public override int HashSize => sizeof(int) * 8;
 
-            static uint[] InitializeTable()
+            private static uint[] InitializeTable()
             {
-                var createTable = new uint[256];
-                for (var i = 0; i < 256; i++)
+                uint[] createTable = new uint[256];
+                for (int i = 0; i < 256; i++)
                 {
-                    var entry = (uint)i;
-                    for (var j = 0; j < 8; j++)
+                    uint entry = (uint)i;
+                    for (int j = 0; j < 8; j++)
                         if ((entry & 1) == 1)
                             entry = (entry >> 1) ^ DefaultPolynomial;
                         else
@@ -210,10 +209,10 @@ namespace AmpScm.Buckets.Specialized
                 return createTable;
             }
 
-            static uint CalculateHash(uint seed, Span<byte> buffer, int start, int size)
+            private static uint CalculateHash(uint seed, Span<byte> buffer, int start, int size)
             {
-                var hash = seed;
-                for (var i = start; i < start + size; i++)
+                uint hash = seed;
+                for (int i = start; i < start + size; i++)
                     hash = (hash >> 8) ^ _table[buffer[i] ^ hash & 0xff];
                 return hash;
             }
@@ -226,10 +225,9 @@ namespace AmpScm.Buckets.Specialized
         /// </summary>
         internal sealed class Crc24 : HashAlgorithm
         {
-            const uint DefaultPolynomial = 0x1864cfb;
-            const uint DefaultSeed = 0xb704ce;
-
-            uint hash;
+            private const uint DefaultPolynomial = 0x1864cfb;
+            private const uint DefaultSeed = 0xb704ce;
+            private uint hash;
 
             private Crc24()
             {
@@ -248,17 +246,17 @@ namespace AmpScm.Buckets.Specialized
 
             protected override byte[] HashFinal()
             {
-                var hashBuffer = BitConverter.GetBytes(hash);
+                byte[] hashBuffer = BitConverter.GetBytes(hash);
                 HashValue = hashBuffer;
                 return hashBuffer;
             }
 
             public override int HashSize => 3 * 8;
 
-            static uint CalculateHash(uint seed, Span<byte> buffer, int start, int size)
+            private static uint CalculateHash(uint seed, Span<byte> buffer, int start, int size)
             {
-                var hash = seed;
-                for (var n = start; n < start + size; n++)
+                uint hash = seed;
+                for (int n = start; n < start + size; n++)
                 {
                     hash ^= (uint)(buffer[n] << 16);
                     for (int i = 0; i < 8; i++)

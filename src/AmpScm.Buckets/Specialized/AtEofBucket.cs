@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
 {
-    sealed class AtEofBucket : ProxyBucket.WithPoll
+    internal sealed class AtEofBucket : ProxyBucket.WithPoll
     {
-        Func<Task>? _atEof;
+        private Func<Task>? _atEof;
         public AtEofBucket(Bucket inner, Func<Task> atEof) : base(inner)
         {
             _atEof = atEof;

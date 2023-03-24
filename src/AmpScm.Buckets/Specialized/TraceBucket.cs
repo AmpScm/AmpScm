@@ -9,14 +9,16 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    sealed class TraceBucket : Bucket, IBucketPoll, IBucketNoDispose
+    internal sealed class TraceBucket : Bucket, IBucketPoll, IBucketNoDispose
     {
-        static int _idNext;
-        Bucket Inner { get; }
-        int Id { get; }
-        int _nDispose;
-        string? _indent;
-        string _name;
+        private static int _idNext;
+
+        private Bucket Inner { get; }
+        private int Id { get; }
+
+        private int _nDispose;
+        private string? _indent;
+        private string _name;
 
         public TraceBucket(Bucket bucket, string? name=null)
         {
@@ -30,7 +32,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override string Name => "Trace>" + Inner.Name;
 
-        string Ident => _indent ??= $"{new string(' ', Inner.Name.Count(x => x == '>'))}{_name}/0x{Id:x3}:";
+        private string Ident => _indent ??= $"{new string(' ', Inner.Name.Count(x => x == '>'))}{_name}/0x{Id:x3}:";
 
         protected override void Dispose(bool disposing)
         {
@@ -79,7 +81,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
-            var l = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+            long? l = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
 
             Trace.WriteLine($"{Ident} reading {l ?? -1L} bytes remaining");
 
@@ -94,7 +96,7 @@ namespace AmpScm.Buckets.Specialized
             return bb;
         }
 
-        static string Sum(BucketBytes bb)
+        private static string Sum(BucketBytes bb)
         {
             if (bb.IsEmpty)
                 return bb.IsEof ? "<EOF>" : "<Empty>";

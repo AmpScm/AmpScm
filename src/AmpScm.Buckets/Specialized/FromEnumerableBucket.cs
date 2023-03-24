@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
 {
-    sealed class FromEnumerableBucket : Bucket
+    internal sealed class FromEnumerableBucket : Bucket
     {
-        readonly IAsyncEnumerable<BucketBytes> _enumerable;
-        IAsyncEnumerator<BucketBytes>? _enumerator;
-        BucketBytes? _next;
+        private readonly IAsyncEnumerable<BucketBytes> _enumerable;
+        private IAsyncEnumerator<BucketBytes>? _enumerator;
+        private BucketBytes? _next;
 
         public FromEnumerableBucket(IAsyncEnumerable<BucketBytes> enumerable)
         {

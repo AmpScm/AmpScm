@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace AmpScm.Buckets
 {
-    interface IValueOrEof<T> where T : struct
+    internal interface IValueOrEof<T> where T : struct
     {
         public T Value { get; }
         public bool IsEof { get; }
@@ -44,8 +44,8 @@ namespace AmpScm.Buckets
     public readonly struct ValueOrEof<T> : IValueOrEof<T>, IEquatable<ValueOrEof<T>>
         where T : struct
     {
-        readonly T _value;
-        readonly bool _isEof;
+        private readonly T _value;
+        private readonly bool _isEof;
 
         public ValueOrEof(T value)
         {

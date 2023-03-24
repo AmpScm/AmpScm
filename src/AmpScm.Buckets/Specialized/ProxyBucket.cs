@@ -88,7 +88,7 @@ namespace AmpScm.Buckets.Specialized
     public class ProxyBucket : ProxyBucket<ProxyBucket>
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string? _name;
+        private string? _name;
 
         public ProxyBucket(Bucket inner) : base(inner)
         {

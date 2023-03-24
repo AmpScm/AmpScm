@@ -10,11 +10,11 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    sealed class GZipBucket : WrappingBucket, IBucketPoll, IBucketSeek
+    internal sealed class GZipBucket : WrappingBucket, IBucketPoll, IBucketSeek
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _readHeader;
-        bool _atEof;
+        private bool _readHeader;
+        private bool _atEof;
 
         public GZipBucket(Bucket inner, CompressionMode mode, BucketCompressionLevel level = BucketCompressionLevel.Default, int bufferSize = ZLibBucket.DefaultBufferSize)
             : base(new ZLibBucket(inner, BucketCompressionAlgorithm.Deflate, mode, level))
@@ -25,7 +25,7 @@ namespace AmpScm.Buckets.Specialized
             _readHeader = true;
         }
 
-        GZipBucket(Bucket inner)
+        private GZipBucket(Bucket inner)
             : base(inner)
         {
 
@@ -52,7 +52,7 @@ namespace AmpScm.Buckets.Specialized
                 throw new BucketEofException(this);
 
             // Handle endiannes agnostic
-            var expectedLen = BinaryPrimitives.ReadInt32LittleEndian(bb.Span.Slice(4));
+            int expectedLen = BinaryPrimitives.ReadInt32LittleEndian(bb.Span.Slice(4));
 
             if (expectedLen != (Inner.Position!.Value & uint.MaxValue))
                 throw new BucketException($"GZip error: Expected {expectedLen} bytes, but read {Inner.Position}");

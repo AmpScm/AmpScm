@@ -6,10 +6,10 @@ namespace AmpScm.Buckets.Wrappers
 {
     internal sealed class StreamBucket : Bucket
     {
-        readonly Stream _stream;
-        readonly byte[] _buffer;
-        long? _initialPosition;
-        BucketBytes _remaining;
+        private readonly Stream _stream;
+        private readonly byte[] _buffer;
+        private long? _initialPosition;
+        private BucketBytes _remaining;
 
 
         public StreamBucket(Stream stream)

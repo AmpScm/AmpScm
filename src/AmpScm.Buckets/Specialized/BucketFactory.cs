@@ -8,7 +8,7 @@ namespace AmpScm.Buckets.Specialized
 {
     public class BucketFactory
     {
-        BucketFactory()
+        private BucketFactory()
         { }
 
         internal static BucketFactory Instance { get; } = new();

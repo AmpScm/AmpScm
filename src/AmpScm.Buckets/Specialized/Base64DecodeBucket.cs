@@ -6,11 +6,11 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class Base64DecodeBucket : ConversionBucket
     {
-        byte[]? buffer;
-        uint bits;
-        int state;
-        readonly bool _lineMode;
-        bool _eof;
+        private byte[]? buffer;
+        private uint bits;
+        private int state;
+        private readonly bool _lineMode;
+        private bool _eof;
 
         public Base64DecodeBucket(Bucket bucket, bool lineMode)
             : base(bucket)
@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Specialized
             _lineMode = lineMode;
         }
 
-        static readonly sbyte[] base64Reversemap = new sbyte[]
+        private static readonly sbyte[] base64Reversemap = new sbyte[]
         {
             /* '\x0': */   -3, /* '\x1': */   -3, /* '\x2': */   -3, /* '\x3': */   -3,
             /* '\x4': */   -3, /* '\x5': */   -3, /* '\x6': */   -3, /* '\x7': */   -3,

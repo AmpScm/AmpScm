@@ -53,7 +53,7 @@ namespace AmpScm.Buckets.Client
             }
         }
 
-        Dictionary<string, BucketClientChannel> _channels = new Dictionary<string, BucketClientChannel>();
+        private Dictionary<string, BucketClientChannel> _channels = new Dictionary<string, BucketClientChannel>();
 
         internal void Release(BucketClientChannel bucketChannel)
         {
@@ -67,7 +67,7 @@ namespace AmpScm.Buckets.Client
         {
             lock (_channels)
             {
-                var key = uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped);
+                string key = uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped);
                 if (_channels.TryGetValue(key, out channel))
                 {
                     _channels.Remove(key);

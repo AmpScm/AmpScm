@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Signatures
 {
-    enum OpenPgpTagType
+    internal enum OpenPgpTagType
     {
         /// <summary>Reserved</summary>
         None = 0,
@@ -36,7 +36,7 @@ namespace AmpScm.Buckets.Signatures
         DerValue = 10021,
     }
 
-    enum OpenPgpSignatureType : byte
+    internal enum OpenPgpSignatureType : byte
     {
         BinaryDocument = 0x00,
         CanonicalTextDocument = 0x01, // EOL -> CRLF
@@ -47,7 +47,7 @@ namespace AmpScm.Buckets.Signatures
         PositiveCertification = 0x13,
     }
 
-    enum OpenPgpSubPacketType : byte
+    internal enum OpenPgpSubPacketType : byte
     {
         /// <summary>Reserved</summary>
         None = 0,
@@ -84,7 +84,7 @@ namespace AmpScm.Buckets.Signatures
         FlagCritical = 128
     }
 
-    enum OpenPgpHashAlgorithm : byte
+    internal enum OpenPgpHashAlgorithm : byte
     {
         None,
         MD5 = 1,
@@ -99,7 +99,7 @@ namespace AmpScm.Buckets.Signatures
         SHA512v3 = 14,
     }
 
-    enum OpenPgpPublicKeyType
+    internal enum OpenPgpPublicKeyType
     {
         None,
         Rsa = 1,
@@ -119,7 +119,7 @@ namespace AmpScm.Buckets.Signatures
         Curve25519 = 0x1002,
     }
 
-    enum OpenPgpSymmetricAlgorithm
+    internal enum OpenPgpSymmetricAlgorithm
     {
         None,
         Idea = 1,
@@ -135,7 +135,7 @@ namespace AmpScm.Buckets.Signatures
         Camellia256 = 13
     }
 
-    enum OpenPgpCompressionType
+    internal enum OpenPgpCompressionType
     {
         None,
         Zip = 1,
@@ -143,7 +143,7 @@ namespace AmpScm.Buckets.Signatures
         Bzip2 = 3,
     }
 
-    enum OpenPgpAeadAlgorithm
+    internal enum OpenPgpAeadAlgorithm
     {
         None,
         Eax = 1,

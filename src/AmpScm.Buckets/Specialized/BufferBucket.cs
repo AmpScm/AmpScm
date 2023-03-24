@@ -7,15 +7,15 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
+    internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
     {
-        readonly int _maxRam;
-        Bucket readBucket;
-        IBucketWriter _writer;
-        long _buffered;
-        long? _size;
-        bool _readEof;
-        bool _disposed;
+        private readonly int _maxRam;
+        private Bucket readBucket;
+        private IBucketWriter _writer;
+        private long _buffered;
+        private long? _size;
+        private bool _readEof;
+        private bool _disposed;
 
         public BufferBucket(Bucket inner, int maxMemory = 0)
             : base(inner)
@@ -134,9 +134,9 @@ namespace AmpScm.Buckets.Specialized
 
         public override bool CanReset => readBucket.CanReset;
 
-        sealed class MyWriter : IBucketWriter
+        private sealed class MyWriter : IBucketWriter
         {
-            BufferBucket _bufb;
+            private BufferBucket _bufb;
             public MyWriter(BufferBucket bufb)
             {
                 _bufb = bufb;

@@ -10,7 +10,7 @@ namespace AmpScm.Buckets.Specialized
     {
         protected Bucket Inner { get; }
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _nDispose;
+        private int _nDispose;
 
         protected WrappingBucket(Bucket inner)
         {

@@ -8,18 +8,18 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class TextRecoderBucket : WrappingBucket
     {
-        readonly char[] _charBuffer;
-        readonly byte[] _utfBuffer;
-        byte[]? _toConvert;
-        BucketBytes _remaining;
-        readonly Encoding _sourceEncoding;
-        readonly Encoding _targetEncoding;
-        readonly Decoder _decoder;
-        readonly Encoder _encoder;
-        readonly bool _by2;
+        private readonly char[] _charBuffer;
+        private readonly byte[] _utfBuffer;
+        private byte[]? _toConvert;
+        private BucketBytes _remaining;
+        private readonly Encoding _sourceEncoding;
+        private readonly Encoding _targetEncoding;
+        private readonly Decoder _decoder;
+        private readonly Encoder _encoder;
+        private readonly bool _by2;
         private int _toEncode;
-        long _position;
-        bool _preampbleScanned;
+        private long _position;
+        private bool _preampbleScanned;
 
         public TextRecoderBucket(Bucket inner, Encoding fromEncoding, Encoding? toEncoding=null) : base(inner)
         {
@@ -94,7 +94,7 @@ namespace AmpScm.Buckets.Specialized
                 }
 
 #if !NETFRAMEWORK
-                _decoder.Convert(bb.Span, new Span<char>(_charBuffer, _toEncode, _charBuffer.Length - _toEncode), false, out var bytesUsed, out var charsDecoded, out var completed);
+                _decoder.Convert(bb.Span, new Span<char>(_charBuffer, _toEncode, _charBuffer.Length - _toEncode), false, out int bytesUsed, out int charsDecoded, out bool completed);
 
 #else
                 var (arr, offs) = bb.ExpandToArray();
@@ -106,7 +106,7 @@ namespace AmpScm.Buckets.Specialized
                 if (bytesUsed < bb.Length)
                     _toConvert = bb.Slice(bytesUsed).ToArray();
 
-                _encoder.Convert(_charBuffer, 0, charsDecoded, _utfBuffer, 0, _utfBuffer.Length, false, out var charsEncoded, out var utfBytesUsed, out var utfCompleted);
+                _encoder.Convert(_charBuffer, 0, charsDecoded, _utfBuffer, 0, _utfBuffer.Length, false, out int charsEncoded, out int utfBytesUsed, out bool utfCompleted);
 
                 if (charsEncoded < charsDecoded)
                 {

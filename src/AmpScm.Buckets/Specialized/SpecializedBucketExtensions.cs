@@ -647,7 +647,7 @@ namespace AmpScm.Buckets.Specialized
             if (array is null)
                 throw new ArgumentNullException(nameof(array));
 
-            var nw = new byte[array.Length + 1];
+            byte[] nw = new byte[array.Length + 1];
             Array.Copy(array, nw, array.Length);
             nw[array.Length] = item;
             return nw;

@@ -8,7 +8,7 @@ namespace AmpScm.Buckets.Client.Buckets
 {
     internal sealed class HttpDechunkBucket : WrappingBucket
     {
-        enum DechunkState
+        private enum DechunkState
         {
             Start, // Before next size block
             Size, // Within size block
@@ -19,10 +19,10 @@ namespace AmpScm.Buckets.Client.Buckets
             Eof // done
         }
 
-        DechunkState _state;
-        int _chunkLeft;
-        byte[]? _start;
-        bool _noFin;
+        private DechunkState _state;
+        private int _chunkLeft;
+        private byte[]? _start;
+        private bool _noFin;
 
         public HttpDechunkBucket(Bucket inner, bool leaveFinalEol = false)
             : base(inner)
@@ -82,7 +82,7 @@ namespace AmpScm.Buckets.Client.Buckets
             }
         }
 
-        async ValueTask Advance(bool wait)
+        private async ValueTask Advance(bool wait)
         {
             while (_state != DechunkState.Chunk && _state != DechunkState.Eof)
             {
@@ -182,7 +182,7 @@ namespace AmpScm.Buckets.Client.Buckets
             }
         }
 
-        static bool IsHexCharOrCR(byte x)
+        private static bool IsHexCharOrCR(byte x)
         {
             if (x >= '0' && x <= '9')
                 return true;

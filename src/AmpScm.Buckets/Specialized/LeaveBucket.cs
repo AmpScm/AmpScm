@@ -7,10 +7,11 @@ namespace AmpScm.Buckets.Specialized;
 internal sealed class LeaveBucket : WrappingBucket
 {
     private readonly Func<BucketBytes, ValueTask>? _leftHandler;
-    long? _totalSize;
-    bool _done;
-    byte[]? _bufferLeft;
-    long CurrentPosition { get; set; }
+    private long? _totalSize;
+    private bool _done;
+    private byte[]? _bufferLeft;
+
+    private long CurrentPosition { get; set; }
 
     public LeaveBucket(Bucket inner, int leaveBytes, Func<BucketBytes, ValueTask>? leftHandler) : base(inner)
     {
@@ -21,7 +22,7 @@ internal sealed class LeaveBucket : WrappingBucket
         LeaveBytes = leaveBytes;
     }
 
-    int LeaveBytes { get; }
+    private int LeaveBytes { get; }
 
     public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
     {
@@ -36,7 +37,7 @@ internal sealed class LeaveBucket : WrappingBucket
 
             if (_totalSize == null)
             {
-                var r = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+                long? r = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
 
                 if (r.HasValue)
                     _totalSize = CurrentPosition + r.Value;
@@ -44,7 +45,7 @@ internal sealed class LeaveBucket : WrappingBucket
 
             if (_totalSize > 0)
             {
-                var remaining = _totalSize - CurrentPosition - LeaveBytes;
+                long? remaining = _totalSize - CurrentPosition - LeaveBytes;
 
                 if (requested > remaining)
                     requested = (int)remaining;
@@ -96,7 +97,7 @@ internal sealed class LeaveBucket : WrappingBucket
 
                 int want = Math.Max(have, requested);
 
-                var all = _bufferLeft;
+                byte[] all = _bufferLeft;
                 _bufferLeft = _bufferLeft.Skip(want).ToArray();
 
                 CurrentPosition += want;
@@ -135,7 +136,7 @@ internal sealed class LeaveBucket : WrappingBucket
                 bc.Append(_bufferLeft);
                 bc.Append(bb);
 
-                var r = bc.ToArray();
+                byte[] r = bc.ToArray();
                 _bufferLeft = r.Skip(r.Length - LeaveBytes).ToArray();
 
                 CurrentPosition += r.Length - LeaveBytes;
@@ -144,7 +145,7 @@ internal sealed class LeaveBucket : WrappingBucket
             }
             else if (bb.Length + _bufferLeft.Length > LeaveBytes)
             {
-                var ret = _bufferLeft;
+                byte[] ret = _bufferLeft;
                 _bufferLeft = bb.ToArray();
 
                 CurrentPosition += ret.Length;
@@ -179,7 +180,7 @@ internal sealed class LeaveBucket : WrappingBucket
 
     public override async ValueTask<long?> ReadRemainingBytesAsync()
     {
-        var r = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+        long? r = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
 
         if (r is { } remaining)
             return remaining - LeaveBytes;

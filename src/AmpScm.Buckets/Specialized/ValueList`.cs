@@ -14,8 +14,8 @@ namespace AmpScm.Buckets.Specialized
     internal struct ValueList<T> : IEnumerable<T?>, IReadOnlyList<T?>
         where T : class
     {
-        T?[] _items;
-        int _start;
+        private T?[] _items;
+        private int _start;
         public int Count { get; private set; }
 
         public ValueList()

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Interfaces
 {
-    interface IBucketSkip
+    internal interface IBucketSkip
     {
         Bucket Skip(long skipBytes, bool ensure);
     }

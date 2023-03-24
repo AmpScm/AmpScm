@@ -9,18 +9,18 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Wrappers
 {
-    partial class BucketStream
+    internal partial class BucketStream
     {
         public sealed class WithWriter : BucketStream
         {
-            IBucketWriter InnerWriter { get; }
+            private IBucketWriter InnerWriter { get; }
             public WithWriter(Bucket bucket, IBucketWriter writer)
                 : base(bucket)
             {
                 InnerWriter = writer ?? throw new ArgumentNullException(nameof(writer));
             }
 
-            void DoWriteBucket(Bucket bucket)
+            private void DoWriteBucket(Bucket bucket)
             {
                 InnerWriter.Write(bucket);
             }

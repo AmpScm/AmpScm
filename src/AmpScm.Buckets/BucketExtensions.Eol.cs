@@ -32,7 +32,7 @@ namespace AmpScm.Buckets
             int rq = requested;
             if (eolState?._kept.HasValue ?? false)
             {
-                var kept = eolState._kept!.Value;
+                byte kept = eolState._kept!.Value;
                 eolState._kept = null;
 
                 switch (kept)
@@ -106,7 +106,7 @@ namespace AmpScm.Buckets
 
                     if (!poll.Data.IsEmpty)
                     {
-                        var b = poll[0];
+                        byte b = poll[0];
                         bb = await poll.ReadAsync(1).ConfigureAwait(false);
 
                         if (b == '\n')

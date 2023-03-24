@@ -72,11 +72,11 @@ namespace AmpScm.Buckets
         }
 
         #region DEBUG INFO
-        int BucketCount => _buckets.Count - _n;
+        private int BucketCount => _buckets.Count - _n;
 
         private sealed class AggregateDebugProxy
         {
-            readonly AggregateBucket _bucket;
+            private readonly AggregateBucket _bucket;
             public AggregateDebugProxy(AggregateBucket bucket)
             {
                 _bucket = bucket;

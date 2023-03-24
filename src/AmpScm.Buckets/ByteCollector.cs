@@ -12,9 +12,9 @@ namespace AmpScm.Buckets
 {
     public struct ByteCollector : IEnumerable<byte>, IEquatable<ByteCollector>, IReadOnlyCollection<byte>
     {
-        IEnumerable<byte>? _bytes;
+        private IEnumerable<byte>? _bytes;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        ushort _expected;
+        private ushort _expected;
 
         public ByteCollector()
         {
@@ -49,7 +49,7 @@ namespace AmpScm.Buckets
                 return false;
 
             int i = 0;
-            foreach (var v in (_expected > 0) ? _bytes.Take(Length) : _bytes)
+            foreach (byte v in (_expected > 0) ? _bytes.Take(Length) : _bytes)
             {
                 if (v != sq[i++])
                     return false;

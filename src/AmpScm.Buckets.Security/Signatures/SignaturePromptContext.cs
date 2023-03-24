@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Signatures
 
         public static SignaturePromptContext Empty { get; } = new DefType();
 
-        class DefType : SignaturePromptContext
+        private class DefType : SignaturePromptContext
         {
             public DefType()
             {

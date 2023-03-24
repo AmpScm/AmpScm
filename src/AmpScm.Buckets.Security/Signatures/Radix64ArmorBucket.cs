@@ -10,16 +10,16 @@ namespace AmpScm.Buckets.Signatures
 {
     public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
     {
-        SState _state;
+        private SState _state;
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        Bucket? _base64Decode;
+        private Bucket? _base64Decode;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        int? _crc24Result;
+        private int? _crc24Result;
         private bool _sshBegin;
 
         internal ReadOnlyMemory<byte>? PublicKeyType { get; private set; }
 
-        enum SState
+        private enum SState
         {
             Init,
             Headers,
@@ -48,7 +48,7 @@ namespace AmpScm.Buckets.Signatures
 
                     _sshBegin = true;
                 }
-                var sl = "-----BEGIN ".Length;
+                int sl = "-----BEGIN ".Length;
 
                 if (bb.Slice(sl).StartsWithASCII("SSH "))
                 {
@@ -140,10 +140,10 @@ namespace AmpScm.Buckets.Signatures
 
                 if (_state == SState.Crc && bb.TrimStart().StartsWithASCII("="))
                 {
-                    var crc = bb.Trim(eol).ToASCIIString(1);
+                    string crc = bb.Trim(eol).ToASCIIString(1);
 
-                    var crcData = Convert.FromBase64String(crc);
-                    var b4 = new byte[4];
+                    byte[] crcData = Convert.FromBase64String(crc);
+                    byte[] b4 = new byte[4];
                     crcData.CopyTo(b4, 1);
 
                     if (_crc24Result != NetBitConverter.ToInt32(b4, 0))
@@ -184,10 +184,10 @@ namespace AmpScm.Buckets.Signatures
             return true;
         }
 
-        sealed class StopAtLineStartBucket : WrappingBucket
+        private sealed class StopAtLineStartBucket : WrappingBucket
         {
-            byte[] _stopAt;
-            bool _eof;
+            private readonly byte[] _stopAt;
+            private bool _eof;
 
             public StopAtLineStartBucket(Bucket inner, params byte[] stopAt) : base(inner)
             {

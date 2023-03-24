@@ -16,30 +16,30 @@ namespace AmpScm.Buckets.Specialized
     public sealed class TlsBucket : WrappingBucket, IBucketWriter, IBucketWriterStats, IBucketPoll
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly byte[] _inputBuffer;
+        private readonly byte[] _inputBuffer;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        BucketBytes _unread;
+        private BucketBytes _unread;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly SslStream _stream;
+        private readonly SslStream _stream;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _writeEof;
+        private bool _writeEof;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _readEof;
+        private bool _readEof;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        Task? _writing;
+        private Task? _writing;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _authenticated;
+        private bool _authenticated;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly string _targetHost;
+        private readonly string _targetHost;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _bytesRead;
+        private long _bytesRead;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        IBucketWriter InnerWriter { get; }
+        private IBucketWriter InnerWriter { get; }
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int BufferSize { get; }
+        private int BufferSize { get; }
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        WaitForDataBucket WriteBucket { get; } = new WaitForDataBucket();
+        private WaitForDataBucket WriteBucket { get; } = new WaitForDataBucket();
 
         public TlsBucket(Bucket reader, IBucketWriter writer, string targetHost, int bufferSize = 16384)
             : base(reader)
@@ -115,7 +115,7 @@ namespace AmpScm.Buckets.Specialized
             return await reading.ConfigureAwait(false);
         }
 
-        async Task<BucketBytes> DoRead(int requested)
+        private async Task<BucketBytes> DoRead(int requested)
         {
             if (_unread.Length == 0 && !_readEof)
                 await ReadFromStream().ConfigureAwait(false);
@@ -149,7 +149,7 @@ namespace AmpScm.Buckets.Specialized
 
         public long BytesWritten { get; private set; }
 
-        async Task HandleWriting()
+        private async Task HandleWriting()
         {
             while (true)
             {

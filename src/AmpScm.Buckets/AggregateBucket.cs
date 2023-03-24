@@ -14,18 +14,18 @@ namespace AmpScm.Buckets
     public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBuffers, IBucketNoDispose
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        ValueList<Bucket> _buckets;
+        private ValueList<Bucket> _buckets;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _n;
+        private int _n;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly bool _keepOpen;
+        private readonly bool _keepOpen;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _position;
+        private long _position;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        object LockOn => this;
+        private object LockOn => this;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _nDispose;
+        private int _nDispose;
 
         public AggregateBucket(params Bucket[] items)
         {
@@ -90,7 +90,7 @@ namespace AmpScm.Buckets
             _position = 0;
         }
 
-        Bucket? CurrentBucket
+        private Bucket? CurrentBucket
         {
             get
             {
@@ -176,7 +176,7 @@ namespace AmpScm.Buckets
 
             while (n < _buckets.Count)
             {
-                var r = await _buckets[n]!.ReadRemainingBytesAsync().ConfigureAwait(false);
+                long? r = await _buckets[n]!.ReadRemainingBytesAsync().ConfigureAwait(false);
 
                 if (!r.HasValue)
                     return null;

@@ -184,7 +184,7 @@ namespace AmpScm.Buckets
         /// <inheritdoc cref="MemoryExtensions.IndexOf{T}(ReadOnlySpan{T}, T)"/>
         public int IndexOf(byte value, int startOffset)
         {
-            var s = Span.Slice(startOffset).IndexOf(value);
+            int s = Span.Slice(startOffset).IndexOf(value);
 
             if (s >= 0)
                 return s + startOffset;
@@ -198,7 +198,7 @@ namespace AmpScm.Buckets
             if (predicate is null)
                 throw new ArgumentNullException(nameof(predicate));
 
-            foreach (var b in Span)
+            foreach (byte b in Span)
             {
                 if (!predicate(b))
                     return false;
@@ -213,7 +213,7 @@ namespace AmpScm.Buckets
             if (predicate is null)
                 throw new ArgumentNullException(nameof(predicate));
 
-            foreach (var b in Span)
+            foreach (byte b in Span)
             {
                 if (predicate(b))
                     return true;
@@ -224,7 +224,7 @@ namespace AmpScm.Buckets
 
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string DebuggerDisplay
+        private string DebuggerDisplay
         {
             get
             {
@@ -243,9 +243,9 @@ namespace AmpScm.Buckets
 
         #region ZLib optimization. Our ZLib doesn't use Span<> and Memory<> yet, but let's reuse byte[] directly instead of copying
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        static Func<ReadOnlyMemory<byte>, (object, int)> ReadOnlyMemoryExpander { get; } = FindReadOnlyMemoryExpander();
+        private static Func<ReadOnlyMemory<byte>, (object, int)> ReadOnlyMemoryExpander { get; } = FindReadOnlyMemoryExpander();
 
-        static Func<ReadOnlyMemory<byte>, (object, int)> FindReadOnlyMemoryExpander()
+        private static Func<ReadOnlyMemory<byte>, (object, int)> FindReadOnlyMemoryExpander()
         {
             ParameterExpression p = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "x");
 

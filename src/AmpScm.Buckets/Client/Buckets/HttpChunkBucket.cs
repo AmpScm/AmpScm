@@ -9,15 +9,14 @@ namespace AmpScm.Buckets.Client.Buckets
 {
     internal sealed class HttpChunkBucket : WrappingBucket
     {
-        BucketBytes _remaining;
-        BucketBytes _next;
-        Bucket? _chunkReader;
-        bool _addEol;
-        bool _eof;
-
-        static ReadOnlyMemory<byte> CRLF = new byte[] { 0x0d, 0x0a };
-        static ReadOnlyMemory<byte> ZeroCRLFCRLF = new byte[] { (byte)'0', 0x0d, 0x0a, 0x0d, 0x0a };
-        const int MaxChunkSize = 16 * 1024 * 1024;
+        private BucketBytes _remaining;
+        private BucketBytes _next;
+        private Bucket? _chunkReader;
+        private bool _addEol;
+        private bool _eof;
+        private static ReadOnlyMemory<byte> CRLF = new byte[] { 0x0d, 0x0a };
+        private static ReadOnlyMemory<byte> ZeroCRLFCRLF = new byte[] { (byte)'0', 0x0d, 0x0a, 0x0d, 0x0a };
+        private const int MaxChunkSize = 16 * 1024 * 1024;
 
         public HttpChunkBucket(Bucket inner) : base(inner)
         {

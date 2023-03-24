@@ -12,9 +12,9 @@ namespace AmpScm.Buckets.Signatures
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Bucket? _current; // Disposed via inner
         private readonly Func<int, Bucket, Bucket> _createAdditional;
-        int _iChunkNumber;
+        private int _iChunkNumber;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        bool _done;
+        private bool _done;
 
         public AeadChunkReader(Bucket inner, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional) 
             : base(inner)

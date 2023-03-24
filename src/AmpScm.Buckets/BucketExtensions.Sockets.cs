@@ -12,7 +12,7 @@ using AmpScm.Buckets.Specialized;
 namespace AmpScm.Buckets
 {
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-    partial class BucketExtensions
+    public partial class BucketExtensions
     {
 #if NETFRAMEWORK && !NET48_OR_GREATER
         internal static Task<int> ReceiveAsync(this Socket socket, Memory<byte> buffer, SocketFlags socketFlags)
@@ -109,7 +109,7 @@ namespace AmpScm.Buckets
 
                             if (buffers.Length > 0)
                             {
-                                var len = buffers.Sum(x => (long)x.Length);
+                                long len = buffers.Sum(x => (long)x.Length);
 
                                 await RandomAccess.WriteAsync(handle, buffers, pos, cancellationToken).ConfigureAwait(false);
                                 pos += len;

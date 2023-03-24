@@ -13,16 +13,15 @@ namespace AmpScm.Buckets.Client.Buckets
 {
     public class HttpResponseBucket : ResponseBucket
     {
-        Bucket? _reader;
+        private Bucket? _reader;
         private bool _doneAtEof;
-        WebHeaderDictionary? _responseHeaders;
-        Action? _succes;
-        Action? _authFailed;
-        int _nRedirects;
-        Stack<Bucket>? _readUntilEof;
-        bool _readEol;
-
-        const BucketEol ResponseEol = BucketEol.LF | BucketEol.CRLF;
+        private WebHeaderDictionary? _responseHeaders;
+        private Action? _succes;
+        private Action? _authFailed;
+        private int _nRedirects;
+        private Stack<Bucket>? _readUntilEof;
+        private bool _readEol;
+        private const BucketEol ResponseEol = BucketEol.LF | BucketEol.CRLF;
 
         public string? HttpVersion { get; private set; }
         public int? HttpStatus { get; private set; }
@@ -84,7 +83,7 @@ namespace AmpScm.Buckets.Client.Buckets
             // Transfer-Encoding, aka Hop by hop encoding. Typically 'chunked'
             if (headers[HttpResponseHeader.TransferEncoding] is string te)
             {
-                foreach (var tEnc in te.Split(new[] { ',' }))
+                foreach (string tEnc in te.Split(new[] { ',' }))
                 {
                     if (string.Equals(tEnc, "chunked", StringComparison.OrdinalIgnoreCase))
                     {
@@ -97,7 +96,7 @@ namespace AmpScm.Buckets.Client.Buckets
             // RFC 7231 specifies that we should determine the message length via Transfer-Encoding
             // chunked, when both chunked and Content-Length are passed
             if (!chunked && headers[HttpResponseHeader.ContentLength] is string cl
-                && long.TryParse(cl, out var contentLength) && contentLength >= 0)
+                && long.TryParse(cl, out long contentLength) && contentLength >= 0)
             {
                 rdr = rdr.TakeExactly(contentLength, alwaysWrap: true).NoDispose();
                 allowNext = true;
@@ -107,7 +106,7 @@ namespace AmpScm.Buckets.Client.Buckets
             if (headers[HttpResponseHeader.ContentEncoding] is string ce)
             {
                 _readUntilEof ??= new Stack<Bucket>();
-                foreach (var cEnc in ce.Split(new[] { ',' }))
+                foreach (string cEnc in ce.Split(new[] { ',' }))
                 {
                     if (string.Equals(cEnc, "gzip", StringComparison.OrdinalIgnoreCase))
                     {
@@ -200,7 +199,7 @@ namespace AmpScm.Buckets.Client.Buckets
                 else
                     throw new HttpBucketException($"No HTTP result: {bb.ToASCIIString()}");
 
-                if (int.TryParse(parts[1].ToASCIIString(), out var status) && status >= 100 && status < 1000)
+                if (int.TryParse(parts[1].ToASCIIString(), out int status) && status >= 100 && status < 1000)
                 {
                     switch (status)
                     {
@@ -253,7 +252,7 @@ namespace AmpScm.Buckets.Client.Buckets
             return _reader.ReadRemainingBytesAsync();
         }
 
-        IEnumerable<(string username, string password, string q, Action success, Action failed)> WalkAuthorization(Uri uri, string realm)
+        private IEnumerable<(string username, string password, string q, Action success, Action failed)> WalkAuthorization(Uri uri, string realm)
         {
             var handlers = Request.GetBasicAuthenticationHandlers();
             List<BasicHandler> hlrs = new List<BasicHandler>();
@@ -300,7 +299,7 @@ namespace AmpScm.Buckets.Client.Buckets
             }
         }
 
-        IEnumerator<(string username, string password, string q, Action success, Action failed)>? _authState;
+        private IEnumerator<(string username, string password, string q, Action success, Action failed)>? _authState;
 
         private async ValueTask<bool> HandleAuthorization()
         {
@@ -311,7 +310,7 @@ namespace AmpScm.Buckets.Client.Buckets
 
             if (headers[HttpResponseHeader.WwwAuthenticate] is string wwwAuthenticate)
             {
-                var tk = wwwAuthenticate.Split(new[] { ' ' }, 2);
+                string[] tk = wwwAuthenticate.Split(new[] { ' ' }, 2);
                 string type = tk[0];
 
                 switch (type.ToUpperInvariant())
@@ -429,7 +428,7 @@ namespace AmpScm.Buckets.Client.Buckets
             {
                 var v = Headers;
                 if (v is not null && v[HttpResponseHeader.ContentLength] is string cl
-                    && long.TryParse(cl, out var contentLength) && contentLength >= 0)
+                    && long.TryParse(cl, out long contentLength) && contentLength >= 0)
                 {
                     return contentLength;
                 }

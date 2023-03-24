@@ -11,9 +11,9 @@ namespace AmpScm.Buckets
     [DebuggerTypeProxy(typeof(DebuggerProxy))]
     public partial struct BucketBytes
     {
-        sealed class DebuggerProxy
+        private sealed class DebuggerProxy
         {
-            BucketBytes Bytes { get; }
+            private BucketBytes Bytes { get; }
 
             public DebuggerProxy(BucketBytes bytes)
             {
@@ -29,9 +29,9 @@ namespace AmpScm.Buckets
             public sealed class ByteDump
             {
                 [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-                readonly uint _offset;
+                private readonly uint _offset;
                 [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-                readonly ReadOnlyMemory<byte> _bytes;
+                private readonly ReadOnlyMemory<byte> _bytes;
 
                 public ByteDump(ReadOnlyMemory<byte> bytes, int offset)
                 {

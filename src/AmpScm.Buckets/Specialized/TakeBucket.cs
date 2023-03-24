@@ -7,7 +7,8 @@ namespace AmpScm.Buckets.Specialized
     internal sealed class TakeBucket : PositionBucket, IBucketTake
     {
         public long Limit { get; private set; }
-        bool _ensure;
+
+        private bool _ensure;
 
         public TakeBucket(Bucket inner, long limit, bool ensure)
             : base(inner)
@@ -108,12 +109,12 @@ namespace AmpScm.Buckets.Specialized
             if (pos >= Limit)
                 return 0L;
 
-            var limit = Limit - pos;
+            long limit = Limit - pos;
 
             if (_ensure)
                 return limit;
 
-            var l = await base.ReadRemainingBytesAsync().ConfigureAwait(false);
+            long? l = await base.ReadRemainingBytesAsync().ConfigureAwait(false);
 
             if (!l.HasValue)
                 return null;

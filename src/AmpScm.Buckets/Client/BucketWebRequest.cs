@@ -32,7 +32,7 @@ namespace AmpScm.Buckets.Client
 
         public long? ContentLength
         {
-            get => long.TryParse(Headers[HttpRequestHeader.ContentLength], out var v) && v >= 0 ? v : null;
+            get => long.TryParse(Headers[HttpRequestHeader.ContentLength], out long v) && v >= 0 ? v : null;
             set => Headers[HttpRequestHeader.ContentLength] = value?.ToString(CultureInfo.InvariantCulture);
         }
 

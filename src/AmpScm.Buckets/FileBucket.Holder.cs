@@ -14,18 +14,18 @@ namespace AmpScm.Buckets
 {
     public partial class FileBucket
     {
-        sealed class FileHolder : IDisposable
+        private sealed class FileHolder : IDisposable
         {
 #if !NET6_0_OR_GREATER
             readonly Stack<FileStream> _keep;
 #endif
-            readonly FileStream _primary;
-            readonly SafeFileHandle _handle;
-            readonly bool _asyncWin;
-            readonly Stack<FileWaitHandler> _waitHandlers;
-            long? _length;
-            Action _disposers;
-            int _nRefs;
+            private readonly FileStream _primary;
+            private readonly SafeFileHandle _handle;
+            private readonly bool _asyncWin;
+            private readonly Stack<FileWaitHandler> _waitHandlers;
+            private long? _length;
+            private Action _disposers;
+            private int _nRefs;
 
             public FileHolder(FileStream primary, string path)
             {
@@ -212,7 +212,7 @@ namespace AmpScm.Buckets
 
                 using (waitHandler.Alloc(this, tcs, offset, buffer, out var lpOverlapped))
                 {
-                    if (NativeMethods.ReadFile(_handle, buffer, readLen, out var read, lpOverlapped))
+                    if (NativeMethods.ReadFile(_handle, buffer, readLen, out uint read, lpOverlapped))
                     {
                         // Unlikely direct succes case. No result queued
                         waitHandler.ReleaseOne();
@@ -334,16 +334,17 @@ namespace AmpScm.Buckets
 
 #if NET5_0_OR_GREATER
             [SupportedOSPlatform("windows")]
+            private
 #endif
             sealed class FileWaitHandler : IDisposable
             {
-                readonly IntPtr _overlapped;
-                FileHolder? _holder;
-                TaskCompletionSource<int>? _tcs;
-                GCHandle _pin;
-                EventWaitHandle _eventWaitHandle;
-                RegisteredWaitHandle? _registeredWaitHandle;
-                int _c;
+                private readonly IntPtr _overlapped;
+                private FileHolder? _holder;
+                private TaskCompletionSource<int>? _tcs;
+                private GCHandle _pin;
+                private EventWaitHandle _eventWaitHandle;
+                private RegisteredWaitHandle? _registeredWaitHandle;
+                private int _c;
 
                 public FileWaitHandler(IntPtr overlapped)
                 {
@@ -351,12 +352,12 @@ namespace AmpScm.Buckets
                     _eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
                 }
 
-                void OnSignal(object? state, bool timedOut)
+                private void OnSignal(object? state, bool timedOut)
                 {
                     Debug.Assert(_holder is not null);
                     try
                     {
-                        if (NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out var t, false))
+                        if (NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out uint t, false))
                         {
                             _tcs!.TrySetResult((int)t);
                         }
@@ -371,7 +372,7 @@ namespace AmpScm.Buckets
 
                 public void ReleaseOne()
                 {
-                    var c = Interlocked.Decrement(ref _c);
+                    int c = Interlocked.Decrement(ref _c);
                     if (c == 0)
                     {
                         FileHolder h = _holder!;
@@ -435,7 +436,7 @@ namespace AmpScm.Buckets
 
                 public sealed class Releaser : IDisposable
                 {
-                    FileWaitHandler fileWaitHandler;
+                    private FileWaitHandler fileWaitHandler;
 
                     public Releaser(FileWaitHandler fileWaitHandler)
                     {
@@ -450,7 +451,7 @@ namespace AmpScm.Buckets
                 }
             }
 
-            static class NativeMethods
+            private static class NativeMethods
             {
                 [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, ExactSpelling = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]

@@ -8,12 +8,13 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class EolNormalizeBucket : WrappingBucket
     {
-        readonly BucketEol _acceptedEols;
-        readonly BucketEol _producedEol;
-        byte[] _eol;
-        State _state;
-        byte? _keep;
-        enum State
+        private readonly BucketEol _acceptedEols;
+        private readonly BucketEol _producedEol;
+        private byte[] _eol;
+        private State _state;
+        private byte? _keep;
+
+        private enum State
         {
             Read,
             Eol0,
@@ -63,7 +64,7 @@ namespace AmpScm.Buckets.Specialized
                         }
                         else if (_keep != '\r')
                         {
-                            var r = new[] { _keep.Value };
+                            byte[] r = new[] { _keep.Value };
                             _keep = null;
                             return r;
                         }
@@ -208,7 +209,7 @@ namespace AmpScm.Buckets.Specialized
             bool checkCR = (_acceptedEols & (BucketEol.CR | BucketEol.CRLF)) != 0;
             bool checkZero = (_acceptedEols & BucketEol.Zero) != 0;
 
-            var stop = (checkLF, checkCR, checkZero) switch
+            int stop = (checkLF, checkCR, checkZero) switch
             {
                 (true, false, false) => bb.IndexOf((byte)'\n'),
                 (false, true, false) => bb.IndexOf((byte)'\r'),

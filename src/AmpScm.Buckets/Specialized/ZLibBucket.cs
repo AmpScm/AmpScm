@@ -11,25 +11,25 @@ namespace AmpScm.Buckets.Specialized
     public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly ZStream _z;
+        private readonly ZStream _z;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _eof;
+        private bool _eof;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _readEof;
+        private bool _readEof;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        BucketBytes read_buffer;
+        private BucketBytes read_buffer;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        BucketBytes write_buffer;
+        private BucketBytes write_buffer;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        byte[] write_data;
+        private byte[] write_data;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _position; // Zlib read position
+        private long _position; // Zlib read position
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly BucketCompressionAlgorithm _algorithm;
+        private readonly BucketCompressionAlgorithm _algorithm;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly BucketCompressionLevel? _level;
+        private readonly BucketCompressionLevel? _level;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly IBucketPoll? _innerPoll;
+        private readonly IBucketPoll? _innerPoll;
 
         /// <summary>
         /// Default buffer size. (Value may change in the future, but current value is always guaranteed to be supported)
@@ -70,7 +70,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override string Name => $"ZLib[{_algorithm}{(_level is null ? "Decompress" : "Compress")}]>{Inner.Name}";
 
-        void ZSetup()
+        private void ZSetup()
         {
             if (!_level.HasValue)
                 _z.InflateInit(_algorithm == BucketCompressionAlgorithm.ZLib ? 15 : -15);
@@ -84,7 +84,7 @@ namespace AmpScm.Buckets.Specialized
             _z.NextOutIndex = _z.NextInIndex = 0;
         }
 
-        async ValueTask<bool> Refill(bool forPeek, int requested = MaxRead)
+        private async ValueTask<bool> Refill(bool forPeek, int requested = MaxRead)
         {
             bool retry_refill;
             do
@@ -337,6 +337,6 @@ namespace AmpScm.Buckets.Specialized
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string PeekDisplay => read_buffer.AsDebuggerDisplay();
+        private string PeekDisplay => read_buffer.AsDebuggerDisplay();
     }
 }

@@ -330,7 +330,7 @@ namespace AmpScm.Buckets
 
             if (copy)
             {
-                var data = new byte[bytes!.Length];
+                byte[] data = new byte[bytes!.Length];
                 Array.Copy(bytes, data, bytes.Length);
                 bytes = data;
             }
@@ -560,7 +560,7 @@ namespace AmpScm.Buckets
             {
                 bt = new byte[ro.Count + bytes.Length];
                 int i = 0;
-                foreach (var b in ro)
+                foreach (byte b in ro)
                 {
                     bt[i++] = b;
                 }
