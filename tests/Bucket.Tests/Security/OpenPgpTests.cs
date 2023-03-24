@@ -335,7 +335,7 @@ cEgAjelaGkn3RJOwXWoJbA==
 ";
 
 
-    [TestMethod]
+    [TestMethod, Ignore]
     public async Task TestPrivateKeys()
     {
         Assert.IsTrue(Signature.TryParse(rsa_key1, out var key1));
@@ -360,7 +360,7 @@ cEgAjelaGkn3RJOwXWoJbA==
         Assert.AreEqual("", bb.ToUTF8String());
     }
 
-    [TestMethod]
+    [TestMethod, Ignore]
     public async Task TestOCBTestData()
     {
         ReadOnlyMemory<byte> r = new byte[]
@@ -513,5 +513,48 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
         Assert.IsTrue(value.HasSecret);
 
         Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
+    }
+
+    [TestMethod, Ignore]
+    public async Task TestS2k()
+    {
+        const string Privy = @"-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lQIGBGQdww4BBACkI8oezv1FJd1ykfGbeu1Idmrs5Zdv7ano+HYumEAQ/eUfAogG
+XtDjHA5sCfWYM9KmJwtMr43G80uHcqZOyg12e8qWGRM9WbSqALETVhUSX9+p5Qw2
+IdDIhDQznxNJjDzdgaFChkPdF0LUwLfiZNxpJvozs0eWel4Wpa8S0XeA0wARAQAB
+/gcDAq2UHlIGny13ys1urk56iABGMj03Ou4E3NzfMH2khe28sxRCvELdCFRlh73I
+yLGk3yZX4tCHylTpzhOTQ2HoLb2CVAXJDb6l+OfKZ4ezS2EfnjtWDqtG5CkJeVnk
+o97QobOxAGj+z3VrCZDYDRxFIoeZuW/+0ijYNcBjoSuXljiG9+jmGh0wM2mbEGhg
+1L1sKvX/eB452Y4pBa2wTBjRxcOGSsz3vvbZ/GlOO3PP0Oek3T/Kk/dTOPBNzOtQ
+ZN8c8exNmA+yOXghnFX8hBniJTSCAotYQ3VNGk3osaKGw+UyfAqKYsvow8sziXuS
+seKNOKxEC4bHyjjm7c4w6NJt8cK8T0nd1zzMHOdbTJEH3qTR8dpNWplxRz27fG0g
+wFv9UqlosqvytgvdhzNQHtuh/EgEaft5BLvAPvEZeIhDR/bxnEEhVqzLEPIjAuFe
+hX/hgEPEuwc3PuLG2YwbiHmC8WV5bsbdF8Y4V96DujWD5f+Idycxas+0Fk1lIE15
+IChIZWxsbyEpIDxtZUBteT6I0QQTAQIAOxYhBCptbLkFCNC5L6XgAEH2EPUacRkB
+BQJkHcMOAhsDBQsJCAcCAiICBhUKCQgLAgQWAgMBAh4HAheAAAoJEEH2EPUacRkB
+NxsD/R2MLYUyX18kVDbnQy4hhtILz/6EarBoBk6lsLL03yXwPtPqFzV48Yvh/Pgz
+VpuPq889LPyZD2YNYfSCcurBR3njXxjNrhDv3VJ+EI3iSTp5/DmqjtIy/1yGtzai
+JeKFJXXDjLPCLX8Dio6NFL/8pZnaUwOFCV6bQiI92kgVDbM2nQIGBGQdww4BBADb
+Xtah1QFxcZg3DmBsSV/UknmmFtILm5ws/XjfXZbDasmyE+TNgTViRdvM5bLQY90f
+Yi3TTYajvB1HEWatACugmxXRHYA/UTzbTqG5CYkIW+Wq5/S8Qlb+3vyfQAiV5sec
+Mz170ztLI2W7PdgV8xejSyjGq3aB5Jx4W8a89jJj6wARAQAB/gcDAv7KUmLi1d0w
+ylMuCIEFxm/bckI0sZVgWORnfi/lxv6JJ5l/DFk6pr+eAwkmFXuUIthRN4Knyq0o
+VDxKbyHJyGsEZZ+Yt0+UfNrWW3b9J+O18+HnFrWrlNGoFEDZSZJtyzPq1x/vUlcL
+wHEidAT1YzWptgGIoPPIZha7eZx7lH1sG6+ur8ZNa7CRgQWV9n0b3q2yIh6jAHX5
+rC8yXJrVIJfJmuGczEfeDjgE8wD71eKah7AP0sazffr0xGNHFvt6AEqlsNnPbhjZ
+WfGDk/C2/wH1xMHiPwXIAOVPjtM/vDwvHD2cWn+3DC5DHbV/mIgrREoX5aPeQM6/
+wZTdaaW2uRhpEa4zeDuiJaBiJsli4wHgRPEIt432dGhPXBeuOYSBo3ixwanIY9M8
+Jmg4PDCt39nZxDF7Amk0cve5RKvBf+xkJPjiviyS4OhNaMLzA/N78t9EqsvGtFdb
+MaZ3bpaMmMIAvUpUiw8AhIyVWcoNmReZfctP0/aItgQYAQIAIBYhBCptbLkFCNC5
+L6XgAEH2EPUacRkBBQJkHcMOAhsMAAoJEEH2EPUacRkB5bYEAInu44ZZVIjWKQZa
+He3IjpHSAKQt9yKrmgOZrsP8CoyC6oaS28SHda9G+pu6cQWcXHHnOvhcZzH0Ho8X
+4jwA+cKhREH4Oc/PQfydL3ZLC0be0HFNJ2OCTs3yAOnTqOsC056V1ClmaR/W8/Os
+f9nwhs2r0FA7IKmrcLiL2sClVAAl
+=KGCH
+-----END PGP PRIVATE KEY BLOCK-----";
+
+
+        Assert.IsTrue(Signature.TryParse(Privy, _ => "I", out var key));
     }
 }

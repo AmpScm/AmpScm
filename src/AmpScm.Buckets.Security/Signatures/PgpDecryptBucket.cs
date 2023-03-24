@@ -290,19 +290,21 @@ namespace AmpScm.Buckets.Signatures
 
                                 var bb = await bucket.ReadExactlyAsync(16 + 16).ConfigureAwait(false);
 
-                                bool? ok = null;
+                                bool? verified_as_ok = null;
 
-                                using var ocb = new OcbDecodeBucket(bb.Memory.AsBucket(), key, 128, nonce, verifyResult: (result) => ok = result);
+                                using var ocb = new OcbDecodeBucket(bb.Memory.AsBucket(), key.ToArray(), 128, nonce, verifyResult: (result) => verified_as_ok = result);
 
                                 
                                 var k = await ocb.ReadExactlyAsync(17).ConfigureAwait(false);
 
-                                Debug.Assert(ok != null, "Verify not called");
-                                if (k.Length == 16 && ok == true)
+                                Debug.Assert(verified_as_ok != null, "Verify not called");
+#pragma warning disable CA1508 // Avoid dead conditional code // Bad diagnostic, as used in lambda.
+                                if (k.Length == 16 && verified_as_ok == true)
+#pragma warning restore CA1508 // Avoid dead conditional code
                                 {
                                     _sessionAlgorithm = cipherAlgorithm;
                                     _sessionKey = k.ToArray();
-                                }                                
+                                }
                             }
 
                         }

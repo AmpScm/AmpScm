@@ -30,6 +30,7 @@ AmpScm.Buckets.Signatures.SignatureAlgorithm.Elgamal = 7 -> AmpScm.Buckets.Signa
 AmpScm.Buckets.Signatures.SignatureAlgorithm.None = 0 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
 AmpScm.Buckets.Signatures.SignatureAlgorithm.Rsa = 1 -> AmpScm.Buckets.Signatures.SignatureAlgorithm
 AmpScm.Buckets.Signatures.SignatureBucket
+AmpScm.Buckets.Signatures.SignatureBucket.GetPassword.get -> System.Func<AmpScm.Buckets.Signatures.SignaturePromptContext!, string!>?
 AmpScm.Buckets.Signatures.SignatureBucket.GetPassword.init -> void
 AmpScm.Buckets.Signatures.SignatureBucket.ReadAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Signatures.SignatureBucket.ReadFingerprintAsync() -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>

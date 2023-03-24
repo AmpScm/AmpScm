@@ -317,7 +317,14 @@ namespace AmpScm.Buckets.Signatures
                                     }
                                     else if (sku is 254 or 255)
                                     {
-                                        var symetricKeyAlgorithm = await bucket.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(bucket);
+                                        var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+
+                                        var s2k = await ReadPgpS2kSpecifierAsync(bucket).ConfigureAwait(false);
+
+                                        if (GetPassword?.Invoke(SignaturePromptContext.Empty) is { } password)
+                                        {
+                                            var key = DeriveS2kKey(cipherAlgorithm, s2k, password);
+                                        }
 
                                         throw new NotImplementedException(); // More specifics based on the algorithm
                                     }
@@ -1221,42 +1228,60 @@ namespace AmpScm.Buckets.Signatures
 
         internal static byte[] DeriveS2kKey(OpenPgpSymmetricAlgorithm cipherAlgorithm, (OpenPgpHashAlgorithm Algorithm, byte[]? Salt, int HashByteCount) s2k, string password)
         {
-            byte[] pwd = Encoding.UTF8.GetBytes(password);
-
-            if (s2k.Salt != null)
+            int bitsRequired = cipherAlgorithm switch
             {
-                pwd = s2k.Salt.Concat(pwd).ToArray();
-            }
-
-            using HashAlgorithm ha = s2k.Algorithm switch
-            {
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-                OpenPgpHashAlgorithm.SHA1 => SHA1.Create(),
-#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
-                OpenPgpHashAlgorithm.SHA256 => SHA256.Create(),
-                _ => throw new InvalidOperationException()
+                OpenPgpSymmetricAlgorithm.Aes => 128,
+                OpenPgpSymmetricAlgorithm.Aes192 => 192,
+                OpenPgpSymmetricAlgorithm.Aes256 => 256,
+                _ => throw new NotImplementedException()
             };
 
-            if (s2k.HashByteCount < 1)
+            int bytesRequired = bitsRequired / 8;
+            List<byte> result = new();
+            int zeros = 0;
+
+            while (result.Count < bytesRequired)
             {
-                return ha.ComputeHash(pwd);
+                IEnumerable<byte> pwd = Encoding.UTF8.GetBytes(password);
+
+                if (s2k.Salt != null)
+                {
+                    pwd = Enumerable.Range(0, zeros).Select(_=>(byte)0).Concat(s2k.Salt).Concat(pwd);
+                }
+
+                var toHash = pwd.ToArray();
+
+                using HashAlgorithm ha = s2k.Algorithm switch
+                {
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
+                    OpenPgpHashAlgorithm.SHA1 => SHA1.Create(),
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
+                    OpenPgpHashAlgorithm.SHA256 => SHA256.Create(),
+                    _ => throw new InvalidOperationException()
+                };
+
+                if (s2k.HashByteCount <= toHash.Length)
+                {
+                    result.AddRange(ha.ComputeHash(toHash));
+                    continue;
+                }
+
+                int nHashBytes = s2k.HashByteCount;
+                do
+                {
+                    int n = Math.Min(nHashBytes, toHash.Length);
+                    ha.TransformBlock(toHash, 0, n, null, 0);
+
+                    nHashBytes -= n;
+                }
+                while (nHashBytes > 0);
+
+                ha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+                result.AddRange(ha.Hash!);
             }
 
-
-            int nHashBytes = s2k.HashByteCount;
-            byte[] r = pwd;
-            do
-            {
-                int n = Math.Min(nHashBytes, pwd.Length);
-                ha.TransformBlock(pwd, 0, n, null, 0);
-
-                nHashBytes -= n;
-            }
-            while (nHashBytes > 0);
-
-            ha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-
-            return ha.Hash!;
+            return result.Take(bytesRequired).ToArray();
         }
     }
 }
