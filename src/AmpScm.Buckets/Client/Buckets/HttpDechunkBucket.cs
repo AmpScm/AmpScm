@@ -22,7 +22,7 @@ namespace AmpScm.Buckets.Client.Buckets
         private DechunkState _state;
         private int _chunkLeft;
         private byte[]? _start;
-        private bool _noFin;
+        private readonly bool _noFin;
 
         public HttpDechunkBucket(Bucket inner, bool leaveFinalEol = false)
             : base(inner)

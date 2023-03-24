@@ -118,7 +118,7 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        public IEnumerator<T?> GetEnumerator()
+        public readonly IEnumerator<T?> GetEnumerator()
         {
             for (int i = 0; i < Count; i++)
             {
@@ -131,7 +131,7 @@ namespace AmpScm.Buckets.Specialized
             return GetEnumerator();
         }
 
-        public T? this[int index]
+        public readonly T? this[int index]
         {
             get
             {
@@ -139,6 +139,7 @@ namespace AmpScm.Buckets.Specialized
                     throw new ArgumentOutOfRangeException(nameof(index));
                 return _items[index + _start];
             }
+
             set
             {
                 if (index < 0 || index >= Count)

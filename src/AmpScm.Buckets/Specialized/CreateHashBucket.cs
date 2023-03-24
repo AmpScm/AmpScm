@@ -15,7 +15,7 @@ namespace AmpScm.Buckets.Specialized
         private byte[]? _result;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private Action<byte[]>? _onResult;
-        private bool _complete;
+        private readonly bool _complete;
 
         public CreateHashBucket(Bucket inner, HashAlgorithm hasher)
             : base(inner)

@@ -10,8 +10,8 @@ namespace AmpScm.Buckets.Specialized
     internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
     {
         private readonly int _maxRam;
-        private Bucket readBucket;
-        private IBucketWriter _writer;
+        private readonly Bucket readBucket;
+        private readonly IBucketWriter _writer;
         private long _buffered;
         private long? _size;
         private bool _readEof;
@@ -136,7 +136,7 @@ namespace AmpScm.Buckets.Specialized
 
         private sealed class MyWriter : IBucketWriter
         {
-            private BufferBucket _bufb;
+            private readonly BufferBucket _bufb;
             public MyWriter(BufferBucket bufb)
             {
                 _bufb = bufb;

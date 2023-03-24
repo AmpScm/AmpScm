@@ -8,7 +8,7 @@ namespace AmpScm.Buckets.Specialized
     internal sealed class SkipBucket : PositionBucket, IBucketSkip
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private bool _ensure;
+        private readonly bool _ensure;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private bool _skipped;
 

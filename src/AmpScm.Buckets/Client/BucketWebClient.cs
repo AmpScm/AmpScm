@@ -53,7 +53,7 @@ namespace AmpScm.Buckets.Client
             }
         }
 
-        private Dictionary<string, BucketClientChannel> _channels = new Dictionary<string, BucketClientChannel>();
+        private readonly Dictionary<string, BucketClientChannel> _channels = new Dictionary<string, BucketClientChannel>();
 
         internal void Release(BucketClientChannel bucketChannel)
         {

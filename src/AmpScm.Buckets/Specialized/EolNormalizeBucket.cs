@@ -10,7 +10,7 @@ namespace AmpScm.Buckets.Specialized
     {
         private readonly BucketEol _acceptedEols;
         private readonly BucketEol _producedEol;
-        private byte[] _eol;
+        private readonly byte[] _eol;
         private State _state;
         private byte? _keep;
 

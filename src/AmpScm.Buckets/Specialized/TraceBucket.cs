@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Specialized
 
         private int _nDispose;
         private string? _indent;
-        private string _name;
+        private readonly string _name;
 
         public TraceBucket(Bucket bucket, string? name=null)
         {

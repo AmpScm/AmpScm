@@ -11,7 +11,7 @@ namespace AmpScm.Buckets
 {
     public class SocketBucket : Bucket, IBucketWriter, IBucketWriterStats
     {
-        private byte[] _inputBuffer;
+        private readonly byte[] _inputBuffer;
         private BucketBytes _unread;
         private bool _readEof, _writeEof;
         private Task? _writing;

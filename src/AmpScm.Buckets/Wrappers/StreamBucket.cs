@@ -8,7 +8,7 @@ namespace AmpScm.Buckets.Wrappers
     {
         private readonly Stream _stream;
         private readonly byte[] _buffer;
-        private long? _initialPosition;
+        private readonly long? _initialPosition;
         private BucketBytes _remaining;
 
 

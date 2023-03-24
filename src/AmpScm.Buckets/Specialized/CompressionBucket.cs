@@ -14,8 +14,8 @@ namespace AmpScm.Buckets.Specialized
 
         private byte[]? _buffer;
         private bool _eof;
-        private bool _writeCompression;
-        private AggregateBucket? _written;
+        private readonly bool _writeCompression;
+        private readonly AggregateBucket? _written;
         private BucketBytes _remaining;
 
         public CompressionBucket(Bucket inner, Func<Stream, Stream> compressor) : base(inner.NoDispose())

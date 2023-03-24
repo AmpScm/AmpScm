@@ -33,14 +33,14 @@ namespace AmpScm.Buckets
             _bytes = null;
         }
 
-        public bool IsEmpty => (Length == 0);
+        public readonly bool IsEmpty => (Length == 0);
 
         public int Length { get; private set; }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int IReadOnlyCollection<byte>.Count => Length;
+        readonly int IReadOnlyCollection<byte>.Count => Length;
 
-        public bool SequenceEqual(Span<byte> sq)
+        public readonly bool SequenceEqual(Span<byte> sq)
         {
             if (_bytes is null)
                 return sq.Length == 0;
@@ -283,7 +283,7 @@ namespace AmpScm.Buckets
                 return ToArray();
         }
 
-        public IEnumerator<byte> GetEnumerator()
+        public readonly IEnumerator<byte> GetEnumerator()
         {
             if (Length == 0)
                 return Enumerable.Empty<byte>().GetEnumerator();
@@ -319,7 +319,7 @@ namespace AmpScm.Buckets
             return false;
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return Length;
         }

@@ -9,7 +9,7 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class TextNormalizeBucket : WrappingBucket, IBucketPoll
     {
-        private Encoding _default;
+        private readonly Encoding _default;
         private State _state;
         private Bucket _inner;
         private long _position;
