@@ -10,3 +10,4 @@
 /TestResults/
 /src/TestResults/
 coverage.*.xml
+*.local.cs

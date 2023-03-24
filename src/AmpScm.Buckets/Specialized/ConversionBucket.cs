@@ -87,6 +87,7 @@ namespace AmpScm.Buckets.Specialized
                 if (_readLeft.IsEmpty)
                     _readLeft = await InnerReadAsync(ConvertRequested(requested)).ConfigureAwait(false);
 
+                bool final = _readLeft.IsEof;
                 (_remaining, _readLeft) = await ConvertDataAsync(_readLeft, _readLeft.IsEof).ConfigureAwait(false);
 
                 if (!_remaining.IsEmpty)
@@ -96,6 +97,8 @@ namespace AmpScm.Buckets.Specialized
                     _position += r.Length;
                     return r;
                 }
+                else if (final)
+                    break;
             }
             while (!_readLeft.IsEof);
 

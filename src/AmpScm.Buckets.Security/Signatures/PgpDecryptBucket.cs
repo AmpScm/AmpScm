@@ -39,7 +39,7 @@ namespace AmpScm.Buckets.Signatures
 
 
         public Func<ReadOnlyMemory<byte>, Signature?>? GetKey { get; init; }
-        public Func<string>? GetPassword { get; init; }
+        public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
         async ValueTask ReadHeader()
         {
@@ -181,7 +181,7 @@ namespace AmpScm.Buckets.Signatures
 
                             // Encrypted data
 
-                            Bucket b = new OcbDecodeBucket(bucket, OcbDecodeBucket.SetupAes(_sessionKey.ToArray()), chunk_size, 128, startingVector, new byte[] { /* Assoicated data */ });
+                            Bucket b = new OcbDecodeBucket(bucket, _sessionKey.ToArray(), 16, startingVector);
 
                             _q = new OpenPgpContainer(b);
 
@@ -241,7 +241,7 @@ namespace AmpScm.Buckets.Signatures
                                 });
                             return;
                         }
-                        break;
+
                     case OpenPgpTagType.SymetricSessionKey:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
@@ -256,24 +256,26 @@ namespace AmpScm.Buckets.Signatures
                             var s2k = await SignatureBucket.ReadPgpS2kSpecifierAsync(bucket).ConfigureAwait(false);
 
                             byte[]? key = null;
-                            if (GetPassword?.Invoke() is { } password)
+                            if (GetPassword?.Invoke(SignaturePromptContext.Empty) is { } password)
                             {
                                 key = SignatureBucket.DeriveS2kKey(cipherAlgorithm, s2k, password);
                             }
 
                             if (version == 5 && key is { })
                             {
-                                byte[] iv = (await bucket.ReadExactlyAsync(15).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
+                                byte[] nonce = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
 
                                 var bb = await bucket.ReadExactlyAsync(16 + 16).ConfigureAwait(false);
 
-                                var ocb = new OcbDecodeBucket(bb.Memory.AsBucket(), OcbDecodeBucket.SetupAes(key), 8192, 16, iv, new byte[] { });
+                                var ocb = new OcbDecodeBucket(bb.Memory.AsBucket(), key, 16, nonce);
 
                                 var k = await ocb.ReadExactlyAsync(16).ConfigureAwait(false);
 
-
-                                //byte[] encryptedKey = (await bucket.ReadExactlyAsync(16).ConfigureAwait(false)).ToArray(); // Length of cipher-alg key
-                                //byte[] authTag = (await bucket.ReadExactlyAsync(16).ConfigureAwait(false)).ToArray(); // For OCB
+                                if (k.Length == 16)
+                                {
+                                    _sessionAlgorithm = cipherAlgorithm;
+                                    _sessionKey = k.ToArray();
+                                }
                             }
 
                         }

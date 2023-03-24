@@ -25,39 +25,6 @@ namespace GitBucketTests
     {
         public TestContext TestContext { get; set; } = default!;
 
-        const string Sig1 =
-@"-----BEGIN PGP SIGNATURE-----
-
-wsBcBAABCAAQBQJioEepCRBK7hj4Ov3rIwAAGoMIAHCHbTas3gShVMMX2dx2r82B
-33bY2C8sQ+jFyrJHid8Kq8CMokk2cgPNfELyUw/Sjce4M/CxWq6didx58OOg6nom
-XIPqvRsHqFuNpuC0Ku9vW4fuiITD6i8ADPpNwsU2lVVSqwVdmdBCU5PncXyYk3Bs
-0P1rgF80R9NepCqZ0FihrscJMqX72F5xiq+EGAa/fz4QWDpi792B1fOOO3Q412R6
-KJWsEX/HpigGCiiQ/BHf/z3hj9URNEKOWd2hRAJsvkYzczhV8/yZmSjlg9kUp/Cw
-aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
-=7fmL
------END PGP SIGNATURE-----";
-
-        const string Sig2 = // Similar as sig1 but whitespace at start of line
-@"-----BEGIN PGP SIGNATURE-----
-
- wsBcBAABCAAQBQJimgGPCRBK7hj4Ov3rIwAAP10IAGkgEDtRaPWlyreQincqo8KM
- vO5uh/G1JzqO1fxtwfzjJB/u48/c/brHqimIEug76zA6vEkkE9Cl42qNY+0vDeII
- MQFED+td5vxJ1lHchkZDcQg+fASmAi0XfD2FfEXbQgwH80dIITcUTGlCySr76M9o
- pqpK8n1PpJXtWnCpj13J/3G5Ugo//H0YUqZJFedz36RxuKw1W7WwZgCtCUd6xNz+
- cZs0jUC2gwbMTD5sfBOGUVMKTANFKy+4gda3ouCPyAP+ptFIT10LbWptsoLnYgx8
- oJzt9PpjzQpPRp9baotmzN72sIHjh5bMqJ9HpUK/RR6FLUSO0qwi54xxL8RckZ4=
- =37hr
- -----END PGP SIGNATURE-----";
-
-        const string SigDSA =
-@"-----BEGIN PGP SIGNATURE-----
-
-iIIEABEIACoWIQTHNE8vTjJt+Sudk9934a70jlWGXwUCYrAsPwwcZHNhQGxwdDEu
-bmwACgkQd+Gu9I5Vhl/hfgD/XmXduRrXvp8wD7cuKWkKfotF+IIgtCnC7FMf9Eq1
-WukA/jvr/XbHcqQmFzmWYxf+k3Q5eqKGtMka41jfCWCPxt0Y
-=ofhh
------END PGP SIGNATURE-----";
-
         // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
         const string SshSig =
 @"-----BEGIN SSH SIGNATURE-----
@@ -80,68 +47,6 @@ zMVsThr0xjYrEpCy7Mk+v6B94DsJFvSpycppXmfnYX+H2Umi1qw9hp7d/wb2txmqFStM8g
 GtAh3JPRDOlZUZM=
 -----END SSH SIGNATURE-----";
 
-        [TestMethod]
-        [DataRow(Sig1, DisplayName = nameof(Sig1))]
-        [DataRow(Sig2, DisplayName = nameof(Sig2))]
-        [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
-        [DataRow(SshSig, DisplayName = nameof(SshSig))]
-        public async Task ParseSignature(string signature)
-        {
-            var b = Bucket.Create.FromASCII(signature);
-
-            using var sr = new Radix64ArmorBucket(b);
-
-            while (true)
-            {
-                var bb = await sr.ReadHeaderAsync();
-                if (bb.IsEof)
-                    break;
-            }
-
-            var dt = await sr.ReadExactlyAsync(Bucket.MaxRead);
-        }
-
-        [TestMethod]
-        [DataRow(Sig1, DisplayName = nameof(Sig1))]
-        [DataRow(Sig2, DisplayName = nameof(Sig2))]
-        [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
-        [DataRow(SshSig, DisplayName = nameof(SshSig))]
-        public async Task ParseSigTail(string signature)
-        {
-            var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
-
-            using var sr = new Radix64ArmorBucket(b);
-
-            while (true)
-            {
-                var bb = await sr.ReadHeaderAsync();
-                if (bb.IsEof)
-                    break;
-            }
-
-            var dt = await sr.ReadExactlyAsync(Bucket.MaxRead);
-
-            var bt = await b.ReadExactlyAsync(1024);
-            Assert.AreEqual("TAIL!", bt.ToASCIIString());
-        }
-
-        [TestMethod]
-        [DataRow(Sig1, DisplayName = nameof(Sig1))]
-        [DataRow(Sig2, DisplayName = nameof(Sig2))]
-        [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
-        [DataRow(SshSig, DisplayName = nameof(SshSig))]
-        public async Task ParseRfc4880(string signature)
-        {
-            var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
-
-            var sr = new Radix64ArmorBucket(b);
-            using var rr = new SignatureBucket(sr);
-
-            var bb = await rr.ReadExactlyAsync(8192);
-
-            var bt = await b.ReadExactlyAsync(1024);
-            Assert.AreEqual("TAIL!", bt.ToASCIIString());
-        }
 
         const string MergeTag =
 @"tree 31b100c21e7d04fab9a2ce69b192f40798f2f260
@@ -1011,16 +916,6 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
             Assert.IsTrue(value.HasSecret);
 
             Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
-
-            var rb = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(AMessage).AsBucket());
-
-            var dc = new PgpDecryptBucket(rb, _ => value);
-
-
-            var bb = await dc.ReadExactlyAsync(1024);
-            
-            Assert.IsNotNull(bb);
-            Assert.AreEqual(21, bb.Length);
         }
 
         string RunSshKeyGen(params string[] args)

@@ -80,6 +80,11 @@ namespace AmpScm.Buckets.Signatures
 
         public static bool TryParse(string keyText, [NotNullWhen(true)] out Signature? value)
         {
+            return TryParse(keyText, null, out value);
+        }
+
+        public static bool TryParse(string keyText, Func<SignaturePromptContext, string>? getPassword, [NotNullWhen(true)] out Signature? value)
+        {
             if (string.IsNullOrWhiteSpace(keyText))
                 throw new ArgumentNullException(nameof(keyText));
 
@@ -87,17 +92,17 @@ namespace AmpScm.Buckets.Signatures
 
             if (keyText.StartsWith("-----BEGIN ", StringComparison.Ordinal)
                 || keyText.StartsWith("---- BEGIN ", StringComparison.Ordinal))
-                return TryParseBlob(keyText, out value);
+                return TryParseBlob(keyText, getPassword, out value);
             else
                 return TryParseSshLine(keyText, out value);
         }
 
-        private static bool TryParseBlob(string line, out Signature? value)
+        private static bool TryParseBlob(string line, Func<SignaturePromptContext, string>? getPassword, out Signature? value)
         {
             var b = Bucket.Create.FromASCII(line);
 
             var r = new Radix64ArmorBucket(b);
-            using var sig = new SignatureBucket(r);
+            using var sig = new SignatureBucket(r) { GetPassword = getPassword };
 
             try
             {

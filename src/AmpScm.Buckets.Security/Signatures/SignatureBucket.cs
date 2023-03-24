@@ -39,6 +39,8 @@ namespace AmpScm.Buckets.Signatures
             _outer = inner;
         }
 
+        public Func<SignaturePromptContext, string>? GetPassword { get; init; }
+
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             await ReadAsync().ConfigureAwait(false);
@@ -503,6 +505,9 @@ namespace AmpScm.Buckets.Signatures
                             await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                             break;
                         default:
+#if DEBUG
+                            throw new NotImplementedException();
+#endif
                             await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                             break;
                     }
@@ -1001,7 +1006,6 @@ namespace AmpScm.Buckets.Signatures
                         var signature = _signatureInts![0].ToArray();
 
                         return Chaos.NaCl.Ed25519.Verify(signature, hashValue, keyValues[0].ToArray());
-                        //return Cryptographic.Ed25519.CheckValid(signature, hashValue, keyValues[0].ToArray());
                     }
                 case OpenPgpPublicKeyType.EdDSA:
                 default:

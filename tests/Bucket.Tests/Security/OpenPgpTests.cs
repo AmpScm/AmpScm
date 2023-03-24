@@ -16,8 +16,126 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace BucketTests.Security;
 
 [TestClass]
-public class OpenPgpTests
+public partial class OpenPgpTests
 {
+    const string Sig1 =
+@"-----BEGIN PGP SIGNATURE-----
+
+wsBcBAABCAAQBQJioEepCRBK7hj4Ov3rIwAAGoMIAHCHbTas3gShVMMX2dx2r82B
+33bY2C8sQ+jFyrJHid8Kq8CMokk2cgPNfELyUw/Sjce4M/CxWq6didx58OOg6nom
+XIPqvRsHqFuNpuC0Ku9vW4fuiITD6i8ADPpNwsU2lVVSqwVdmdBCU5PncXyYk3Bs
+0P1rgF80R9NepCqZ0FihrscJMqX72F5xiq+EGAa/fz4QWDpi792B1fOOO3Q412R6
+KJWsEX/HpigGCiiQ/BHf/z3hj9URNEKOWd2hRAJsvkYzczhV8/yZmSjlg9kUp/Cw
+aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
+=7fmL
+-----END PGP SIGNATURE-----";
+
+    const string Sig2 = // Similar as sig1 but whitespace at start of line
+@"-----BEGIN PGP SIGNATURE-----
+
+ wsBcBAABCAAQBQJimgGPCRBK7hj4Ov3rIwAAP10IAGkgEDtRaPWlyreQincqo8KM
+ vO5uh/G1JzqO1fxtwfzjJB/u48/c/brHqimIEug76zA6vEkkE9Cl42qNY+0vDeII
+ MQFED+td5vxJ1lHchkZDcQg+fASmAi0XfD2FfEXbQgwH80dIITcUTGlCySr76M9o
+ pqpK8n1PpJXtWnCpj13J/3G5Ugo//H0YUqZJFedz36RxuKw1W7WwZgCtCUd6xNz+
+ cZs0jUC2gwbMTD5sfBOGUVMKTANFKy+4gda3ouCPyAP+ptFIT10LbWptsoLnYgx8
+ oJzt9PpjzQpPRp9baotmzN72sIHjh5bMqJ9HpUK/RR6FLUSO0qwi54xxL8RckZ4=
+ =37hr
+ -----END PGP SIGNATURE-----";
+
+    const string SigDSA =
+@"-----BEGIN PGP SIGNATURE-----
+
+iIIEABEIACoWIQTHNE8vTjJt+Sudk9934a70jlWGXwUCYrAsPwwcZHNhQGxwdDEu
+bmwACgkQd+Gu9I5Vhl/hfgD/XmXduRrXvp8wD7cuKWkKfotF+IIgtCnC7FMf9Eq1
+WukA/jvr/XbHcqQmFzmWYxf+k3Q5eqKGtMka41jfCWCPxt0Y
+=ofhh
+-----END PGP SIGNATURE-----";
+
+    // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
+    const string SshSig =
+@"-----BEGIN SSH SIGNATURE-----
+U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAP5ogvLJzK+1q2cwJ7K5y6
+tIKRc9y4wv9uAk4cULCN4UDwIBcGU4QiAxuWPsgjxKko/qaQMQWBdBcAUXqLTRQC7z80ER
+xbXF0uHT/XZfbCVtkg9pwxsYj8ltpgPmTOfIOGx3IyYx+luJkg5c+iahVupxeHzBGoQ2q7
+U5MvnMhAEkF+UR5lUbhfqhEOq6SWGsBydr3I/OCrAYcBBO1elXif//ptXO6z2ZOyQI0WL5
+wq+aqJ8VUDCIbfbxWQYisqP8SQHgwHfuYhkpifo537S+/PAf7UHmJbrpOOj8DZ/Hrmymqi
+U8uEVHZuZFLE/gvGyDhH5MGYwMywM+B4l8Poi7R5+zWzauov1UZtULQWDDh2z2oJ+/ass7
+Zr739TmiilduBQGVENeKJf/N6vcAW7KJ5YjeN6+sVtFCqGWbTxpYz8I/fCuliKR6ZfJ0e7
+G/lhTAlFoKZ504izPm1V+18PcT5wQ4igtROShnC31iDLCj6lxxtONEWi45wJPUhvSD7rOA
+TQAAAARmaWxlAAAAAAAAAAZzaGE1MTIAAAGUAAAADHJzYS1zaGEyLTUxMgAAAYDf95HBLz
+yqmKENS4mr+B2/ycK/nPcVMAN8ieqhNheHJjYWROuMiFOMT+h4CwnWZpsIKgce7KTTmAwz
+NrO9UpTpRlueSTUkw/L4g6FhEXONZC5WScLZ2XuKTkqu6vOYsth4AMTvcRtdoEWf7QLbvd
+YVuBj+QWZV7GKARdMbM3yp10ISWgDk4Ob3hjAcmAT7+eBrQHE08uIqBX82zVe1dfZKSXoI
+1VLzGUI/94N++2jDEX35qxKV9wS/13ZtYSW+k7LCSCzgzTtNXFkmb1eYVq5P4/IXJfGB7Z
+Cm/QEhrgEyMptGcY/81fCfXE/ylJSDl9sBzCtSin1E9nFkuA1HGkM9zzPvcAY49k0q5j+O
+zMVsThr0xjYrEpCy7Mk+v6B94DsJFvSpycppXmfnYX+H2Umi1qw9hp7d/wb2txmqFStM8g
+9JDwomS99jM88rMEhZWi6dRjXlEG4q/OoTKnTmT30Aib71Ill+sFxEtmGesS8eeJ+js6B7
+GtAh3JPRDOlZUZM=
+-----END SSH SIGNATURE-----";
+
+    [TestMethod]
+    [DataRow(Sig1, DisplayName = nameof(Sig1))]
+    [DataRow(Sig2, DisplayName = nameof(Sig2))]
+    [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
+    [DataRow(SshSig, DisplayName = nameof(SshSig))]
+    public async Task ParseSignature(string signature)
+    {
+        var b = Bucket.Create.FromASCII(signature);
+
+        using var sr = new Radix64ArmorBucket(b);
+
+        while (true)
+        {
+            var bb = await sr.ReadHeaderAsync();
+            if (bb.IsEof)
+                break;
+        }
+
+        var dt = await sr.ReadExactlyAsync(Bucket.MaxRead);
+    }
+
+    [TestMethod]
+    [DataRow(Sig1, DisplayName = nameof(Sig1))]
+    [DataRow(Sig2, DisplayName = nameof(Sig2))]
+    [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
+    [DataRow(SshSig, DisplayName = nameof(SshSig))]
+    public async Task ParseSigTail(string signature)
+    {
+        var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
+
+        using var sr = new Radix64ArmorBucket(b);
+
+        while (true)
+        {
+            var bb = await sr.ReadHeaderAsync();
+            if (bb.IsEof)
+                break;
+        }
+
+        var dt = await sr.ReadExactlyAsync(Bucket.MaxRead);
+
+        var bt = await b.ReadExactlyAsync(1024);
+        Assert.AreEqual("TAIL!", bt.ToASCIIString());
+    }
+
+    [TestMethod]
+    [DataRow(Sig1, DisplayName = nameof(Sig1))]
+    [DataRow(Sig2, DisplayName = nameof(Sig2))]
+    [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
+    [DataRow(SshSig, DisplayName = nameof(SshSig))]
+    public async Task ParseRfc4880(string signature)
+    {
+        var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
+
+        var sr = new Radix64ArmorBucket(b);
+        using var rr = new SignatureBucket(sr);
+
+        var bb = await rr.ReadExactlyAsync(8192);
+
+        var bt = await b.ReadExactlyAsync(1024);
+        Assert.AreEqual("TAIL!", bt.ToASCIIString());
+    }
+
     const string rsa_key1_fingerprint = "1E4EA61FCC73D2D96075A9835B15B06B7943D080";
     const string rsa_key1 =
 @"-----BEGIN PGP PRIVATE KEY BLOCK-----
@@ -242,47 +360,6 @@ cEgAjelaGkn3RJOwXWoJbA==
         Assert.AreEqual("", bb.ToUTF8String());
     }
 
-
-    [TestMethod]
-    public async Task TestDecrypt()
-    {
-        var k = File.ReadAllText(@"f:\2023\allservices_0xF5B39A58_SECRET.asc");
-
-        var r = new Radix64ArmorBucket(Bucket.Create.FromASCII(k));
-        using var sig = new SignatureBucket(r);
-
-        var key = await sig.ReadKeyAsync();
-
-        Assert.IsNotNull(key);
-        Assert.IsNotNull(key.SubKeys.FirstOrDefault());
-        Assert.AreEqual(SignatureAlgorithm.Rsa, key.Algorithm);
-
-
-        Assert.AreEqual("13A75DB5332C5BF28D85749E2B9EB676F5B39A58", key.FingerprintString);
-
-        //key.FingerprintString
-
-        foreach (var f in Directory.GetFiles(@"f:\kpn", "*.csv.gpg"))
-        {
-            Trace.WriteLine(f);
-
-            var b = File.ReadAllBytes(f);
-
-            var fb = b.AsBucket(); // FileBucket.OpenRead(f);
-            var dc = new PgpDecryptBucket(fb, _ => key);
-
-            while (await dc.ReadExactlyUntilEolAsync(BucketEol.LF) is { } line)
-            {
-                if (line.Bytes.IsEof)
-                    break;
-                Trace.Write(line.Bytes.ToASCIIString());
-            }
-
-            await dc.ReadUntilEofAsync();
-            break;
-        }
-    }
-
     [TestMethod]
     public async Task TestTestData()
     {
@@ -314,7 +391,7 @@ cEgAjelaGkn3RJOwXWoJbA==
             0xd5, 0x71, 0xbc, 0xd8, 0x3b, 0x20, 0xad, 0xd3, 0xa0, 0x8b, 0x73, 0xaf, 0x15, 0xb9, 0xa0, 0x98
         };
 
-        var b = new PgpDecryptBucket(r.AsBucket(), _ => null) { GetPassword = () => "password" };
+        var b = new PgpDecryptBucket(r.AsBucket(), _ => null) { GetPassword = (_) => "password" };
 
         await b.ReadAsync();
     }
@@ -332,9 +409,8 @@ cEgAjelaGkn3RJOwXWoJbA==
             0xA9, 0x8C, 0xA5, 0xF3, 0x00, 0x0B, 0x14, 0x79
         };
 
-        var d = new OcbDecodeBucket(crypted.AsBucket(), OcbDecodeBucket.SetupAes(key), 1024, 128,
-            new byte[] { 0xBB, 0xAA, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x0F }, 
-            new byte[] { });
+        var d = new OcbDecodeBucket(crypted.AsBucket(), key, 128,
+            nonce: new byte[] { 0xBB, 0xAA, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x0F });
 
         var r = await d.ReadExactlyAsync(1024);
 
@@ -345,4 +421,50 @@ cEgAjelaGkn3RJOwXWoJbA==
             0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, }.SequenceEqual(r.ToArray()));
     }
 
+
+    const string APrivateKey =
+@"-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lFgEY+jHGBYJKwYBBAHaRw8BAQdA4LuQh88dckAm8tn5rJS5fIzkbLKtoSRvTlA9
+gRUdsTsAAQCS0d7Q7Aly4mzeuebeddphO8s6i8XsCWDuRLFPFwkbaRGNtAtBQUFB
+QSA8QUBBPoiZBBMWCgBBFiEEBTvJdaqKWVTRQK6y4WOf/s9/93QFAmPoxxgCGwMF
+CQPCZwAFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQ4WOf/s9/93QKRAD9
+EqOwr3BNO/9+ZcVjovdGIY2bOqkNaaCzXwK/BXHEJqUBAILvjKAAHhKIqwsO9Xj0
+cYsZCutyrm7HG5BkK4bx2pgCnF0EY+jHGBIKKwYBBAGXVQEFAQEHQD3du+VhSTvQ
+fSzYKncSaG64ywISypob2HcsnxWIcj0LAwEIBwAA/3SmrDagn6JMteDoQBEPO3kA
+nWzmaWWTGa7x71JrNOk4EMKIfgQYFgoAJhYhBAU7yXWqillU0UCusuFjn/7Pf/d0
+BQJj6McYAhsMBQkDwmcAAAoJEOFjn/7Pf/d0jpgA/0vyiJ9Ov3NJIJo3NZjDU/cO
+TLQz69WEUUAtQ1SwiGAaAP9MaVfEDY7GtSZO97Vs5prfBkYhWc3qEknTOhfiZbql
+BA==
+=PIZ4
+-----END PGP PRIVATE KEY BLOCK-----";
+
+    const string AMessage =
+@"-----BEGIN PGP MESSAGE-----
+
+hF4DxaX2D8f75n0SAQdACeR83BHHiw1jGFVw4TcPcoHqOyZdl/9AHvY8TlkIf38w
+j7ym7GaQCbYP17fNlYSzYPsKJBF6EICRIs5p/GkleM5nCGAHlOAYaWnH594fkCC1
+1FoBCQIQ+1JDVMpNBbPXGDQrt3zEC3I7FGj2+tDrp0Bq2+kKGLfdHXxtfDsflXGq
+sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
+=Y8Z7
+-----END PGP MESSAGE-----";
+
+    [TestMethod]
+    public async Task ParsePrivateKey()
+    {
+        var b = Bucket.Create.FromASCII(APrivateKey);
+
+        var r = new Radix64ArmorBucket(b);
+        using var sig = new SignatureBucket(r);
+
+        var key = await sig.ReadKeyAsync();
+
+        Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", key.FingerprintString);
+        Assert.AreEqual(SignatureAlgorithm.Ed25519, key.Algorithm);
+
+        Assert.IsTrue(Signature.TryParse(APrivateKey, out var value));
+        Assert.IsTrue(value.HasSecret);
+
+        Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
+    }
 }
