@@ -124,7 +124,7 @@ namespace AmpScm.Buckets.Specialized
             if (p.HasValue)
             {
                 var sb = new SkipBucket(bucket, p.Value, true);
-                sb.SetPosition(p.Value);
+                sb.CurrentPosition = p.Value;
                 return sb;
             }
             else

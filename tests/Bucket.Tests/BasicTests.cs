@@ -772,5 +772,79 @@ namespace BucketTests
 
             File.Delete(p);
         }
+
+        [TestMethod]
+        public async Task LeaveTests()
+        {
+            var b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
+            bool touched = false;
+            b = b.Leave(4, b =>
+            {
+                touched = true;
+                Assert.AreEqual("WXYZ", b.ToASCIIString());
+            });
+
+            var r = await b.ReadExactlyAsync(1024);
+            Assert.IsTrue(touched);
+
+
+            b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
+            touched = false;
+            b = b.Take(20).Leave(4, b =>
+            {
+                touched = true;
+                Assert.AreEqual("QRST", b.ToASCIIString());
+            });
+
+            r = await b.ReadExactlyAsync(1024);
+            Assert.IsTrue(touched);
+
+
+            b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
+            touched = false;
+            b = b.Take(20).NoRemaining().Leave(4, b =>
+            {
+                touched = true;
+                Assert.AreEqual("QRST", b.ToASCIIString());
+            });
+
+            r = await b.ReadExactlyAsync(1024);
+            Assert.IsTrue(touched);
+
+            b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
+            touched = false;
+            b = b.Take(20).NoRemaining().NoPosition().Leave(4, b =>
+            {
+                touched = true;
+                Assert.AreEqual("QRST", b.ToASCIIString());
+            });
+
+            r = await b.ReadExactlyAsync(1024);
+            Assert.IsTrue(touched);
+
+
+            b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
+            touched = false;
+            b = b.Take(19).NoRemaining().NoPosition().Leave(4, b =>
+            {
+                touched = true;
+                Assert.AreEqual("PQRS", b.ToASCIIString());
+            });
+
+            r = await b.ReadExactlyAsync(1024);
+            Assert.IsTrue(touched);
+
+            b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
+            touched = false;
+            b = b.Take(21).NoRemaining().NoPosition().Leave(4, b =>
+            {
+                touched = true;
+                Assert.AreEqual("RSTU", b.ToASCIIString());
+            });
+
+            r = await b.ReadExactlyAsync(1024);
+            Assert.IsTrue(touched);
+
+        }
     }
 }

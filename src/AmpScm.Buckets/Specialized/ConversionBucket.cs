@@ -84,11 +84,16 @@ namespace AmpScm.Buckets.Specialized
 
             do
             {
-                if (_readLeft.IsEmpty)
+                if (_readLeft.IsEmpty && !_readLeft.IsEof)
                     _readLeft = await InnerReadAsync(ConvertRequested(requested)).ConfigureAwait(false);
 
                 bool final = _readLeft.IsEof;
-                (_remaining, _readLeft) = await ConvertDataAsync(_readLeft, _readLeft.IsEof).ConfigureAwait(false);
+
+#if DEBUG
+                Debug.Assert(!_readLeft.IsEmpty || _readLeft.IsEof, $"{Inner} bucket reports empty instead of eof");
+#endif
+
+                (_remaining, _readLeft) = await ConvertDataAsync(_readLeft, final).ConfigureAwait(false);
 
                 if (!_remaining.IsEmpty)
                 {

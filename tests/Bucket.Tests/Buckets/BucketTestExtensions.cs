@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AmpScm.Buckets;
+using BucketTests.Buckets;
 
 namespace AmpScm.BucketTests.Buckets
 {
@@ -35,6 +36,16 @@ namespace AmpScm.BucketTests.Buckets
                 Array.Copy(items, shortItems, n);
                 yield return shortItems;
             }
+        }
+
+        public static Bucket NoRemaining(this Bucket self) 
+        {
+            return new NoRemainingBucket(self);
+        }
+
+        public static Bucket NoPosition(this Bucket self)
+        {
+            return new NoPositionBucket(self);
         }
     }
 }

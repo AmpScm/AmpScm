@@ -31,7 +31,8 @@ namespace AmpScm.Buckets.Signatures
         public async ValueTask<(Bucket? Bucket, OpenPgpTagType Type)> ReadPacketAsync()
         {
             if (_reading)
-                throw new InvalidOperationException();
+                throw new BucketException("Can't obtain new packet, when the last one is not completely read");
+
             var first = false;
             var inner = Inner;
             bool sshPublicKey = false;

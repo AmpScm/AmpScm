@@ -242,6 +242,50 @@ namespace AmpScm.Buckets
                 return new SkipBucket(bucket, skipBytes, false);
         }
 
+        /// <summary>
+        /// Creates a bucket that reads all bytes expect the final <paramref name="leave"/> bytes from a bucket,
+        /// and calls the callback with the final bytes before returning EOF for the first time
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="leave"></param>
+        /// <param name="left"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Bucket Leave(this Bucket bucket, int leave, Func<BucketBytes, ValueTask> left)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (leave < 1)
+                throw new ArgumentOutOfRangeException(nameof(leave), leave, message: null);
+            else if (left is null)
+                throw new ArgumentNullException(nameof(left));
+
+            return new LeaveBucket(bucket, leave, left);
+        }
+
+        /// <summary>
+        /// Creates a bucket that reads all bytes expect the final <paramref name="leave"/> bytes from a bucket,
+        /// and calls the callback with the final bytes before returning EOF for the first time
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="leave"></param>
+        /// <param name="left"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Bucket Leave(this Bucket bucket, int leave, Action<BucketBytes> left)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (leave < 1)
+                throw new ArgumentOutOfRangeException(nameof(leave), leave, message: null);
+            else if (left is null)
+                throw new ArgumentNullException(nameof(left));
+
+            return new LeaveBucket(bucket, leave, (b) => { left(b); return new(); });
+        }
+
         public static Bucket NoDispose(this Bucket bucket, bool alwaysWrap = false)
         {
             if (!alwaysWrap && bucket is IBucketNoDispose nc)

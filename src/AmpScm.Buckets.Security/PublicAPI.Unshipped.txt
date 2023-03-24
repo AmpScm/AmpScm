@@ -2,7 +2,7 @@
 AmpScm.Buckets.Security.BucketDecryptException
 AmpScm.Buckets.Signatures.OcbDecodeBucket
 AmpScm.Buckets.Signatures.OcbDecodeBucket.DoConvertData(ref AmpScm.Buckets.BucketBytes sourceData, int available, bool final) -> AmpScm.Buckets.BucketBytes
-AmpScm.Buckets.Signatures.OcbDecodeBucket.OcbDecodeBucket(AmpScm.Buckets.Bucket! inner, byte[]! aesKey, int tagLen, System.ReadOnlyMemory<byte> nonce, System.ReadOnlyMemory<byte> associatedData = default(System.ReadOnlyMemory<byte>)) -> void
+AmpScm.Buckets.Signatures.OcbDecodeBucket.OcbDecodeBucket(AmpScm.Buckets.Bucket! inner, byte[]! aesKey, int tagLen, System.ReadOnlyMemory<byte> nonce, System.ReadOnlyMemory<byte> associatedData = default(System.ReadOnlyMemory<byte>), System.Action<bool>? verifyResult = null) -> void
 AmpScm.Buckets.Signatures.OcbDecodeBucket.TagSize.get -> int
 AmpScm.Buckets.Signatures.PgpDecryptBucket
 AmpScm.Buckets.Signatures.PgpDecryptBucket.GetPassword.get -> System.Func<AmpScm.Buckets.Signatures.SignaturePromptContext!, string!>?
@@ -37,11 +37,10 @@ AmpScm.Buckets.Signatures.SignatureBucket.ReadKeyAsync() -> System.Threading.Tas
 AmpScm.Buckets.Signatures.SignatureBucket.SignatureBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Signatures.SignatureBucket.VerifyAsync(AmpScm.Buckets.Bucket! sourceData, AmpScm.Buckets.Signatures.Signature? key) -> System.Threading.Tasks.ValueTask<bool>
 const AmpScm.Buckets.Signatures.OcbDecodeBucket.BlockLength = 16 -> int
-const AmpScm.Buckets.Signatures.OcbDecodeBucket.NonceLength = 15 -> int
 override AmpScm.Buckets.Signatures.OcbDecodeBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Signatures.OcbDecodeBucket.ConvertDataAsync(AmpScm.Buckets.BucketBytes sourceData, bool final) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes Result, AmpScm.Buckets.BucketBytes SourceData)>
 override AmpScm.Buckets.Signatures.OcbDecodeBucket.ConvertRequested(int requested) -> int
-override AmpScm.Buckets.Signatures.OcbDecodeBucket.InnerReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Signatures.OcbDecodeBucket.InnerDispose() -> void
 override AmpScm.Buckets.Signatures.PgpDecryptBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Signatures.PgpDecryptBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Signatures.Radix64ArmorBucket.Peek() -> AmpScm.Buckets.BucketBytes

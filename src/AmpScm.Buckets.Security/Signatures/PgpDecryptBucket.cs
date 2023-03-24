@@ -87,12 +87,18 @@ namespace AmpScm.Buckets.Signatures
                             var bb = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false));
 
                             if (!_sessionKey.IsEmpty)
+                            {
+                                await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                                 break; // Skip packet, we already have a session
+                            }
 
                             var key = GetKey?.Invoke(bb);
 
                             if (key?.MatchFingerprint(bb) is not { } matchedKey)
+                            {
+                                await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                                 break; // Ignore rest of packet
+                            }
 
                             var pca = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
@@ -177,13 +183,27 @@ namespace AmpScm.Buckets.Signatures
                                 throw new BucketException("Session key is for different algorithm");
 
                             // Starting vector (OCB specific)
-                            var startingVector = (await bucket.ReadExactlyAsync(15).ConfigureAwait(false)).ToArray();
+                            var startingVector = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray();
 
                             // Encrypted data
 
-                            Bucket b = new OcbDecodeBucket(bucket, _sessionKey.ToArray(), 16, startingVector);
+                            bucket = bucket.Leave(16, _ => { });
 
-                            _q = new OpenPgpContainer(b);
+                            bucket = new AeadChunkReader(bucket, (int)chunk_size, 16,
+                                (n, data) =>
+                                {
+                                    var associatedData = new byte[] { 0xC0 | (int)OpenPgpTagType.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
+                                        .Concat(NetBitConverter.GetBytes((long)n)).ToArray();
+
+
+                                    var sv = startingVector.ToArray();
+
+                                    OcbDecodeBucket.SpanXor(sv.AsSpan(sv.Length - 4), NetBitConverter.GetBytes(n));
+
+                                    return new OcbDecodeBucket(data, _sessionKey.ToArray(), 128, sv, associatedData);
+                                });
+
+                            _q = new OpenPgpContainer(bucket);
 
                             continue;
                         }
@@ -244,6 +264,9 @@ namespace AmpScm.Buckets.Signatures
 
                     case OpenPgpTagType.SymetricSessionKey:
                         {
+                            if (!_sessionKey.IsEmpty)
+                                break; // Ignore session key if we already have one
+
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                             var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                             if (version == 5)
@@ -267,15 +290,19 @@ namespace AmpScm.Buckets.Signatures
 
                                 var bb = await bucket.ReadExactlyAsync(16 + 16).ConfigureAwait(false);
 
-                                var ocb = new OcbDecodeBucket(bb.Memory.AsBucket(), key, 16, nonce);
+                                bool? ok = null;
 
-                                var k = await ocb.ReadExactlyAsync(16).ConfigureAwait(false);
+                                using var ocb = new OcbDecodeBucket(bb.Memory.AsBucket(), key, 128, nonce, verifyResult: (result) => ok = result);
 
-                                if (k.Length == 16)
+                                
+                                var k = await ocb.ReadExactlyAsync(17).ConfigureAwait(false);
+
+                                Debug.Assert(ok != null, "Verify not called");
+                                if (k.Length == 16 && ok == true)
                                 {
                                     _sessionAlgorithm = cipherAlgorithm;
                                     _sessionKey = k.ToArray();
-                                }
+                                }                                
                             }
 
                         }
@@ -294,10 +321,12 @@ namespace AmpScm.Buckets.Signatures
                         }
                         break;
                     default:
+                        await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                         break;
                 }
 
-                await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                var n = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                Debug.Assert(n == 0, $"Unread data left in {bucket} of tagType {tag}");
             }
 
             static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory)
@@ -364,13 +393,13 @@ namespace AmpScm.Buckets.Signatures
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
         {
-            await ReadHeader();
+            await ReadHeader().ConfigureAwait(false);
 
 
             var bb = await (_reader ?? _container).ReadAsync(requested);
 
             if (!_inBody && bb.IsEmpty)
-                await ReadHeader();
+                await ReadHeader().ConfigureAwait(false);
 
             return bb;
 

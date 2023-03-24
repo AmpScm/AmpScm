@@ -26,6 +26,7 @@ public class OcbDecodeBucket : ConversionBucket
     byte[] _checksum;
     private readonly int _tagLen;
     byte[]? _buf16;
+    Action<bool>? _verified;
 
 
     public const int MaxNonceLength = 15;
@@ -45,8 +46,9 @@ public class OcbDecodeBucket : ConversionBucket
     /// <param name="tagLen">Length of the tag in bits</param>
     /// <param name="nonce"></param>
     /// <param name="associatedData"></param>
+    /// <param name="verifyResult"></param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public OcbDecodeBucket(Bucket inner, byte[] aesKey, int tagLen, ReadOnlyMemory<byte> nonce, ReadOnlyMemory<byte> associatedData = default)
+    public OcbDecodeBucket(Bucket inner, byte[] aesKey, int tagLen, ReadOnlyMemory<byte> nonce, ReadOnlyMemory<byte> associatedData = default, Action<bool>? verifyResult = null)
         : base(inner)
     {
         if (tagLen < 8 || tagLen > BlockLength * 8 || tagLen % 8 != 0)
@@ -54,8 +56,10 @@ public class OcbDecodeBucket : ConversionBucket
         else if (nonce.Length > MaxNonceLength)
             throw new ArgumentOutOfRangeException(nameof(nonce));
 
+        Debug.Assert(tagLen == 128);
+
         _aes = Aes.Create();
-        _aes.Key = aesKey.Reverse().ToArray();
+        _aes.Key = aesKey.ToArray();
         _aes.IV = new byte[_aes.IV.Length];
         _aes.Mode = CipherMode.CBC;
         _aes.Padding = PaddingMode.None;
@@ -83,6 +87,19 @@ public class OcbDecodeBucket : ConversionBucket
 
         _checksum = new byte[16];
         TagSize = tagLen / 8;
+        _verified = verifyResult;
+    }
+
+    protected override void InnerDispose()
+    {
+        try
+        {
+            _aes.Dispose();
+        }
+        finally
+        {
+            base.InnerDispose();
+        }
     }
 
 #if DEBUG
@@ -99,7 +116,7 @@ public class OcbDecodeBucket : ConversionBucket
     }
 #endif
 
-    static void SpanXor(Span<byte> a, ReadOnlySpan<byte> b)
+    internal static void SpanXor(Span<byte> a, ReadOnlySpan<byte> b)
     {
         Debug.Assert(a.Length == b.Length);
 
@@ -258,8 +275,8 @@ public class OcbDecodeBucket : ConversionBucket
 
         // TODO: If 'rem' = 0, then we can pass final as true and complete in one step.
 
-        if (!(rem > 16))
-            available -= 16 - (int)(rem ?? 0);
+        if (!(rem > TagSize))
+            available -= TagSize - (int)(rem ?? 0);
 
         var r = DoConvertData(ref sourceData, available, final);
 
@@ -274,6 +291,9 @@ public class OcbDecodeBucket : ConversionBucket
         // For the normal reads, we never want to read the final 16 bytes "TAG"
         if (available < TagSize)
         {
+            if (available < 0)
+                return BucketBytes.Eof;
+
             _byteCollector.Append(sourceData);
             sourceData = final ? BucketBytes.Eof : BucketBytes.Empty;
 
@@ -286,6 +306,8 @@ public class OcbDecodeBucket : ConversionBucket
             if (available > 0)
             {
                 // We have remaining data
+                Array.Clear(src, 0, src.Length);
+
                 srcData.Slice(0, available).CopyTo(src);
 
                 // Offset_* = Offset_m xor L_*
@@ -301,18 +323,29 @@ public class OcbDecodeBucket : ConversionBucket
 
                 //Debug.WriteLine($"P*: {DumpData(src.AsSpan(0, available))}");
 
-                SpanXor(_checksum, _buf16);
-
+                // Tag = ENCIPHER(K, Checksum_ * xor Offset_ * xor L_$) xor HASH(K, A)
+                SpanXor(_checksum, src);
 
                 SpanXor(_checksum, _offset);
                 SpanXor(_checksum, GetMask(-1));
 
-                var tag = Encipher(_checksum);
-                SpanXor(tag, Hash(_associatedData).Span);
-
-                if (!tag.AsSpan(0, TagSize).SequenceEqual(srcData.Slice(available, TagSize).Span))
-                    throw new BucketDecryptException($"Decrypted data in {this} bucket not valid");
             }
+            else
+            {
+                // Tag = ENCIPHER(K, Checksum_m xor Offset_m xor L_$) xor HASH(K,A)
+                SpanXor(_checksum, _offset);
+                SpanXor(_checksum, GetMask(-1));
+            }
+
+
+            var tag = Encipher(_checksum);
+            SpanXor(tag, Hash(_associatedData).Span);
+
+            bool ok = tag.AsSpan(0, TagSize).SequenceEqual(srcData.Slice(available, TagSize).Span);
+            if (_verified is { })
+                _verified(ok);
+            else
+                throw new BucketDecryptException($"Decrypted data in {this} bucket not valid");
 
 
             return available > 0 ? new(src, 0, available) : BucketBytes.Eof;

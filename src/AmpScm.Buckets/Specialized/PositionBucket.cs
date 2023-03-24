@@ -4,7 +4,7 @@ namespace AmpScm.Buckets.Specialized
 {
     internal class PositionBucket : ProxyBucket<PositionBucket>.WithPoll
     {
-        long _position;
+        private protected long CurrentPosition { get; set; }
 
         public PositionBucket(Bucket inner)
             : base(inner)
@@ -15,7 +15,7 @@ namespace AmpScm.Buckets.Specialized
         {
             var v = await Inner.ReadAsync(requested).ConfigureAwait(false);
 
-            _position += v.Length;
+            CurrentPosition += v.Length;
             return v;
         }
 
@@ -23,21 +23,21 @@ namespace AmpScm.Buckets.Specialized
         {
             var v = await Inner.ReadSkipAsync(requested).ConfigureAwait(false);
 
-            _position += v;
+            CurrentPosition += v;
             return v;
         }
 
         public override void Reset()
         {
             base.Reset();
-            _position = 0;
+            CurrentPosition = 0;
         }
 
         protected override sealed PositionBucket? WrapDuplicate(Bucket duplicatedInner, bool reset)
         {
             var p = NewPositionBucket(duplicatedInner);
             if (!reset)
-                p._position = _position;
+                p.CurrentPosition = CurrentPosition;
 
             return p;
         }
@@ -49,9 +49,9 @@ namespace AmpScm.Buckets.Specialized
 
         protected void SetPosition(long position)
         {
-            _position = position;
+            CurrentPosition = position;
         }
 
-        public override long? Position => _position;
+        public override long? Position => CurrentPosition;
     }
 }

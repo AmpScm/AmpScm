@@ -57,7 +57,7 @@ namespace AmpScm.Buckets
             return true;
         }
 
-        public void Append(BucketBytes bytes)
+        public void Append(ReadOnlyMemory<byte> bytes)
         {
             if (bytes.Length == 0)
                 return;
@@ -70,7 +70,7 @@ namespace AmpScm.Buckets
                 {
                     _bytes = bb ??= new byte[_expected];
 
-                    bytes.CopyTo(bb.AsSpan(Length));
+                    bytes.Span.CopyTo(bb.AsSpan(Length));
                     Length += bytes.Length;
                     return;
                 }
@@ -96,6 +96,9 @@ namespace AmpScm.Buckets
 
             Length += bytes.Length;
         }
+
+        public void Append(BucketBytes bytes)
+            => Append(bytes.Memory);
 
         public void Clear()
         {
