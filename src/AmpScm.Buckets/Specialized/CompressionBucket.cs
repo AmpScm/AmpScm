@@ -15,7 +15,9 @@ namespace AmpScm.Buckets.Specialized
         private byte[]? _buffer;
         private bool _eof;
         private readonly bool _writeCompression;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly AggregateBucket? _written;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private BucketBytes _remaining;
 
         public CompressionBucket(Bucket source, Func<Stream, Stream> compressor) : base(source.NoDispose())

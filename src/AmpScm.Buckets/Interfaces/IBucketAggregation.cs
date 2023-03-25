@@ -2,7 +2,7 @@
 {
     internal interface IBucketAggregation
     {
-        Bucket Append(Bucket bucket);
-        Bucket Prepend(Bucket bucket);
+        Bucket Append(Bucket source);
+        Bucket Prepend(Bucket source);
     }
 }

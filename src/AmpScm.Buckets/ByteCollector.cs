@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets
 {
+#pragma warning disable CA1710 // Identifiers should have correct suffix
     public struct ByteCollector : IEnumerable<byte>, IEquatable<ByteCollector>, IReadOnlyCollection<byte>
+#pragma warning restore CA1710 // Identifiers should have correct suffix
     {
         private IEnumerable<byte>? _bytes;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

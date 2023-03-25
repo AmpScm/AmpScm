@@ -20,7 +20,9 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private BucketBytes _unread;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly SslStream _stream;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private bool _writeEof;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

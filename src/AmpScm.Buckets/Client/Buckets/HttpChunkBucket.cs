@@ -10,7 +10,9 @@ namespace AmpScm.Buckets.Client.Buckets
     {
         private BucketBytes _remaining;
         private BucketBytes _next;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Bucket? _chunkReader;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private bool _addEol;
         private bool _eof;
         private static readonly ReadOnlyMemory<byte> CRLF = new byte[] { 0x0d, 0x0a };

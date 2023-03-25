@@ -117,10 +117,6 @@ AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ProxyBucket(AmpScm.Buckets.Bucke
 AmpScm.Buckets.Specialized.TlsBucket.TlsBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Interfaces.IBucketWriter! writer, string! targetHost, int bufferSize = 16384) -> void
 AmpScm.Buckets.Specialized.WrappingBucket.NoDispose() -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Specialized.ZLibBucket.ZLibBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm = AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib, System.IO.Compression.CompressionMode mode = System.IO.Compression.CompressionMode.Decompress, AmpScm.Buckets.Specialized.BucketCompressionLevel level = AmpScm.Buckets.Specialized.BucketCompressionLevel.Default, int bufferSize = 8192) -> void
-AmpScm.Buckets.WrappingBucket.NoDispose() -> AmpScm.Buckets.Bucket!
-AmpScm.Buckets.WrappingBucket.Source.get -> AmpScm.Buckets.Bucket!
-AmpScm.Buckets.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! source) -> void
-AmpScm.Buckets.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! source, bool noDispose) -> void
 const AmpScm.Buckets.Bucket.MaxRead = 2146435071 -> int
 const AmpScm.Buckets.Specialized.ZLibBucket.DefaultBufferSize = 8192 -> int
 override AmpScm.Buckets.Client.Buckets.HttpResponseBucket.ContentLength.get -> long

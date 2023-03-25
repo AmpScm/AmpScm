@@ -171,9 +171,10 @@ AmpScm.Buckets.Specialized.TlsBucket.ShutdownAsync() -> System.Threading.Tasks.V
 AmpScm.Buckets.Specialized.TlsBucket.TlsBucket(AmpScm.Buckets.Bucket! reader, AmpScm.Buckets.Interfaces.IBucketWriter! writer, string! targetHost, int bufferSize = 16384) -> void
 AmpScm.Buckets.Specialized.TlsBucket.Write(AmpScm.Buckets.Bucket! bucket) -> void
 AmpScm.Buckets.WrappingBucket
-AmpScm.Buckets.WrappingBucket.Inner.get -> AmpScm.Buckets.Bucket!
-AmpScm.Buckets.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! inner, bool noDispose) -> void
+AmpScm.Buckets.WrappingBucket.NoDispose() -> AmpScm.Buckets.Bucket!
+AmpScm.Buckets.WrappingBucket.Source.get -> AmpScm.Buckets.Bucket!
+AmpScm.Buckets.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! source, bool noDispose) -> void
 AmpScm.Buckets.Specialized.ZLibBucket
 AmpScm.Buckets.Specialized.ZLibBucket.ZLibBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Specialized.BucketCompressionAlgorithm algorithm = AmpScm.Buckets.Specialized.BucketCompressionAlgorithm.ZLib, System.IO.Compression.CompressionMode mode = System.IO.Compression.CompressionMode.Decompress, AmpScm.Buckets.Specialized.BucketCompressionLevel level = AmpScm.Buckets.Specialized.BucketCompressionLevel.Default, int bufferSize = 8192) -> void
 AmpScm.Buckets.ValueOrEof

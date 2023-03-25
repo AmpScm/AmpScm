@@ -13,7 +13,9 @@ namespace AmpScm.Buckets.Client.Buckets
 {
     public class HttpResponseBucket : ResponseBucket
     {
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private Bucket? _reader;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private bool _doneAtEof;
         private WebHeaderDictionary? _responseHeaders;
         private Action? _succes;
@@ -299,7 +301,9 @@ namespace AmpScm.Buckets.Client.Buckets
             }
         }
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private IEnumerator<(string username, string password, string q, Action success, Action failed)>? _authState;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         private async ValueTask<bool> HandleAuthorization()
         {
