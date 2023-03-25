@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Signatures;
+using AmpScm.Buckets.Cryptography;
 
 namespace AmpScm.Git.Objects
 {

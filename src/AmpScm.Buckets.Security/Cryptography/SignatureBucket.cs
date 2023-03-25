@@ -9,13 +9,13 @@ using System.Globalization;
 using AmpScm.Buckets;
 using System.Net.Mail;
 
-namespace AmpScm.Buckets.Signatures
+namespace AmpScm.Buckets.Cryptography
 {
 
     /// <summary>
     /// Reads an OpenPGP or OpenSSH signature
     /// </summary>
-    public sealed class SignatureBucket : WrappingBucket
+    public sealed class SignatureBucket : CryptoDataBucket
     {
         private OpenPgpSignatureType _signatureType;
         private byte[]? _signer;
@@ -31,12 +31,12 @@ namespace AmpScm.Buckets.Signatures
         private MailAddress? _mailAddress;
         private readonly Bucket _outer;
 
-        private new OpenPgpContainer Inner => (OpenPgpContainer)base.Source;
+        private new OpenPgpContainer Source => (OpenPgpContainer)base.Source;
 
-        public SignatureBucket(Bucket inner)
-            : base(new OpenPgpContainer(inner))
+        public SignatureBucket(Bucket source)
+            : base(new OpenPgpContainer(source))
         {
-            _outer = inner;
+            _outer = source;
         }
 
         public Func<SignaturePromptContext, string>? GetPassPhrase { get; init; }
@@ -45,10 +45,10 @@ namespace AmpScm.Buckets.Signatures
         {
             await ReadAsync().ConfigureAwait(false);
 
-            var bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             if (!bb.IsEof)
-                throw new BucketException($"Unexpected trailing data in {Inner.Name} Bucket");
+                throw new BucketException($"Unexpected trailing data in {Source.Name} Bucket");
 
             return bb;
         }
@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Signatures
         {
             while (true)
             {
-                var (bucket, tag) = await Inner.ReadPacketAsync().ConfigureAwait(false);
+                var (bucket, tag) = await Source.ReadPacketAsync().ConfigureAwait(false);
 
                 if (bucket is null)
                     return;
@@ -66,7 +66,7 @@ namespace AmpScm.Buckets.Signatures
                 {
                     switch (tag)
                     {
-                        case OpenPgpTagType.Signature when Inner.IsSsh && _signatureInts is null:
+                        case OpenPgpTagType.Signature when Source.IsSsh && _signatureInts is null:
                             {
                                 uint sshVersion = await bucket.ReadNetworkUInt32Async().ConfigureAwait(false);
 
@@ -167,7 +167,7 @@ namespace AmpScm.Buckets.Signatures
 
                                 break;
                             }
-                        case OpenPgpTagType.PublicKey when Inner.IsSsh:
+                        case OpenPgpTagType.PublicKey when Source.IsSsh:
                             {
                                 BucketBytes bb;
                                 ByteCollector bc = new();
@@ -874,7 +874,7 @@ namespace AmpScm.Buckets.Signatures
 
             var keyInts = _keys.FirstOrDefault()?.Values;
 
-            if (Inner.IsSsh)
+            if (Source.IsSsh)
             {
                 await CreateHash(sourceData, x => hashValue = x, _hashAlgorithm).ConfigureAwait(false);
 
@@ -898,7 +898,7 @@ namespace AmpScm.Buckets.Signatures
                     else if (curveName.EndsWith("521", StringComparison.Ordinal))
                         overrideAlg = OpenPgpHashAlgorithm.SHA512;
                 }
-                else if (_signaturePublicKeyType == OpenPgpPublicKeyType.Rsa && Inner.IsSsh)
+                else if (_signaturePublicKeyType == OpenPgpPublicKeyType.Rsa && Source.IsSsh)
                     overrideAlg = OpenPgpHashAlgorithm.SHA512;
 
                 if (_signaturePublicKeyType != OpenPgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash

@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Signatures
+namespace AmpScm.Buckets.Cryptography
 {
     internal sealed class RawDecryptBucket : ConversionBucket
     {

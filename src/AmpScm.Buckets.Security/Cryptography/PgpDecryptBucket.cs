@@ -8,15 +8,15 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
-using AmpScm.Buckets.Security;
+using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 
 // https://www.rfc-editor.org/rfc/rfc4880
 // https://datatracker.ietf.org/doc/draft-koch-openpgp-2015-rfc4880bis/
 
-namespace AmpScm.Buckets.Signatures
+namespace AmpScm.Buckets.Cryptography
 {
-    public class PgpDecryptBucket : WrappingBucket
+    public class PgpDecryptBucket : CryptoDataBucket
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private bool _inBody;
@@ -31,11 +31,10 @@ namespace AmpScm.Buckets.Signatures
         private readonly Stack<PgpSignature> _sigs = new();
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public PgpDecryptBucket(Bucket inner, Func<ReadOnlyMemory<byte>, Signature?>? getKey)
-            : base(inner)
+        public PgpDecryptBucket(Bucket source)
+            : base(source)
         {
-            GetKey = getKey;
-            _container = new OpenPgpContainer(inner);
+            _container = new OpenPgpContainer(source);
             _q = _container;
         }
 
@@ -205,7 +204,7 @@ namespace AmpScm.Buckets.Signatures
                                     return new OcbDecodeBucket(data, _sessionKey.ToArray(), 128, sv, associatedData, verifyResult: x =>
                                     {
                                         if (!x)
-                                            throw new BucketDecryptException($"Verification of chunk {n + 1} in {data} bucket failed");
+                                            throw new BucketDecryptionException($"Verification of chunk {n + 1} in {data} bucket failed");
                                     });
                                 });
 

@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 
-namespace AmpScm.Buckets.Signatures
+namespace AmpScm.Buckets.Cryptography
 {
     public enum SignatureAlgorithm
     {

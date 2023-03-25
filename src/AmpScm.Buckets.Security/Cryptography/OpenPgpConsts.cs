@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Signatures
+namespace AmpScm.Buckets.Cryptography
 {
     internal enum OpenPgpTagType
     {

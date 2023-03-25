@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Signatures
+namespace AmpScm.Buckets.Cryptography
 {
     public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
     {

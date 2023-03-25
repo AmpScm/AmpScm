@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Signatures;
+using AmpScm.Buckets.Cryptography;
 
 namespace AmpScm.Git.Objects
 {

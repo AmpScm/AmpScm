@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Security;
+using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Signatures;
+namespace AmpScm.Buckets.Cryptography;
 
 public class OcbDecodeBucket : ConversionBucket
 {
@@ -346,7 +346,7 @@ public class OcbDecodeBucket : ConversionBucket
             if (_verified is { })
                 _verified(ok);
             else if (!ok)
-                throw new BucketDecryptException($"Decrypted data in {this} bucket not valid");
+                throw new BucketDecryptionException($"Decrypted data in {this} bucket not valid");
 
 
             return available > 0 ? new(src, 0, available) : BucketBytes.Eof;

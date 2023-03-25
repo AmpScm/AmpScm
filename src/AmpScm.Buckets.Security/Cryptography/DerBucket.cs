@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Signatures
+namespace AmpScm.Buckets.Cryptography
 {
     internal enum DerType : byte
     {

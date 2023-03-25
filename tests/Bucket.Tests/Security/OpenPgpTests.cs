@@ -9,8 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
-using AmpScm.Buckets.Signatures;
-using AmpScm.Buckets.Specialized;
+using AmpScm.Buckets.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BucketTests.Security;
@@ -352,7 +351,7 @@ cEgAjelaGkn3RJOwXWoJbA==
 
         using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2).AsBucket());
 
-        using var dec = new PgpDecryptBucket(decr, _ => key2);
+        using var dec = new PgpDecryptBucket(decr) { GetKey = _ => key2 };
 
 
         var bb = await dec.ReadExactlyAsync(1024);
@@ -393,7 +392,7 @@ cEgAjelaGkn3RJOwXWoJbA==
             0xd5, 0x71, 0xbc, 0xd8, 0x3b, 0x20, 0xad, 0xd3, 0xa0, 0x8b, 0x73, 0xaf, 0x15, 0xb9, 0xa0, 0x98
         };
 
-        var b = new PgpDecryptBucket(r.AsBucket(), _ => null) { GetPassword = (_) => "password" };
+        var b = new PgpDecryptBucket(r.AsBucket()) { GetKey = _ => null, GetPassword = (_) => "password" };
 
         string result = "";
         while (true)

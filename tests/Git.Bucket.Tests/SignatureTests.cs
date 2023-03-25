@@ -11,7 +11,7 @@ using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Diagnostics;
-using AmpScm.Buckets.Signatures;
+using AmpScm.Buckets.Cryptography;
 using AmpScm.Git;
 using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.Objects;

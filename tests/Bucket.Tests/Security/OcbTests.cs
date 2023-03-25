@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
-using AmpScm.Buckets.Signatures;
+using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
