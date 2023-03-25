@@ -5,12 +5,14 @@ AmpScm.Buckets.Cryptography.BucketDecryptionException.BucketDecryptionException(
 AmpScm.Buckets.Cryptography.BucketDecryptionException.BucketDecryptionException(string! message, System.Exception! innerException) -> void
 AmpScm.Buckets.Cryptography.BucketDecryptionException.BucketDecryptionException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.Cryptography.CryptoDataBucket
+AmpScm.Buckets.Cryptography.DecryptBucket.DecryptBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Cryptography.PgpDecryptBucket.GetKey.get -> System.Func<System.ReadOnlyMemory<byte>, AmpScm.Buckets.Cryptography.Signature?>?
 AmpScm.Buckets.Cryptography.PgpDecryptBucket.GetKey.init -> void
 AmpScm.Buckets.Cryptography.PgpDecryptBucket.PgpDecryptBucket(AmpScm.Buckets.Bucket! source, System.Func<System.ReadOnlyMemory<byte>, AmpScm.Buckets.Cryptography.Signature?>? getKey) -> void
 AmpScm.Buckets.Cryptography.PgpDecryptBucket.ReadFileInfo() -> System.Threading.Tasks.ValueTask<(string? fileName, System.DateTime? fileTime)>
 AmpScm.Buckets.Cryptography.SignatureBucket.GetPassPhrase.get -> System.Func<AmpScm.Buckets.Cryptography.SignaturePromptContext!, string!>?
 AmpScm.Buckets.Cryptography.SignatureBucket.GetPassPhrase.init -> void
+AmpScm.Buckets.Cryptography.SignatureBucket.SignatureBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Cryptography.SignaturePromptContext
 AmpScm.Buckets.Security.BucketDecryptException
 AmpScm.Buckets.Cryptography.OcbDecodeBucket
@@ -46,7 +48,6 @@ AmpScm.Buckets.Cryptography.SignatureBucket
 AmpScm.Buckets.Cryptography.SignatureBucket.ReadAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Cryptography.SignatureBucket.ReadFingerprintAsync() -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>
 AmpScm.Buckets.Cryptography.SignatureBucket.ReadKeyAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Cryptography.Signature!>
-AmpScm.Buckets.Cryptography.SignatureBucket.SignatureBucket(AmpScm.Buckets.Bucket! inner) -> void
 AmpScm.Buckets.Cryptography.SignatureBucket.VerifyAsync(AmpScm.Buckets.Bucket! sourceData, AmpScm.Buckets.Cryptography.Signature? key) -> System.Threading.Tasks.ValueTask<bool>
 const AmpScm.Buckets.Cryptography.OcbDecodeBucket.BlockLength = 16 -> int
 const AmpScm.Buckets.Cryptography.OcbDecodeBucket.MaxNonceLength = 15 -> int

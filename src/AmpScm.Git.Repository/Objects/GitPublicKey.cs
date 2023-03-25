@@ -23,9 +23,14 @@ namespace AmpScm.Git.Objects
 
 
         [return: NotNullIfNotNull("k")]
-        public static implicit operator Signature?(GitPublicKey k) => k?._key;
+        [CLSCompliant(false)]
+        public static implicit operator Signature?(GitPublicKey k)
+        {
+            return k?._key;
+        }
 
-        public Signature ToSignatureBucketKey()
+        [CLSCompliant(false)]
+        public Signature ToSignature()
         {
             return _key;
         }

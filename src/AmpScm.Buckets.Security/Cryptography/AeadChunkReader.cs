@@ -43,7 +43,7 @@ namespace AmpScm.Buckets.Cryptography
                     createdNew = true;
                 }
 
-                var bb = await _current.ReadAsync(requested).ConfigureAwait(false);
+                var bb = await _current!.ReadAsync(requested).ConfigureAwait(false);
 
                 if (bb.IsEmpty)
                 {
@@ -75,7 +75,7 @@ namespace AmpScm.Buckets.Cryptography
             else if (_current is not { })
                 NewCurrent();
             
-            return _current.Peek();
+            return _current!.Peek();
         }
 
         public override ValueTask<long?> ReadRemainingBytesAsync()

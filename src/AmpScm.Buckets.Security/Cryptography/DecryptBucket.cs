@@ -16,7 +16,7 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Cryptography
 {
-    public class PgpDecryptBucket : CryptoDataBucket
+    public sealed class DecryptBucket : CryptoDataBucket
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private bool _inBody;
@@ -31,10 +31,12 @@ namespace AmpScm.Buckets.Cryptography
         private readonly Stack<PgpSignature> _sigs = new();
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public PgpDecryptBucket(Bucket source)
-            : base(source)
+        private new OpenPgpContainer Source => (OpenPgpContainer)base.Source;
+
+        public DecryptBucket(Bucket source)
+            : base(new OpenPgpContainer(source))
         {
-            _container = new OpenPgpContainer(source);
+            _container = Source;
             _q = _container;
         }
 
