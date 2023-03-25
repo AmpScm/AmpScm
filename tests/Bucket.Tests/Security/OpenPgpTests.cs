@@ -356,7 +356,7 @@ cEgAjelaGkn3RJOwXWoJbA==
 
         var bb = await dec.ReadExactlyAsync(1024);
 
-        Assert.AreEqual("", bb.ToUTF8String());
+        Assert.AreEqual("This is the plaintext.\n", bb.ToUTF8String());
     }
 
     [TestMethod]
