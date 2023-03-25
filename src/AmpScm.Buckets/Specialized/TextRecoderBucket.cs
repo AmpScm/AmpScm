@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Buckets;
 
 namespace AmpScm.Buckets.Specialized
 {
@@ -34,7 +35,7 @@ namespace AmpScm.Buckets.Specialized
             _by2 = fromEncoding is UnicodeEncoding;
         }
 
-        public override string Name => "ToUtf8[" + _sourceEncoding.WebName + "]>" + Inner.Name;
+        public override string Name => "ToUtf8[" + _sourceEncoding.WebName + "]>" + Source.Name;
 
         public override long? Position => _position;
 
@@ -48,7 +49,7 @@ namespace AmpScm.Buckets.Specialized
 
                 if (_toConvert == null)
                 {
-                    bb = await Inner.ReadAsync(rq).ConfigureAwait(false);
+                    bb = await Source.ReadAsync(rq).ConfigureAwait(false);
 
                     if (bb.IsEof)
                         return bb;
@@ -63,7 +64,7 @@ namespace AmpScm.Buckets.Specialized
                             bool isMatch = true;
                             while (len < preample.Length && isMatch)
                             {
-                                byte? b = await Inner.ReadByteAsync().ConfigureAwait(false);
+                                byte? b = await Source.ReadByteAsync().ConfigureAwait(false);
 
                                 if (b is null)
                                 {
@@ -140,11 +141,11 @@ namespace AmpScm.Buckets.Specialized
             return _remaining;
         }
 
-        public override bool CanReset => Inner.CanReset;
+        public override bool CanReset => Source.CanReset;
 
         public override void Reset()
         {
-            Inner.Reset();
+            Source.Reset();
 
             _position = 0;
             _remaining = BucketBytes.Empty;
@@ -152,7 +153,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override Bucket Duplicate(bool reset = false)
         {
-            var wrapped = Inner.Duplicate(reset);
+            var wrapped = Source.Duplicate(reset);
 
             return new TextRecoderBucket(wrapped, _sourceEncoding, _targetEncoding);
         }

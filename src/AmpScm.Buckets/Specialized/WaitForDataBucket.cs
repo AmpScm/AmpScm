@@ -19,7 +19,7 @@ namespace AmpScm.Buckets.Specialized
         public WaitForDataBucket()
             : base(new AggregateBucket())
         {
-            Aggregation = (AggregateBucket)Inner;
+            Aggregation = (AggregateBucket)Source;
         }
 
         private AggregateBucket Aggregation { get; }

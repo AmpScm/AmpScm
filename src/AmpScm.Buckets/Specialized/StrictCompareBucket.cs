@@ -24,7 +24,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override BucketBytes Peek()
         {
-            return Inner.Peek();
+            return Source.Peek();
         }
     }
 }

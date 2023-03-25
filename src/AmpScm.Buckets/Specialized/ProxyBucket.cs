@@ -19,48 +19,48 @@ namespace AmpScm.Buckets.Specialized
 
         public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            return Inner.ReadAsync(requested);
+            return Source.ReadAsync(requested);
         }
 
-        public override bool CanReset => Inner.CanReset;
+        public override bool CanReset => Source.CanReset;
 
         public override BucketBytes Peek()
         {
-            return Inner.Peek();
+            return Source.Peek();
         }
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
-            return Inner.ReadRemainingBytesAsync();
+            return Source.ReadRemainingBytesAsync();
         }
 
-        public override long? Position => Inner.Position;
+        public override long? Position => Source.Position;
 
         public override ValueTask<long> ReadSkipAsync(long requested)
         {
-            return Inner.ReadSkipAsync(requested);
+            return Source.ReadSkipAsync(requested);
         }
 
         public override void Reset()
         {
-            Inner.Reset();
+            Source.Reset();
         }
 
         public override Bucket Duplicate(bool reset = false)
         {
-            var r = Inner.Duplicate(reset);
+            var r = Source.Duplicate(reset);
             return WrapDuplicate(r, reset) ?? r;
         }
 
         public override ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
-            return Inner.ReadUntilEolAsync(acceptableEols, requested);
+            return Source.ReadUntilEolAsync(acceptableEols, requested);
         }
 
         public override TReadBucket? ReadBucket<TReadBucket>()
             where TReadBucket : class
         {
-            return Inner.ReadBucket<TReadBucket>();
+            return Source.ReadBucket<TReadBucket>();
         }
 
         protected virtual TBucket? WrapDuplicate(Bucket duplicatedInner, bool reset)
@@ -80,7 +80,7 @@ namespace AmpScm.Buckets.Specialized
 
             public virtual ValueTask<BucketBytes> PollAsync(int minRequested = 1)
             {
-                return Inner.PollAsync(minRequested);
+                return Source.PollAsync(minRequested);
             }
         }
     }
@@ -95,7 +95,7 @@ namespace AmpScm.Buckets.Specialized
 
         }
 
-        public override string Name => _name ?? (_name = (GetType() == typeof(ProxyBucket) ? "Proxy" : base.Name) + ">" + Inner.Name);
+        public override string Name => _name ?? (_name = (GetType() == typeof(ProxyBucket) ? "Proxy" : base.Name) + ">" + Source.Name);
 
 
         internal ProxyBucket(Bucket inner, bool noDispose) : base(inner, noDispose)
@@ -109,11 +109,11 @@ namespace AmpScm.Buckets.Specialized
             {
             }
 
-            public override string Name => "Proxy>" + Inner.Name;
+            public override string Name => "Proxy>" + Source.Name;
 
             public ValueTask<BucketBytes> PollAsync(int minRequested = 1)
             {
-                return Inner.PollAsync(minRequested);
+                return Source.PollAsync(minRequested);
             }
         }
     }

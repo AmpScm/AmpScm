@@ -47,7 +47,7 @@ namespace AmpScm.Buckets.Specialized
             InnerWriter = writer;
             BufferSize = bufferSize;
             _inputBuffer = new byte[BufferSize];
-            _stream = new SslStream(Inner.AsStream(InnerWriter));
+            _stream = new SslStream(Source.AsStream(InnerWriter));
             _targetHost = targetHost;
         }
 
@@ -184,6 +184,6 @@ namespace AmpScm.Buckets.Specialized
 
         public override bool CanReset => false;
 
-        public override string Name => $"TLS[{_stream.SslProtocol}]>{Inner.Name}";
+        public override string Name => $"TLS[{_stream.SslProtocol}]>{Source.Name}";
     }
 }

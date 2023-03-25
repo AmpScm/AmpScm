@@ -35,7 +35,7 @@ namespace AmpScm.Buckets.Git
             if (_version.HasValue)
                 return _version.Value;
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, 32).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, 32).ConfigureAwait(false);
 
             if (eol == BucketEol.LF && bb.EqualsASCII("# v2 git bundle\n"))
                 _version = 2;
@@ -65,7 +65,7 @@ namespace AmpScm.Buckets.Git
                 _ret = true;
                 NoDispose();
 
-                return (Inner, _idType);
+                return (Source, _idType);
             }
             else
                 throw new BucketException();
@@ -97,7 +97,7 @@ namespace AmpScm.Buckets.Git
                 return (null, null);
             }
 
-            var bb = await Inner.PollAsync().ConfigureAwait(false);
+            var bb = await Source.PollAsync().ConfigureAwait(false);
 
             if (bb.Length > 0 && bb[0] != '@')
             {
@@ -108,7 +108,7 @@ namespace AmpScm.Buckets.Git
             BucketEol eol;
             if (bb.IsEmpty && !bb.IsEof)
             {
-                bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+                bb = await Source.ReadAsync(1).ConfigureAwait(false);
 
                 if (bb.Length == 1 && bb[0] != '@')
                 {
@@ -127,11 +127,11 @@ namespace AmpScm.Buckets.Git
                     return (null, null);
                 }
 
-                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+                (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
             }
             else
             {
-                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+                (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                 if (!bb.IsEmpty)
                     bb = bb.Slice(1); // Skip the '@'
@@ -186,7 +186,7 @@ namespace AmpScm.Buckets.Git
 
             if (!_prefetched.HasValue)
             {
-                bb = await Inner.PollAsync(1).ConfigureAwait(false);
+                bb = await Source.PollAsync(1).ConfigureAwait(false);
 
                 if (!bb.IsEmpty && bb[0] != '-')
                 {
@@ -195,7 +195,7 @@ namespace AmpScm.Buckets.Git
                 }
                 else if (bb.IsEmpty)
                 {
-                    bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+                    bb = await Source.ReadAsync(1).ConfigureAwait(false);
 
                     if (bb.IsEmpty)
                     {
@@ -212,7 +212,7 @@ namespace AmpScm.Buckets.Git
             }
 
             _prefetched = null;
-            (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+            (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
             var oidLen = _idType.HashLength() * 2;
 
@@ -248,9 +248,9 @@ namespace AmpScm.Buckets.Git
             if (_state > BState.References)
                 return (null, null);
 
-            Bucket src = Inner;
+            Bucket src = Source;
             if (_prefetched.HasValue)
-                src = new[] { _prefetched.Value }.AsBucket() + Inner;
+                src = new[] { _prefetched.Value }.AsBucket() + Source;
 
             var (line, eol) = await src.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 

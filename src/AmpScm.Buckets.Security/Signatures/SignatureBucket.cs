@@ -31,7 +31,7 @@ namespace AmpScm.Buckets.Signatures
         private MailAddress? _mailAddress;
         private readonly Bucket _outer;
 
-        private new OpenPgpContainer Inner => (OpenPgpContainer)base.Inner;
+        private new OpenPgpContainer Inner => (OpenPgpContainer)base.Source;
 
         public SignatureBucket(Bucket inner)
             : base(new OpenPgpContainer(inner))

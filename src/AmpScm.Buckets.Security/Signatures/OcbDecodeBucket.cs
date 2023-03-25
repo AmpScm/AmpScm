@@ -272,7 +272,7 @@ public class OcbDecodeBucket : ConversionBucket
     {
         int available = _byteCollector.Length + sourceData.Length;
 
-        long? rem = final ? 0 : await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+        long? rem = final ? 0 : await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
 
         // TODO: If 'rem' = 0, then we can pass final as true and complete in one step.
 

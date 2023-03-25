@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AmpScm.Buckets;
 
 namespace AmpScm.Buckets.Specialized;
 
@@ -37,7 +38,7 @@ internal sealed class LeaveBucket : WrappingBucket
 
             if (_totalSize == null)
             {
-                long? r = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+                long? r = await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
 
                 if (r.HasValue)
                     _totalSize = CurrentPosition + r.Value;
@@ -53,7 +54,7 @@ internal sealed class LeaveBucket : WrappingBucket
                 if (requested <= 0)
                 {
                     _done = true;
-                    var left = await Inner.ReadExactlyAsync(LeaveBytes).ConfigureAwait(false);
+                    var left = await Source.ReadExactlyAsync(LeaveBytes).ConfigureAwait(false);
 
                     if (_leftHandler is { })
                         await _leftHandler.Invoke(left).ConfigureAwait(false);
@@ -63,7 +64,7 @@ internal sealed class LeaveBucket : WrappingBucket
 
                 if (_bufferLeft == null)
                 {
-                    bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+                    bb = await Source.ReadAsync(requested).ConfigureAwait(false);
                     CurrentPosition += bb.Length;
                     return bb;
                 }
@@ -75,7 +76,7 @@ internal sealed class LeaveBucket : WrappingBucket
                 if (requested < MaxRead - LeaveBytes)
                     requested += LeaveBytes;
 
-                var b = await Inner.ReadAsync(requested).ConfigureAwait(false);
+                var b = await Source.ReadAsync(requested).ConfigureAwait(false);
 
                 if (b.Length > LeaveBytes)
                 {
@@ -127,7 +128,7 @@ internal sealed class LeaveBucket : WrappingBucket
 
             requested += LeaveBytes - _bufferLeft.Length;
 
-            bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            bb = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             if (bb.Length < LeaveBytes - _bufferLeft.Length)
             {
@@ -173,14 +174,14 @@ internal sealed class LeaveBucket : WrappingBucket
 
     public override Bucket Duplicate(bool reset = false)
     {
-        var i = Inner.Duplicate(reset);
+        var i = Source.Duplicate(reset);
 
         return new LeaveBucket(i, LeaveBytes, (_) => new());
     }
 
     public override async ValueTask<long?> ReadRemainingBytesAsync()
     {
-        long? r = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+        long? r = await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
 
         if (r is { } remaining)
             return remaining - LeaveBytes;

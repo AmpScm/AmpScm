@@ -60,7 +60,7 @@ namespace AmpScm.Buckets.Specialized
                 if (_eof)
                     return BucketBytes.Eof;
 
-                var (bb, _) = await Inner.ReadUntilEolAsync(BucketEol.LF, requested).ConfigureAwait(false);
+                var (bb, _) = await Source.ReadUntilEolAsync(BucketEol.LF, requested).ConfigureAwait(false);
 
                 return bb;
             }

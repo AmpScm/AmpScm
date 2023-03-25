@@ -44,15 +44,15 @@ namespace AmpScm.Buckets.Git.Objects
             if (_treeId is not null)
                 return _treeId;
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, null).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tree "))
-                throw new GitBucketException($"Expected 'tree' record at start of commit in '{Inner.Name}'");
+                throw new GitBucketException($"Expected 'tree' record at start of commit in '{Source.Name}'");
 
             if (GitId.TryParse(bb.Slice(5, eol), out var id))
                 _treeId = id;
             else
-                throw new GitBucketException($"Expected valid 'tree' record at start of commit in '{Inner.Name}'");
+                throw new GitBucketException($"Expected valid 'tree' record at start of commit in '{Source.Name}'");
 
             return _treeId;
         }
@@ -71,7 +71,7 @@ namespace AmpScm.Buckets.Git.Objects
             }
 
             // Typically every commit has a parent, so optimize for that case
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: ParentLineReadLength).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, requested: ParentLineReadLength).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("parent "))
             {
@@ -84,7 +84,7 @@ namespace AmpScm.Buckets.Git.Objects
 
                 if (eol == BucketEol.None)
                 {
-                    var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Inner);
+                    var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Source);
                     (bb, eol) = await authorBucket.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
                 }
 
@@ -97,7 +97,7 @@ namespace AmpScm.Buckets.Git.Objects
                 return id;
             }
             else
-                throw new GitBucketException($"Invalid parent line in '{Inner.Name}");
+                throw new GitBucketException($"Invalid parent line in '{Source.Name}");
         }
 
         public async ValueTask<IReadOnlyCollection<GitId>> ReadAllParentIdsAsync()
@@ -120,7 +120,7 @@ namespace AmpScm.Buckets.Git.Objects
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     return _parents = parents.Count > 0 ? parents.AsReadOnly() : Array.Empty<GitId>();
@@ -130,7 +130,7 @@ namespace AmpScm.Buckets.Git.Objects
                     parents.Add(id);
 
                     // Stop scanning if we don't have more parents
-                    bb = Inner.Peek();
+                    bb = Source.Peek();
                     if (!bb.IsEmpty && bb[0] != 'p')
                     {
                         return _parents = parents.AsReadOnly();
@@ -143,7 +143,7 @@ namespace AmpScm.Buckets.Git.Objects
                     // Auch. We overread.
                     if (eol == BucketEol.None)
                     {
-                        var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Inner);
+                        var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Source);
                         (bb, eol) = await authorBucket.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
                     }
 
@@ -151,7 +151,7 @@ namespace AmpScm.Buckets.Git.Objects
                     return _parents = parents.AsReadOnly();
                 }
                 else
-                    throw new GitBucketException($"Expected 'parent' or 'author', but got neither in commit '{Inner.Name}'");
+                    throw new GitBucketException($"Expected 'parent' or 'author', but got neither in commit '{Source.Name}'");
             }
         }
 
@@ -167,7 +167,7 @@ namespace AmpScm.Buckets.Git.Objects
                         return _author;
                 }
 
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
                 if (bb.StartsWithASCII("author ")
                     && GitSignatureRecord.TryReadFromBucket(bb.Slice("author ".Length, eol), out var author))
@@ -175,10 +175,10 @@ namespace AmpScm.Buckets.Git.Objects
                     _author = author;
                 }
                 else
-                    throw new GitBucketException($"Expected 'author' in commit '{Inner.Name}'");
+                    throw new GitBucketException($"Expected 'author' in commit '{Source.Name}'");
             }
 
-            return _author ?? throw new GitBucketException($"Unable to read author header from '{Inner.Name}'");
+            return _author ?? throw new GitBucketException($"Unable to read author header from '{Source.Name}'");
         }
 
         public async ValueTask<GitSignatureRecord> ReadCommitterAsync()
@@ -188,14 +188,14 @@ namespace AmpScm.Buckets.Git.Objects
             else if (_author is null)
                 await ReadAuthorAsync().ConfigureAwait(false);
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
             if (bb.IsEof
                 || eol == BucketEol.None
                 || !bb.StartsWithASCII("committer ")
                 || !GitSignatureRecord.TryReadFromBucket(bb.Slice("committer ".Length, eol), out var cm))
             {
-                throw new GitBucketException($"Unable to read committer header from '{Inner.Name}'");
+                throw new GitBucketException($"Unable to read committer header from '{Source.Name}'");
             }
 
             return _committer = cm;
@@ -210,7 +210,7 @@ namespace AmpScm.Buckets.Git.Objects
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
 
                 if (bb.IsEof || bb.Length <= eol.CharCount())
                     break;
@@ -224,7 +224,7 @@ namespace AmpScm.Buckets.Git.Objects
                     case "mergetag":
                     case "gpgsig":
                     case "gpgsig-sha256":
-                        sub = new GitLineUnindentBucket(bb.Slice(parts[0].Length).ToArray().AsBucket() + Inner.NoDispose());
+                        sub = new GitLineUnindentBucket(bb.Slice(parts[0].Length).ToArray().AsBucket() + Source.NoDispose());
 
                         if (_handleSubBucket is not null)
                             await _handleSubBucket(GetEvent(parts[0]), sub).ConfigureAwait(false);
@@ -305,7 +305,7 @@ namespace AmpScm.Buckets.Git.Objects
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
             if (_readHeaders)
-                return Inner.ReadRemainingBytesAsync();
+                return Source.ReadRemainingBytesAsync();
 
             return base.ReadRemainingBytesAsync();
         }
@@ -314,13 +314,13 @@ namespace AmpScm.Buckets.Git.Objects
         {
             await ReadOtherHeadersAsync().ConfigureAwait(false);
 
-            return await Inner.ReadAsync(requested).ConfigureAwait(false);
+            return await Source.ReadAsync(requested).ConfigureAwait(false);
         }
 
         public override BucketBytes Peek()
         {
             if (_readHeaders)
-                return Inner.Peek();
+                return Source.Peek();
 
             return BucketBytes.Empty;
         }
@@ -328,7 +328,7 @@ namespace AmpScm.Buckets.Git.Objects
         async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested/* = 1*/)
         {
             if (_committer is not null)
-                return await Inner.PollAsync(minRequested).ConfigureAwait(false);
+                return await Source.PollAsync(minRequested).ConfigureAwait(false);
 
             return BucketBytes.Empty;
         }

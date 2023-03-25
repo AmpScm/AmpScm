@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Git
 {
@@ -39,7 +38,7 @@ namespace AmpScm.Buckets.Git
 
             if (_indent)
             {
-                var (bb, eol) = await Inner.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
 
                 if (bb.IsEof)
                 {
@@ -68,7 +67,7 @@ namespace AmpScm.Buckets.Git
             }
             else
             {
-                var (bb, eol) = await Inner.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
 
                 if (eol != BucketEol.None && eol != BucketEol.CRSplit)
                 {
@@ -90,7 +89,7 @@ namespace AmpScm.Buckets.Git
                 return _indentData;
             else
             {
-                var bb = Inner.Peek();
+                var bb = Source.Peek();
 
                 int n = bb.IndexOfAny((byte)'\n', (byte)'\r', (byte)'\0');
 

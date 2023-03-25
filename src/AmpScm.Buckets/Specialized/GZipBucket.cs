@@ -41,12 +41,12 @@ namespace AmpScm.Buckets.Specialized
 
             BucketBytes bb;
 
-            bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            bb = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             if (!bb.IsEof)
                 return bb;
 
-            bb = await ((ZLibBucket)Inner).GetInner().ReadExactlyAsync(8).ConfigureAwait(false);
+            bb = await ((ZLibBucket)Source).GetInner().ReadExactlyAsync(8).ConfigureAwait(false);
 
             if (bb.Length != 8)
                 throw new BucketEofException(this);
@@ -54,8 +54,8 @@ namespace AmpScm.Buckets.Specialized
             // Handle endiannes agnostic
             int expectedLen = BinaryPrimitives.ReadInt32LittleEndian(bb.Span.Slice(4));
 
-            if (expectedLen != (Inner.Position!.Value & uint.MaxValue))
-                throw new BucketException($"GZip error: Expected {expectedLen} bytes, but read {Inner.Position}");
+            if (expectedLen != (Source.Position!.Value & uint.MaxValue))
+                throw new BucketException($"GZip error: Expected {expectedLen} bytes, but read {Source.Position}");
 
             _atEof = true;
             return BucketBytes.Eof;
@@ -63,7 +63,7 @@ namespace AmpScm.Buckets.Specialized
 
         private async ValueTask ReadHeader()
         {
-            var bb = await ((ZLibBucket)Inner).GetInner().ReadExactlyAsync(10).ConfigureAwait(false);
+            var bb = await ((ZLibBucket)Source).GetInner().ReadExactlyAsync(10).ConfigureAwait(false);
 
             if (bb.Length == 0)
             {
@@ -88,7 +88,7 @@ namespace AmpScm.Buckets.Specialized
             if (_atEof)
                 return BucketBytes.Eof;
 
-            return await ((IBucketPoll)Inner).PollAsync(minRequested).ConfigureAwait(false);
+            return await ((IBucketPoll)Source).PollAsync(minRequested).ConfigureAwait(false);
         }
 
         public override BucketBytes Peek()
@@ -96,7 +96,7 @@ namespace AmpScm.Buckets.Specialized
             if (_readHeader)
                 return BucketBytes.Empty;
 
-            return Inner.Peek();
+            return Source.Peek();
         }
 
         public async ValueTask SeekAsync(long newPosition)
@@ -104,7 +104,7 @@ namespace AmpScm.Buckets.Specialized
             if (_readHeader)
                 await ReadHeader().ConfigureAwait(false);
 
-            await ((IBucketSeek)Inner).SeekAsync(newPosition).ConfigureAwait(false);
+            await ((IBucketSeek)Source).SeekAsync(newPosition).ConfigureAwait(false);
             _atEof = false;
         }
 
@@ -113,7 +113,7 @@ namespace AmpScm.Buckets.Specialized
             if (_readHeader)
                 throw new InvalidOperationException();
 
-            var b = Inner.Duplicate(reset);
+            var b = Source.Duplicate(reset);
             var gz = new GZipBucket(b);
 
             gz._readHeader = false;
@@ -121,22 +121,22 @@ namespace AmpScm.Buckets.Specialized
             return gz;
         }
 
-        public override bool CanReset => Inner.CanReset;
+        public override bool CanReset => Source.CanReset;
 
         public override void Reset()
         {
             if (_readHeader) // Nothing to reset
                 return;
 
-            Inner.Reset();
+            Source.Reset();
             _atEof = false;
         }
 
-        public override long? Position => Inner.Position;
+        public override long? Position => Source.Position;
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
-            return Inner.ReadRemainingBytesAsync();
+            return Source.ReadRemainingBytesAsync();
         }
     }
 }

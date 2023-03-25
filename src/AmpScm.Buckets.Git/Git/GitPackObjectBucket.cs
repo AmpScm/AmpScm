@@ -38,7 +38,7 @@ namespace AmpScm.Buckets.Git
         /// </summary>
         public long? BodySize { get; private set; }
 
-        public override string Name => (_reader != null) ? $"GitPackFrame[{_reader.Name}]>{Inner.Name}" : base.Name;
+        public override string Name => (_reader != null) ? $"GitPackFrame[{_reader.Name}]>{Source.Name}" : base.Name;
 
         // These types are in pack files, but not real objects
         const GitObjectType GitObjectType_DeltaOffset = (GitObjectType)6;
@@ -56,7 +56,7 @@ namespace AmpScm.Buckets.Git
         {
             try
             {
-                (_reader ?? Inner)?.Dispose();
+                (_reader ?? Source)?.Dispose();
             }
             finally
             {
@@ -144,7 +144,7 @@ namespace AmpScm.Buckets.Git
 
             if (state == frame_state.start)
             {
-                delta_position = Inner.Position ?? 0;
+                delta_position = Source.Position ?? 0;
                 (_type, BodySize) = await ReadTypeAndSize().ConfigureAwait(false);
                 state = frame_state.size_done;
             }
@@ -156,7 +156,7 @@ namespace AmpScm.Buckets.Git
             {
                 if (_type == GitObjectType_DeltaReference)
                 {
-                    _deltaId = await Inner.ReadGitIdAsync(_idType).ConfigureAwait(false);
+                    _deltaId = await Source.ReadGitIdAsync(_idType).ConfigureAwait(false);
 
                     state = frame_state.find_delta;
                     _deltaCount = -1;
@@ -164,7 +164,7 @@ namespace AmpScm.Buckets.Git
                 else if (_type == GitObjectType_DeltaOffset)
                 {
                     // Body starts with negative offset of the delta base.
-                    var dp = await Inner.ReadGitDeltaOffsetAsync().ConfigureAwait(false);
+                    var dp = await Source.ReadGitDeltaOffsetAsync().ConfigureAwait(false);
 
                     if (dp > delta_position)
                         throw new GitBucketException($"Delta position must point to earlier object in {Name} Bucket");
@@ -195,7 +195,7 @@ namespace AmpScm.Buckets.Git
                         base_reader = await _fetchBucketByOffset(delta_position).ConfigureAwait(false);
                     else
                     {
-                        Bucket deltaSource = await Inner.DuplicateSeekedAsync(delta_position).ConfigureAwait(false);
+                        Bucket deltaSource = await Source.DuplicateSeekedAsync(delta_position).ConfigureAwait(false);
 
                         base_reader = new GitPackObjectBucket(deltaSource, _idType, _fetchBucketById);
                     }
@@ -229,7 +229,7 @@ namespace AmpScm.Buckets.Git
                 else
                     bufferSize = ZLibBucket.DefaultBufferSize;
 
-                var inner = new ZLibBucket(Inner.SeekOnReset(), BucketCompressionAlgorithm.ZLib, bufferSize: bufferSize);
+                var inner = new ZLibBucket(Source.SeekOnReset(), BucketCompressionAlgorithm.ZLib, bufferSize: bufferSize);
                 if (_deltaCount != 0)
                     _reader = new GitDeltaBucket(inner, (GitObjectBucket)_reader!);
                 else
@@ -247,7 +247,7 @@ namespace AmpScm.Buckets.Git
 
             for (int i = 0; i <= max_size_len; i++)
             {
-                byte uc = await Inner.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Inner);
+                byte uc = await Source.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Source);
 
                 if (i == 0)
                 {
@@ -313,6 +313,6 @@ namespace AmpScm.Buckets.Git
             _reader!.Reset();
         }
 
-        public override bool CanReset => _reader?.CanReset ?? Inner.CanReset;
+        public override bool CanReset => _reader?.CanReset ?? Source.CanReset;
     }
 }

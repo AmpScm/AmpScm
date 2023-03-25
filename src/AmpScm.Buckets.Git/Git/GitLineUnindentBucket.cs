@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
+using AmpScm.Buckets;
 
 namespace AmpScm.Buckets.Git
 {
@@ -27,16 +27,16 @@ namespace AmpScm.Buckets.Git
 
             if (!_cont)
             {
-                bb = await Inner.PollAsync().ConfigureAwait(false);
+                bb = await Source.PollAsync().ConfigureAwait(false);
 
                 if (!bb.IsEmpty)
                 {
                     if (bb[0] == ' ')
                     {
-                        bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+                        bb = await Source.ReadAsync(1).ConfigureAwait(false);
 
                         if (bb.IsEof)
-                            throw new BucketEofException(Inner);
+                            throw new BucketEofException(Source);
                         _cont = true;
                     }
                     else
@@ -49,7 +49,7 @@ namespace AmpScm.Buckets.Git
 
             BucketEol eol;
 
-            (bb, eol) = await Inner.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
+            (bb, eol) = await Source.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
 
             if (eol != BucketEol.None && eol != BucketEol.CRSplit)
                 _cont = false;
@@ -61,7 +61,7 @@ namespace AmpScm.Buckets.Git
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
-            var bb = await Inner.PollAsync().ConfigureAwait(false);
+            var bb = await Source.PollAsync().ConfigureAwait(false);
 
             return CalcLen(bb, _cont);
 
@@ -110,7 +110,7 @@ namespace AmpScm.Buckets.Git
             if (_eof)
                 return BucketBytes.Eof;
 
-            var bb = Inner.Peek();
+            var bb = Source.Peek();
 
             if (bb.IsEmpty)
                 return bb;

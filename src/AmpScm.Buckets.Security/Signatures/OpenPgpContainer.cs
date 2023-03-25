@@ -34,16 +34,16 @@ namespace AmpScm.Buckets.Signatures
                 throw new BucketException("Can't obtain new packet, when the last one is not completely read");
 
             bool first = false;
-            var inner = Inner;
+            var inner = Source;
             bool sshPublicKey = false;
             if (!_notFirst)
             {
                 bool didRead = false;
-                var bb = await Inner.PollAsync().ConfigureAwait(false);
+                var bb = await Source.PollAsync().ConfigureAwait(false);
 
                 if (bb.Length < 6)
                 {
-                    bb = await Inner.ReadExactlyAsync(6).ConfigureAwait(false);
+                    bb = await Source.ReadExactlyAsync(6).ConfigureAwait(false);
                     didRead = true;
                 }
 
@@ -51,12 +51,12 @@ namespace AmpScm.Buckets.Signatures
                 {
                     _isSsh = true;
                     if (!didRead)
-                        bb = await Inner.ReadExactlyAsync(6).ConfigureAwait(false);
+                        bb = await Source.ReadExactlyAsync(6).ConfigureAwait(false);
                 }
                 else if (bb.Span.StartsWith(new byte[] { 0x00, 0x00, 0x00 }))
                 {
                     if (didRead)
-                        inner = bb.ToArray().AsBucket() + Inner;
+                        inner = bb.ToArray().AsBucket() + Source;
 
                     _isSsh = true;
                     sshPublicKey = true;
@@ -65,12 +65,12 @@ namespace AmpScm.Buckets.Signatures
                 {
                     _isDer = true;
                     if (didRead)
-                        inner = bb.ToArray().AsBucket() + Inner;
+                        inner = bb.ToArray().AsBucket() + Source;
                 }
                 else
                 {
                     if (didRead)
-                        inner = bb.ToArray().AsBucket() + Inner;
+                        inner = bb.ToArray().AsBucket() + Source;
                 }
                 _notFirst = true;
                 first = true;
@@ -84,7 +84,7 @@ namespace AmpScm.Buckets.Signatures
                 }
                 else
                 {
-                    await Inner.ReadUntilEofAsync().ConfigureAwait(false);
+                    await Source.ReadUntilEofAsync().ConfigureAwait(false);
                     return (null, default);
                 }
             }
@@ -92,11 +92,11 @@ namespace AmpScm.Buckets.Signatures
             {
                 if (first)
                 {
-                    return (new DerBucket(Inner.NoDispose()), OpenPgpTagType.DerValue);
+                    return (new DerBucket(Source.NoDispose()), OpenPgpTagType.DerValue);
                 }
                 else
                 {
-                    await Inner.ReadUntilEofAsync().ConfigureAwait(false);
+                    await Source.ReadUntilEofAsync().ConfigureAwait(false);
                     return (null, default);
                 }
             }
@@ -134,7 +134,7 @@ namespace AmpScm.Buckets.Signatures
                         return (new OpenPgpPartialBodyBucket(inner.NoDispose(), r.Length!.Value).AtEof(() => _reading = false), tag);
                     }
 
-                    remaining = r.Length ?? throw new BucketEofException(Inner);
+                    remaining = r.Length ?? throw new BucketEofException(Source);
                 }
                 else if (remaining == 3)
                 {
@@ -145,7 +145,7 @@ namespace AmpScm.Buckets.Signatures
                 {
                     remaining = remaining switch
                     {
-                        0 => await inner.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Inner),
+                        0 => await inner.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Source),
                         1 => await inner.ReadNetworkUInt16Async().ConfigureAwait(false),
                         2 => await inner.ReadNetworkUInt32Async().ConfigureAwait(false),
                         _ => throw new NotImplementedException("Indetermined size"),

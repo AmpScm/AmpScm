@@ -47,22 +47,22 @@ namespace AmpScm.Buckets.Git.Objects
             if (_objectId is not null)
                 return (_objectId, _type);
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, 7 /* "object " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, null).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 7 /* "object " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("object "))
-                throw new GitBucketException($"Expected 'object' record at start of tag in '{Inner.Name}'");
+                throw new GitBucketException($"Expected 'object' record at start of tag in '{Source.Name}'");
 
             if (GitId.TryParse(bb.Slice(7, eol), out var id))
                 _objectId = id;
             else
-                throw new GitBucketException($"Expected valid 'object' record at start of tag in '{Inner.Name}'");
+                throw new GitBucketException($"Expected valid 'object' record at start of tag in '{Source.Name}'");
 
-            (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "type " */ + 6 /* "commit" */ + 2 /* ALL EOL */, null).ConfigureAwait(false);
+            (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "type " */ + 6 /* "commit" */ + 2 /* ALL EOL */, null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("type "))
             {
                 _objectId = null;
-                throw new GitBucketException($"Expected 'type' record of tag in '{Inner.Name}'");
+                throw new GitBucketException($"Expected 'type' record of tag in '{Source.Name}'");
             }
 
             bb = bb.Slice(5, eol);
@@ -76,7 +76,7 @@ namespace AmpScm.Buckets.Git.Objects
             else if (bb.EqualsASCII("tag"))
                 _type = GitObjectType.Tag;
             else
-                throw new GitBucketException($"Expected valid 'type' record in tag in '{Inner.Name}'");
+                throw new GitBucketException($"Expected valid 'type' record in tag in '{Source.Name}'");
 
             return (_objectId, _type);
         }
@@ -89,10 +89,10 @@ namespace AmpScm.Buckets.Git.Objects
             if (_objectId is null)
                 await ReadObjectIdAsync().ConfigureAwait(false);
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, MaxHeader, null).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, MaxHeader, null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tag "))
-                throw new GitBucketException($"Expected 'tag' record in '{Inner.Name}'");
+                throw new GitBucketException($"Expected 'tag' record in '{Source.Name}'");
 
             return _tagName = bb.ToUTF8String("tag ".Length, eol);
         }
@@ -104,7 +104,7 @@ namespace AmpScm.Buckets.Git.Objects
                 if (_tagName is null)
                     await ReadTagNameAsync().ConfigureAwait(false);
 
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
                 if (bb.StartsWithASCII("tagger ")
                     && GitSignatureRecord.TryReadFromBucket(bb.Slice("tagger ".Length, eol), out var author))
@@ -118,7 +118,7 @@ namespace AmpScm.Buckets.Git.Objects
                     // Special case. Bad commit in linux repository doesn't have a tagger
                 }
                 else
-                    throw new GitBucketException($"Expected 'tagger' in tag in '{Inner.Name}'");
+                    throw new GitBucketException($"Expected 'tagger' in tag in '{Source.Name}'");
             }
 
             return _author;
@@ -137,7 +137,7 @@ namespace AmpScm.Buckets.Git.Objects
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
 
                 if (bb.IsEof || bb.Length <= eol.CharCount())
                     break;
@@ -158,7 +158,7 @@ namespace AmpScm.Buckets.Git.Objects
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
             if (_readHeaders)
-                return Inner.ReadRemainingBytesAsync();
+                return Source.ReadRemainingBytesAsync();
 
             return base.ReadRemainingBytesAsync();
         }
@@ -172,11 +172,11 @@ namespace AmpScm.Buckets.Git.Objects
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
 
                 if (Radix64ArmorBucket.IsHeader(bb, eol))
                 {
-                    var src = bb.ToArray().AsBucket() + Inner.NoDispose();
+                    var src = bb.ToArray().AsBucket() + Source.NoDispose();
                     if (_handleSubBucket != null)
                     {
                         await _handleSubBucket(GitSubBucketType.Signature, src).ConfigureAwait(false);
@@ -199,7 +199,7 @@ namespace AmpScm.Buckets.Git.Objects
         public override BucketBytes Peek()
         {
             if (_readHeaders)
-                return Inner.Peek();
+                return Source.Peek();
 
             return BucketBytes.Empty;
         }
@@ -207,7 +207,7 @@ namespace AmpScm.Buckets.Git.Objects
         async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested/* = 1*/)
         {
             if (_readHeaders)
-                return await Inner.PollAsync(minRequested).ConfigureAwait(false);
+                return await Source.PollAsync(minRequested).ConfigureAwait(false);
 
             return BucketBytes.Empty;
         }

@@ -19,7 +19,7 @@ namespace AmpScm.Buckets.Subversion
         {
             if (_atEof == null)
                 return null;
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
             if (bb.IsEof)
                 return null;
@@ -29,7 +29,7 @@ namespace AmpScm.Buckets.Subversion
                 if (bb.Length > eol.CharCount())
                     throw new BucketException();
 
-                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+                (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
             }
 
             if (!bb.StartsWithASCII("K "))
@@ -47,16 +47,16 @@ namespace AmpScm.Buckets.Subversion
             if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out var len))
                 throw new BucketException();
 
-            bb = await Inner.ReadExactlyAsync(len).ConfigureAwait(false);
+            bb = await Source.ReadExactlyAsync(len).ConfigureAwait(false);
 
             string key = bb.ToUTF8String();
 
-            (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, 1).ConfigureAwait(false);
+            (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, 1).ConfigureAwait(false);
 
             if (bb.Length > eol.CharCount())
                 throw new BucketException();
 
-            (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+            (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
             if (!bb.StartsWithASCII("V "))
                 throw new BucketException();
@@ -64,7 +64,7 @@ namespace AmpScm.Buckets.Subversion
             if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out len))
                 throw new BucketException();
 
-            bb = await Inner.ReadExactlyAsync(len).ConfigureAwait(false);
+            bb = await Source.ReadExactlyAsync(len).ConfigureAwait(false);
 
             if (bb.Length == len)
             {

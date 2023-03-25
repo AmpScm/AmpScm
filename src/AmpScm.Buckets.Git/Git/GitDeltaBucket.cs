@@ -94,12 +94,12 @@ namespace AmpScm.Buckets.Git
 
                 byte uc;
 
-                data = await Inner.ReadAsync(1).ConfigureAwait(false);
+                data = await Source.ReadAsync(1).ConfigureAwait(false);
 
                 if (data.IsEof)
                 {
                     if (_position != _length)
-                        throw new BucketEofException(Inner);
+                        throw new BucketEofException(Source);
                     else
                     {
                         state = delta_state.eof;
@@ -125,10 +125,10 @@ namespace AmpScm.Buckets.Git
 
                     if (want > 0)
                     {
-                        data = await Inner.ReadExactlyAsync(want).ConfigureAwait(false);
+                        data = await Source.ReadExactlyAsync(want).ConfigureAwait(false);
 
                         if (data.Length < want)
-                            throw new BucketEofException(Inner);
+                            throw new BucketEofException(Source);
 
                         int i = 0;
 
@@ -199,10 +199,10 @@ namespace AmpScm.Buckets.Git
             }
             else if (state == delta_state.src_copy)
             {
-                var data = await Inner.ReadAsync(Math.Min(requested, _copySize)).ConfigureAwait(false);
+                var data = await Source.ReadAsync(Math.Min(requested, _copySize)).ConfigureAwait(false);
 
                 if (data.IsEof)
-                    throw new BucketEofException($"Unexpected EOF on Source {Inner.Name} Bucket");
+                    throw new BucketEofException($"Unexpected EOF on Source {Source.Name} Bucket");
 
                 _position += data.Length;
                 _copySize -= data.Length;
@@ -211,10 +211,10 @@ namespace AmpScm.Buckets.Git
             }
             else if (state == delta_state.eof)
             {
-                var data = await Inner.ReadAsync().ConfigureAwait(false); // Ensure finish bytes of ZLib bucket are read
+                var data = await Source.ReadAsync().ConfigureAwait(false); // Ensure finish bytes of ZLib bucket are read
 
                 if (!data.IsEof)
-                    throw new InvalidOperationException($"Expected EOF on Source {Inner.Name} Bucket");
+                    throw new InvalidOperationException($"Expected EOF on Source {Source.Name} Bucket");
 
                 return BucketBytes.Eof;
             }
@@ -244,7 +244,7 @@ namespace AmpScm.Buckets.Git
                         if (state == delta_state.base_copy)
                             await BaseBucket.SeekAsync(BaseBucket.Position!.Value - rev).ConfigureAwait(false);
                         else
-                            await Inner.SeekAsync(Inner.Position!.Value - rev).ConfigureAwait(false);
+                            await Source.SeekAsync(Source.Position!.Value - rev).ConfigureAwait(false);
 
                         _position -= rev;
                         _copySize += rev;
@@ -294,7 +294,7 @@ namespace AmpScm.Buckets.Git
                         break;
                     case delta_state.src_copy:
                         // Just skip the source data
-                        r = (int)await Inner.ReadSkipAsync(Math.Min(rq, _copySize)).ConfigureAwait(false);
+                        r = (int)await Source.ReadSkipAsync(Math.Min(rq, _copySize)).ConfigureAwait(false);
                         _copySize -= r;
                         _position += r;
                         break;
@@ -328,9 +328,9 @@ namespace AmpScm.Buckets.Git
         {
             if (state == delta_state.start)
             {
-                _baseLen = await Inner.ReadGitDeltaSize().ConfigureAwait(false);
+                _baseLen = await Source.ReadGitDeltaSize().ConfigureAwait(false);
 
-                _length = await Inner.ReadGitDeltaSize().ConfigureAwait(false);
+                _length = await Source.ReadGitDeltaSize().ConfigureAwait(false);
                 state = delta_state.init;
             }
 
@@ -350,7 +350,7 @@ namespace AmpScm.Buckets.Git
             }
             else if (state == delta_state.src_copy)
             {
-                var data = Inner.Peek();
+                var data = Source.Peek();
 
                 if (_copySize < data.Length)
                     data = data.Slice(0, _copySize);
@@ -375,16 +375,16 @@ namespace AmpScm.Buckets.Git
             return Peek();
         }
 
-        public override bool CanReset => Inner.CanReset && BaseBucket.CanReset;
+        public override bool CanReset => Source.CanReset && BaseBucket.CanReset;
 
-        public override string Name => "GitDelta[" + Inner.Name + "]>" + BaseBucket.Name;
+        public override string Name => "GitDelta[" + Source.Name + "]>" + BaseBucket.Name;
 
         public override void Reset()
         {
             if (!CanReset)
                 throw new InvalidOperationException($"Reset not supported on {Name} bucket");
 
-            Inner.Reset(); // Will either throw error text or perform the source reset
+            Source.Reset(); // Will either throw error text or perform the source reset
             // No need to reset base. We seek on use anyway.
 
             state = delta_state.start;

@@ -50,7 +50,7 @@ namespace AmpScm.Buckets.Git.Objects
 
         public async ValueTask<GitTreeElementRecord?> ReadTreeElementRecord()
         {
-            if (!_checkedType && Inner is GitObjectBucket gobb)
+            if (!_checkedType && Source is GitObjectBucket gobb)
             {
                 var type = await gobb.ReadTypeAsync().ConfigureAwait(false);
 
@@ -60,7 +60,7 @@ namespace AmpScm.Buckets.Git.Objects
                 _checkedType = true;
             }
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero, eolState: null).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.Zero, eolState: null).ConfigureAwait(false);
 
             if (bb.IsEof)
                 return null;
@@ -75,7 +75,7 @@ namespace AmpScm.Buckets.Git.Objects
             string name = bb.ToUTF8String(nSep + 1, eol);
             string mask = bb.ToASCIIString(0, nSep);
 
-            var id = await Inner.ReadGitIdAsync(_idType).ConfigureAwait(false);
+            var id = await Source.ReadGitIdAsync(_idType).ConfigureAwait(false);
 
             return new GitTreeElementRecord
             {

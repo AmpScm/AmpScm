@@ -44,7 +44,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override BucketBytes Peek()
         {
-            var peek = Inner.Peek();
+            var peek = Source.Peek();
 
             if (peek.Length <= 0)
                 return peek;
@@ -59,7 +59,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
         {
-            var poll = await Inner.PollAsync().ConfigureAwait(false);
+            var poll = await Source.PollAsync().ConfigureAwait(false);
 
             if (poll.Length <= 0)
                 return poll;
@@ -85,7 +85,7 @@ namespace AmpScm.Buckets.Specialized
             var bb = await base.ReadAsync(requested).ConfigureAwait(false); // Position updated in base
 
             if (bb.IsEof && _ensure)
-                throw new BucketEofException(Inner);
+                throw new BucketEofException(Source);
 
             return bb;
         }

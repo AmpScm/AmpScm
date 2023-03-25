@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
 {
@@ -17,7 +16,7 @@ namespace AmpScm.Buckets.Signatures
 
         public override BucketBytes Peek()
         {
-            var b = Inner.Peek();
+            var b = Source.Peek();
 
             if (b.Length > _remaining)
             {
@@ -34,7 +33,7 @@ namespace AmpScm.Buckets.Signatures
 
             if (_remaining == 0 && !_final)
             {
-                var (len, partial) = await OpenPgpContainer.ReadLengthAsync(Inner).ConfigureAwait(false);
+                var (len, partial) = await OpenPgpContainer.ReadLengthAsync(Source).ConfigureAwait(false);
 
                 _final = !partial;
                 _remaining = (int)len!.Value;
@@ -42,7 +41,7 @@ namespace AmpScm.Buckets.Signatures
 
             if (_remaining > 0)
             {
-                var bb = await Inner.ReadAsync(Math.Min(requested, _remaining)).ConfigureAwait(false);
+                var bb = await Source.ReadAsync(Math.Min(requested, _remaining)).ConfigureAwait(false);
 
                 _remaining -= bb.Length;
                 return bb;

@@ -30,7 +30,7 @@ namespace AmpScm.Buckets.Git
 
         public override Bucket Duplicate(bool reset = false)
         {
-            var inner = Inner.Duplicate(reset || Position == 0);
+            var inner = Source.Duplicate(reset || Position == 0);
 
             GitFileObjectBucket dup = new GitFileObjectBucket((ZLibBucket)inner);
             dup._startOffset = _startOffset;
@@ -44,7 +44,7 @@ namespace AmpScm.Buckets.Git
             int so = 0;
             while (_type == GitObjectType.None && _startOffset < 2)
             {
-                var bb = await Inner.ReadAsync(2 - (int)_startOffset).ConfigureAwait(false);
+                var bb = await Source.ReadAsync(2 - (int)_startOffset).ConfigureAwait(false);
 
                 so += bb.Length;
 
@@ -87,7 +87,7 @@ namespace AmpScm.Buckets.Git
                     return _type;
                 }
                 else
-                    throw new BucketEofException(Inner);
+                    throw new BucketEofException(Source);
             }
 
             return _type;
@@ -100,7 +100,7 @@ namespace AmpScm.Buckets.Git
                 if (!_length.HasValue)
                     return 0;
 
-                var p = Inner.Position;
+                var p = Source.Position;
 
                 if (p < _startOffset)
                     return 0;
@@ -120,10 +120,10 @@ namespace AmpScm.Buckets.Git
 
             if (!_length.HasValue)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero, requested: MaxReadForHeader).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.Zero, requested: MaxReadForHeader).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
-                    throw new BucketException($"Expected '\\0' within first {MaxReadForHeader} characters of '{Inner.Name}'");
+                    throw new BucketException($"Expected '\\0' within first {MaxReadForHeader} characters of '{Source.Name}'");
 
 
                 int nSize = bb.IndexOf(' ');
@@ -131,9 +131,9 @@ namespace AmpScm.Buckets.Git
                 if (nSize > 0 && long.TryParse(bb.ToASCIIString(nSize + 1, eol), out var len))
                     _length = len;
                 else
-                    throw new BucketException($"Expected length information within header of '{Inner.Name}'");
+                    throw new BucketException($"Expected length information within header of '{Source.Name}'");
 
-                _startOffset = Inner.Position!.Value;
+                _startOffset = Source.Position!.Value;
             }
 
             return _length.Value - Position;
@@ -144,7 +144,7 @@ namespace AmpScm.Buckets.Git
             if (_startOffset == 0)
                 return BucketBytes.Empty;
             else
-                return Inner.Peek();
+                return Source.Peek();
         }
 
         ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested /*= 1*/)
@@ -152,7 +152,7 @@ namespace AmpScm.Buckets.Git
             if (_startOffset == 0)
                 return BucketBytes.Empty;
 
-            return Inner.PollAsync(minRequested);
+            return Source.PollAsync(minRequested);
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
@@ -160,10 +160,10 @@ namespace AmpScm.Buckets.Git
             if (_length is null)
                 await ReadRemainingBytesAsync().ConfigureAwait(false);
 
-            return await Inner.ReadAsync(requested).ConfigureAwait(false);
+            return await Source.ReadAsync(requested).ConfigureAwait(false);
         }
 
-        public override bool CanReset => Inner.CanReset;
+        public override bool CanReset => Source.CanReset;
 
         public override void Reset()
         {
@@ -179,7 +179,7 @@ namespace AmpScm.Buckets.Git
             {
                 await ReadRemainingBytesAsync().ConfigureAwait(false);
             }
-            await Inner.SeekAsync(newPosition + _startOffset).ConfigureAwait(false);
+            await Source.SeekAsync(newPosition + _startOffset).ConfigureAwait(false);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace AmpScm.Buckets.Specialized
             if (requested > _buffer.Length)
                 requested = _buffer.Length;
 
-            var bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             if (bb.IsEmpty)
                 return bb; // Includes EOF
@@ -37,12 +37,12 @@ namespace AmpScm.Buckets.Specialized
 
         public override ValueTask<long> ReadSkipAsync(long requested)
         {
-            return Inner.ReadSkipAsync(requested);
+            return Source.ReadSkipAsync(requested);
         }
 
         public override BucketBytes Peek()
         {
-            var bb = Inner.Peek();
+            var bb = Source.Peek();
 
             if (bb.IsEmpty)
                 return bb; // Includes EOF
@@ -57,11 +57,11 @@ namespace AmpScm.Buckets.Specialized
             return new BucketBytes(_buffer, 0, use);
         }
 
-        public override long? Position => Inner.Position;
+        public override long? Position => Source.Position;
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
-            return Inner.ReadRemainingBytesAsync();
+            return Source.ReadRemainingBytesAsync();
         }
     }
 }

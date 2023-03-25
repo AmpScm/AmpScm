@@ -160,7 +160,7 @@ namespace AmpScm.Buckets.Git
         {
             if (_version > 0)
                 return;
-            var bb = await Inner.ReadExactlyAsync(12).ConfigureAwait(false);
+            var bb = await Source.ReadExactlyAsync(12).ConfigureAwait(false);
 
             if (!bb.StartsWithASCII("DIRC"))
                 throw new GitBucketException($"No Directory cache in {Name} bucket");
@@ -172,7 +172,7 @@ namespace AmpScm.Buckets.Git
             _indexCount = NetBitConverter.ToInt32(bb, 8);
             _indexStart = 12;
 
-            if (Inner is FileBucket fb)
+            if (Source is FileBucket fb)
             {
                 _length = fb.Length;
                 if (_lookForEndOfIndex)
@@ -191,13 +191,13 @@ namespace AmpScm.Buckets.Git
             }
             else
             {
-                _length = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false) + Inner.Position ?? -1;
+                _length = await Source.ReadRemainingBytesAsync().ConfigureAwait(false) + Source.Position ?? -1;
             }
 
             if (_preLoadExtensions)
             {
                 await ProcessExtensionsAsync().ConfigureAwait(false);
-                await Inner.SeekAsync(_indexStart).ConfigureAwait(false);
+                await Source.SeekAsync(_indexStart).ConfigureAwait(false);
                 _nRead = 0;
                 _lastName = null;
             }
@@ -220,21 +220,21 @@ namespace AmpScm.Buckets.Git
 
             while (_skip > 0)
             {
-                int n = await Inner.ReadSkipAsync(_skip).ConfigureAwait(false);
+                int n = await Source.ReadSkipAsync(_skip).ConfigureAwait(false);
 
                 if (n == 0)
-                    throw new BucketEofException(Inner);
+                    throw new BucketEofException(Source);
                 _skip -= n;
             }
 
             if (_nRead >= _indexCount)
             {
                 if (!_endOfIndex.HasValue)
-                    _endOfIndex = Inner.Position;
+                    _endOfIndex = Source.Position;
 
                 if (!_firstReal.HasValue)
                 {
-                    _firstReal = Inner.Position;
+                    _firstReal = Source.Position;
                     _firstRealIdx = _indexCount;
                 }
 
@@ -246,10 +246,10 @@ namespace AmpScm.Buckets.Git
 
             int hashLen = _idType.HashLength();
             int readLen = 40 + 2 + hashLen;
-            var bb = await Inner.ReadExactlyAsync(readLen).ConfigureAwait(false);
+            var bb = await Source.ReadExactlyAsync(readLen).ConfigureAwait(false);
 
             if (bb.Length != readLen)
-                throw new BucketEofException(Inner);
+                throw new BucketEofException(Source);
 
             GitDirectoryEntry src = new()
             {
@@ -271,29 +271,29 @@ namespace AmpScm.Buckets.Git
 
             if (nameLen != 0 && !_firstReal.HasValue)
             {
-                _firstReal = Inner.Position - bb.Length;
+                _firstReal = Source.Position - bb.Length;
                 _firstRealIdx = _nRead - 1;
             }
 
             int FullFlags = src.Flags;
             if ((src.Flags & 0x4000) != 0 && _version >= 3) // Must be 0 in version 2
             {
-                bb = await Inner.ReadExactlyAsync(2).ConfigureAwait(false);
+                bb = await Source.ReadExactlyAsync(2).ConfigureAwait(false);
 
                 if (bb.Length != 2)
-                    throw new BucketEofException(Inner);
+                    throw new BucketEofException(Source);
 
                 FullFlags |= NetBitConverter.ToInt16(bb, 0) << 16;
             }
 
             if (_version < 4)
             {
-                var (name, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero).ConfigureAwait(false);
+                var (name, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.Zero).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
-                    throw new BucketEofException(Inner);
+                    throw new BucketEofException(Source);
 
-                _skip = 8 - (int)((Inner.Position!.Value - _indexStart) & 0x7);
+                _skip = 8 - (int)((Source.Position!.Value - _indexStart) & 0x7);
 
                 if (_skip == 8)
                     _skip = 0;
@@ -312,11 +312,11 @@ namespace AmpScm.Buckets.Git
             }
             else
             {
-                int drop = (int)await Inner.ReadGitDeltaOffsetAsync().ConfigureAwait(false);
-                var (name, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.Zero).ConfigureAwait(false);
+                int drop = (int)await Source.ReadGitDeltaOffsetAsync().ConfigureAwait(false);
+                var (name, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.Zero).ConfigureAwait(false);
 
                 if (eol != BucketEol.Zero)
-                    throw new BucketEofException(Inner);
+                    throw new BucketEofException(Source);
 
                 string sName;
 
@@ -376,7 +376,7 @@ namespace AmpScm.Buckets.Git
 
             _nRead = 0;
             _lastName = null;
-            await Inner.SeekAsync(_indexStart).ConfigureAwait(false);
+            await Source.SeekAsync(_indexStart).ConfigureAwait(false);
 
             return await ReadEntryAsync().ConfigureAwait(false);
         }
@@ -438,7 +438,7 @@ namespace AmpScm.Buckets.Git
         {
             if (_remaining is null && _firstReal.HasValue)
             {
-                Bucket b = Inner.Duplicate();
+                Bucket b = Source.Duplicate();
                 await b.SeekAsync(_firstReal.Value).ConfigureAwait(false);
 
                 _remaining = new GitDirectoryBucket(b);
@@ -501,10 +501,10 @@ namespace AmpScm.Buckets.Git
 
             Bucket reader;
             if (_nRead == _indexCount)
-                reader = Inner.NoDispose(true);
+                reader = Source.NoDispose(true);
             else
             {
-                reader = await Inner.DuplicateSeekedAsync(_endOfIndex.Value).ConfigureAwait(false);
+                reader = await Source.DuplicateSeekedAsync(_endOfIndex.Value).ConfigureAwait(false);
             }
 
             using (reader)
@@ -516,7 +516,7 @@ namespace AmpScm.Buckets.Git
                     var bb = await reader.ReadExactlyAsync(4 + 4).ConfigureAwait(false);
 
                     if (bb.Length != 4 + 4)
-                        throw new BucketEofException(Inner);
+                        throw new BucketEofException(Source);
 
                     string extensionName = bb.ToUTF8String(0, 4);
 
@@ -608,7 +608,7 @@ namespace AmpScm.Buckets.Git
         {
             await ProcessExtensionsAsync().ConfigureAwait(false);
 
-            while (0 != await Inner.ReadSkipAsync(Bucket.MaxRead).ConfigureAwait(false))
+            while (0 != await Source.ReadSkipAsync(Bucket.MaxRead).ConfigureAwait(false))
             {
             }
 

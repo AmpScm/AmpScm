@@ -20,7 +20,7 @@ namespace AmpScm.Buckets.Specialized
 
         public CompressionBucket(Bucket inner, Func<Stream, Stream> compressor) : base(inner.NoDispose())
         {
-            Src = Inner.AsStream(new Writer(this));
+            Src = Source.AsStream(new Writer(this));
             Processed = compressor(Src);
 
             _writeCompression = !Processed.CanRead && Processed.CanWrite;
@@ -99,7 +99,7 @@ namespace AmpScm.Buckets.Specialized
 
                 while (_remaining.IsEmpty)
                 {
-                    var bb = await Inner.ReadAsync().ConfigureAwait(false);
+                    var bb = await Source.ReadAsync().ConfigureAwait(false);
 
                     if (bb.IsEof)
                     {

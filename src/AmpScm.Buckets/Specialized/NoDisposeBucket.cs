@@ -6,7 +6,7 @@
         {
         }
 
-        public override string Name => "NoDispose>" + Inner.Name;
+        public override string Name => "NoDispose>" + Source.Name;
 
         protected override NoDisposeBucket? WrapDuplicate(Bucket duplicatedInner, bool reset)
         {

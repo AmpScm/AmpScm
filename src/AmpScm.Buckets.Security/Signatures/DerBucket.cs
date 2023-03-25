@@ -89,7 +89,7 @@ namespace AmpScm.Buckets.Signatures
             else if (_eof)
                 return (null, DerType.Eof);
 
-            var bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+            var bb = await Source.ReadAsync(1).ConfigureAwait(false);
 
             if (bb.IsEmpty)
                 return (null, DerType.Eof);
@@ -104,13 +104,13 @@ namespace AmpScm.Buckets.Signatures
             }
             else if ((b & 0x1F) == 0x1F)
             {
-                bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+                bb = await Source.ReadAsync(1).ConfigureAwait(false);
 
                 type = 0;
                 do
                 {
                     if (bb.IsEmpty)
-                        throw new BucketEofException(Inner);
+                        throw new BucketEofException(Source);
 
                     type <<= 7;
                     type |= bb[0] & 0x7F;
@@ -123,23 +123,23 @@ namespace AmpScm.Buckets.Signatures
             bool isPrimitive = (b & 0x40) != 0;
             int tagClass = b >> 6;
 
-            bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+            bb = await Source.ReadAsync(1).ConfigureAwait(false);
 
             if (bb.IsEmpty)
-                throw new BucketEofException(Inner);
+                throw new BucketEofException(Source);
             b = bb[0];
             if ((b & 0x80) == 0)
             {
                 _reading = true;
-                return (Inner.NoDispose().TakeExactly(b).AtEof(() => _reading = false), (DerType)type);
+                return (Source.NoDispose().TakeExactly(b).AtEof(() => _reading = false), (DerType)type);
             }
             else if (b > 0x80 && b < 0xFF)
             {
                 long len = 0;
 
-                bb = await Inner.ReadExactlyAsync(b - 128).ConfigureAwait(false);
+                bb = await Source.ReadExactlyAsync(b - 128).ConfigureAwait(false);
                 if (bb.Length != b - 0x80)
-                    throw new BucketEofException(Inner);
+                    throw new BucketEofException(Source);
 
                 for (int i = 0; i < bb.Length; i++)
                 {
@@ -148,7 +148,7 @@ namespace AmpScm.Buckets.Signatures
                 }
 
                 _reading = true;
-                return (Inner.NoDispose().TakeExactly(len).AtEof(() => _reading = false), (DerType)type);
+                return (Source.NoDispose().TakeExactly(len).AtEof(() => _reading = false), (DerType)type);
             }
             else
                 throw new InvalidOperationException("Unsupported DER form");

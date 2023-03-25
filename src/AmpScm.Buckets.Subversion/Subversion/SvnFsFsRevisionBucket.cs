@@ -41,7 +41,7 @@ namespace AmpScm.Buckets.Subversion
 
             while (true)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
                 if (bb.Length == 7 && bb.StartsWithASCII("ENDREP"))
                 {
@@ -53,13 +53,13 @@ namespace AmpScm.Buckets.Subversion
                 {
                     _reading = true;
                     _readEndRep = true;
-                    return (new SvnDeltaBucket(Inner.NoDispose(), null, () => _reading = false), _idx);
+                    return (new SvnDeltaBucket(Source.NoDispose(), null, () => _reading = false), _idx);
                 }
                 else if (bb.Length == 6 && bb.StartsWithASCII("PLAIN") && eol == BucketEol.LF)
                 {
                     _reading = true;
                     _readEndRep = true;
-                    return (new SvnHashBucket(Inner.NoDispose(), () => _reading = false), _idx);
+                    return (new SvnHashBucket(Source.NoDispose(), () => _reading = false), _idx);
                 }
                 else if (bb.Length > 10 && bb.StartsWithASCII("DELTA "))
                 {
@@ -78,18 +78,18 @@ namespace AmpScm.Buckets.Subversion
 
                     _reading = true;
                     _readEndRep = true;
-                    return (new SvnDeltaBucket(Inner.NoDispose(), baseBucket, () => _reading = false), _idx);
+                    return (new SvnDeltaBucket(Source.NoDispose(), baseBucket, () => _reading = false), _idx);
                 }
                 else if (bb.IndexOf((byte)':') >= 0)
                 {
                     _reading = true;
-                    return (new SvnKeyValueHeaderBucket(Inner.NoDispose(), () => { _reading = false; _idx++; }), _idx);
+                    return (new SvnKeyValueHeaderBucket(Source.NoDispose(), () => { _reading = false; _idx++; }), _idx);
                 }
 
                 break;
             }
 
-            await Inner.ReadUntilEofAsync().ConfigureAwait(false);
+            await Source.ReadUntilEofAsync().ConfigureAwait(false);
             return null;
         }
     }

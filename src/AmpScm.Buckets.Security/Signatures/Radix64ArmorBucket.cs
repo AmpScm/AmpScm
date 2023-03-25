@@ -37,7 +37,7 @@ namespace AmpScm.Buckets.Signatures
             if (_state >= SState.Body)
                 return BucketBytes.Eof;
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
 
             if (_state == SState.Init)
             {
@@ -63,7 +63,7 @@ namespace AmpScm.Buckets.Signatures
 
                 _state = SState.Headers;
 
-                (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
+                (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
             }
 
             if (bb.IsEmpty || bb.TrimEnd(eol).IsEmpty)
@@ -74,7 +74,7 @@ namespace AmpScm.Buckets.Signatures
             }
             else if (0 > bb.IndexOf((byte)':'))
             {
-                _base64Decode = new StopAtLineStartBucket(bb.ToArray().AsBucket() + Inner.NoDispose(), new byte[] { (byte)'-' }).Base64Decode(true);
+                _base64Decode = new StopAtLineStartBucket(bb.ToArray().AsBucket() + Source.NoDispose(), new byte[] { (byte)'-' }).Base64Decode(true);
                 _state = SState.Body;
                 return BucketBytes.Eof;
             }
@@ -133,10 +133,10 @@ namespace AmpScm.Buckets.Signatures
 
             while (_state > SState.Body && _state < SState.Eof)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
 
                 if (bb.IsEof)
-                    throw new BucketEofException(Inner);
+                    throw new BucketEofException(Source);
 
                 if (_state == SState.Crc && bb.TrimStart().StartsWithASCII("="))
                 {
@@ -148,7 +148,7 @@ namespace AmpScm.Buckets.Signatures
 
                     if (_crc24Result != NetBitConverter.ToInt32(b4, 0))
                     {
-                        throw new BucketException($"CRC mismatch in signature from {Inner.Name} Bucket");
+                        throw new BucketException($"CRC mismatch in signature from {Source.Name} Bucket");
                     }
 
                     _state = SState.Trailer;
@@ -165,7 +165,7 @@ namespace AmpScm.Buckets.Signatures
 
         private Bucket SetupDecode()
         {
-            return new StopAtLineStartBucket(Inner.NoDispose(), new byte[] { (byte)'=', (byte)'-' }).Base64Decode(true).Crc24(x => _crc24Result = x);
+            return new StopAtLineStartBucket(Source.NoDispose(), new byte[] { (byte)'=', (byte)'-' }).Base64Decode(true).Crc24(x => _crc24Result = x);
         }
 
         public static bool IsHeader(BucketBytes bb, BucketEol eol)
@@ -199,7 +199,7 @@ namespace AmpScm.Buckets.Signatures
                 if (_eof)
                     return BucketBytes.Eof;
 
-                var bb = Inner.Peek();
+                var bb = Source.Peek();
 
                 if (bb.Length > 0 && _stopAt.Contains(bb[0]))
                 {
@@ -207,13 +207,13 @@ namespace AmpScm.Buckets.Signatures
                     return BucketBytes.Eof;
                 }
 
-                (bb, _) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
+                (bb, _) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
                 return bb;
             }
 
             public override BucketBytes Peek()
             {
-                var bb = Inner.Peek();
+                var bb = Source.Peek();
 
                 if (bb.Length > 0 && _stopAt.Contains(bb[0]))
                 {

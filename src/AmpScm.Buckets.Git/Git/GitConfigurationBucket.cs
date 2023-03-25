@@ -88,7 +88,7 @@ namespace AmpScm.Buckets.Git
         {
             while (true)
             {
-                var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: _state).ConfigureAwait(false);
+                var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: _state).ConfigureAwait(false);
 
                 if (bb.IsEof)
                     return null;
@@ -107,7 +107,7 @@ namespace AmpScm.Buckets.Git
                 {
                     line = line.Substring(0, line.Length - 1);
 
-                    (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: _state).ConfigureAwait(false);
+                    (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: _state).ConfigureAwait(false);
 
                     if (bb.IsEmpty)
                         break;

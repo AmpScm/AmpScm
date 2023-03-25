@@ -44,7 +44,7 @@ namespace AmpScm.Buckets.Specialized
             if (_readEof)
                 return;
 
-            var bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             if (!bb.IsEmpty)
             {
@@ -94,7 +94,7 @@ namespace AmpScm.Buckets.Specialized
         {
             if (_size is null)
             {
-                _size = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+                _size = await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
 
                 if (_size.HasValue)
                     _size += _buffered;

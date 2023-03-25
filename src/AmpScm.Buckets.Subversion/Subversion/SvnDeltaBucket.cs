@@ -49,10 +49,10 @@ namespace AmpScm.Buckets.Subversion
             if (_version != 0xFF)
                 return _version;
 
-            var bb = await Inner.ReadExactlyAsync(4).ConfigureAwait(false);
+            var bb = await Source.ReadExactlyAsync(4).ConfigureAwait(false);
 
             if (bb.Length != 4)
-                throw new BucketEofException(Inner);
+                throw new BucketEofException(Source);
 
             if (!bb.StartsWithASCII("SVN"))
                 throw new BucketException("Not a valid delta header");
@@ -95,7 +95,7 @@ namespace AmpScm.Buckets.Subversion
             if (_version == 0xFF)
                 await ReadVersionAsync().ConfigureAwait(false);
 
-            var bb = await Inner.PollAsync().ConfigureAwait(false);
+            var bb = await Source.PollAsync().ConfigureAwait(false);
 
             if (bb.StartsWithASCII("ENDREP\n"))
             {
@@ -103,11 +103,11 @@ namespace AmpScm.Buckets.Subversion
                 return;
             }
 
-            long sview_offset = await ReadLongLengthAsync(Inner).ConfigureAwait(false);
-            int sview_len = await ReadLengthAsync(Inner).ConfigureAwait(false);
-            int tview_len = await ReadLengthAsync(Inner).ConfigureAwait(false);
-            int ilen = await ReadLengthAsync(Inner).ConfigureAwait(false);
-            int dlen = await ReadLengthAsync(Inner).ConfigureAwait(false);
+            long sview_offset = await ReadLongLengthAsync(Source).ConfigureAwait(false);
+            int sview_len = await ReadLengthAsync(Source).ConfigureAwait(false);
+            int tview_len = await ReadLengthAsync(Source).ConfigureAwait(false);
+            int ilen = await ReadLengthAsync(Source).ConfigureAwait(false);
+            int dlen = await ReadLengthAsync(Source).ConfigureAwait(false);
             int orig_ilen;
 
 
@@ -126,7 +126,7 @@ namespace AmpScm.Buckets.Subversion
 
             if (_version > 0)
             {
-                orig_ilen = await ReadLengthAsync(Inner).ConfigureAwait(false);
+                orig_ilen = await ReadLengthAsync(Source).ConfigureAwait(false);
                 ilen -= LengthOfLength(orig_ilen);
             }
             else
@@ -134,14 +134,14 @@ namespace AmpScm.Buckets.Subversion
 
             Memory<byte> instructions;
             if (ilen > 0)
-                instructions = (await Inner.ReadExactlyAsync(ilen).ConfigureAwait(false)).ToArray();
+                instructions = (await Source.ReadExactlyAsync(ilen).ConfigureAwait(false)).ToArray();
             else
                 instructions = new();
 
             int orig_dlen;
             if (_version > 0)
             {
-                orig_dlen = await ReadLengthAsync(Inner).ConfigureAwait(false);
+                orig_dlen = await ReadLengthAsync(Source).ConfigureAwait(false);
                 dlen -= LengthOfLength(orig_dlen);
             }
             else
@@ -150,7 +150,7 @@ namespace AmpScm.Buckets.Subversion
             Memory<byte> data;
             if (dlen > 0)
             {
-                data = (await Inner.ReadExactlyAsync(dlen).ConfigureAwait(false)).ToArray();
+                data = (await Source.ReadExactlyAsync(dlen).ConfigureAwait(false)).ToArray();
             }
             else
                 data = new();

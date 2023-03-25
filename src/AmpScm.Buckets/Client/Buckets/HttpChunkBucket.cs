@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Client.Buckets
 {
@@ -47,19 +46,19 @@ namespace AmpScm.Buckets.Client.Buckets
                 else if (!_eof)
                 {
                     // TODO: Perhaps use remaining bytes, and...
-                    long ?len = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+                    long ?len = await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
 
                     if (len.HasValue && len.Value > 0)
                     {
                         int size = (len.Value > MaxChunkSize) ? MaxChunkSize : (int)len;
-                        _chunkReader = Inner.TakeExactly(size);
+                        _chunkReader = Source.TakeExactly(size);
 
                         _remaining = Encoding.ASCII.GetBytes($"{Convert.ToString(size, 16)}\r\n");
                         _addEol = true;
                     }
                     else
                     {
-                        _next = await Inner.ReadAsync(Bucket.MaxRead).ConfigureAwait(false);
+                        _next = await Source.ReadAsync(Bucket.MaxRead).ConfigureAwait(false);
 
                         if (_next.IsEof || _next.IsEmpty)
                         {

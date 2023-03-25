@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            var v = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            var v = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             CurrentPosition += v.Length;
             return v;
@@ -21,7 +21,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<long> ReadSkipAsync(long requested)
         {
-            long v = await Inner.ReadSkipAsync(requested).ConfigureAwait(false);
+            long v = await Source.ReadSkipAsync(requested).ConfigureAwait(false);
 
             CurrentPosition += v;
             return v;

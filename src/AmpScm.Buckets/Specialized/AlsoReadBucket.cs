@@ -15,7 +15,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
         {
-            var bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             if (!bb.IsEmpty)
             {
@@ -33,11 +33,11 @@ namespace AmpScm.Buckets.Specialized
             return bb;
         }
 
-        public override long? Position => Inner.Position;
+        public override long? Position => Source.Position;
 
         public override ValueTask<long?> ReadRemainingBytesAsync()
         {
-            return Inner.ReadRemainingBytesAsync();
+            return Source.ReadRemainingBytesAsync();
         }
     }
 }

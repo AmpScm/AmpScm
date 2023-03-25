@@ -38,7 +38,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            var r = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            var r = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             if (r.IsEof)
                 FinishHashing();
@@ -98,12 +98,12 @@ namespace AmpScm.Buckets.Specialized
 
         public override BucketBytes Peek()
         {
-            return Inner.Peek();
+            return Source.Peek();
         }
 
         public ValueTask<BucketBytes> PollAsync(int minRequested = 1)
         {
-            return Inner.PollAsync(minRequested);
+            return Source.PollAsync(minRequested);
         }
 
         public override ValueTask<long> ReadSkipAsync(long requested)
@@ -111,17 +111,17 @@ namespace AmpScm.Buckets.Specialized
             return SkipByReading(requested);
         }
 
-        public override long? Position => Inner.Position;
+        public override long? Position => Source.Position;
 
-        public override ValueTask<long?> ReadRemainingBytesAsync() => Inner.ReadRemainingBytesAsync();
+        public override ValueTask<long?> ReadRemainingBytesAsync() => Source.ReadRemainingBytesAsync();
 
-        public override bool CanReset => Inner.CanReset && (_hasher?.CanReuseTransform ?? false);
+        public override bool CanReset => Source.CanReset && (_hasher?.CanReuseTransform ?? false);
 
-        public override Bucket Duplicate(bool reset = false) => Inner.Duplicate(reset);
+        public override Bucket Duplicate(bool reset = false) => Source.Duplicate(reset);
 
         public override void Reset()
         {
-            Inner.Reset();
+            Source.Reset();
             _hasher?.Initialize();
             _result = null;
         }

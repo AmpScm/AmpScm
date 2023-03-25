@@ -117,7 +117,7 @@ namespace AmpScm.Buckets.Git
 
         public async ValueTask<GitReferenceLogRecord?> ReadGitReferenceLogRecordAsync()
         {
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
 
             if (bb.IsEof)
                 return null;
@@ -134,8 +134,8 @@ namespace AmpScm.Buckets.Git
 
             return new GitReferenceLogRecord
             {
-                Original = ReadGitId(bb, 0) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Original)} OID in RefLog line from {Inner.Name}"),
-                Target = ReadGitId(bb, _idLength.Value + 1) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Target)} OID in RefLog line from {Inner.Name}"),
+                Original = ReadGitId(bb, 0) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Original)} OID in RefLog line from {Source.Name}"),
+                Target = ReadGitId(bb, _idLength.Value + 1) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Target)} OID in RefLog line from {Source.Name}"),
                 Signature = GitSignatureRecord.TryReadFromBucket(bb.Slice(0, prefix).Slice(2 * (_idLength.Value + 1)), out var v) ? v : throw new GitBucketException("Invalid reference log item"),
                 Reason = bb.Slice(prefix + 1).ToUTF8String(eol)
             };

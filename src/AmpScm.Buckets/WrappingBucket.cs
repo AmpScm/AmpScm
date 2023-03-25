@@ -4,28 +4,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
-namespace AmpScm.Buckets.Specialized
+namespace AmpScm.Buckets
 {
     public abstract class WrappingBucket : Bucket, IBucketNoDispose
     {
-        protected Bucket Inner { get; }
+        protected Bucket Source { get; }
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private int _nDispose;
 
-        protected WrappingBucket(Bucket inner)
+        protected WrappingBucket(Bucket source)
         {
-            Inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            Source = source ?? throw new ArgumentNullException(nameof(source));
             _nDispose = 1;
         }
 
-        protected WrappingBucket(Bucket inner, bool noDispose)
-            : this(inner)
+        protected WrappingBucket(Bucket source, bool noDispose)
+            : this(source)
         {
             if (noDispose)
                 NoDispose();
         }
 
-        public override string Name => base.Name + ">" + Inner.Name;
+        public override string Name => base.Name + ">" + Source.Name;
 
         protected override void Dispose(bool disposing)
         {
@@ -59,7 +59,7 @@ namespace AmpScm.Buckets.Specialized
 
         protected virtual void InnerDispose()
         {
-            Inner.Dispose();
+            Source.Dispose();
         }
 
         protected Bucket NoDispose()
@@ -79,7 +79,7 @@ namespace AmpScm.Buckets.Specialized
 
         internal Bucket GetInner()
         {
-            return Inner;
+            return Source;
         }
     }
 }

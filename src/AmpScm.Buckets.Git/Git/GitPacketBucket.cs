@@ -34,7 +34,7 @@ namespace AmpScm.Buckets.Git
 
         public async ValueTask<BucketBytes> ReadFullPacket()
         {
-            BucketBytes bb = await Inner.ReadExactlyAsync(4).ConfigureAwait(false);
+            BucketBytes bb = await Source.ReadExactlyAsync(4).ConfigureAwait(false);
 
             if (bb.IsEof)
                 return bb;
@@ -46,12 +46,12 @@ namespace AmpScm.Buckets.Git
             if (_packetLength <= 4)
                 return BucketBytes.Empty;
 
-            bb = await Inner.ReadExactlyAsync(_packetLength - 4).ConfigureAwait(false);
+            bb = await Source.ReadExactlyAsync(_packetLength - 4).ConfigureAwait(false);
 
             if (bb.Length == _packetLength-4)
                 return bb;
             else
-                throw new BucketEofException(Inner);
+                throw new BucketEofException(Source);
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Signatures
 {
@@ -64,7 +63,7 @@ namespace AmpScm.Buckets.Signatures
 
         private void NewCurrent()
         {
-            _current = Inner.Take(MaxChunkSize + TagSize); // Take, not TakeExactly!
+            _current = Source.Take(MaxChunkSize + TagSize); // Take, not TakeExactly!
 
             _current = _createAdditional(_iChunkNumber++, _current) ?? _current;
         }

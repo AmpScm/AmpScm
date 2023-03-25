@@ -6,6 +6,9 @@ AmpScm.Buckets.AggregateBucket.HasMultipleDisposers() -> bool
 AmpScm.Buckets.AggregateBucket.NoDispose() -> void
 AmpScm.Buckets.BucketBytes.EndsWithASCII(string! value) -> bool
 AmpScm.Buckets.BucketDecodeException
+AmpScm.Buckets.BucketDecodeException.BucketDecodeException(string! message) -> void
+AmpScm.Buckets.BucketDecodeException.BucketDecodeException(string! message, System.Exception! innerException) -> void
+AmpScm.Buckets.BucketDecodeException.BucketDecodeException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.ByteCollector.Append(System.ReadOnlyMemory<byte> bytes) -> void
 AmpScm.Buckets.ByteCollector.CopyTo(System.Span<byte> buffer) -> void
 AmpScm.Buckets.ByteCollector.ToMemory() -> System.ReadOnlyMemory<byte>

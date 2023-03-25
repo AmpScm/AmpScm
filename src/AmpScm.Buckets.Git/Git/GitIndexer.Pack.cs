@@ -251,7 +251,7 @@ namespace AmpScm.Buckets.Git
 
             public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
             {
-                return Inner.ReadAsync(requested);
+                return Source.ReadAsync(requested);
             }
 
             public override ValueTask<GitObjectType> ReadTypeAsync()
@@ -275,7 +275,7 @@ namespace AmpScm.Buckets.Git
             public BufferObjectBucket(GitObjectBucket inner)
                 : base(inner)
             {
-                _buffer = Inner.Buffer();
+                _buffer = Source.Buffer();
             }
 
             public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
@@ -290,7 +290,7 @@ namespace AmpScm.Buckets.Git
 
             public override ValueTask<GitObjectType> ReadTypeAsync()
             {
-                return ((GitObjectBucket)Inner).ReadTypeAsync();
+                return ((GitObjectBucket)Source).ReadTypeAsync();
             }
 
             public override long? Position => _buffer.Position;

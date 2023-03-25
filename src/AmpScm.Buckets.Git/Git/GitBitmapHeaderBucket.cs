@@ -30,17 +30,17 @@ namespace AmpScm.Buckets.Git
         {
             if (!_readHeader)
             {
-                var bb = await Inner.ReadExactlyAsync(12).ConfigureAwait(false);
+                var bb = await Source.ReadExactlyAsync(12).ConfigureAwait(false);
 
                 if (bb.Length != 12)
-                    throw new BucketEofException(Inner);
+                    throw new BucketEofException(Source);
 
                 _type = bb.ToASCIIString(0, 4);
                 _version = NetBitConverter.ToInt16(bb, 4);
                 _flags = NetBitConverter.ToInt16(bb, 6);
                 _objCount = NetBitConverter.ToInt32(bb, 8);
 
-                _checksum = await Inner.ReadGitIdAsync(_idType).ConfigureAwait(false);
+                _checksum = await Source.ReadGitIdAsync(_idType).ConfigureAwait(false);
                 _readHeader = true;
             }
 

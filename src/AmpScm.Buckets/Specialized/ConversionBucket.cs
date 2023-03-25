@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Specialized
             }
             while (_skipFirst > 0)
             {
-                int skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
+                int skipped = await Source.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
                 _skipFirst -= skipped;
             }
 
@@ -90,7 +90,7 @@ namespace AmpScm.Buckets.Specialized
                 bool final = _readLeft.IsEof;
 
 #if DEBUG
-                Debug.Assert(!_readLeft.IsEmpty || _readLeft.IsEof, $"{Inner} bucket reports empty instead of eof");
+                Debug.Assert(!_readLeft.IsEmpty || _readLeft.IsEof, $"{Source} bucket reports empty instead of eof");
 #endif
 
                 (_remaining, _readLeft) = await ConvertDataAsync(_readLeft, final).ConfigureAwait(false);
@@ -117,7 +117,7 @@ namespace AmpScm.Buckets.Specialized
 
             while (_skipFirst > 0)
             {
-                int skipped = await Inner.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
+                int skipped = await Source.ReadSkipAsync(_skipFirst).ConfigureAwait(false);
                 _skipFirst -= skipped;
             }
 
@@ -137,10 +137,10 @@ namespace AmpScm.Buckets.Specialized
         }
 
         protected virtual ValueTask<BucketBytes> InnerReadAsync(int requested = MaxRead)
-            => Inner.ReadAsync(requested);
+            => Source.ReadAsync(requested);
 
         protected virtual BucketBytes InnerPeek()
-            => Inner.Peek();
+            => Source.Peek();
 
         protected virtual int ConvertRequested(int requested)
         {
@@ -152,7 +152,7 @@ namespace AmpScm.Buckets.Specialized
             if (!CanReset)
                 throw new InvalidOperationException();
 
-            Inner.Reset();
+            Source.Reset();
             _position = 0;
         }
 

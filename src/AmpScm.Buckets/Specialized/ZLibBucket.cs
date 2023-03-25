@@ -68,7 +68,7 @@ namespace AmpScm.Buckets.Specialized
             _innerPoll = inner as IBucketPoll;
         }
 
-        public override string Name => $"ZLib[{_algorithm}{(_level is null ? "Decompress" : "Compress")}]>{Inner.Name}";
+        public override string Name => $"ZLib[{_algorithm}{(_level is null ? "Decompress" : "Compress")}]>{Source.Name}";
 
         private void ZSetup()
         {
@@ -94,14 +94,14 @@ namespace AmpScm.Buckets.Specialized
 
                 if (read_buffer.IsEmpty && !_readEof)
                 {
-                    var bb = ((_innerPoll is null) ? Inner.Peek() : await _innerPoll.PollAsync().ConfigureAwait(false));
+                    var bb = ((_innerPoll is null) ? Source.Peek() : await _innerPoll.PollAsync().ConfigureAwait(false));
 
                     if (bb.IsEmpty)
                     {
                         if (forPeek)
                             return false; // Not at EOF, not filled
 
-                        bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+                        bb = await Source.ReadAsync(1).ConfigureAwait(false);
 
                         if (bb.Length == 0)
                         {
@@ -118,7 +118,7 @@ namespace AmpScm.Buckets.Specialized
                             // Let's check if this first byte is just that...
 
                             byte bOne = bb[0];
-                            var peek = Inner.Peek();
+                            var peek = Source.Peek();
 
                             if (peek.IsEmpty)
                             {
@@ -213,9 +213,9 @@ namespace AmpScm.Buckets.Specialized
                     // We peeked more data than what we read
                     read_buffer = BucketBytes.Empty; // Need to re-peek next time
 
-                    var now_read = await Inner.ReadAsync(to_read).ConfigureAwait(false);
+                    var now_read = await Source.ReadAsync(to_read).ConfigureAwait(false);
                     if (now_read.Length != to_read)
-                        throw new BucketException($"Read on {Inner.Name} did not complete as promised by peek");
+                        throw new BucketException($"Read on {Source.Name} did not complete as promised by peek");
                 }
                 else
                 {
@@ -293,7 +293,7 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        public override bool CanReset => Inner.CanReset;
+        public override bool CanReset => Source.CanReset;
 
         public override long? Position => _position - write_buffer.Length;
 
@@ -308,7 +308,7 @@ namespace AmpScm.Buckets.Specialized
                 return;
             }
 
-            Inner.Reset();
+            Source.Reset();
             ZSetup();
         }
 
@@ -331,7 +331,7 @@ namespace AmpScm.Buckets.Specialized
             if (!reset)
                 throw new NotSupportedException("ZLib buckets can't be duplicated without reset");
 
-            var b = Inner.Duplicate(reset);
+            var b = Source.Duplicate(reset);
 
             return new ZLibBucket(b, _algorithm, (_level is null) ? CompressionMode.Decompress : CompressionMode.Compress, _level ?? BucketCompressionLevel.Default, Math.Min(8192, write_data.Length));
         }

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AmpScm.Buckets;
 using AmpScm.Buckets.Interfaces;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Client.Buckets
 {
@@ -35,7 +35,7 @@ namespace AmpScm.Buckets.Client.Buckets
             switch (_state)
             {
                 case DechunkState.Chunk:
-                    var bb = Inner.Peek();
+                    var bb = Source.Peek();
 
                     if (bb.Length > _chunkLeft)
                         return bb.Slice(0, _chunkLeft);
@@ -58,7 +58,7 @@ namespace AmpScm.Buckets.Client.Buckets
             {
                 case DechunkState.Chunk:
                     {
-                        var bb = await Inner.ReadAsync(Math.Min(requested, _chunkLeft)).ConfigureAwait(false);
+                        var bb = await Source.ReadAsync(Math.Min(requested, _chunkLeft)).ConfigureAwait(false);
 
                         _chunkLeft -= bb.Length;
                         if (_chunkLeft == 0)
@@ -88,7 +88,7 @@ namespace AmpScm.Buckets.Client.Buckets
             {
                 if (!wait)
                 {
-                    var bb = Inner.Peek();
+                    var bb = Source.Peek();
 
                     if (bb.IsEmpty)
                         return;
@@ -98,7 +98,7 @@ namespace AmpScm.Buckets.Client.Buckets
                 {
                     case DechunkState.Start:
                         {
-                            var (bb, eol) = await Inner.ReadUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
+                            var (bb, eol) = await Source.ReadUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
 
                             if (eol == BucketEol.CRLF || eol == BucketEol.LF)
                             {
@@ -122,7 +122,7 @@ namespace AmpScm.Buckets.Client.Buckets
                         break;
                     case DechunkState.Size:
                         {
-                            var (bb, eol) = await Inner.ReadUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
+                            var (bb, eol) = await Source.ReadUntilEolAsync(BucketEol.CRLF | BucketEol.LF).ConfigureAwait(false);
 
                             if (eol != BucketEol.None && eol != BucketEol.CRSplit)
                             {
@@ -144,7 +144,7 @@ namespace AmpScm.Buckets.Client.Buckets
                         break;
                     case DechunkState.Term:
                         {
-                            var bb = await Inner.ReadAsync(_chunkLeft).ConfigureAwait(false);
+                            var bb = await Source.ReadAsync(_chunkLeft).ConfigureAwait(false);
                             _chunkLeft -= bb.Length;
 
                             if (bb.IsEof)
@@ -156,7 +156,7 @@ namespace AmpScm.Buckets.Client.Buckets
                         break;
                     case DechunkState.Fin:
                         {
-                            var bb = await Inner.ReadAsync(2).ConfigureAwait(false);
+                            var bb = await Source.ReadAsync(2).ConfigureAwait(false);
                             if (bb.Length == 2)
                                 _state = DechunkState.Eof;
                             else if (bb.Length == 1)
@@ -167,7 +167,7 @@ namespace AmpScm.Buckets.Client.Buckets
                         break;
                     case DechunkState.Fin2:
                         {
-                            var bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+                            var bb = await Source.ReadAsync(1).ConfigureAwait(false);
                             if (bb.Length == 1)
                                 _state = DechunkState.Eof;
                             else

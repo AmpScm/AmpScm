@@ -76,7 +76,7 @@ namespace AmpScm.Buckets.Specialized
                         }
                     }
 
-                    (bb, eol) = await Inner.ReadUntilEolAsync(accepted, rq).ConfigureAwait(false);
+                    (bb, eol) = await Source.ReadUntilEolAsync(accepted, rq).ConfigureAwait(false);
 
                     if (eol == BucketEol.None)
                     {
@@ -143,7 +143,7 @@ namespace AmpScm.Buckets.Specialized
 
                 case State.CRSplit:
                     {
-                        bb = await Inner.ReadAsync(1).ConfigureAwait(false);
+                        bb = await Source.ReadAsync(1).ConfigureAwait(false);
 
                         if (!bb.IsEof && bb[0] == (byte)'\n')
                         {
@@ -200,7 +200,7 @@ namespace AmpScm.Buckets.Specialized
             if (_keep.HasValue)
                 return new[] { _keep.Value };
 
-            var bb = Inner.Peek();
+            var bb = Source.Peek();
 
             if (bb.IsEmpty)
                 return bb;
@@ -224,17 +224,17 @@ namespace AmpScm.Buckets.Specialized
                 return bb;
         }
 
-        public override bool CanReset => Inner.CanReset;
+        public override bool CanReset => Source.CanReset;
 
         public override void Reset()
         {
-            Inner.Reset();
+            Source.Reset();
         }
 
         public override Bucket Duplicate(bool reset = false)
         {
             return new EolNormalizeBucket(
-                    Inner.Duplicate(reset),
+                    Source.Duplicate(reset),
                     _acceptedEols,
                     _producedEol);
         }

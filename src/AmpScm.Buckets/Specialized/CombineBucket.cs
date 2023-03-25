@@ -9,7 +9,7 @@ namespace AmpScm.Buckets.Specialized
 {
     public abstract class CombineBucket : WrappingBucket
     {
-        protected Bucket Left => Inner;
+        protected Bucket Left => Source;
         protected Bucket Right { get; }
 
         protected CombineBucket(Bucket left, Bucket right)

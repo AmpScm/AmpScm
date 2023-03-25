@@ -42,9 +42,9 @@ namespace AmpScm.Buckets.Specialized
         public override BucketBytes Peek()
         {
             if (_skipped)
-                return Inner.Peek();
+                return Source.Peek();
 
-            var b = Inner.Peek();
+            var b = Source.Peek();
 
             if (b.Length > 0)
             {
@@ -62,9 +62,9 @@ namespace AmpScm.Buckets.Specialized
         public override async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
         {
             if (_skipped)
-                return await Inner.PollAsync(minRequested).ConfigureAwait(false);
+                return await Source.PollAsync(minRequested).ConfigureAwait(false);
 
-            var b = await Inner.PollAsync(minRequested).ConfigureAwait(false);
+            var b = await Source.PollAsync(minRequested).ConfigureAwait(false);
 
             if (b.Length > 0)
             {
@@ -106,7 +106,7 @@ namespace AmpScm.Buckets.Specialized
                     if (!_ensure)
                         return BucketBytes.Eof;
                     else
-                        throw new BucketEofException(Inner);
+                        throw new BucketEofException(Source);
                 }
             }
             _skipped = true;

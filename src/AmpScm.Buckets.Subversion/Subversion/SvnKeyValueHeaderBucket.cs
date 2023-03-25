@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Subversion
             if (_atEof is null)
                 return null;
 
-            var (bb, eol) = await Inner.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
             if (bb.IsEof || bb.Slice(eol).IsEmpty)
             {
