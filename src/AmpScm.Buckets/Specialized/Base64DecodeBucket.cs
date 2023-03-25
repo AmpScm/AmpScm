@@ -12,8 +12,8 @@ namespace AmpScm.Buckets.Specialized
         private readonly bool _lineMode;
         private bool _eof;
 
-        public Base64DecodeBucket(Bucket bucket, bool lineMode)
-            : base(bucket)
+        public Base64DecodeBucket(Bucket source, bool lineMode)
+            : base(source)
         {
             _lineMode = lineMode;
         }

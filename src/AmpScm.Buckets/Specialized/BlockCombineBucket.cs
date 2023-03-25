@@ -20,15 +20,15 @@ namespace AmpScm.Buckets.Specialized
             if (!_bbLeft.IsEmpty || !_bbRight.IsEmpty)
             {
                 if (_bbLeft.IsEmpty && !_bbLeft.IsEof)
-                    _bbLeft = await Left.ReadAsync(Math.Max(_bbRight.Length, 1)).ConfigureAwait(false);
+                    _bbLeft = await LeftSource.ReadAsync(Math.Max(_bbRight.Length, 1)).ConfigureAwait(false);
 
                 if (_bbRight.IsEmpty && !_bbRight.IsEof)
-                    _bbRight = await Right.ReadAsync(Math.Max(_bbRight.Length, 1)).ConfigureAwait(false);
+                    _bbRight = await RightSource.ReadAsync(Math.Max(_bbRight.Length, 1)).ConfigureAwait(false);
             }
             else
             {
-                _bbLeft = await Left.ReadAsync(requested).ConfigureAwait(false);
-                _bbRight = await Right.ReadAsync(_bbLeft.IsEmpty ? requested : _bbLeft.Length).ConfigureAwait(false);
+                _bbLeft = await LeftSource.ReadAsync(requested).ConfigureAwait(false);
+                _bbRight = await RightSource.ReadAsync(_bbLeft.IsEmpty ? requested : _bbLeft.Length).ConfigureAwait(false);
             }
 
             if (_bbLeft.IsEof)

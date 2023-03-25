@@ -15,8 +15,8 @@ namespace AmpScm.Buckets.Specialized
     {
         private bool _atEof;
 
-        public VerifyBucket(Bucket inner)
-            : base(inner)
+        public VerifyBucket(Bucket source)
+            : base(source)
         {
 
         }

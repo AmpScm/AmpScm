@@ -19,7 +19,7 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private long _position;
 
-        protected ConversionBucket(Bucket inner) : base(inner)
+        protected ConversionBucket(Bucket source) : base(source)
         {
         }
 

@@ -252,7 +252,7 @@ namespace AmpScm.Buckets
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Bucket Leave(this Bucket bucket, int leave, Func<BucketBytes, ValueTask> left)
+        public static Bucket Leave(this Bucket bucket, int leave, Func<BucketBytes, long, ValueTask> left)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -274,7 +274,7 @@ namespace AmpScm.Buckets
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Bucket Leave(this Bucket bucket, int leave, Action<BucketBytes> left)
+        public static Bucket Leave(this Bucket bucket, int leave, Action<BucketBytes, long> left)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -283,7 +283,7 @@ namespace AmpScm.Buckets
             else if (left is null)
                 throw new ArgumentNullException(nameof(left));
 
-            return new LeaveBucket(bucket, leave, (b) => { left(b); return new(); });
+            return new LeaveBucket(bucket, leave, (lft, length) => { left(lft, length); return new(); });
         }
 
         public static Bucket NoDispose(this Bucket bucket, bool alwaysWrap = false)

@@ -26,15 +26,15 @@ namespace AmpScm.Buckets.Specialized
             if (!_bbLeft.IsEmpty || !_bbRight.IsEmpty)
             {
                 if (_bbLeft.IsEmpty && !_bbLeft.IsEof)
-                    _bbLeft = await Left.ReadAsync(Math.Max(_bbRight.Length, 1)).ConfigureAwait(false);
+                    _bbLeft = await LeftSource.ReadAsync(Math.Max(_bbRight.Length, 1)).ConfigureAwait(false);
 
                 if (_bbRight.IsEmpty && !_bbRight.IsEof)
-                    _bbRight = await Right.ReadAsync(Math.Max(_bbRight.Length, 1)).ConfigureAwait(false);
+                    _bbRight = await RightSource.ReadAsync(Math.Max(_bbRight.Length, 1)).ConfigureAwait(false);
             }
             else
             {
-                _bbLeft = await Left.ReadAsync(requested).ConfigureAwait(false);
-                _bbRight = await Right.ReadAsync(_bbLeft.IsEmpty ? requested : _bbLeft.Length).ConfigureAwait(false);
+                _bbLeft = await LeftSource.ReadAsync(requested).ConfigureAwait(false);
+                _bbRight = await RightSource.ReadAsync(_bbLeft.IsEmpty ? requested : _bbLeft.Length).ConfigureAwait(false);
             }
 
             if (_bbLeft.IsEof)
@@ -99,14 +99,14 @@ namespace AmpScm.Buckets.Specialized
             return got;
         }
 
-        public override string Name => $"{BaseName}>[{Left.Name}],[{Right.Name}]";
+        public override string Name => $"{BaseName}>[{LeftSource.Name}],[{RightSource.Name}]";
 
-        public override bool CanReset => Left.CanReset && Right.CanReset;
+        public override bool CanReset => LeftSource.CanReset && RightSource.CanReset;
 
         public override void Reset()
         {
-            Left.Reset();
-            Right.Reset();
+            LeftSource.Reset();
+            RightSource.Reset();
 
             _bbLeft = _bbRight = BucketBytes.Empty;
         }
@@ -115,8 +115,8 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
-            long? l1 = await Left.ReadRemainingBytesAsync().ConfigureAwait(false);
-            long? l2 = await Right.ReadRemainingBytesAsync().ConfigureAwait(false);
+            long? l1 = await LeftSource.ReadRemainingBytesAsync().ConfigureAwait(false);
+            long? l2 = await RightSource.ReadRemainingBytesAsync().ConfigureAwait(false);
 
             if (l1.HasValue && l2.HasValue)
                 return Math.Max(l1.Value, l2.Value);

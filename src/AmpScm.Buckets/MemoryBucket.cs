@@ -14,19 +14,19 @@ namespace AmpScm.Buckets
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal int Offset { get; private set; }
 
-        public MemoryBucket(byte[] data)
+        public MemoryBucket(byte[] sourceData)
         {
-            Data = data ?? Array.Empty<byte>();
+            Data = sourceData ?? Array.Empty<byte>();
         }
 
-        public MemoryBucket(byte[] data, int start, int length)
+        public MemoryBucket(byte[] sourceData, int start, int length)
         {
-            Data = new ReadOnlyMemory<byte>(data, start, length);
+            Data = new ReadOnlyMemory<byte>(sourceData, start, length);
         }
 
-        public MemoryBucket(ReadOnlyMemory<byte> data)
+        public MemoryBucket(ReadOnlyMemory<byte> sourceData)
         {
-            Data = data;
+            Data = sourceData;
         }
 
         public override BucketBytes Peek()

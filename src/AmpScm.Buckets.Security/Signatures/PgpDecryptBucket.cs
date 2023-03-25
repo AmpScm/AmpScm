@@ -189,7 +189,7 @@ namespace AmpScm.Buckets.Signatures
 
                             // Encrypted data
 
-                            bucket = bucket.Leave(16, _ => { });
+                            bucket = bucket.Leave(16, (_, _) => { });
 
                             bucket = new AeadChunkReader(bucket, (int)chunk_size, 16,
                                 (n, data) =>

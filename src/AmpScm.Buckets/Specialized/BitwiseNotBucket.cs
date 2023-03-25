@@ -11,8 +11,8 @@ namespace AmpScm.Buckets.Specialized
     {
         private readonly byte[] _buffer;
 
-        public BitwiseNotBucket(Bucket inner, int bufferSize=4096)
-            : base(inner)
+        public BitwiseNotBucket(Bucket source, int bufferSize=4096)
+            : base(source)
         {
             _buffer = new byte[bufferSize];
         }

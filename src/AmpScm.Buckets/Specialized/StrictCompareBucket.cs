@@ -8,7 +8,7 @@ namespace AmpScm.Buckets.Specialized
 {
     internal sealed class StrictCompareBucket : BlockCombineBucket
     {
-        public StrictCompareBucket(Bucket left, Bucket right) : base(left, right)
+        public StrictCompareBucket(Bucket leftSource, Bucket rightSource) : base(leftSource, rightSource)
         {
         }
 

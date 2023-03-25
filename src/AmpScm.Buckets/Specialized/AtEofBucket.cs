@@ -9,7 +9,7 @@ namespace AmpScm.Buckets.Specialized
     internal sealed class AtEofBucket : ProxyBucket.WithPoll
     {
         private Func<Task>? _atEof;
-        public AtEofBucket(Bucket inner, Func<Task> atEof) : base(inner)
+        public AtEofBucket(Bucket source, Func<Task> atEof) : base(source)
         {
             _atEof = atEof;
         }

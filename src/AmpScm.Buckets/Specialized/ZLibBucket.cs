@@ -36,13 +36,8 @@ namespace AmpScm.Buckets.Specialized
         /// </summary>
         public const int DefaultBufferSize = 8192;
 
-        internal ZLibBucket(Bucket inner)
-            : this(inner, BucketCompressionAlgorithm.ZLib)
-        {
-        }
-
-        public ZLibBucket(Bucket inner, BucketCompressionAlgorithm algorithm = BucketCompressionAlgorithm.ZLib, CompressionMode mode = CompressionMode.Decompress, BucketCompressionLevel level = BucketCompressionLevel.Default, int bufferSize = DefaultBufferSize)
-            : base(inner)
+        public ZLibBucket(Bucket source, BucketCompressionAlgorithm algorithm = BucketCompressionAlgorithm.ZLib, CompressionMode mode = CompressionMode.Decompress, BucketCompressionLevel level = BucketCompressionLevel.Default, int bufferSize = DefaultBufferSize)
+            : base(source)
         {
             if (bufferSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(bufferSize));
@@ -65,7 +60,7 @@ namespace AmpScm.Buckets.Specialized
 
             ZSetup();
             _z.NextOut = write_data = System.Buffers.ArrayPool<byte>.Shared.Rent(bufferSize); // Rents buffer of at least bufferSize
-            _innerPoll = inner as IBucketPoll;
+            _innerPoll = source as IBucketPoll;
         }
 
         public override string Name => $"ZLib[{_algorithm}{(_level is null ? "Decompress" : "Compress")}]>{Source.Name}";

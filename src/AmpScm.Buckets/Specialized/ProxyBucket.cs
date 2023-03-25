@@ -7,13 +7,13 @@ namespace AmpScm.Buckets.Specialized
     public abstract class ProxyBucket<TBucket> : WrappingBucket
         where TBucket : Bucket
     {
-        protected ProxyBucket(Bucket inner)
-            : base(inner)
+        protected ProxyBucket(Bucket source)
+            : base(source)
         {
         }
 
-        internal ProxyBucket(Bucket inner, bool noDispose)
-            : base(inner, noDispose)
+        internal ProxyBucket(Bucket source, bool noDispose)
+            : base(source, noDispose)
         {
         }
 

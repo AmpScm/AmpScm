@@ -16,8 +16,8 @@ namespace AmpScm.Buckets.Specialized
         private bool _readHeader;
         private bool _atEof;
 
-        public GZipBucket(Bucket inner, CompressionMode mode, BucketCompressionLevel level = BucketCompressionLevel.Default, int bufferSize = ZLibBucket.DefaultBufferSize)
-            : base(new ZLibBucket(inner, BucketCompressionAlgorithm.Deflate, mode, level))
+        public GZipBucket(Bucket source, CompressionMode mode, BucketCompressionLevel level = BucketCompressionLevel.Default, int bufferSize = ZLibBucket.DefaultBufferSize)
+            : base(new ZLibBucket(source, BucketCompressionAlgorithm.Deflate, mode, level))
         {
             if (mode != CompressionMode.Decompress)
                 throw new NotImplementedException();

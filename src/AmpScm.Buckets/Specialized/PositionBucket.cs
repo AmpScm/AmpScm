@@ -6,8 +6,8 @@ namespace AmpScm.Buckets.Specialized
     {
         private protected long CurrentPosition { get; set; }
 
-        public PositionBucket(Bucket inner)
-            : base(inner)
+        public PositionBucket(Bucket source)
+            : base(source)
         {
         }
 

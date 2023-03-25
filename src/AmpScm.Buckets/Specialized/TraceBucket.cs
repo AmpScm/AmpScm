@@ -20,9 +20,9 @@ namespace AmpScm.Buckets.Specialized
         private string? _indent;
         private readonly string _name;
 
-        public TraceBucket(Bucket bucket, string? name=null)
+        public TraceBucket(Bucket source, string? name=null)
         {
-            Inner = bucket ?? throw new ArgumentNullException(nameof(bucket));
+            Inner = source ?? throw new ArgumentNullException(nameof(source));
             Id = Interlocked.Increment(ref _idNext);
 
             _name = name ?? Inner.Name; ;

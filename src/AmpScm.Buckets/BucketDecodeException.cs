@@ -10,6 +10,10 @@ namespace AmpScm.Buckets;
 [Serializable]
 public class BucketDecodeException : BucketException
 {
+    public BucketDecodeException()
+    {
+    }
+
     public BucketDecodeException(string message) : base(message)
     {
     }

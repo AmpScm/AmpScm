@@ -17,8 +17,8 @@ namespace AmpScm.Buckets.Specialized
         private Action<byte[]>? _onResult;
         private readonly bool _complete;
 
-        public CreateHashBucket(Bucket inner, HashAlgorithm hasher)
-            : base(inner)
+        public CreateHashBucket(Bucket source, HashAlgorithm hasher)
+            : base(source)
         {
             _hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
         }

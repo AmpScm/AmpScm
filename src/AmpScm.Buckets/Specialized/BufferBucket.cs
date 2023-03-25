@@ -10,33 +10,35 @@ namespace AmpScm.Buckets.Specialized
     internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
     {
         private readonly int _maxRam;
-        private readonly Bucket readBucket;
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        private readonly Bucket _readBucket;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly IBucketWriter _writer;
         private long _buffered;
         private long? _size;
         private bool _readEof;
         private bool _disposed;
 
-        public BufferBucket(Bucket inner, int maxMemory = 0)
-            : base(inner)
+        public BufferBucket(Bucket source, int maxMemory = 0)
+            : base(source)
         {
             if (maxMemory < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxMemory));
 
             _maxRam = maxMemory;
-            readBucket = new AggregateBucket(true, Array.Empty<Bucket>());
+            _readBucket = new AggregateBucket(true, Array.Empty<Bucket>());
             _writer = new MyWriter(this);
         }
 
         public async override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            var bb = await readBucket.ReadAsync(requested).ConfigureAwait(false);
+            var bb = await _readBucket.ReadAsync(requested).ConfigureAwait(false);
             if (!bb.IsEof || _readEof)
                 return bb;
 
             await BufferSomeMore(requested).ConfigureAwait(false);
 
-            return await readBucket.ReadAsync(requested).ConfigureAwait(false);
+            return await _readBucket.ReadAsync(requested).ConfigureAwait(false);
         }
 
         private async ValueTask BufferSomeMore(int requested)
@@ -61,7 +63,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override BucketBytes Peek()
         {
-            var bb = readBucket.Peek();
+            var bb = _readBucket.Peek();
 
             if (bb.IsEof && !_readEof)
                 return BucketBytes.Empty;
@@ -76,7 +78,7 @@ namespace AmpScm.Buckets.Specialized
                 await BufferSomeMore(minRequested).ConfigureAwait(false);
             }
 
-            return await readBucket.PollAsync(minRequested).ConfigureAwait(false);
+            return await _readBucket.PollAsync(minRequested).ConfigureAwait(false);
         }
 
         protected override void InnerDispose()
@@ -88,7 +90,7 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        public override long? Position => readBucket.Position;
+        public override long? Position => _readBucket.Position;
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
@@ -119,7 +121,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override void Reset()
         {
-            readBucket.Reset();
+            _readBucket.Reset();
         }
 
         public async ValueTask SeekAsync(long newPosition)
@@ -129,10 +131,10 @@ namespace AmpScm.Buckets.Specialized
                 await BufferSomeMore((int)(newPosition - _buffered)).ConfigureAwait(false);
             }
 
-            await readBucket.SeekAsync(newPosition).ConfigureAwait(false);
+            await _readBucket.SeekAsync(newPosition).ConfigureAwait(false);
         }
 
-        public override bool CanReset => readBucket.CanReset;
+        public override bool CanReset => _readBucket.CanReset;
 
         private sealed class MyWriter : IBucketWriter
         {
@@ -149,7 +151,7 @@ namespace AmpScm.Buckets.Specialized
 
             public void Write(Bucket bucket)
             {
-                (_bufb.readBucket as AggregateBucket)!.Append(bucket);
+                (_bufb._readBucket as AggregateBucket)!.Append(bucket);
             }
         }
     }

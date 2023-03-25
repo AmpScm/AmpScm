@@ -11,7 +11,9 @@ namespace AmpScm.Buckets.Specialized
     {
         private readonly Encoding _default;
         private State _state;
-        private Bucket _inner;
+#pragma warning disable CA2213 // Disposable fields should be disposed
+        private Bucket _source;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private long _position;
 
         private enum State
@@ -25,11 +27,11 @@ namespace AmpScm.Buckets.Specialized
 
         }
 
-        public TextNormalizeBucket(Bucket inner)
-            : base(inner)
+        public TextNormalizeBucket(Bucket source)
+            : base(source)
         {
             _state = State.Init;
-            _inner = inner;
+            _source = source;
             _default = DefaultEncoding;
         }
 
@@ -42,7 +44,7 @@ namespace AmpScm.Buckets.Specialized
         public override BucketBytes Peek()
         {
             if (_state == State.Done)
-                return _inner.Peek();
+                return _source.Peek();
             else
                 return BucketBytes.Empty;
         }
@@ -50,7 +52,7 @@ namespace AmpScm.Buckets.Specialized
         public ValueTask<BucketBytes> PollAsync(int minRequested = 1)
         {
             if (_state == State.Done)
-                return _inner.PollAsync(minRequested);
+                return _source.PollAsync(minRequested);
             else
                 return new (BucketBytes.Empty);
         }
@@ -69,12 +71,12 @@ namespace AmpScm.Buckets.Specialized
             switch (_state)
             {
                 case State.Done:
-                    bb = await _inner.ReadAsync(requested).ConfigureAwait(false);
+                    bb = await _source.ReadAsync(requested).ConfigureAwait(false);
                     _position += bb.Length;
                     return bb;
 
                 case State.HighScan:
-                    bb = await _inner.ReadAsync(requested).ConfigureAwait(false);
+                    bb = await _source.ReadAsync(requested).ConfigureAwait(false);
                     _position += bb.Length;
                     await HighScan().ConfigureAwait(false);
                     return bb;
@@ -92,7 +94,7 @@ namespace AmpScm.Buckets.Specialized
 
                             case (0xFF, 0xFE):
                             case (0xFE, 0xFF):
-                                _inner = new TextRecoderBucket(Source,
+                                _source = new TextRecoderBucket(Source,
                                     bb[0] == 0xFF ? Encoding.Unicode : Encoding.BigEndianUnicode);
 
                                 bb = await Source.ReadAsync(2).ConfigureAwait(false);
@@ -100,7 +102,7 @@ namespace AmpScm.Buckets.Specialized
                                     throw new BucketEofException(Source);
                                 _state = State.Done;
 
-                                bb = await _inner.ReadAsync(requested).ConfigureAwait(false);
+                                bb = await _source.ReadAsync(requested).ConfigureAwait(false);
                                 _position = bb.Length;
                                 return bb;
                         }
@@ -158,20 +160,20 @@ namespace AmpScm.Buckets.Specialized
                         if (maybeUtf8 > 0)
                         {
                             _state = State.Done;
-                            _inner = Source;
+                            _source = Source;
                             goto case State.Done;
                         }
                         else if (maybeUnicode > 2 && maybeUnicode > bb.Length / 8)
                         {
                             _state = State.Done;
-                            _inner = new TextRecoderBucket(Source,
+                            _source = new TextRecoderBucket(Source,
                                     odd >= Math.Max(2, (maybeUnicode / 4)) ? Encoding.Unicode : Encoding.BigEndianUnicode);
                             goto case State.Done;
                         }
                         else if (maybeUtf8 < 0)
                         {
                             _state = State.Done;
-                            _inner = new TextRecoderBucket(Source, _default);
+                            _source = new TextRecoderBucket(Source, _default);
                             goto case State.Done;
                         }
                     }
@@ -186,7 +188,7 @@ namespace AmpScm.Buckets.Specialized
                     {
                         if (bb.Length >= 3 && bb[1] == 0xBB && bb[2] == 0xBF)
                         {
-                            _inner = Source;
+                            _source = Source;
                             _state = State.Done;
                             _position = bb.Length - 3;
 
@@ -201,7 +203,7 @@ namespace AmpScm.Buckets.Specialized
 
                             if (bb2.Length > 0 && bb2[0] == 0xBF)
                             {
-                                _inner = Source;
+                                _source = Source;
                                 _state = State.Done;
                                 _position = bb2.Length - 1;
 
@@ -214,7 +216,7 @@ namespace AmpScm.Buckets.Specialized
                             {
                                 if (requested >= bb.Length + bb2.Length)
                                 {
-                                    _inner = Source;
+                                    _source = Source;
                                     _position = bb.Length + bb2.Length;
                                     _state = State.Done;
                                     return new byte[] { 0xEF, 0xBB }.AppendBytes(bb2);
@@ -227,7 +229,7 @@ namespace AmpScm.Buckets.Specialized
 
                             if (bb2.Length >= 2 && bb2[0] == 0xBB && bb2[1] == 0xBF)
                             {
-                                _inner = Source;
+                                _source = Source;
                                 _state = State.Done;
                                 _position = bb2.Length - 2;
 
@@ -241,12 +243,12 @@ namespace AmpScm.Buckets.Specialized
                                 // We don't have UTF-8
                                 _position = 0;
                                 _state = State.Done;
-                                _inner = new TextRecoderBucket(new byte[] { 0xEF }.AsBucket() + bb2.ToArray().AsBucket() + Source, _default);
+                                _source = new TextRecoderBucket(new byte[] { 0xEF }.AsBucket() + bb2.ToArray().AsBucket() + Source, _default);
                                 goto case State.Done;
                             }
                             else if (bb2.IsEof)
                             {
-                                _inner = Source;
+                                _source = Source;
                                 _state = State.Done;
                                 return new byte[] { 0xEF };
                             }
@@ -255,13 +257,13 @@ namespace AmpScm.Buckets.Specialized
 
                             if (bb2.IsEof)
                             {
-                                _inner = Source;
+                                _source = Source;
                                 _state = State.Done;
                                 return new byte[] { 0xEF, 0xBB };
                             }
                             else if (bb2[0] == 0xBF)
                             {
-                                _inner = Source;
+                                _source = Source;
                                 _state = State.Done;
 
                                 if (bb2.Length > 1)
@@ -283,11 +285,11 @@ namespace AmpScm.Buckets.Specialized
                         else
                             bck = Source;
 
-                        _inner = new TextRecoderBucket(bck,
+                        _source = new TextRecoderBucket(bck,
                                 bb[0] == 0xFF ? Encoding.Unicode : Encoding.BigEndianUnicode);
                         _state = State.Done;
 
-                        bb = await _inner.ReadAsync(requested).ConfigureAwait(false);
+                        bb = await _source.ReadAsync(requested).ConfigureAwait(false);
                         _position = bb.Length;
                         return bb;
                     }
@@ -298,7 +300,7 @@ namespace AmpScm.Buckets.Specialized
 
                         if (bb.Length == 1 && (bb[0] == 0xFF || bb[0] == 0xFE) && bb[0] != b0)
                         {
-                            _inner = new TextRecoderBucket(Source,
+                            _source = new TextRecoderBucket(Source,
                                 b0 == 0xFF ? Encoding.Unicode : Encoding.BigEndianUnicode);
                             _state = State.Done;
                             goto case State.Done;
@@ -310,7 +312,7 @@ namespace AmpScm.Buckets.Specialized
                             bb = new[] { b0, bb[0] };
                         }
                     }
-                    _inner = Source;
+                    _source = Source;
                     _state = State.HighScan;
                     _position = bb.Length;
                     await HighScan().ConfigureAwait(false);
@@ -379,13 +381,13 @@ namespace AmpScm.Buckets.Specialized
                 if (maybeUtf8 >= 1)
                 {
                     _state = State.Done;
-                    _inner = Source;
+                    _source = Source;
                 }
                 else if (maybeUtf8 < 0)
                 {
                     _position -= bb.Length;
-                    _inner = new TextRecoderBucket(bb.ToArray().AsBucket() + _inner, _default);
-                    bb = await _inner.ReadAsync(requested).ConfigureAwait(false);
+                    _source = new TextRecoderBucket(bb.ToArray().AsBucket() + _source, _default);
+                    bb = await _source.ReadAsync(requested).ConfigureAwait(false);
                     _position += bb.Length;
                 }
             }
@@ -400,7 +402,7 @@ namespace AmpScm.Buckets.Specialized
             base.Reset();
             _state = State.Init;
             _position = 0;
-            _inner = base.Source;
+            _source = base.Source;
         }
 
         public override Bucket Duplicate(bool reset = false)

@@ -7,14 +7,14 @@ namespace AmpScm.Buckets.Specialized;
 
 internal sealed class LeaveBucket : WrappingBucket
 {
-    private readonly Func<BucketBytes, ValueTask>? _leftHandler;
+    private readonly Func<BucketBytes, long, ValueTask>? _leftHandler;
     private long? _totalSize;
     private bool _done;
     private byte[]? _bufferLeft;
 
     private long CurrentPosition { get; set; }
 
-    public LeaveBucket(Bucket inner, int leaveBytes, Func<BucketBytes, ValueTask>? leftHandler) : base(inner)
+    public LeaveBucket(Bucket source, int leaveBytes, Func<BucketBytes, long, ValueTask>? leftHandler) : base(source)
     {
         if (leaveBytes < 1)
             throw new ArgumentOutOfRangeException(nameof(leaveBytes));
@@ -57,7 +57,7 @@ internal sealed class LeaveBucket : WrappingBucket
                     var left = await Source.ReadExactlyAsync(LeaveBytes).ConfigureAwait(false);
 
                     if (_leftHandler is { })
-                        await _leftHandler.Invoke(left).ConfigureAwait(false);
+                        await _leftHandler.Invoke(left, CurrentPosition).ConfigureAwait(false);
 
                     return BucketBytes.Eof;
                 }
@@ -156,7 +156,7 @@ internal sealed class LeaveBucket : WrappingBucket
             {
                 _done = true;
                 if (_leftHandler is { })
-                    await _leftHandler.Invoke(_bufferLeft).ConfigureAwait(false);
+                    await _leftHandler.Invoke(_bufferLeft, CurrentPosition).ConfigureAwait(false);
 
                 return BucketBytes.Eof;
             }
@@ -169,6 +169,11 @@ internal sealed class LeaveBucket : WrappingBucket
 
     public override BucketBytes Peek()
     {
+        var bb = Source.Peek();
+
+        if (bb.Length > LeaveBytes)
+            return bb.Slice(0, bb.Length - LeaveBytes);
+
         return BucketBytes.Empty;
     }
 
@@ -176,7 +181,7 @@ internal sealed class LeaveBucket : WrappingBucket
     {
         var i = Source.Duplicate(reset);
 
-        return new LeaveBucket(i, LeaveBytes, (_) => new());
+        return new LeaveBucket(i, LeaveBytes, (_, _) => new());
     }
 
     public override async ValueTask<long?> ReadRemainingBytesAsync()

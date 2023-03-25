@@ -10,8 +10,8 @@ namespace AmpScm.Buckets.Specialized
 
         private bool _ensure;
 
-        public TakeBucket(Bucket inner, long limit, bool ensure)
-            : base(inner)
+        public TakeBucket(Bucket source, long limit, bool ensure)
+            : base(source)
         {
             if (limit < 0)
                 throw new ArgumentOutOfRangeException(nameof(limit));

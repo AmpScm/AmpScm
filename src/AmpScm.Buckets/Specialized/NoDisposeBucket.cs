@@ -2,7 +2,7 @@
 {
     internal sealed class NoDisposeBucket : Specialized.ProxyBucket<NoDisposeBucket>.WithPoll
     {
-        public NoDisposeBucket(Bucket inner) : base(inner, true)
+        public NoDisposeBucket(Bucket source) : base(source, true)
         {
         }
 

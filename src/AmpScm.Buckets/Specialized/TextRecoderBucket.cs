@@ -22,9 +22,9 @@ namespace AmpScm.Buckets.Specialized
         private long _position;
         private bool _preampbleScanned;
 
-        public TextRecoderBucket(Bucket inner, Encoding fromEncoding, Encoding? toEncoding=null) : base(inner)
+        public TextRecoderBucket(Bucket source, Encoding fromEncoding, Encoding? toEncoding = null) : base(source)
         {
-            if (fromEncoding == null)
+            if (fromEncoding is null)
                 throw new ArgumentNullException(nameof(fromEncoding));
             _sourceEncoding = fromEncoding;
             _targetEncoding = toEncoding ?? Encoding.UTF8;
@@ -99,7 +99,7 @@ namespace AmpScm.Buckets.Specialized
 
 #else
                 var (arr, offs) = bb.ExpandToArray();
-                _decoder.Convert(arr, offs, bb.Length, _charBuffer, _toEncode, _charBuffer.Length-_toEncode, false, out var bytesUsed, out var charsDecoded, out var completed);
+                _decoder.Convert(arr, offs, bb.Length, _charBuffer, _toEncode, _charBuffer.Length - _toEncode, false, out var bytesUsed, out var charsDecoded, out var completed);
 #endif
                 charsDecoded += _toEncode;
                 _toEncode = 0;

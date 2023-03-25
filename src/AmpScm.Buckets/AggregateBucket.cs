@@ -27,46 +27,46 @@ namespace AmpScm.Buckets
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private int _nDispose;
 
-        public AggregateBucket(params Bucket[] items)
+        public AggregateBucket(params Bucket[] sources)
         {
-            if (items is null)
-                throw new ArgumentNullException(nameof(items));
+            if (sources is null)
+                throw new ArgumentNullException(nameof(sources));
 
             _buckets = new();
             _nDispose = 1;
-            _buckets.AddRange(items);
+            _buckets.AddRange(sources);
         }
 
-        public AggregateBucket(bool keepOpen, params Bucket[] items)
-            : this(items)
+        public AggregateBucket(bool keepOpen, params Bucket[] sources)
+            : this(sources)
         {
             _keepOpen = keepOpen;
         }
 
-        public Bucket Append(Bucket bucket)
+        public Bucket Append(Bucket source)
         {
-            if (bucket is null || bucket is EmptyBucket)
+            if (source is null || source is EmptyBucket)
                 return this;
 
             lock (LockOn)
             {
-                _buckets.Add(bucket);
+                _buckets.Add(source);
             }
 
             return this;
         }
 
-        public Bucket Prepend(Bucket bucket)
+        public Bucket Prepend(Bucket source)
         {
-            if (bucket is null || bucket is EmptyBucket)
+            if (source is null || source is EmptyBucket)
                 return this;
 
             if (_keepOpen)
-                return new SimpleAggregate(bucket, this);
+                return new SimpleAggregate(source, this);
             else
                 lock(LockOn)
                 {
-                    _buckets.Insert(0, bucket);
+                    _buckets.Insert(0, source);
                 }
             return this;
         }

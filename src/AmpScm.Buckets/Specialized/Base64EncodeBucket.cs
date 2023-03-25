@@ -10,8 +10,8 @@
         private int nl;
 
 
-        public Base64EncodeBucket(Bucket bucket, bool wrapLines, bool addPadding)
-            : base(bucket)
+        public Base64EncodeBucket(Bucket source, bool wrapLines, bool addPadding)
+            : base(source)
         {
             _wrapLines = wrapLines;
             _addPadding = addPadding;

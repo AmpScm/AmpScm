@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Specialized
 
         public long FirstPosition { get; private set; }
 
-        public SkipBucket(Bucket inner, long firstPosition, bool ensure) : base(inner)
+        public SkipBucket(Bucket source, long firstPosition, bool ensure) : base(source)
         {
             if (firstPosition <= 0)
                 throw new ArgumentOutOfRangeException(nameof(firstPosition));

@@ -7,8 +7,8 @@ namespace AmpScm.Buckets.Specialized
     {
         private Func<BucketBytes, ValueTask>? _reader;
 
-        public AlsoReadBucket(Bucket inner, Func<BucketBytes, ValueTask> reader)
-            : base(inner)
+        public AlsoReadBucket(Bucket source, Func<BucketBytes, ValueTask> reader)
+            : base(source)
         {
             _reader = reader;
         }

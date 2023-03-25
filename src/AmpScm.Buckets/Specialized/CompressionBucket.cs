@@ -7,10 +7,10 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal class CompressionBucket : WrappingBucket
+    internal sealed class CompressionBucket : WrappingBucket
     {
-        private protected Stream Src { get; }
-        protected Stream Processed { get; }
+        private Stream Src { get; }
+        private Stream Processed { get; }
 
         private byte[]? _buffer;
         private bool _eof;
@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Specialized
         private readonly AggregateBucket? _written;
         private BucketBytes _remaining;
 
-        public CompressionBucket(Bucket inner, Func<Stream, Stream> compressor) : base(inner.NoDispose())
+        public CompressionBucket(Bucket source, Func<Stream, Stream> compressor) : base(source.NoDispose())
         {
             Src = Source.AsStream(new Writer(this));
             Processed = compressor(Src);

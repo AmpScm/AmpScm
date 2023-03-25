@@ -22,8 +22,8 @@ namespace AmpScm.Buckets.Specialized
             CRSplit
         }
 
-        public EolNormalizeBucket(Bucket inner, BucketEol acceptedEols, BucketEol producedEol = BucketEol.LF)
-            : base(inner)
+        public EolNormalizeBucket(Bucket source, BucketEol acceptedEols, BucketEol producedEol = BucketEol.LF)
+            : base(source)
         {
             if (0 != (acceptedEols & ~BucketEol.EolMask) || acceptedEols == BucketEol.None)
                 throw new ArgumentOutOfRangeException(nameof(acceptedEols));

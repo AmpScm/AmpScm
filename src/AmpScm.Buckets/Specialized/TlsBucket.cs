@@ -41,8 +41,8 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private WaitForDataBucket WriteBucket { get; } = new WaitForDataBucket();
 
-        public TlsBucket(Bucket reader, IBucketWriter writer, string targetHost, int bufferSize = 16384)
-            : base(reader)
+        public TlsBucket(Bucket source, IBucketWriter writer, string targetHost, int bufferSize = 16384)
+            : base(source)
         {
             InnerWriter = writer;
             BufferSize = bufferSize;

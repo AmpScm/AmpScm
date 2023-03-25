@@ -9,20 +9,20 @@ namespace AmpScm.Buckets.Specialized
 {
     public abstract class CombineBucket : WrappingBucket
     {
-        protected Bucket Left => Source;
-        protected Bucket Right { get; }
+        protected Bucket LeftSource => Source;
+        protected Bucket RightSource { get; }
 
-        protected CombineBucket(Bucket left, Bucket right)
-            : base(left)
+        protected CombineBucket(Bucket leftSource, Bucket rightSource)
+            : base(leftSource)
         {
-            Right = right ?? throw new ArgumentNullException(nameof(right));
+            RightSource = rightSource ?? throw new ArgumentNullException(nameof(rightSource));
         }
 
         protected override void InnerDispose()
         {
             try
             {
-                Right.Dispose();
+                RightSource.Dispose();
             }
             finally
             {
