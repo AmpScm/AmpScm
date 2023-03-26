@@ -203,13 +203,16 @@ public class OcbDecodeBucket : ConversionBucket
 #endif
     }
 
-    private byte[] Encipher(byte[] input)
+    private byte[] Encipher(ReadOnlyMemory<byte> input)
     {
 #if NETCOREAPP
-        return _aes.EncryptCbc(input, _zero16, PaddingMode.None);
+        return _aes.EncryptCbc(input.Span, _zero16, PaddingMode.None);
 #else
+        if (!MemoryMarshal.TryGetArray(input, out var seg))
+            throw new InvalidOperationException();
+
         using var ec = _aes.CreateEncryptor();
-        return ec.TransformFinalBlock(input, 0, input.Length);
+        return ec.TransformFinalBlock(seg.Array!, seg.Offset, seg.Count);
 #endif
     }
 
@@ -221,7 +224,7 @@ public class OcbDecodeBucket : ConversionBucket
         if (!MemoryMarshal.TryGetArray(input, out var seg))
             throw new InvalidOperationException();
 
-        using var ec = _aes.CreateEncryptor();
+        using var ec = _aes.CreateDecryptor();
         return ec.TransformFinalBlock(seg.Array!, seg.Offset, seg.Count);
 #endif
     }
