@@ -54,10 +54,18 @@ internal sealed class LeaveBucket : WrappingBucket
                 if (requested <= 0)
                 {
                     _done = true;
-                    var left = await Source.ReadExactlyAsync(LeaveBytes).ConfigureAwait(false);
+                    var left = await Source.ReadExactlyAsync(LeaveBytes + 1).ConfigureAwait(false);
+
+                    if (left.Length > LeaveBytes)
+                        throw new BucketException($"{Source} bucket has more bytes than reported by remaining");
 
                     if (_leftHandler is { })
                         await _leftHandler.Invoke(left, CurrentPosition).ConfigureAwait(false);
+
+                    left = await Source.ReadAsync(1).ConfigureAwait(false);
+
+                    if (!left.IsEmpty)
+                        throw new BucketException($"{Source} bucket has data after the left block");
 
                     return BucketBytes.Eof;
                 }
@@ -89,9 +97,11 @@ internal sealed class LeaveBucket : WrappingBucket
                     _bufferLeft = b.ToArray();
                     continue; // And continue reading
                 }
+                else
+                    return BucketBytes.Eof;
             }
 
-            if (_bufferLeft!.Length > LeaveBytes)
+            if (_bufferLeft.Length > LeaveBytes)
             {
                 // We have data that we can just return
                 int have = _bufferLeft.Length - LeaveBytes;

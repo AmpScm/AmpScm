@@ -268,24 +268,58 @@ public class OcbDecodeBucket : ConversionBucket
     }
 
     byte[]? _annotation;
-    private void LeftData(BucketBytes bb, long length)
+    bool _verifyLater;
+
+    private void LeftData(BucketBytes bb)
     {
-        _annotation = bb.ToArray();
-        if (_annotation.Length != TagSize)
-            throw new BucketException($"Couldn't fetch final tag of {this} bucket");
+        if (!_verifyLater)
+        {
+            // We received the data before we were done reading
+            _annotation = bb.ToArray();
+            if (_annotation.Length != TagSize)
+                throw new BucketException($"Couldn't fetch final tag of {this} bucket");
+        }
+        else
+        {
+            // We are already done reading. The calculated tag is cached for us
+            byte[] tag = _annotation!;
+
+            var annotation = bb.ToArray();
+            if (annotation.Length != TagSize)
+                throw new BucketException($"Couldn't fetch final tag of {this} bucket");
+
+            _verifyLater = false; // State now same as normal scenario
+
+            bool ok = tag.AsSpan(0, TagSize).SequenceEqual(annotation);
+            if (_verified is { })
+                _verified(ok);
+            else if (!ok)
+                throw new BucketDecryptionException($"Decrypted data in {this} bucket not valid");
+
+            _annotation = null;
+        }
     }
 
-    void DoVerify(bool fromConvert)
+    void DoVerify()
     {
-        Debug.Assert(_annotation != null);
         byte[] tag = Encipher(_checksum);
         SpanXor(tag, Hash(_associatedData).Span);
 
-        bool ok = tag.AsSpan(0, TagSize).SequenceEqual(_annotation);
-        if (_verified is { })
-            _verified(ok);
-        else if (!ok)
-            throw new BucketDecryptionException($"Decrypted data in {this} bucket not valid");
+        if (_annotation is null)
+        {
+            _verifyLater = true;
+            _annotation = tag;
+        }
+        else
+        {
+            bool ok = tag.AsSpan(0, TagSize).SequenceEqual(_annotation);
+            if (_verified is { })
+                _verified(ok);
+            else if (!ok)
+                throw new BucketDecryptionException($"Decrypted data in {this} bucket not valid");
+
+            _annotation = null;
+        }
     }
 
     protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
@@ -297,7 +331,7 @@ public class OcbDecodeBucket : ConversionBucket
 
         if (!_byteCollector.IsEmpty || final)
         {
-            int nFromSrc = Math.Max(_byteCollector.Length - BlockLength, 0);
+            int nFromSrc = Math.Min(BlockLength - _byteCollector.Length, sourceData.Length);
             _byteCollector.Append(sourceData.Slice(0, nFromSrc));
             if (nFromSrc > 0)
                 sourceData = sourceData.Slice(nFromSrc);
@@ -326,7 +360,7 @@ public class OcbDecodeBucket : ConversionBucket
                     SpanXor(_checksum, GetMask(-1));
                 }
 
-                DoVerify(true);
+                DoVerify();
                 sourceData = BucketBytes.Eof;
 
                 return srcData.Length > 0 ? new(_buffer2, 0, srcData.Length) : BucketBytes.Eof;
@@ -357,8 +391,6 @@ public class OcbDecodeBucket : ConversionBucket
 
         if (srcData.Length == BlockLength)
         {
-            Debug.Assert(srcData.Length == BlockLength);
-
             ++_inChunkBlock;
 
             //Debug.WriteLine($"trailing zeros of {_inChunkBlock} is {TrailingZeros(_inChunkBlock)}");
@@ -457,7 +489,7 @@ public class OcbDecodeBucket : ConversionBucket
     {
         public void Left(BucketBytes bb, long length)
         {
-            Bucket?.LeftData(bb, length);
+            Bucket?.LeftData(bb);
         }
 
         public OcbDecodeBucket? Bucket { get; set; }
