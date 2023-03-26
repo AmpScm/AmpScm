@@ -309,7 +309,8 @@ namespace AmpScm.Buckets.Cryptography
 
                                 if (hasSecretKey)
                                 {
-                                    byte sku = await bucket.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
+                                    byte sku = await bucket.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(bucket);
+                                    Bucket keySrc = bucket;
 
                                     if (sku == 0)
                                     {
@@ -319,14 +320,23 @@ namespace AmpScm.Buckets.Cryptography
                                     {
                                         var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                                        var s2k = await ReadPgpS2kSpecifierAsync(bucket).ConfigureAwait(false);
+                                        var s2k = await ReadPgpS2kSpecifierAsync(bucket, cipherAlgorithm).ConfigureAwait(false);
 
-                                        if (GetPassPhrase?.Invoke(SignaturePromptContext.Empty) is { } password)
+                                        if (GetPassPhrase?.Invoke(SignaturePromptContext.Empty) is not { } password)
                                         {
-                                            byte[] key = DeriveS2kKey(cipherAlgorithm, s2k, password);
+                                            hasSecretKey = false;
+                                            await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+
+                                        }
+                                        else
+                                        {
+                                            byte[] key = DeriveS2kKey(s2k, password);
+
+                                            byte[] iv = (await bucket.ReadExactlyAsync(key.Length).ConfigureAwait(false)).ToArray();
+
+                                            keySrc = CreateDecryptBucket(bucket, s2k.CipherAlgorithm, key, iv);
                                         }
 
-                                        throw new NotImplementedException(); // More specifics based on the algorithm
                                     }
                                     else
                                     {
@@ -334,39 +344,41 @@ namespace AmpScm.Buckets.Cryptography
                                         throw new InvalidOperationException(); // More specifics based on the algorithm
                                     }
 
-
-                                    switch (keyPublicKeyType)
+                                    if (hasSecretKey)
                                     {
-                                        case OpenPgpPublicKeyType.Rsa:
-                                            nrOfInts += 4;
-                                            break;
-                                        case OpenPgpPublicKeyType.Dsa:
-                                            nrOfInts += 1;
-                                            break;
-                                        case OpenPgpPublicKeyType.Elgamal:
-                                            nrOfInts += 1;
-                                            break;
-                                        default:
-                                            if (version >= 4)
-                                                nrOfInts += 1; // Encoded in one int
-                                            else
-                                                throw new NotImplementedException($"Unexpected private key key type {keyPublicKeyType}");
-                                            break;
-                                    }
+                                        switch (keyPublicKeyType)
+                                        {
+                                            case OpenPgpPublicKeyType.Rsa:
+                                                nrOfInts += 4;
+                                                break;
+                                            case OpenPgpPublicKeyType.Dsa:
+                                                nrOfInts += 1;
+                                                break;
+                                            case OpenPgpPublicKeyType.Elgamal:
+                                                nrOfInts += 1;
+                                                break;
+                                            default:
+                                                if (version >= 4)
+                                                    nrOfInts += 1; // Encoded in one int
+                                                else
+                                                    throw new NotImplementedException($"Unexpected private key key type {keyPublicKeyType}");
+                                                break;
+                                        }
 
-                                    while (bigInts.Count < nrOfInts && await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
-                                    {
-                                        bigInts.Add(bi);
-                                    }
-
-
-                                    if (nrOfInts != bigInts.Count)
-                                        throw new BucketException($"Didn't get the {nrOfInts} big integers required for a {keyPublicKeyType} key");
+                                        while (bigInts.Count < nrOfInts && await ReadPgpMultiPrecisionInteger(keySrc).ConfigureAwait(false) is ReadOnlyMemory<byte> bi)
+                                        {
+                                            bigInts.Add(bi);
+                                        }
 
 
-                                    if (sku is 0 or 255)
-                                    {
-                                        await bucket.ReadNetworkUInt16Async().ConfigureAwait(false);
+                                        if (nrOfInts != bigInts.Count)
+                                            throw new BucketException($"Didn't get the {nrOfInts} big integers required for a {keyPublicKeyType} key");
+
+
+                                        if (sku is 0 or 255)
+                                        {
+                                            await bucket.ReadNetworkUInt16Async().ConfigureAwait(false);
+                                        }
                                     }
                                 }
 
@@ -770,70 +782,6 @@ namespace AmpScm.Buckets.Cryptography
             return bb.ToArray();
         }
 
-        private static async ValueTask SequenceToList(List<ReadOnlyMemory<byte>> vals, DerBucket der2)
-        {
-            while (true)
-            {
-                var (b, bt) = await der2.ReadValueAsync().ConfigureAwait(false);
-
-                if (b is null)
-                    break;
-
-                if (bt == DerType.Sequence)
-                {
-                    using var bq = new DerBucket(b);
-                    await SequenceToList(vals, bq).ConfigureAwait(false);
-                }
-                else
-                {
-                    var bb = await b!.ReadExactlyAsync(32768).ConfigureAwait(false);
-
-                    if (bt == DerType.BitString)
-                    {
-                        // This next check matches for DSA.
-                        // I'm guessing this is some magic
-                        if (bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x81 }) || bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x80 }))
-                            vals.Add(bb.Slice(4).ToArray());
-                        else
-                            vals.Add(bb.ToArray());
-                    }
-                    else
-                        vals.Add(bb.ToArray());
-
-                    await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
-                }
-            }
-        }
-
-        private static bool SplitSignatureInt(int index, OpenPgpPublicKeyType signaturePublicKeyType)
-        {
-            return signaturePublicKeyType == OpenPgpPublicKeyType.ECDSA && index == 0;
-        }
-
-        internal static async ValueTask<ReadOnlyMemory<byte>?> ReadPgpMultiPrecisionInteger(Bucket sourceData)
-        {
-            var bb = await sourceData.ReadExactlyAsync(2).ConfigureAwait(false);
-            if (bb.IsEof)
-                return null;
-            else if (bb.Length != 2)
-                throw new BucketEofException(sourceData);
-
-            ushort bitLen = NetBitConverter.ToUInt16(bb, 0);
-
-            if (bitLen == 0)
-                return null;
-            else
-            {
-                int byteLen = (bitLen + 7) / 8;
-                bb = await sourceData.ReadExactlyAsync(byteLen).ConfigureAwait(false);
-
-                if (bb.Length != byteLen)
-                    throw new BucketEofException(sourceData);
-
-                return bb.ToArray();
-            }
-        }
-
         public async ValueTask<Signature> ReadKeyAsync()
         {
             await ReadAsync().ConfigureAwait(false);
@@ -842,19 +790,6 @@ namespace AmpScm.Buckets.Cryptography
 
             return _keys[0].WithSubKeys(_keys.Skip(1), _mailAddress);
         }
-
-        private static SignatureAlgorithm GetKeyAlgo(OpenPgpPublicKeyType keyPublicKeyType)
-            => keyPublicKeyType switch
-            {
-                OpenPgpPublicKeyType.Rsa => SignatureAlgorithm.Rsa,
-                OpenPgpPublicKeyType.Dsa => SignatureAlgorithm.Dsa,
-                OpenPgpPublicKeyType.ECDSA => SignatureAlgorithm.Ecdsa,
-                OpenPgpPublicKeyType.Ed25519 => SignatureAlgorithm.Ed25519,
-                OpenPgpPublicKeyType.ECDH => SignatureAlgorithm.Ecdh,
-                OpenPgpPublicKeyType.Curve25519 => SignatureAlgorithm.Curve25519,
-                OpenPgpPublicKeyType.Elgamal => SignatureAlgorithm.Elgamal,
-                _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
-            };
 
         public async ValueTask<ReadOnlyMemory<byte>> ReadFingerprintAsync()
         {
@@ -1020,273 +955,7 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
-        internal static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory)
-        {
-            int n = readOnlyMemory.Length & 3;
 
-            if (n == 1 && readOnlyMemory.Span[0] == 0 && (readOnlyMemory.Length & 1) == 1)
-                return readOnlyMemory.Slice(1).ToArray();
-            else if (n == 3)
-            {
-                byte[] nw = new byte[readOnlyMemory.Length + 1];
-
-                readOnlyMemory.CopyTo(new Memory<byte>(nw, 1, readOnlyMemory.Length));
-                return nw;
-            }
-            else
-                return readOnlyMemory.ToArray();
-        }
-
-        private static HashAlgorithmName GetDotNetHashAlgorithmName(OpenPgpHashAlgorithm hashAlgorithm)
-            => hashAlgorithm switch
-            {
-                OpenPgpHashAlgorithm.SHA256 => HashAlgorithmName.SHA256,
-                OpenPgpHashAlgorithm.SHA512 => HashAlgorithmName.SHA512,
-                OpenPgpHashAlgorithm.SHA384 => HashAlgorithmName.SHA384,
-                _ => throw new NotImplementedException($"OpenPGP scheme {hashAlgorithm} not mapped yet.")
-            };
-
-        internal static ReadOnlyMemory<byte>[] GetEcdsaValues(IEnumerable<ReadOnlyMemory<byte>> vals, bool pgp = false)
-        {
-            var curve = vals.First();
-            byte[] v2 = vals.Skip(1).First().ToArray();
-
-            if (pgp)
-            {
-                string curveName;
-
-                if (curve.Span.SequenceEqual(new byte[] { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07 }))
-                    curveName = nameof(ECCurve.NamedCurves.nistP256);
-                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x22 }))
-                    curveName = nameof(ECCurve.NamedCurves.nistP384);
-                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x23 }))
-                    curveName = nameof(ECCurve.NamedCurves.nistP521);
-                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07 }))
-                    curveName = nameof(ECCurve.NamedCurves.brainpoolP256r1);
-                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D }))
-                    curveName = nameof(ECCurve.NamedCurves.brainpoolP512t1);
-                else
-                    throw new NotImplementedException("Unknown curve oid in ecdsa key");
-
-#pragma warning disable CA1308 // Normalize strings to uppercase
-                curve = Encoding.ASCII.GetBytes(curveName.ToLowerInvariant());
-#pragma warning restore CA1308 // Normalize strings to uppercase
-            }
-
-            return v2[0] switch
-            {
-                4 => // X and Y follow
-                     // X and Y both have the same number of bits... Half the value
-                    new[]
-                    {
-                        // The Curve name is stored as integer... Nice :(.. But at least consistent
-                        curve,
-
-                        v2.Skip(1).Take(v2.Length / 2).ToArray(),
-                        v2.Skip(1 + v2.Length / 2).Take(v2.Length / 2).ToArray(),
-                    },
-
-                0x40 when pgp // Custom compressed poing see rfc4880bis-06
-                    => new[]
-                    {
-                        curve,
-
-                        v2.Skip(1).ToArray(),
-                    },
-                2       // Y is even
-                or 3    // Y is odd
-                or _ =>
-                // TODO: Find some implementation to calculate X from Y
-                    throw new NotImplementedException("Only X and Y follow format is supported at this time"),
-            };
-
-        }
-
-        private static async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created, OpenPgpHashAlgorithm hashAlgorithm)
-        {
-            sourceData = hashAlgorithm switch
-            {
-                OpenPgpHashAlgorithm.SHA256 => sourceData.SHA256(created),
-                OpenPgpHashAlgorithm.SHA512 => sourceData.SHA512(created),
-                OpenPgpHashAlgorithm.SHA384 => sourceData.SHA384(created),
-                OpenPgpHashAlgorithm.SHA1 => sourceData.SHA1(created),
-                OpenPgpHashAlgorithm.MD5 => sourceData.MD5(created),
-#if NETFRAMEWORK
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-                OpenPgpHashAlgorithm.MD160 => sourceData.Hash(RIPEMD160.Create(), created),
-#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
-#else
-                OpenPgpHashAlgorithm.MD160 or
-#endif
-                OpenPgpHashAlgorithm.SHA224 => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} not supported yet"),
-                _ => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} not supported yet"),
-            };
-            await sourceData.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
-        }
-
-        private static async ValueTask<BucketBytes> ReadSshStringAsync(Bucket bucket)
-        {
-            var bb = await bucket.ReadExactlyAsync(sizeof(int)).ConfigureAwait(false);
-
-            if (bb.IsEof)
-                return BucketBytes.Eof;
-            else if (bb.Length < sizeof(int))
-                throw new BucketEofException(bucket);
-
-            int len = NetBitConverter.ToInt32(bb, 0);
-
-            if (len == 0)
-                return BucketBytes.Empty;
-
-            return await bucket.ReadExactlyAsync(len).ConfigureAwait(false);
-        }
-
-        internal static ReadOnlyMemory<byte>[] ParseSshStrings(ReadOnlyMemory<byte> data)
-        {
-            List<ReadOnlyMemory<byte>> mems = new();
-
-            // HACK^2: We know we have a memory only bucket, so ignore everything async
-            // And we also know the result will refer to the original data, so returning
-            // references is safe in this specific edge case.
-
-            var b = data.AsBucket();
-
-            while (ReadSshStringAsync(b).AsTask().Result is BucketBytes bb && !bb.IsEof)
-            {
-                mems.Add(bb.Memory);
-            }
-
-            return mems.ToArray();
-        }
-
-        internal static string FingerprintToString(ReadOnlyMemory<byte> fingerprint)
-        {
-            if (fingerprint.Length == 0)
-                throw new ArgumentNullException(nameof(fingerprint));
-
-            byte b0 = fingerprint.Span[0];
-
-            if (b0 >= 3 && b0 <= 5) // OpenPgp fingeprint formats 3-5
-                return string.Join("", Enumerable.Range(1, fingerprint.Length - 1).Select(i => fingerprint.Span[i].ToString("X2", CultureInfo.InvariantCulture)));
-            else if (b0 == 0 && fingerprint.Span[1] == 0 && fingerprint.Span[2] == 0)
-            {
-                var vals = ParseSshStrings(fingerprint);
-
-#if NETCOREAPP
-                string b64 = Convert.ToBase64String(fingerprint.Span);
-#else
-                string b64 = Convert.ToBase64String(fingerprint.ToArray());
-#endif
-
-                return $"{Encoding.ASCII.GetString(vals[0].ToArray())} {b64}";
-            }
-
-            return "";
-        }
-
-        private static async ValueTask<uint?> ReadLengthAsync(Bucket bucket)
-        {
-            return (await OpenPgpContainer.ReadLengthAsync(bucket).ConfigureAwait(false)).Length;
-        }
-
-        internal static async ValueTask<(OpenPgpHashAlgorithm Algorithm, byte[]? Salt, int HashByteCount)> ReadPgpS2kSpecifierAsync(Bucket bucket)
-        {
-            byte type = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-            OpenPgpHashAlgorithm alg;
-            byte[] salt;
-
-            switch (type)
-            {
-                case 0:
-                    { // Simple S2K
-                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
-
-                        return (alg, null, 0);
-                    }
-                case 1:
-                    { // Salted S2k
-                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
-                        salt = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
-
-                        return (alg, salt, 0);
-                    }
-                // 2 : reserved
-                case 3:
-                    { // Iterated and Salted S2K
-                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
-                        salt = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
-                        int count = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-
-                        int c = 16 + (count & 0xF) << ((count >> 4) + 6);
-
-                        return (alg, salt, c);
-                    }
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        internal static byte[] DeriveS2kKey(OpenPgpSymmetricAlgorithm cipherAlgorithm, (OpenPgpHashAlgorithm Algorithm, byte[]? Salt, int HashByteCount) s2k, string password)
-        {
-            int bitsRequired = cipherAlgorithm switch
-            {
-                OpenPgpSymmetricAlgorithm.Aes => 128,
-                OpenPgpSymmetricAlgorithm.Aes192 => 192,
-                OpenPgpSymmetricAlgorithm.Aes256 => 256,
-                _ => throw new NotImplementedException()
-            };
-
-            int bytesRequired = bitsRequired / 8;
-            List<byte> result = new();
-            int zeros = 0;
-
-            while (result.Count < bytesRequired)
-            {
-                IEnumerable<byte> pwd = Encoding.UTF8.GetBytes(password);
-
-                if (s2k.Salt != null)
-                {
-                    pwd = s2k.Salt.Concat(pwd);
-                }
-
-                if (zeros > 0)
-                    pwd = Enumerable.Range(0, zeros).Select(_ => (byte)0).Concat(pwd);
-                zeros++;
-
-                byte[] toHash = pwd.ToArray();
-
-                using HashAlgorithm ha = s2k.Algorithm switch
-                {
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-                    OpenPgpHashAlgorithm.SHA1 => SHA1.Create(),
-#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
-                    OpenPgpHashAlgorithm.SHA256 => SHA256.Create(),
-                    _ => throw new InvalidOperationException()
-                };
-
-                if (s2k.HashByteCount <= toHash.Length)
-                {
-                    result.AddRange(ha.ComputeHash(toHash));
-                    continue;
-                }
-
-                int nHashBytes = s2k.HashByteCount;
-                do
-                {
-                    int n = Math.Min(nHashBytes, toHash.Length);
-                    ha.TransformBlock(toHash, 0, n, null, 0);
-
-                    nHashBytes -= n;
-                }
-                while (nHashBytes > 0);
-
-                ha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-
-                result.AddRange(ha.Hash!);
-            }
-
-            return result.Take(bytesRequired).ToArray();
-        }
     }
 }
 

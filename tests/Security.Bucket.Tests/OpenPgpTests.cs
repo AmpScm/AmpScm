@@ -519,7 +519,7 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
         Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
     }
 
-    [TestMethod, Ignore]
+    [TestMethod]
     public async Task TestS2k()
     {
         const string Privy = @"-----BEGIN PGP PRIVATE KEY BLOCK-----

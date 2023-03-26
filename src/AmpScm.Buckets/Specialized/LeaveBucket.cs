@@ -54,10 +54,7 @@ internal sealed class LeaveBucket : WrappingBucket
                 if (requested <= 0)
                 {
                     _done = true;
-                    var left = await Source.ReadExactlyAsync(LeaveBytes + 1).ConfigureAwait(false);
-
-                    if (left.Length > LeaveBytes)
-                        throw new BucketException($"{Source} bucket has more bytes than reported by remaining");
+                    var left = await Source.ReadExactlyAsync(LeaveBytes).ConfigureAwait(false);
 
                     if (_leftHandler is { })
                         await _leftHandler.Invoke(left, CurrentPosition).ConfigureAwait(false);

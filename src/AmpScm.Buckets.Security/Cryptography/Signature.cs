@@ -126,7 +126,7 @@ namespace AmpScm.Buckets.Cryptography
             string[] items = line.Split(new char[] { ' ' }, 3);
             byte[] data = Convert.FromBase64String(items[1]);
 
-            var vals = SignatureBucket.ParseSshStrings(data);
+            var vals = CryptoDataBucket.ParseSshStrings(data);
 
             string name = Encoding.ASCII.GetString(vals[0].ToArray());
 

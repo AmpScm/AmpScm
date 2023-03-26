@@ -283,12 +283,12 @@ namespace AmpScm.Buckets.Cryptography
                                 Debug.Assert(ocb == 2);
                             }
 
-                            var s2k = await SignatureBucket.ReadPgpS2kSpecifierAsync(bucket).ConfigureAwait(false);
+                            var s2k = await SignatureBucket.ReadPgpS2kSpecifierAsync(bucket, cipherAlgorithm).ConfigureAwait(false);
 
                             byte[]? key = null;
                             if (GetPassword?.Invoke(SignaturePromptContext.Empty) is { } password)
                             {
-                                key = SignatureBucket.DeriveS2kKey(cipherAlgorithm, s2k, password);
+                                key = DeriveS2kKey(s2k, password);
                             }
 
                             if (version == 5 && key is { })
