@@ -8,7 +8,6 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 
@@ -24,9 +23,8 @@ public class OcbDecodeBucket : ConversionBucket
     private ByteCollector _byteCollector;
     private readonly byte[] _offset;
     private readonly byte[] _checksum;
-    private byte[]? _buf16;
+    private readonly byte[] _buf16;
     private readonly Action<bool>? _verified;
-
 
     public const int MaxNonceLength = 15;
     public const int BlockLength = 16;
@@ -40,20 +38,22 @@ public class OcbDecodeBucket : ConversionBucket
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="inner"></param>
+    /// <param name="source"></param>
     /// <param name="aesKey"></param>
     /// <param name="tagLen">Length of the tag in bits</param>
     /// <param name="nonce"></param>
     /// <param name="associatedData"></param>
     /// <param name="verifyResult"></param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public OcbDecodeBucket(Bucket inner, byte[] aesKey, int tagLen, ReadOnlyMemory<byte> nonce, ReadOnlyMemory<byte> associatedData = default, Action<bool>? verifyResult = null)
-        : base(inner)
+    public OcbDecodeBucket(Bucket source, byte[] aesKey, int tagLen, ReadOnlyMemory<byte> nonce, ReadOnlyMemory<byte> associatedData = default, Action<bool>? verifyResult = null)
+        : base(source.Leave(tagLen / 8, new OcbLeaver() is { } leaver ? leaver.Left : throw new InvalidOperationException()))
     {
         if (tagLen < 8 || tagLen > BlockLength * 8 || tagLen % 8 != 0)
             throw new ArgumentOutOfRangeException(nameof(tagLen), tagLen, message: null);
         else if (nonce.Length > MaxNonceLength)
             throw new ArgumentOutOfRangeException(nameof(nonce));
+
+        leaver.Bucket = this;
 
         Debug.Assert(tagLen == 128);
 
@@ -88,7 +88,11 @@ public class OcbDecodeBucket : ConversionBucket
         TagSize = tagLen / 8;
         _verified = verifyResult;
         _associatedData = associatedData;
+
+        _buf16 = new byte[16];
     }
+
+
 
     protected override void InnerDispose()
     {
@@ -263,124 +267,98 @@ public class OcbDecodeBucket : ConversionBucket
         return _masks[n];
     }
 
+    byte[]? _annotation;
+    private void LeftData(BucketBytes bb, long length)
+    {
+        _annotation = bb.ToArray();
+        if (_annotation.Length != TagSize)
+            throw new BucketException($"Couldn't fetch final tag of {this} bucket");
+    }
+
+    void DoVerify(bool fromConvert)
+    {
+        Debug.Assert(_annotation != null);
+        byte[] tag = Encipher(_checksum);
+        SpanXor(tag, Hash(_associatedData).Span);
+
+        bool ok = tag.AsSpan(0, TagSize).SequenceEqual(_annotation);
+        if (_verified is { })
+            _verified(ok);
+        else if (!ok)
+            throw new BucketDecryptionException($"Decrypted data in {this} bucket not valid");
+    }
+
     protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
     {
-        // We don't want to convert the final TagSize bytes using the normal convert
-        int available = _byteCollector.Length + sourceData.Length;
-
-        return DoConvertData(ref sourceData, available - TagSize, final);
-    }
-
-    protected override async ValueTask<(BucketBytes Result, BucketBytes SourceData)> ConvertDataAsync(BucketBytes sourceData, bool final)
-    {
-        int available = _byteCollector.Length + sourceData.Length;
-
-        long? rem = final ? 0 : await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
-
-        // TODO: If 'rem' = 0, then we can pass final as true and complete in one step.
-
-        if (!(rem > TagSize))
-            available -= TagSize - (int)(rem ?? 0);
-
-        var r = DoConvertData(ref sourceData, available, final);
-
-        return (r, sourceData);
-    }
-
-    protected BucketBytes DoConvertData(ref BucketBytes sourceData, int available, bool final)
-    {
         ReadOnlyMemory<byte> srcData;
-        byte[] src = _buf16 ??= new byte[16];
+        //byte[] src = _buf16;
+        _buffer2 ??= new byte[8192];
+        int offset = 0;
 
-        // For the normal reads, we never want to read the final 16 bytes "TAG"
-        if (available < TagSize)
+        if (!_byteCollector.IsEmpty || final)
         {
-            if (available < 0)
-                return BucketBytes.Eof;
+            int nFromSrc = Math.Max(_byteCollector.Length - BlockLength, 0);
+            _byteCollector.Append(sourceData.Slice(0, nFromSrc));
+            if (nFromSrc > 0)
+                sourceData = sourceData.Slice(nFromSrc);
 
-            _byteCollector.Append(sourceData);
-            sourceData = final ? BucketBytes.Eof : BucketBytes.Empty;
-
-            if (!final)
-                return BucketBytes.Empty;
-
-            srcData = _byteCollector.ToArray();
-            _byteCollector.Clear();
-
-            if (available > 0)
+            if (_byteCollector.Length < BlockLength)
             {
-                // We have remaining data
-                Array.Clear(src, 0, src.Length);
+                if (!final)
+                    return sourceData = BucketBytes.Empty; // Wait for more
 
-                srcData.Slice(0, available).CopyTo(src);
+                // Handle the final (few) bytes
 
-                // Offset_* = Offset_m xor L_*
-                SpanXor(_offset, GetMask(-2));
-                // Pad = ENCIPHER(K, Offset_*)
-                // P_ * = C_ * xor Pad[1..bitlen(C_ *)]
-                SpanXor(src, Encipher(_offset));
+                srcData = _byteCollector.ToArray();
+                _byteCollector.Clear();
 
-                // Checksum_* = Checksum_m xor (P_* || 1 || zeros(127-bitlen(P_*)))
-                src[available] = 0x80;
-                if (available < BlockLength)
-                    Array.Clear(src, available + 1, src.Length - available - 1);
+                if (srcData.Length > 0)
+                {
+                    TransformBlock(srcData.Span, ref offset);
 
-                //Debug.WriteLine($"P*: {DumpData(src.AsSpan(0, available))}");
+                    SpanXor(_checksum, _offset);
+                    SpanXor(_checksum, GetMask(-1));
+                }
+                else
+                {
+                    // Tag = ENCIPHER(K, Checksum_m xor Offset_m xor L_$) xor HASH(K,A)
+                    SpanXor(_checksum, _offset);
+                    SpanXor(_checksum, GetMask(-1));
+                }
 
-                // Tag = ENCIPHER(K, Checksum_ * xor Offset_ * xor L_$) xor HASH(K, A)
-                SpanXor(_checksum, src);
+                DoVerify(true);
+                sourceData = BucketBytes.Eof;
 
-                SpanXor(_checksum, _offset);
-                SpanXor(_checksum, GetMask(-1));
-
-            }
-            else
-            {
-                // Tag = ENCIPHER(K, Checksum_m xor Offset_m xor L_$) xor HASH(K,A)
-                SpanXor(_checksum, _offset);
-                SpanXor(_checksum, GetMask(-1));
+                return srcData.Length > 0 ? new(_buffer2, 0, srcData.Length) : BucketBytes.Eof;
             }
 
-
-            byte[] tag = Encipher(_checksum);
-            SpanXor(tag, Hash(_associatedData).Span);
-
-            bool ok = tag.AsSpan(0, TagSize).SequenceEqual(srcData.Slice(available, TagSize).Span);
-            if (_verified is { })
-                _verified(ok);
-            else if (!ok)
-                throw new BucketDecryptionException($"Decrypted data in {this} bucket not valid");
-
-
-            return available > 0 ? new(src, 0, available) : BucketBytes.Eof;
+            TransformBlock(_byteCollector.ToArray(), ref offset);
+            _byteCollector.Clear();
         }
 
-        available -= available % BlockLength;
+        while (sourceData.Length >= BlockLength && offset <= _buffer2.Length - BlockLength)
+        {
+            TransformBlock(sourceData.Span.Slice(0, BlockLength), ref offset);
+            sourceData = sourceData.Slice(BlockLength);
+        }
 
-
-        if (_byteCollector.Length > 0)
+        if (sourceData.Length < BlockLength && !sourceData.IsEmpty)
         {
             _byteCollector.Append(sourceData);
-
-            srcData = _byteCollector.ToMemory();
-            _byteCollector.Clear();
-
-            _byteCollector.Append(srcData.Slice(available).ToArray());
-            srcData = srcData.Slice(0, available);
+            sourceData = BucketBytes.Empty;
         }
-        else
+
+        return new(_buffer2, 0, offset);
+    }
+
+    void TransformBlock(ReadOnlySpan<byte> srcData, ref int offset)
+    {
+        byte[] src = _buf16;
+
+        if (srcData.Length == BlockLength)
         {
-            _byteCollector.Append(sourceData.Slice(available).ToArray());
-            srcData = sourceData.Slice(0, available);
-        }
-        sourceData = BucketBytes.Empty;
+            Debug.Assert(srcData.Length == BlockLength);
 
-        _buffer2 ??= new byte[1024];
-
-        int convertBlocks = available / BlockLength;
-
-        for (int i = 0; i < convertBlocks; i++)
-        {
             ++_inChunkBlock;
 
             //Debug.WriteLine($"trailing zeros of {_inChunkBlock} is {TrailingZeros(_inChunkBlock)}");
@@ -391,20 +369,42 @@ public class OcbDecodeBucket : ConversionBucket
             //Debug.WriteLine($"Offset_{_inChunkBlock} = {DumpData(_offset)}");
 
             Array.Clear(_buf16, 0, 16);
-            srcData.Slice(i * BlockLength, BlockLength).CopyTo(_buf16);
-            Span<byte> dest = _buffer2.AsSpan(i * BlockLength, BlockLength);
+            srcData.CopyTo(_buf16);
+            Span<byte> dest = _buffer2.AsSpan(offset, BlockLength);
 
             SpanXor(src, _offset);
             Decrypt(src, dest);
             SpanXor(dest, _offset);
 
             SpanXor(_checksum, dest);
+
+            offset += 16;
         }
+        else
+        {
+            // We have remaining data
+            Array.Clear(src, 0, src.Length);
 
+            srcData.CopyTo(src);
 
-        //Debug.WriteLine($"P: {DumpData(_buffer2.AsSpan(0, available))}");
+            // Offset_* = Offset_m xor L_*
+            SpanXor(_offset, GetMask(-2));
+            // Pad = ENCIPHER(K, Offset_*)
+            // P_ * = C_ * xor Pad[1..bitlen(C_ *)]
+            SpanXor(src, Encipher(_offset));
 
-        return new BucketBytes(_buffer2, 0, available);
+            // Checksum_* = Checksum_m xor (P_* || 1 || zeros(127-bitlen(P_*)))
+            src[srcData.Length] = 0x80;
+            if (srcData.Length < BlockLength)
+                Array.Clear(src, srcData.Length + 1, src.Length - srcData.Length - 1);
+
+            src.CopyTo(_buffer2.AsSpan(offset, BlockLength));
+
+            //Debug.WriteLine($"P*: {DumpData(src.AsSpan(0, available))}");
+
+            // Tag = ENCIPHER(K, Checksum_ * xor Offset_ * xor L_$) xor HASH(K, A)
+            SpanXor(_checksum, src);
+        }
     }
 
     private ReadOnlyMemory<byte> Hash(ReadOnlyMemory<byte> associatedData)
@@ -451,5 +451,15 @@ public class OcbDecodeBucket : ConversionBucket
             return BlockLength;
         else
             return requested;
+    }
+
+    sealed class OcbLeaver
+    {
+        public void Left(BucketBytes bb, long length)
+        {
+            Bucket?.LeftData(bb, length);
+        }
+
+        public OcbDecodeBucket? Bucket { get; set; }
     }
 }

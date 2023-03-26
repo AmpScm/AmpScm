@@ -60,13 +60,6 @@ namespace AmpScm.Buckets.Specialized
 
         protected abstract BucketBytes ConvertData(ref BucketBytes sourceData, bool final);
 
-        protected virtual ValueTask<(BucketBytes Result, BucketBytes SourceData)> ConvertDataAsync(BucketBytes sourceData, bool final)
-        {
-            var r = ConvertData(ref sourceData, final);
-
-            return new((r, sourceData));
-        }
-
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (!_remaining.IsEmpty)
@@ -82,7 +75,7 @@ namespace AmpScm.Buckets.Specialized
                 _skipFirst -= skipped;
             }
 
-            do
+            while (!_readLeft.IsEof)
             {
                 if (_readLeft.IsEmpty && !_readLeft.IsEof)
                     _readLeft = await InnerReadAsync(ConvertRequested(requested)).ConfigureAwait(false);
@@ -93,7 +86,7 @@ namespace AmpScm.Buckets.Specialized
                 Debug.Assert(!_readLeft.IsEmpty || _readLeft.IsEof, $"{Source} bucket reports empty instead of eof");
 #endif
 
-                (_remaining, _readLeft) = await ConvertDataAsync(_readLeft, final).ConfigureAwait(false);
+                _remaining = ConvertData(ref _readLeft, final);
 
                 if (!_remaining.IsEmpty)
                 {
@@ -104,8 +97,7 @@ namespace AmpScm.Buckets.Specialized
                 }
                 else if (final)
                     break;
-            }
-            while (!_readLeft.IsEof);
+            }            
 
             return BucketBytes.Eof;
         }
@@ -126,7 +118,7 @@ namespace AmpScm.Buckets.Specialized
                 if (_readLeft.IsEmpty)
                     _readLeft = await InnerReadAsync(ConvertRequested(Math.Max(512, minRequested))).ConfigureAwait(false);
 
-                (_remaining, _readLeft) = await ConvertDataAsync(_readLeft, _readLeft.IsEof).ConfigureAwait(false);
+                _remaining = ConvertData(ref _readLeft, _readLeft.IsEof);
 
                 if (!_remaining.IsEmpty)
                     return _remaining;
