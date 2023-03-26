@@ -18,8 +18,8 @@ namespace BucketTests.Security
         internal static void InconclusiveOnMono()
         {
 #if NETFRAMEWORK
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                Assert.Inconclusive("OCB/AES doesn't work nicely on mono. Please use .Net Core");
+            //if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            //    Assert.Inconclusive("OCB/AES doesn't work nicely on mono. Please use .Net Core");
 #endif
         }
 
