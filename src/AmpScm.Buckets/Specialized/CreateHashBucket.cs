@@ -12,8 +12,6 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private HashAlgorithm? _hasher;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private byte[]? _result;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private Action<byte[]>? _onResult;
         private readonly bool _complete;
 
@@ -53,7 +51,7 @@ namespace AmpScm.Buckets.Specialized
 
         private void FinishHashing()
         {
-            if (_result == null && _hasher != null)
+            if (_hasher != null)
             {
                 if (_complete)
                 {
@@ -69,17 +67,14 @@ namespace AmpScm.Buckets.Specialized
                 else
                 {
                     _hasher.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-                    _result = _hasher.Hash;
-                    if (_result != null)
+
+                    try
                     {
-                        try
-                        {
-                            _onResult?.Invoke(_result);
-                        }
-                        finally
-                        {
-                            _onResult = null;
-                        }
+                        _onResult?.Invoke(_hasher.Hash ?? throw new InvalidOperationException());
+                    }
+                    finally
+                    {
+                        _onResult = null;
                     }
                 }
             }
@@ -123,7 +118,6 @@ namespace AmpScm.Buckets.Specialized
         {
             Source.Reset();
             _hasher?.Initialize();
-            _result = null;
         }
 
         protected override void InnerDispose()
@@ -132,7 +126,7 @@ namespace AmpScm.Buckets.Specialized
             {
                 if (_hasher != null)
                 {
-                    if (_result == null && _onResult != null)
+                    if (_onResult != null)
                         FinishHashing();
 
                     _hasher.Dispose();
@@ -144,11 +138,6 @@ namespace AmpScm.Buckets.Specialized
                 base.InnerDispose();
             }
         }
-
-#pragma warning disable CA1819 // Properties should not return arrays
-        public byte[]? HashResult => _result;
-#pragma warning restore CA1819 // Properties should not return arrays
-
 
         // From https://github.com/damieng/DamienGKit/blob/master/CSharp/DamienG.Library/Security/Cryptography/Crc32.cs
         /// <summary>
