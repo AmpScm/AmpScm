@@ -22,7 +22,7 @@ namespace AmpScm.Buckets
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
 #endif
-        public static async ValueTask<(BucketBytes Bytes, BucketEol Eol)> ReadExactlyUntilEolAsync(this Bucket bucket, BucketEol acceptableEols, int requested = Bucket.MaxRead, BucketEolState? eolState = null)
+        public static async ValueTask<BucketLine> ReadExactlyUntilEolAsync(this Bucket bucket, BucketEol acceptableEols, int requested = Bucket.MaxRead, BucketEolState? eolState = null)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -38,11 +38,11 @@ namespace AmpScm.Buckets
                 switch (kept)
                 {
                     case (byte)'\n' when (0 != (acceptableEols & BucketEol.LF)):
-                        return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.LF);
+                        return new (new BucketBytes(new[] { kept }, 0, 1), BucketEol.LF);
                     case (byte)'\r' when (0 != (acceptableEols & BucketEol.CR) && (acceptableEols & BucketEol.CRLF) == 0):
-                        return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.CR);
+                        return new (new BucketBytes(new[] { kept }, 0, 1), BucketEol.CR);
                     case (byte)'\0' when (0 != (acceptableEols & BucketEol.Zero)):
-                        return (new BucketBytes(new[] { kept }, 0, 1), BucketEol.Zero);
+                        return new (new BucketBytes(new[] { kept }, 0, 1), BucketEol.Zero);
                     case (byte)'\r' when (0 != (acceptableEols & BucketEol.CRLF)):
                         rq = 1;
                         goto default;
@@ -64,11 +64,11 @@ namespace AmpScm.Buckets
                 (bb, eol) = await bucket.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
 
                 if (eol != BucketEol.None && eol != BucketEol.CRSplit && result.IsEmpty)
-                    return (bb, eol);
+                    return new (bb, eol);
                 else if (bb.IsEmpty)
                 {
                     if (bb.IsEof)
-                        return (result.ToResultOrEof(), eol);
+                        return new (result.ToResultOrEof(), eol);
                     else
                         throw new InvalidOperationException();
                 }
@@ -76,24 +76,24 @@ namespace AmpScm.Buckets
                 {
                     if (bb[0] == '\n')
                     {
-                        return (result.AsBytes(bb), BucketEol.CRLF);
+                        return new(result.AsBytes(bb), BucketEol.CRLF);
                     }
                     else if ((acceptableEols & BucketEol.CR) != 0)
                     {
                         eolState!._kept = bb[0];
-                        return (new[] { (byte)'\r' }, BucketEol.CR);
+                        return new(new[] { (byte)'\r' }, BucketEol.CR);
                     }
                     else if (eol != BucketEol.None)
                     {
 
-                        return (result.AsBytes(bb), eol); // '\0' case
+                        return new(result.AsBytes(bb), eol); // '\0' case
                     }
                 }
 
                 rq = (requested -= bb.Length);
                 if (requested == 0)
                 {
-                    return (result.AsBytes(bb), eol);
+                    return new(result.AsBytes(bb), eol);
                 }
 
                 result.Append(bb);
@@ -112,18 +112,18 @@ namespace AmpScm.Buckets
                         if (b == '\n')
                         {
                             // Phew, we were lucky. We got a \r\n
-                            return (result.AsBytes(bb), BucketEol.CRLF);
+                            return new(result.AsBytes(bb), BucketEol.CRLF);
                         }
                         else if (0 != (acceptableEols & BucketEol.CR))
                         {
                             // We return the part ending with '\r'
                             eolState!._kept = b; // And keep the next byte
-                            return (result.AsBytes(), BucketEol.CR);
+                            return new(result.AsBytes(), BucketEol.CR);
                         }
                         else if (b == '\0' && 0 != (acceptableEols & BucketEol.Zero))
                         {
                             // Another edge case :(
-                            return (result.AsBytes(bb), BucketEol.Zero);
+                            return new(result.AsBytes(bb), BucketEol.Zero);
                         }
                         else
                         {
@@ -136,14 +136,14 @@ namespace AmpScm.Buckets
                         // We are at eof, so no issues with future reads
                         eol = (0 != (acceptableEols & BucketEol.CR) ? BucketEol.CR : BucketEol.None);
 
-                        return (result.AsBytes(), eol);
+                        return new(result.AsBytes(), eol);
                     }
                 }
                 else if (eol == BucketEol.None)
                     continue;
                 else
                 {
-                    return (result.AsBytes(), eol);
+                    return new(result.AsBytes(), eol);
                 }
             }
         }

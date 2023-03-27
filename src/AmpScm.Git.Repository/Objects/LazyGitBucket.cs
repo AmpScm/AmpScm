@@ -92,7 +92,7 @@ namespace AmpScm.Git.Objects
             return base.ReadSkipAsync(requested);
         }
 
-        public override ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
+        public override ValueTask<BucketLine> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
             if (_inner != null)
                 return _inner.ReadUntilEolAsync(acceptableEols, requested);

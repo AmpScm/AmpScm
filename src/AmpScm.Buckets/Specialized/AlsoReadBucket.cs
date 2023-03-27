@@ -39,5 +39,10 @@ namespace AmpScm.Buckets.Specialized
         {
             return Source.ReadRemainingBytesAsync();
         }
+
+        public override BucketBytes Peek()
+        {
+            return Source.Peek();
+        }
     }
 }

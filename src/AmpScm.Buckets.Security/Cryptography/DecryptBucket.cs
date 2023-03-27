@@ -4,11 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
-using AmpScm.Buckets.Client;
-using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 
 // https://www.rfc-editor.org/rfc/rfc4880
@@ -22,7 +19,6 @@ namespace AmpScm.Buckets.Cryptography
         private bool _inBody;
         private readonly OpenPgpContainer _container;
         private Bucket? _reader;
-        private Signature? _decryptKey; // Key towards decrypted
         private OpenPgpSymmetricAlgorithm _sessionAlgorithm;
         private ReadOnlyMemory<byte> _sessionKey; // The symetric key
         private string? _fileName;
@@ -41,7 +37,7 @@ namespace AmpScm.Buckets.Cryptography
         }
 
 
-        public Func<ReadOnlyMemory<byte>, Signature?>? GetKey { get; init; }
+        public Func<SignatureFetchContext, Signature?>? GetKey { get; init; }
         public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
         private async ValueTask ReadHeader()
@@ -95,9 +91,9 @@ namespace AmpScm.Buckets.Cryptography
                                 break; // Skip packet, we already have a session
                             }
 
-                            var key = GetKey?.Invoke(bb);
+                            var key = GetKey?.Invoke(new() { Fingerprint = bb.Memory, RequiresPrivateKey = true });
 
-                            if (key?.MatchFingerprint(bb) is not { } matchedKey)
+                            if (!(key?.HasSecret ?? false) || key?.MatchFingerprint(bb) is not { } matchedKey)
                             {
                                 await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                                 break; // Ignore rest of packet
@@ -131,7 +127,7 @@ namespace AmpScm.Buckets.Cryptography
                                             DQ = BIToArray(DQ),
                                         };
 
-                                        var bi = await SignatureBucket.ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
+                                        var bi = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
 
                                         rsa.ImportParameters(p);
 
@@ -140,7 +136,6 @@ namespace AmpScm.Buckets.Cryptography
 
                                         if (checksum == data.Skip(1).Take(data.Length - 3).Sum(x => (ushort)x))
                                         {
-                                            _decryptKey = key;
                                             _sessionAlgorithm = (OpenPgpSymmetricAlgorithm)data[0];
                                             _sessionKey = data.AsMemory(1, data.Length - 3); // Minus first byte (session alg) and last two bytes (checksum)
                                         }
@@ -151,7 +146,7 @@ namespace AmpScm.Buckets.Cryptography
 
 
                                 default:
-                                    throw new NotImplementedException();
+                                    throw new NotImplementedException($"Algorithm {matchedKey.Algorithm} not implemented yet");
                             }
                         }
                         break;
@@ -168,7 +163,7 @@ namespace AmpScm.Buckets.Cryptography
 
                             GC.KeepAlive(flag);
 
-                            _sigs.Push(new(signatureType, hashAlgorithm, pkt, signer));
+                            _sigs.Push(new(version, signatureType, hashAlgorithm, pkt, signer));
                         }
                         break;
                     case OpenPgpTagType.OCBEncryptedData:
@@ -250,15 +245,8 @@ namespace AmpScm.Buckets.Cryptography
 
                             foreach (var s in _sigs)
                             {
-                                switch (s.HashAlgorithm)
-                                {
-                                    case OpenPgpHashAlgorithm.SHA512:
-                                        {
-                                            var s2 = s;
-                                            bucket = bucket.Hash(SHA512.Create(), x => s.Completer = x);
-                                        }
-                                        break;
-                                }
+                                var ha = s.HashAlgorithm;
+                                bucket = CreateHasher(bucket, s.HashAlgorithm, a => s.Completer = a);
                             }
 
                             _reader = bucket.AtEof(() =>
@@ -283,7 +271,7 @@ namespace AmpScm.Buckets.Cryptography
                                 Debug.Assert(ocb == 2);
                             }
 
-                            var s2k = await SignatureBucket.ReadPgpS2kSpecifierAsync(bucket, cipherAlgorithm).ConfigureAwait(false);
+                            var s2k = await ReadPgpS2kSpecifierAsync(bucket, cipherAlgorithm).ConfigureAwait(false);
 
                             byte[]? key = null;
                             if (GetPassword?.Invoke(SignaturePromptContext.Empty) is { } password)
@@ -317,15 +305,24 @@ namespace AmpScm.Buckets.Cryptography
                         break;
                     case OpenPgpTagType.Signature:
                         {
-                            var r = await SignatureBucket.ParseSignatureAsync(bucket).ConfigureAwait(false);
+                            var r = await ParseSignatureAsync(bucket).ConfigureAwait(false);
 
                             var p = _sigs.Pop();
 
-                            byte[]? hashValue = p.Completer(r.signBlob);
+                            byte[] hashValue = p.Completer(r.SignBlob)!;
                             Trace.WriteLine(BucketExtensions.HashToString(hashValue));
 
-                            if (NetBitConverter.ToUInt16(hashValue, 0) != r.hashStart)
-                                throw new BucketException("Hash failed");
+                            if (GetKey?.Invoke(new() { Fingerprint = r.SignKeyFingerprint, RequiresPrivateKey = false }) is { } key
+                                && key?.MatchFingerprint(r.SignKeyFingerprint) is { } matchedKey)
+                            {
+                                if (!VerifySignature(r, hashValue, matchedKey.Values))
+                                {
+                                    throw new BucketDecryptionException("Signature not verifiable");
+                                }
+                            }
+
+                            if (NetBitConverter.ToUInt16(hashValue, 0) != r.HashStart)
+                                throw new BucketDecryptionException("Hashing towards signature failed");
                         }
                         break;
                     default:
@@ -333,12 +330,11 @@ namespace AmpScm.Buckets.Cryptography
                         break;
                 }
 
-                long n = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
-                Debug.Assert(n == 0, $"Unread data left in {bucket} of tagType {tag}");
+                {
+                    long n = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                    Debug.Assert(n == 0, $"Unread data left in {bucket} of tagType {tag}");
+                }
             }
-
-            static byte[] MakeUnsignedArray(ReadOnlyMemory<byte> readOnlyMemory)
-                => SignatureBucket.MakeUnsignedArray(readOnlyMemory);
 
             static BigInteger MakeBigInt(ReadOnlyMemory<byte> readOnlyMemory)
             {
@@ -399,48 +395,29 @@ namespace AmpScm.Buckets.Cryptography
             return (_fileName, _fileDate);
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             await ReadHeader().ConfigureAwait(false);
 
-
-            var bb = await (_reader ?? _container).ReadAsync(requested);
+            var bb = (_reader != null) ? await _reader.ReadAsync(requested).ConfigureAwait(false) : BucketBytes.Empty;
 
             if (!_inBody && bb.IsEmpty)
                 await ReadHeader().ConfigureAwait(false);
 
             return bb;
-
-            //while (true)
-            //{
-            //    if (_reader != null)
-            //    {
-            //        var bb = await _reader.ReadAsync().ConfigureAwait(false);
-            //
-            //        if (!bb.IsEof)
-            //            return bb;
-            //    }
-            //
-            //    await ReadHeader().ConfigureAwait(false);
-            //
-            //    if (_reader == null)
-            //    {
-            //        var bb = await _container.ReadAsync().ConfigureAwait(false);
-            //
-            //        return bb;
-            //    }
-            //
-            //}
         }
 
         public override BucketBytes Peek()
         {
+            if (_reader != null)
+                return _reader.Peek();
+
             return base.Peek();
         }
 
         private record PgpSignature
         {
-            public PgpSignature(OpenPgpSignatureType signatureType, OpenPgpHashAlgorithm hashAlgorithm, OpenPgpPublicKeyType pkt, byte[] signer)
+            public PgpSignature(byte version, OpenPgpSignatureType signatureType, OpenPgpHashAlgorithm hashAlgorithm, OpenPgpPublicKeyType pkt, byte[] signer)
             {
                 SignatureType = signatureType;
                 HashAlgorithm = hashAlgorithm;
@@ -448,11 +425,13 @@ namespace AmpScm.Buckets.Cryptography
                 Signer = signer;
             }
 
+            public byte Version { get; }
+
             public OpenPgpSignatureType SignatureType { get; }
             public OpenPgpHashAlgorithm HashAlgorithm { get; }
             public OpenPgpPublicKeyType Pkt { get; }
             public byte[] Signer { get; }
-            public Func<byte[]?, byte[]?> Completer { get; internal set; }
+            public Func<byte[]?, byte[]> Completer { get; internal set; }
         }
     }
 }

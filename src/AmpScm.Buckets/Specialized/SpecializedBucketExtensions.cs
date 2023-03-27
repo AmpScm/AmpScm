@@ -99,7 +99,7 @@ namespace AmpScm.Buckets.Specialized
         /// <param name="completer"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static Bucket Hash(this Bucket bucket, HashAlgorithm hashAlgorithm, Action<Func<byte[]?, byte[]?>> completer)
+        public static Bucket Hash(this Bucket bucket, HashAlgorithm hashAlgorithm, Action<Func<byte[]?, byte[]>> completer)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));

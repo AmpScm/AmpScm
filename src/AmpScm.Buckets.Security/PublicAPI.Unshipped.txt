@@ -6,22 +6,20 @@ AmpScm.Buckets.Cryptography.BucketDecryptionException.BucketDecryptionException(
 AmpScm.Buckets.Cryptography.BucketDecryptionException.BucketDecryptionException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.Cryptography.CryptoDataBucket
 AmpScm.Buckets.Cryptography.DecryptBucket.DecryptBucket(AmpScm.Buckets.Bucket! source) -> void
-AmpScm.Buckets.Cryptography.PgpDecryptBucket.GetKey.get -> System.Func<System.ReadOnlyMemory<byte>, AmpScm.Buckets.Cryptography.Signature?>?
-AmpScm.Buckets.Cryptography.PgpDecryptBucket.GetKey.init -> void
-AmpScm.Buckets.Cryptography.PgpDecryptBucket.PgpDecryptBucket(AmpScm.Buckets.Bucket! source, System.Func<System.ReadOnlyMemory<byte>, AmpScm.Buckets.Cryptography.Signature?>? getKey) -> void
-AmpScm.Buckets.Cryptography.PgpDecryptBucket.ReadFileInfo() -> System.Threading.Tasks.ValueTask<(string? fileName, System.DateTime? fileTime)>
+AmpScm.Buckets.Cryptography.DecryptBucket.GetKey.init -> void
+AmpScm.Buckets.Cryptography.DecryptBucket.GetPassword.init -> void
 AmpScm.Buckets.Cryptography.SignatureBucket.GetPassPhrase.get -> System.Func<AmpScm.Buckets.Cryptography.SignaturePromptContext!, string!>?
 AmpScm.Buckets.Cryptography.SignatureBucket.GetPassPhrase.init -> void
 AmpScm.Buckets.Cryptography.SignatureBucket.SignatureBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.Cryptography.SignatureFetchContext
+AmpScm.Buckets.Cryptography.SignatureFetchContext.Fingerprint.get -> System.ReadOnlyMemory<byte>
+AmpScm.Buckets.Cryptography.SignatureFetchContext.RequiresPrivateKey.get -> bool
 AmpScm.Buckets.Cryptography.SignaturePromptContext
 AmpScm.Buckets.Security.BucketDecryptException
 AmpScm.Buckets.Cryptography.OcbDecodeBucket
 AmpScm.Buckets.Cryptography.OcbDecodeBucket.DoConvertData(ref AmpScm.Buckets.BucketBytes sourceData, int available, bool final) -> AmpScm.Buckets.BucketBytes
 AmpScm.Buckets.Cryptography.OcbDecodeBucket.OcbDecodeBucket(AmpScm.Buckets.Bucket! inner, byte[]! aesKey, int tagLen, System.ReadOnlyMemory<byte> nonce, System.ReadOnlyMemory<byte> associatedData = default(System.ReadOnlyMemory<byte>), System.Action<bool>? verifyResult = null) -> void
 AmpScm.Buckets.Cryptography.OcbDecodeBucket.TagSize.get -> int
-AmpScm.Buckets.Cryptography.PgpDecryptBucket
-AmpScm.Buckets.Cryptography.PgpDecryptBucket.GetPassword.get -> System.Func<AmpScm.Buckets.Cryptography.SignaturePromptContext!, string!>?
-AmpScm.Buckets.Cryptography.PgpDecryptBucket.GetPassword.init -> void
 AmpScm.Buckets.Cryptography.Radix64ArmorBucket
 AmpScm.Buckets.Cryptography.Radix64ArmorBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Radix64ArmorBucket(AmpScm.Buckets.Bucket! inner) -> void
@@ -51,12 +49,11 @@ AmpScm.Buckets.Cryptography.SignatureBucket.ReadKeyAsync() -> System.Threading.T
 AmpScm.Buckets.Cryptography.SignatureBucket.VerifyAsync(AmpScm.Buckets.Bucket! sourceData, AmpScm.Buckets.Cryptography.Signature? key) -> System.Threading.Tasks.ValueTask<bool>
 const AmpScm.Buckets.Cryptography.OcbDecodeBucket.BlockLength = 16 -> int
 const AmpScm.Buckets.Cryptography.OcbDecodeBucket.MaxNonceLength = 15 -> int
+override AmpScm.Buckets.Cryptography.DecryptBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertDataAsync(AmpScm.Buckets.BucketBytes sourceData, bool final) -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.BucketBytes Result, AmpScm.Buckets.BucketBytes SourceData)>
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertRequested(int requested) -> int
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.InnerDispose() -> void
-override AmpScm.Buckets.Cryptography.PgpDecryptBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Cryptography.PgpDecryptBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Cryptography.SignatureBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>

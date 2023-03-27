@@ -33,12 +33,14 @@ namespace AmpScm.Buckets
         public bool IsEmpty => !_kept.HasValue;
     }
 
+    public readonly record struct BucketLine(BucketBytes Bytes, BucketEol Eol);
+
     public partial class Bucket
     {
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
 #endif
-        public virtual async ValueTask<(BucketBytes Bytes, BucketEol Eol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
+        public virtual async ValueTask<BucketLine> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
             if ((acceptableEols & ~BucketEol.EolMask) != 0)
                 throw new ArgumentOutOfRangeException(nameof(acceptableEols));
@@ -46,14 +48,14 @@ namespace AmpScm.Buckets
             using var pd = await this.PollReadAsync(1).ConfigureAwait(false);
 
             if (pd.IsEof)
-                return (BucketBytes.Eof, BucketEol.None);
+                return new (BucketBytes.Eof, BucketEol.None);
 
             var (rq, singleCrRequested) = CalculateEolReadLength(acceptableEols, requested, pd.Data.Span);
 
             var read = await pd.ReadAsync(rq).ConfigureAwait(false);
             var found = GetEolResult(acceptableEols, rq, singleCrRequested, read.Span);
 
-            return (read, found);
+            return new (read, found);
         }
 
 #if !NETFRAMEWORK

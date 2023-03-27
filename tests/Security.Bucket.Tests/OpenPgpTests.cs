@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
+using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BucketTests.Security;
@@ -428,7 +429,7 @@ cEgAjelaGkn3RJOwXWoJbA==
             0xc5, 0x29, 0xd3, 0xde, 0x31, 0xe1, 0x5b, 0x4a, 0xeb, 0x72, 0x9e, 0x33, 0x00, 0x33, 0xdb, 0xed,
         };
 
-       bool ok = false;
+        bool ok = false;
         var d = new OcbDecodeBucket(crypted.AsBucket(), key, 128,
             nonce: nonce, associatedData: authenticated,
             verifyResult: x => ok = x);
@@ -520,7 +521,7 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
     }
 
     [TestMethod]
-    public async Task TestS2k()
+    public void TestS2k()
     {
         const string Privy = @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
@@ -560,5 +561,36 @@ f9nwhs2r0FA7IKmrcLiL2sClVAAl
 
 
         Assert.IsTrue(Signature.TryParse(Privy, _ => "I", out var key));
+
+        Assert.IsTrue(key.HasSecret);
+    }
+
+    [TestMethod]
+    public async Task AToB()
+    {
+        Assert.IsTrue(Signature.TryParse(rsa_key1, out var key1));
+        Assert.IsTrue(Signature.TryParse(rsa_key2, out var key2));
+
+        Assert.IsTrue(key1.HasSecret);
+        Assert.IsTrue(key2.HasSecret);
+
+        var raw_msg = Bucket.Create.FromASCII(msg_from_rsa1_to_rsa2_3);
+
+        using var dc = new DecryptBucket(new Radix64ArmorBucket(raw_msg))
+        {
+            GetKey = (fp) =>
+            {
+                if (key1.MatchFingerprint(fp.Fingerprint) is { })
+                    return key1;
+                else if (key2.MatchFingerprint(fp.Fingerprint) is { })
+                    return key2;
+                else
+                    return null;
+            }
+        };
+
+        var bb = await dc.ReadExactlyAsync(1024);
+
+        Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
     }
 }

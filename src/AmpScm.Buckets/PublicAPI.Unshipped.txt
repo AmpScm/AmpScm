@@ -183,7 +183,7 @@ static AmpScm.Buckets.Client.BucketHttpClientExtensions.HttpDechunk(this AmpScm.
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.AtRead(this AmpScm.Buckets.Bucket! bucket, System.Func<AmpScm.Buckets.BucketBytes, System.Threading.Tasks.ValueTask>! reader) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Crc24(this AmpScm.Buckets.Bucket! bucket, System.Action<int>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Hash(this AmpScm.Buckets.Bucket! bucket, System.Security.Cryptography.HashAlgorithm! hashAlgorithm, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
-static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Hash(this AmpScm.Buckets.Bucket! bucket, System.Security.Cryptography.HashAlgorithm! hashAlgorithm, System.Action<System.Func<byte[]?, byte[]?>!>! completer) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Hash(this AmpScm.Buckets.Bucket! bucket, System.Security.Cryptography.HashAlgorithm! hashAlgorithm, System.Action<System.Func<byte[]?, byte[]!>!>! completer) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkInt16Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<short>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt16Async(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<ushort>
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEofAndCloseAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask

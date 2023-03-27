@@ -51,7 +51,7 @@ namespace AmpScm.Buckets.Cryptography
         public ReadOnlyMemory<byte> Fingerprint { get; }
         public SignatureAlgorithm Algorithm { get; }
         public IReadOnlyList<ReadOnlyMemory<byte>> Values { get; }
-        public string FingerprintString => SignatureBucket.FingerprintToString(Fingerprint);
+        public string FingerprintString => CryptoDataBucket.FingerprintToString(Fingerprint);
 
         public bool HasSecret { get; }
 
@@ -174,7 +174,7 @@ namespace AmpScm.Buckets.Cryptography
                 case "ecdsa-sha2-nistp384":
                 case "ecdsa-sha2-nistp521":
                     {
-                        var signature = SignatureBucket.GetEcdsaValues(vals.Skip(1));
+                        var signature = CryptoDataBucket.GetEcdsaValues(vals.Skip(1));
                         value = new Signature(data, SignatureAlgorithm.Ecdsa, signature);
                         return true;
                     }

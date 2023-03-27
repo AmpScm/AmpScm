@@ -16,6 +16,7 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private Action<byte[]>? _onResult;
         private readonly bool _complete;
+        long _position;
 
         public CreateHashBucket(Bucket source, HashAlgorithm hasher)
             : base(source)
@@ -29,7 +30,7 @@ namespace AmpScm.Buckets.Specialized
             _onResult = hashCreated;
         }
 
-        public CreateHashBucket(Bucket inner, HashAlgorithm hasher, Action<Func<byte[]?, byte[]?>> completer)
+        public CreateHashBucket(Bucket inner, HashAlgorithm hasher, Action<Func<byte[]?, byte[]>> completer)
             : this(inner, hasher)
         {
             _onResult = (_ => completer(CompleteHandler));
@@ -46,6 +47,7 @@ namespace AmpScm.Buckets.Specialized
             {
                 var (bytes, offset) = r.ExpandToArray();
                 _hasher?.TransformBlock(bytes, offset, r.Length, null!, 0);
+                _position += r.Length;
             }
 
             return r;
@@ -85,12 +87,12 @@ namespace AmpScm.Buckets.Specialized
             }
         }
 
-        private byte[]? CompleteHandler(byte[]? suffix)
+        private byte[] CompleteHandler(byte[]? suffix)
         {
             if (_hasher != null)
             {
-                _hasher.TransformFinalBlock(suffix ?? Array.Empty<byte>(), 0, 0);
-                return _hasher.Hash;
+                _hasher.TransformFinalBlock(suffix ?? Array.Empty<byte>(), 0, suffix?.Length ?? 0);
+                return _hasher.Hash ?? throw new InvalidOperationException();
             }
             else
                 return null!;
@@ -111,7 +113,7 @@ namespace AmpScm.Buckets.Specialized
             return SkipByReading(requested);
         }
 
-        public override long? Position => Source.Position;
+        public override long? Position => _position;
 
         public override ValueTask<long?> ReadRemainingBytesAsync() => Source.ReadRemainingBytesAsync();
 
@@ -124,6 +126,7 @@ namespace AmpScm.Buckets.Specialized
             Source.Reset();
             _hasher?.Initialize();
             _result = null;
+            _position = 0;
         }
 
         protected override void InnerDispose()

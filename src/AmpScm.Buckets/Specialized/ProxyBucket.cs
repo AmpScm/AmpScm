@@ -52,7 +52,7 @@ namespace AmpScm.Buckets.Specialized
             return WrapDuplicate(r, reset) ?? r;
         }
 
-        public override ValueTask<(BucketBytes, BucketEol)> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
+        public override ValueTask<BucketLine> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
             return Source.ReadUntilEolAsync(acceptableEols, requested);
         }
