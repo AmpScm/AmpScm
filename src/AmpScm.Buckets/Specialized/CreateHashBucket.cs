@@ -16,7 +16,6 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private Action<byte[]>? _onResult;
         private readonly bool _complete;
-        long _position;
 
         public CreateHashBucket(Bucket source, HashAlgorithm hasher)
             : base(source)
@@ -47,7 +46,6 @@ namespace AmpScm.Buckets.Specialized
             {
                 var (bytes, offset) = r.ExpandToArray();
                 _hasher?.TransformBlock(bytes, offset, r.Length, null!, 0);
-                _position += r.Length;
             }
 
             return r;
@@ -113,7 +111,7 @@ namespace AmpScm.Buckets.Specialized
             return SkipByReading(requested);
         }
 
-        public override long? Position => _position;
+        public override long? Position => Source.Position;
 
         public override ValueTask<long?> ReadRemainingBytesAsync() => Source.ReadRemainingBytesAsync();
 
@@ -126,7 +124,6 @@ namespace AmpScm.Buckets.Specialized
             Source.Reset();
             _hasher?.Initialize();
             _result = null;
-            _position = 0;
         }
 
         protected override void InnerDispose()
