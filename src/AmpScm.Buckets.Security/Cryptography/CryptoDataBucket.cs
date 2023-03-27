@@ -53,14 +53,7 @@ namespace AmpScm.Buckets.Cryptography
 
                 byte[] toHash = pwd.ToArray();
 
-                using HashAlgorithm ha = s2k.HashAlgorithm switch
-                {
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-                    OpenPgpHashAlgorithm.SHA1 => SHA1.Create(),
-#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
-                    OpenPgpHashAlgorithm.SHA256 => SHA256.Create(),
-                    _ => throw new InvalidOperationException()
-                };
+                using HashAlgorithm ha = CreatePgpHashAlgorithm(s2k.HashAlgorithm);
 
                 if (s2k.HashByteCount <= toHash.Length)
                 {
@@ -241,26 +234,31 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
+
+
         private protected static async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created, OpenPgpHashAlgorithm hashAlgorithm)
         {
-            sourceData = hashAlgorithm switch
+            using var sd = sourceData.Hash(CreatePgpHashAlgorithm(hashAlgorithm), created);
+
+            await sourceData.ReadUntilEofAsync().ConfigureAwait(false);
+        }
+
+        private protected static HashAlgorithm CreatePgpHashAlgorithm(OpenPgpHashAlgorithm hashAlgorithm)
+        {
+            return hashAlgorithm switch
             {
-                OpenPgpHashAlgorithm.SHA256 => sourceData.SHA256(created),
-                OpenPgpHashAlgorithm.SHA512 => sourceData.SHA512(created),
-                OpenPgpHashAlgorithm.SHA384 => sourceData.SHA384(created),
-                OpenPgpHashAlgorithm.SHA1 => sourceData.SHA1(created),
-                OpenPgpHashAlgorithm.MD5 => sourceData.MD5(created),
-#if NETFRAMEWORK
+                OpenPgpHashAlgorithm.SHA256 => SHA256.Create(),
+                OpenPgpHashAlgorithm.SHA384 => SHA384.Create(),
+                OpenPgpHashAlgorithm.SHA512 => SHA512.Create(),
 #pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-        OpenPgpHashAlgorithm.MD160 => sourceData.Hash(RIPEMD160.Create(), created),
+                OpenPgpHashAlgorithm.SHA1 => SHA1.Create(),
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
-#else
-                OpenPgpHashAlgorithm.MD160 or
-#endif
-                OpenPgpHashAlgorithm.SHA224 => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} not supported yet"),
-                _ => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} not supported yet"),
+#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+                OpenPgpHashAlgorithm.MD5 => MD5.Create(),
+#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+
+                _ => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} is not supported.")
             };
-            await sourceData.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
         }
 
         private protected static Bucket CreateHasher(Bucket? bucket, OpenPgpHashAlgorithm hashAlgorithm, Action<Func<byte[]?, byte[]>> completer)
@@ -270,25 +268,7 @@ namespace AmpScm.Buckets.Cryptography
             else if (completer is null)
                 throw new ArgumentNullException(nameof(completer));
 
-            switch (hashAlgorithm)
-            {
-                case OpenPgpHashAlgorithm.SHA256:
-                    return bucket.Hash(SHA384.Create(), completer);
-                case OpenPgpHashAlgorithm.SHA512:
-                    return bucket.Hash(SHA512.Create(), completer);
-                case OpenPgpHashAlgorithm.SHA384:
-                    return bucket.Hash(SHA384.Create(), completer);
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-                case OpenPgpHashAlgorithm.SHA1:
-                    return bucket.Hash(SHA1.Create(), completer);
-#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
-#pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
-                case OpenPgpHashAlgorithm.MD5:
-                    return bucket.Hash(MD5.Create(), completer);
-#pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
-                default:
-                    throw new NotImplementedException($"{hashAlgorithm} is not supported.");
-            }
+            return bucket.Hash(CreatePgpHashAlgorithm(hashAlgorithm), completer);
         }
 
         private protected static HashAlgorithmName GetDotNetHashAlgorithmName(OpenPgpHashAlgorithm hashAlgorithm)
@@ -297,6 +277,8 @@ namespace AmpScm.Buckets.Cryptography
             OpenPgpHashAlgorithm.SHA256 => HashAlgorithmName.SHA256,
             OpenPgpHashAlgorithm.SHA512 => HashAlgorithmName.SHA512,
             OpenPgpHashAlgorithm.SHA384 => HashAlgorithmName.SHA384,
+            OpenPgpHashAlgorithm.SHA1 => HashAlgorithmName.SHA1,
+            OpenPgpHashAlgorithm.MD5 => HashAlgorithmName.MD5,
             _ => throw new NotImplementedException($"OpenPGP scheme {hashAlgorithm} not mapped yet.")
         };
 
