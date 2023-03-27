@@ -615,7 +615,7 @@ namespace AmpScm.Buckets.Cryptography
 
             if (Source.IsSsh)
             {
-                await CreateHash(sourceData, x => hashValue = x, _signatureInfo.HashAlgorithm).ConfigureAwait(false);
+                hashValue = await CalculateHash(sourceData, _signatureInfo.HashAlgorithm).ConfigureAwait(false);
 
                 // SSH signature signs blob that contains original hash and some other data
                 var toSign = _signatureInfo.SignBlob!.AsBucket() + NetBitConverter.GetBytes(hashValue.Length).AsBucket() + hashValue.AsBucket();
@@ -641,7 +641,7 @@ namespace AmpScm.Buckets.Cryptography
                     overrideAlg = OpenPgpHashAlgorithm.SHA512;
 
                 if (_signatureInfo.PublicKeyType != OpenPgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
-                    await CreateHash(toSign, x => hashValue = x, overrideAlg ?? _signatureInfo.HashAlgorithm).ConfigureAwait(false);
+                    hashValue = await CalculateHash(toSign, overrideAlg ?? _signatureInfo.HashAlgorithm).ConfigureAwait(false);
                 else
                     hashValue = toSign.ToArray();
 
@@ -650,7 +650,7 @@ namespace AmpScm.Buckets.Cryptography
             }
             else
             {
-                await CreateHash(sourceData + _signatureInfo.SignBlob!.AsBucket(), x => hashValue = x, _signatureInfo.HashAlgorithm).ConfigureAwait(false);
+                hashValue = await CalculateHash(sourceData + _signatureInfo.SignBlob!.AsBucket(), _signatureInfo.HashAlgorithm).ConfigureAwait(false);
 
                 if (NetBitConverter.ToUInt16(hashValue, 0) != _signatureInfo.HashStart)
                     return false; // No need to check the actual signature. The hash failed the check

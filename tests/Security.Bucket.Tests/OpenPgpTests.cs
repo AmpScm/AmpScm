@@ -13,7 +13,7 @@ using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace BucketTests.Security;
+namespace SecurityBucketTests;
 
 [TestClass]
 public partial class OpenPgpTests

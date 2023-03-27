@@ -236,11 +236,16 @@ namespace AmpScm.Buckets.Cryptography
 
 
 
-        private protected static async ValueTask CreateHash(Bucket sourceData, Action<byte[]> created, OpenPgpHashAlgorithm hashAlgorithm)
+        private protected static async ValueTask<byte[]> CalculateHash(Bucket sourceData, OpenPgpHashAlgorithm hashAlgorithm)
         {
-            using var sd = sourceData.Hash(CreatePgpHashAlgorithm(hashAlgorithm), created);
+            byte[]? result = null;
+            using var sd = sourceData.Hash(CreatePgpHashAlgorithm(hashAlgorithm), x => result = x);
 
-            await sourceData.ReadUntilEofAsync().ConfigureAwait(false);
+            await sd.ReadUntilEofAsync().ConfigureAwait(false);
+
+#pragma warning disable CA1508 // Avoid dead conditional code
+            return result ?? throw new InvalidOperationException();
+#pragma warning restore CA1508 // Avoid dead conditional code
         }
 
         private protected static HashAlgorithm CreatePgpHashAlgorithm(OpenPgpHashAlgorithm hashAlgorithm)
@@ -256,6 +261,10 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
                 OpenPgpHashAlgorithm.MD5 => MD5.Create(),
 #pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+
+#if NETFRAMEWORK
+                OpenPgpHashAlgorithm.MD160 => RIPEMD160.Create(),
+#endif
 
                 _ => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} is not supported.")
             };
