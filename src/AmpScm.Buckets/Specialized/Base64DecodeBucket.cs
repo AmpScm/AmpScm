@@ -53,7 +53,7 @@ namespace AmpScm.Buckets.Specialized
             /* 'x': */     49, /* 'y': */     50, /* 'z': */     51, /* '{': */     -3,
         };
 
-        protected override async ValueTask<BucketBytes> InnerReadAsync(int requested = MaxRead)
+        protected override async ValueTask<BucketBytes> SourceReadAsync(int requested = MaxRead)
         {
             if (_lineMode)
             {
@@ -65,7 +65,7 @@ namespace AmpScm.Buckets.Specialized
                 return bb;
             }
             else
-                return await base.InnerReadAsync(requested).ConfigureAwait(false);
+                return await base.SourceReadAsync(requested).ConfigureAwait(false);
         }
 
         protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)

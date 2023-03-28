@@ -63,7 +63,7 @@ namespace AmpScm.Buckets.Specialized
             return Source.ReadBucket<TReadBucket>();
         }
 
-        protected virtual TBucket? WrapDuplicate(Bucket duplicatedInner, bool reset)
+        protected virtual TBucket? WrapDuplicate(Bucket duplicatedSource, bool reset)
         {
             return null;
         }
@@ -90,7 +90,7 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string? _name;
 
-        public ProxyBucket(Bucket inner) : base(inner)
+        public ProxyBucket(Bucket source) : base(source)
         {
 
         }
@@ -105,7 +105,7 @@ namespace AmpScm.Buckets.Specialized
 
         internal sealed class Sealed : ProxyBucket, IBucketPoll, IBucketNoDispose
         {
-            public Sealed(Bucket inner) : base(inner)
+            public Sealed(Bucket source) : base(source)
             {
             }
 

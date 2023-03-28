@@ -42,7 +42,7 @@ namespace AmpScm.Buckets.Specialized
                     return _remaining;
             }
 
-            var bb = InnerPeek();
+            var bb = SourcePeek();
 
             if (!bb.IsEmpty && _skipFirst > 0)
                 bb = bb.Slice(_skipFirst);
@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Specialized
             while (!_readLeft.IsEof)
             {
                 if (_readLeft.IsEmpty && !_readLeft.IsEof)
-                    _readLeft = await InnerReadAsync(ConvertRequested(requested)).ConfigureAwait(false);
+                    _readLeft = await SourceReadAsync(ConvertRequested(requested)).ConfigureAwait(false);
 
                 bool final = _readLeft.IsEof;
 
@@ -116,7 +116,7 @@ namespace AmpScm.Buckets.Specialized
             do
             {
                 if (_readLeft.IsEmpty)
-                    _readLeft = await InnerReadAsync(ConvertRequested(Math.Max(512, minRequested))).ConfigureAwait(false);
+                    _readLeft = await SourceReadAsync(ConvertRequested(Math.Max(512, minRequested))).ConfigureAwait(false);
 
                 _remaining = ConvertData(ref _readLeft, _readLeft.IsEof);
 
@@ -128,10 +128,10 @@ namespace AmpScm.Buckets.Specialized
             return BucketBytes.Eof;
         }
 
-        protected virtual ValueTask<BucketBytes> InnerReadAsync(int requested = MaxRead)
+        protected virtual ValueTask<BucketBytes> SourceReadAsync(int requested = MaxRead)
             => Source.ReadAsync(requested);
 
-        protected virtual BucketBytes InnerPeek()
+        protected virtual BucketBytes SourcePeek()
             => Source.Peek();
 
         protected virtual int ConvertRequested(int requested)

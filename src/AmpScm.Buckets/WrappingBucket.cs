@@ -77,7 +77,7 @@ namespace AmpScm.Buckets
 
         Bucket IBucketNoDispose.NoDispose() => NoDispose();
 
-        internal Bucket GetInner()
+        internal Bucket GetSourceBucket()
         {
             return Source;
         }
