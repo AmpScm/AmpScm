@@ -97,7 +97,7 @@ namespace AmpScm.Buckets.Cryptography
 
                             var key = GetKey?.Invoke(new() { Fingerprint = fingerprint, RequiresPrivateKey = true });
 
-                            if (!(key?.HasPrivateKey ?? false) || key?.MatchFingerprint(bb) is not { } matchedKey)
+                            if (!(key?.HasPrivateKey ?? false) || key?.MatchFingerprint(fingerprint) is not { } matchedKey)
                             {
                                 if (KeyChain?.FirstOrDefault(x => x.MatchesFingerprint(bb)) is { } kk
                                     && (kk as PublicKeySignature)?.MatchFingerprint(fingerprint) is { } mk

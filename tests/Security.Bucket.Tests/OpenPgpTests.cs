@@ -580,13 +580,34 @@ f9nwhs2r0FA7IKmrcLiL2sClVAAl
         {
             GetKey = (fp) =>
             {
-                if (key1.MatchesFingerprint(fp.Fingerprint) is { })
+                if (key1.MatchesFingerprint(fp.Fingerprint))
                     return key1;
-                else if (key2.MatchesFingerprint(fp.Fingerprint) is { })
+                else if (key2.MatchesFingerprint(fp.Fingerprint))
                     return key2;
                 else
                     return null;
             }
+        };
+
+        var bb = await dc.ReadExactlyAsync(1024);
+
+        Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
+    }
+
+    [TestMethod]
+    public async Task AToB_KeyChain()
+    {
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key2, out var key2));
+
+        Assert.IsTrue(key1.HasPrivateKey);
+        Assert.IsTrue(key2.HasPrivateKey);
+
+        var raw_msg = Bucket.Create.FromASCII(msg_from_rsa1_to_rsa2_3);
+
+        using var dc = new DecryptBucket(new Radix64ArmorBucket(raw_msg))
+        {
+            KeyChain = key1 + key2
         };
 
         var bb = await dc.ReadExactlyAsync(1024);
