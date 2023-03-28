@@ -283,8 +283,8 @@ namespace AmpScm.Buckets.Cryptography
 
                                 var k = await ocb.ReadExactlyAsync(17).ConfigureAwait(false);
 
-                                Debug.Assert(verified_as_ok != null, "Verify not called");
 #pragma warning disable CA1508 // Avoid dead conditional code // Bad diagnostic, as used in lambda.
+                                Debug.Assert(verified_as_ok != null, "Verify not called");
                                 if (k.Length == 16 && verified_as_ok == true)
 #pragma warning restore CA1508 // Avoid dead conditional code
                                 {
@@ -301,7 +301,7 @@ namespace AmpScm.Buckets.Cryptography
 
                             var p = _sigs.Pop();
 
-                            byte[] hashValue = p.Completer(r.SignBlob)!;
+                            byte[] hashValue = p.Completer!(r.SignBlob)!;
                             Trace.WriteLine(BucketExtensions.HashToString(hashValue));
 
                             if (GetKey?.Invoke(new() { Fingerprint = r.SignKeyFingerprint, RequiresPrivateKey = false }) is { } key
@@ -386,7 +386,7 @@ namespace AmpScm.Buckets.Cryptography
             return base.Peek();
         }
 
-        private record PgpSignature
+        private sealed record PgpSignature
         {
             public PgpSignature(byte version, OpenPgpSignatureType signatureType, OpenPgpHashAlgorithm hashAlgorithm, OpenPgpPublicKeyType pkt, byte[] signer)
             {
@@ -402,7 +402,7 @@ namespace AmpScm.Buckets.Cryptography
             public OpenPgpHashAlgorithm HashAlgorithm { get; }
             public OpenPgpPublicKeyType Pkt { get; }
             public byte[] Signer { get; }
-            public Func<byte[]?, byte[]> Completer { get; internal set; }
+            public Func<byte[]?, byte[]>? Completer { get; internal set; }
         }
     }
 }

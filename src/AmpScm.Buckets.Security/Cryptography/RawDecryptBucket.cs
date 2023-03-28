@@ -9,7 +9,9 @@ namespace AmpScm.Buckets.Cryptography
     internal sealed class RawDecryptBucket : ConversionBucket
     {
         private readonly SymmetricAlgorithm _algorithm;
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ICryptoTransform _transform;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private byte[]? _buffer;
         private ByteCollector _byteCollector;
         private readonly int _blocksizeBytes;

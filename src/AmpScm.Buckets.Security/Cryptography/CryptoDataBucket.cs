@@ -246,7 +246,9 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
 
 #if NETFRAMEWORK
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
                 OpenPgpHashAlgorithm.MD160 => RIPEMD160.Create(),
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
 #endif
 
                 _ => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} is not supported.")

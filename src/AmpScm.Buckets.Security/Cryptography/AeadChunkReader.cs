@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Cryptography
 {
-    internal class AeadChunkReader : WrappingBucket
+    internal sealed class AeadChunkReader : WrappingBucket
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Bucket? _current; // Disposed via inner

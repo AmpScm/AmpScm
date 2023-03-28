@@ -33,7 +33,9 @@ public record class CryptoKey
     public CryptoAlgorithm Algorithm { get; }
 
     [return: NotNullIfNotNull(nameof(key1)), NotNullIfNotNull(nameof(key2))]
+#pragma warning disable CA2225 // Operator overloads have named alternates
     public static CryptoKeyChain? operator +(CryptoKey? key1, CryptoKey? key2)
+#pragma warning restore CA2225 // Operator overloads have named alternates
     {
         if (key1 is null)
             return key2;
@@ -102,7 +104,9 @@ public sealed class CryptoKeyChain : IEnumerable<CryptoKey>
 
 
     [return: NotNullIfNotNull(nameof(key1)), NotNullIfNotNull(nameof(key2))]
+#pragma warning disable CA2225 // Operator overloads have named alternates
     public static CryptoKeyChain? operator +(CryptoKeyChain? key1, CryptoKeyChain? key2)
+#pragma warning restore CA2225 // Operator overloads have named alternates
     {
         if (key1 is null)
             return key2;

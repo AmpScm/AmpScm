@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Cryptography
 
         public static SignaturePromptContext Empty { get; } = new DefType();
 
-        private record class DefType : SignaturePromptContext
+        private sealed record class DefType : SignaturePromptContext
         {
             public DefType()
             {
