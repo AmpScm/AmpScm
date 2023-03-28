@@ -80,7 +80,7 @@ namespace AmpScm.Buckets.Cryptography
             {
                 if (first)
                 {
-                    return (inner.NoDispose(), sshPublicKey ? OpenPgpTagType.PublicKey : OpenPgpTagType.Signature);
+                    return (inner.NoDispose(), sshPublicKey ? OpenPgpTagType.PublicKey : OpenPgpTagType.SignaturePublicKey);
                 }
                 else
                 {

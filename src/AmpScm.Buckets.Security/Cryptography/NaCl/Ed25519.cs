@@ -25,25 +25,25 @@ namespace Chaos.NaCl
         public const int ExpandedPrivateKeySize = 32 * 2;
 
         /// <summary>
-        /// Verify Ed25519 signature
+        /// Verify Ed25519 SignaturePublicKey
         /// </summary>
-        /// <param name="signature">Signature bytes</param>
+        /// <param name="SignaturePublicKey">SignaturePublicKey bytes</param>
         /// <param name="message">Message</param>
         /// <param name="publicKey">Public key</param>
-        /// <returns>True if signature is valid, false if it's not</returns>
-        public static bool Verify(byte[] signature, byte[] message, byte[] publicKey)
+        /// <returns>True if SignaturePublicKey is valid, false if it's not</returns>
+        public static bool Verify(byte[] SignaturePublicKey, byte[] message, byte[] publicKey)
         {
-            if (signature is null)
-                throw new ArgumentNullException(nameof(signature));
+            if (SignaturePublicKey is null)
+                throw new ArgumentNullException(nameof(SignaturePublicKey));
             else if (message is null)
                 throw new ArgumentNullException(nameof(message));
             else if (publicKey is null)
                 throw new ArgumentNullException(nameof(publicKey));
 
-            if (signature.Length != SignatureSize || publicKey.Length != PublicKeySize)
+            if (SignaturePublicKey.Length != SignatureSize || publicKey.Length != PublicKeySize)
                 throw new InvalidOperationException();
 
-            return Ed25519Operations.crypto_sign_verify(signature, message, publicKey);
+            return Ed25519Operations.crypto_sign_verify(SignaturePublicKey, message, publicKey);
         }
     }
 }

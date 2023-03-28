@@ -19,7 +19,7 @@ namespace SecurityBucketTests;
 public partial class OpenPgpTests
 {
     const string Sig1 =
-@"-----BEGIN PGP SIGNATURE-----
+@"-----BEGIN PGP SignaturePublicKey-----
 
 wsBcBAABCAAQBQJioEepCRBK7hj4Ov3rIwAAGoMIAHCHbTas3gShVMMX2dx2r82B
 33bY2C8sQ+jFyrJHid8Kq8CMokk2cgPNfELyUw/Sjce4M/CxWq6didx58OOg6nom
@@ -28,10 +28,10 @@ XIPqvRsHqFuNpuC0Ku9vW4fuiITD6i8ADPpNwsU2lVVSqwVdmdBCU5PncXyYk3Bs
 KJWsEX/HpigGCiiQ/BHf/z3hj9URNEKOWd2hRAJsvkYzczhV8/yZmSjlg9kUp/Cw
 aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
 =7fmL
------END PGP SIGNATURE-----";
+-----END PGP SignaturePublicKey-----";
 
     const string Sig2 = // Similar as sig1 but whitespace at start of line
-@"-----BEGIN PGP SIGNATURE-----
+@"-----BEGIN PGP SignaturePublicKey-----
 
  wsBcBAABCAAQBQJimgGPCRBK7hj4Ov3rIwAAP10IAGkgEDtRaPWlyreQincqo8KM
  vO5uh/G1JzqO1fxtwfzjJB/u48/c/brHqimIEug76zA6vEkkE9Cl42qNY+0vDeII
@@ -40,20 +40,20 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
  cZs0jUC2gwbMTD5sfBOGUVMKTANFKy+4gda3ouCPyAP+ptFIT10LbWptsoLnYgx8
  oJzt9PpjzQpPRp9baotmzN72sIHjh5bMqJ9HpUK/RR6FLUSO0qwi54xxL8RckZ4=
  =37hr
- -----END PGP SIGNATURE-----";
+ -----END PGP SignaturePublicKey-----";
 
     const string SigDSA =
-@"-----BEGIN PGP SIGNATURE-----
+@"-----BEGIN PGP SignaturePublicKey-----
 
 iIIEABEIACoWIQTHNE8vTjJt+Sudk9934a70jlWGXwUCYrAsPwwcZHNhQGxwdDEu
 bmwACgkQd+Gu9I5Vhl/hfgD/XmXduRrXvp8wD7cuKWkKfotF+IIgtCnC7FMf9Eq1
 WukA/jvr/XbHcqQmFzmWYxf+k3Q5eqKGtMka41jfCWCPxt0Y
 =ofhh
------END PGP SIGNATURE-----";
+-----END PGP SignaturePublicKey-----";
 
     // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
     const string SshSig =
-@"-----BEGIN SSH SIGNATURE-----
+@"-----BEGIN SSH SignaturePublicKey-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAP5ogvLJzK+1q2cwJ7K5y6
 tIKRc9y4wv9uAk4cULCN4UDwIBcGU4QiAxuWPsgjxKko/qaQMQWBdBcAUXqLTRQC7z80ER
 xbXF0uHT/XZfbCVtkg9pwxsYj8ltpgPmTOfIOGx3IyYx+luJkg5c+iahVupxeHzBGoQ2q7
@@ -71,16 +71,16 @@ Cm/QEhrgEyMptGcY/81fCfXE/ylJSDl9sBzCtSin1E9nFkuA1HGkM9zzPvcAY49k0q5j+O
 zMVsThr0xjYrEpCy7Mk+v6B94DsJFvSpycppXmfnYX+H2Umi1qw9hp7d/wb2txmqFStM8g
 9JDwomS99jM88rMEhZWi6dRjXlEG4q/OoTKnTmT30Aib71Ill+sFxEtmGesS8eeJ+js6B7
 GtAh3JPRDOlZUZM=
------END SSH SIGNATURE-----";
+-----END SSH SignaturePublicKey-----";
 
     [TestMethod]
     [DataRow(Sig1, DisplayName = nameof(Sig1))]
     [DataRow(Sig2, DisplayName = nameof(Sig2))]
     [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
     [DataRow(SshSig, DisplayName = nameof(SshSig))]
-    public async Task ParseSignature(string signature)
+    public async Task ParseSignature(string SignaturePublicKey)
     {
-        var b = Bucket.Create.FromASCII(signature);
+        var b = Bucket.Create.FromASCII(SignaturePublicKey);
 
         using var sr = new Radix64ArmorBucket(b);
 
@@ -99,9 +99,9 @@ GtAh3JPRDOlZUZM=
     [DataRow(Sig2, DisplayName = nameof(Sig2))]
     [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
     [DataRow(SshSig, DisplayName = nameof(SshSig))]
-    public async Task ParseSigTail(string signature)
+    public async Task ParseSigTail(string SignaturePublicKey)
     {
-        var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
+        var b = Bucket.Create.FromASCII(SignaturePublicKey + Environment.NewLine + "TAIL!");
 
         using var sr = new Radix64ArmorBucket(b);
 
@@ -123,9 +123,9 @@ GtAh3JPRDOlZUZM=
     [DataRow(Sig2, DisplayName = nameof(Sig2))]
     [DataRow(SigDSA, DisplayName = nameof(SigDSA))]
     [DataRow(SshSig, DisplayName = nameof(SshSig))]
-    public async Task ParseRfc4880(string signature)
+    public async Task ParseRfc4880(string SignaturePublicKey)
     {
-        var b = Bucket.Create.FromASCII(signature + Environment.NewLine + "TAIL!");
+        var b = Bucket.Create.FromASCII(SignaturePublicKey + Environment.NewLine + "TAIL!");
 
         var sr = new Radix64ArmorBucket(b);
         using var rr = new SignatureBucket(sr);
@@ -338,17 +338,17 @@ cEgAjelaGkn3RJOwXWoJbA==
     [TestMethod]
     public async Task TestPrivateKeys()
     {
-        Assert.IsTrue(Signature.TryParse(rsa_key1, out var key1));
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
         Assert.AreEqual(rsa_key1_fingerprint, key1.FingerprintString);
         Assert.AreEqual(new MailAddress("test@rsa", "RSA Test"), key1.MailAddress);
-        Assert.AreEqual(SignatureAlgorithm.Rsa, key1.Algorithm);
-        Assert.IsTrue(key1.HasSecret, "Key1 has secret");
+        Assert.AreEqual(CryptoAlgorithm.Rsa, key1.Algorithm);
+        Assert.IsTrue(key1.HasPrivateKey, "Key1 has secret");
 
-        Assert.IsTrue(Signature.TryParse(rsa_key2, out var key2));
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key2, out var key2));
         Assert.AreEqual(rsa_key2_fingerprint, key2.FingerprintString);
         Assert.AreEqual(new MailAddress("test-3072@rsa", "RSA Test 3072"), key2.MailAddress);
-        Assert.AreEqual(SignatureAlgorithm.Rsa, key2.Algorithm);
-        Assert.IsTrue(key1.HasSecret, "Key2 has secret");
+        Assert.AreEqual(CryptoAlgorithm.Rsa, key2.Algorithm);
+        Assert.IsTrue(key1.HasPrivateKey, "Key2 has secret");
 
         using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2).AsBucket());
 
@@ -512,10 +512,10 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
         var key = await sig.ReadKeyAsync();
 
         Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", key.FingerprintString);
-        Assert.AreEqual(SignatureAlgorithm.Ed25519, key.Algorithm);
+        Assert.AreEqual(CryptoAlgorithm.Ed25519, key.Algorithm);
 
-        Assert.IsTrue(Signature.TryParse(APrivateKey, out var value));
-        Assert.IsTrue(value.HasSecret);
+        Assert.IsTrue(PublicKeySignature.TryParse(APrivateKey, out var value));
+        Assert.IsTrue(value.HasPrivateKey);
 
         Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
     }
@@ -560,19 +560,19 @@ f9nwhs2r0FA7IKmrcLiL2sClVAAl
 -----END PGP PRIVATE KEY BLOCK-----";
 
 
-        Assert.IsTrue(Signature.TryParse(Privy, _ => "I", out var key));
+        Assert.IsTrue(PublicKeySignature.TryParse(Privy, _ => "I", out var key));
 
-        Assert.IsTrue(key.HasSecret);
+        Assert.IsTrue(key.HasPrivateKey);
     }
 
     [TestMethod]
     public async Task AToB()
     {
-        Assert.IsTrue(Signature.TryParse(rsa_key1, out var key1));
-        Assert.IsTrue(Signature.TryParse(rsa_key2, out var key2));
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key2, out var key2));
 
-        Assert.IsTrue(key1.HasSecret);
-        Assert.IsTrue(key2.HasSecret);
+        Assert.IsTrue(key1.HasPrivateKey);
+        Assert.IsTrue(key2.HasPrivateKey);
 
         var raw_msg = Bucket.Create.FromASCII(msg_from_rsa1_to_rsa2_3);
 
@@ -580,9 +580,9 @@ f9nwhs2r0FA7IKmrcLiL2sClVAAl
         {
             GetKey = (fp) =>
             {
-                if (key1.MatchFingerprint(fp.Fingerprint) is { })
+                if (key1.MatchesFingerprint(fp.Fingerprint) is { })
                     return key1;
-                else if (key2.MatchFingerprint(fp.Fingerprint) is { })
+                else if (key2.MatchesFingerprint(fp.Fingerprint) is { })
                     return key2;
                 else
                     return null;

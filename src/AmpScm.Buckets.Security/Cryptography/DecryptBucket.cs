@@ -36,8 +36,9 @@ namespace AmpScm.Buckets.Cryptography
             _q = _container;
         }
 
+        public CryptoKeyChain KeyChain { get; init; } = new CryptoKeyChain();
 
-        public Func<SignatureFetchContext, Signature?>? GetKey { get; init; }
+        public Func<SignatureFetchContext, PublicKeySignature?>? GetKey { get; init; }
         public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
         private async ValueTask ReadHeader()
@@ -91,47 +92,38 @@ namespace AmpScm.Buckets.Cryptography
                                 break; // Skip packet, we already have a session
                             }
 
-                            var key = GetKey?.Invoke(new() { Fingerprint = bb.Memory, RequiresPrivateKey = true });
-
-                            if (!(key?.HasSecret ?? false) || key?.MatchFingerprint(bb) is not { } matchedKey)
-                            {
-                                await bucket.ReadUntilEofAsync().ConfigureAwait(false);
-                                break; // Ignore rest of packet
-                            }
-
+                            var fingerprint = bb.ToArray();
                             var pca = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                            var keyValues = matchedKey.Values;
+                            var key = GetKey?.Invoke(new() { Fingerprint = fingerprint, RequiresPrivateKey = true });
+
+                            if (!(key?.HasPrivateKey ?? false) || key?.MatchFingerprint(bb) is not { } matchedKey)
+                            {
+                                if (KeyChain?.FirstOrDefault(x => x.MatchesFingerprint(bb)) is { } kk
+                                    && (kk as PublicKeySignature)?.MatchFingerprint(fingerprint) is { } mk
+                                    && mk.HasPrivateKey)
+                                {
+                                    matchedKey = mk;
+                                }
+                                else
+                                {
+                                    await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                                    break; // Ignore rest of packet
+                                }
+                            }
+
+                            var keyValues = matchedKey.GetValues(false);
 
                             switch (matchedKey.Algorithm)
                             {
-                                case SignatureAlgorithm.Rsa:
+                                case CryptoAlgorithm.Rsa:
                                     using (var rsa = RSA.Create())
                                     {
-                                        BigInteger D = MakeBigInt(keyValues[2]);
-                                        BigInteger P = MakeBigInt(keyValues[3]);
-                                        BigInteger Q = MakeBigInt(keyValues[4]);
-
-                                        BigInteger DP = D % (P - 1);
-                                        BigInteger DQ = D % (Q - 1);
-
-                                        var p = new RSAParameters()
-                                        {
-                                            Modulus = MakeUnsignedArray(keyValues[0]),
-                                            Exponent = MakeUnsignedArray(keyValues[1]),
-                                            D = MakeUnsignedArray(keyValues[2]),
-                                            P = MakeUnsignedArray(keyValues[3]),
-                                            Q = MakeUnsignedArray(keyValues[4]),
-                                            InverseQ = MakeUnsignedArray(keyValues[5]),
-                                            DP = BIToArray(DP),
-                                            DQ = BIToArray(DQ),
-                                        };
+                                        rsa.ImportParametersFromCryptoInts(keyValues);
 
                                         var bi = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
 
-                                        rsa.ImportParameters(p);
-
-                                        byte[] data = rsa.Decrypt(bi.Value.ToArray(), RSAEncryptionPadding.Pkcs1);
+                                        byte[] data = rsa.Decrypt(bi.Value.ToCryptoValue(), RSAEncryptionPadding.Pkcs1);
                                         ushort checksum = NetBitConverter.ToUInt16(data, data.Length - 2);
 
                                         if (checksum == data.Skip(1).Take(data.Length - 3).Sum(x => (ushort)x))
@@ -142,7 +134,7 @@ namespace AmpScm.Buckets.Cryptography
                                     }
                                     break;
 
-                                case SignatureAlgorithm.Curve25519:
+                                case CryptoAlgorithm.Curve25519:
 
 
                                 default:
@@ -303,7 +295,7 @@ namespace AmpScm.Buckets.Cryptography
 
                         }
                         break;
-                    case OpenPgpTagType.Signature:
+                    case OpenPgpTagType.SignaturePublicKey:
                         {
                             var r = await ParseSignatureAsync(bucket).ConfigureAwait(false);
 
@@ -315,14 +307,14 @@ namespace AmpScm.Buckets.Cryptography
                             if (GetKey?.Invoke(new() { Fingerprint = r.SignKeyFingerprint, RequiresPrivateKey = false }) is { } key
                                 && key?.MatchFingerprint(r.SignKeyFingerprint) is { } matchedKey)
                             {
-                                if (!VerifySignature(r, hashValue, matchedKey.Values))
+                                if (!VerifySignature(r, hashValue, matchedKey.GetValues(false)))
                                 {
-                                    throw new BucketDecryptionException("Signature not verifiable");
+                                    throw new BucketDecryptionException("SignaturePublicKey not verifiable");
                                 }
                             }
 
                             if (NetBitConverter.ToUInt16(hashValue, 0) != r.HashStart)
-                                throw new BucketDecryptionException("Hashing towards signature failed");
+                                throw new BucketDecryptionException("Hashing towards SignaturePublicKey failed");
                         }
                         break;
                     default:
@@ -334,27 +326,6 @@ namespace AmpScm.Buckets.Cryptography
                     long n = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                     Debug.Assert(n == 0, $"Unread data left in {bucket} of tagType {tag}");
                 }
-            }
-
-            static BigInteger MakeBigInt(ReadOnlyMemory<byte> readOnlyMemory)
-            {
-#if NETCOREAPP
-                return new BigInteger(readOnlyMemory.ToArray(), true, true);
-#else
-                var r = MakeUnsignedArray(readOnlyMemory);
-
-                Array.Reverse(r);
-
-                return new BigInteger(r);
-#endif
-            }
-
-            static byte[] BIToArray(BigInteger value)
-            {
-                byte[] b = value.ToByteArray();
-                Array.Reverse(b);
-
-                return MakeUnsignedArray(b);
             }
         }
 

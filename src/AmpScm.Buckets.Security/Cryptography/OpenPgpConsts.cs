@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Cryptography
         /// <summary>Reserved</summary>
         None = 0,
         PublicKeySession = 1,
-        Signature = 2,
+        SignaturePublicKey = 2,
         SymetricSessionKey = 3,
         OnePassSignature = 4,
         SecretKey = 5,
