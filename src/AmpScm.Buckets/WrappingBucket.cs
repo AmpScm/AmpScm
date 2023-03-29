@@ -27,7 +27,7 @@ namespace AmpScm.Buckets
 
         public override string Name => base.Name + ">" + Source.Name;
 
-        private protected override bool DoDispose()
+        protected override bool AcceptDisposing()
         {
             int n = Interlocked.Decrement(ref _nDispose);
 

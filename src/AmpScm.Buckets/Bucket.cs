@@ -215,14 +215,14 @@ namespace AmpScm.Buckets
 #pragma warning restore CA1063 // Implement IDisposable Correctly
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            if (DoDispose())
+            if (AcceptDisposing())
             {
                 Dispose(disposing: true);
                 GC.SuppressFinalize(this);
             }
         }
 
-        private protected virtual bool DoDispose()
+        protected virtual bool AcceptDisposing()
         {
             return true;
         }

@@ -237,6 +237,16 @@ namespace AmpScm.Buckets.Git
 
             public static DummyObjectBucket Instance { get; } = new();
 
+            protected override void Dispose(bool disposing)
+            {
+                //base.Dispose(disposing);
+            }
+
+            protected override bool AcceptDisposing()
+            {
+                return false;
+            }
+
             public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
             {
                 return BucketBytes.Eof;
