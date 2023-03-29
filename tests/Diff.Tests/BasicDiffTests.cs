@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
+
+
 namespace DiffTests
 {
     [TestClass]

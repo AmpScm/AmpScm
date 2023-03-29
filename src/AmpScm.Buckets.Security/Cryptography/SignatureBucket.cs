@@ -138,7 +138,7 @@ namespace AmpScm.Buckets.Cryptography
 
                                 var tp = await ReadSshStringAsync(b).ConfigureAwait(false);
 
-                                List<ReadOnlyMemory<byte>> bigInts = new();
+                                List<BigInteger> bigInts = new();
                                 int i = 0;
                                 while (!(bb = await ReadSshStringAsync(b).ConfigureAwait(false)).IsEof)
                                 {
@@ -148,16 +148,16 @@ namespace AmpScm.Buckets.Cryptography
 
                                         while (!(bb = await ReadSshStringAsync(s).ConfigureAwait(false)).IsEof)
                                         {
-                                            bigInts.Add(bb.ToArray());
+                                            bigInts.Add(bb.ToArray().ToBigInteger());
                                         }
 
                                         continue;
                                     }
 
-                                    bigInts.Add(bb.ToArray());
+                                    bigInts.Add(bb.ToArray().ToBigInteger());
                                 }
 
-                                _signatureInfo.SignatureInts = bigInts.ToBigInts();
+                                _signatureInfo.SignatureInts = bigInts.ToArray();
 
                                 break;
                             }
@@ -439,19 +439,13 @@ namespace AmpScm.Buckets.Cryptography
                                 {
                                     List<BigInteger> vals = new();
 
-                                    var (b, bt) = await der.ReadValueAsync().ConfigureAwait(false);
-                                    if (b is null)
-                                        throw new BucketEofException(der);
+                                    while (await der.ReadValueAsync().ConfigureAwait(false) is { } rd && rd.Bucket is { })
+                                    {
+                                        var (b, bt) = rd;
 
-                                    bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
-                                    vals.Add(bb.ToArray().ToBigInteger());
-
-                                    (b, bt) = await der.ReadValueAsync().ConfigureAwait(false);
-                                    if (b is null)
-                                        throw new BucketEofException(der);
-
-                                    bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
-                                    vals.Add(bb.ToArray().ToBigInteger());
+                                        bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
+                                        vals.Add(bb.ToArray().ToBigInteger());
+                                    }
 
                                     var keyInts = vals.ToArray();
 
@@ -473,12 +467,12 @@ namespace AmpScm.Buckets.Cryptography
 
                                     bb = await ob!.ReadExactlyAsync(32).ConfigureAwait(false);
 
-                                    CryptoAlgorithm sba;
+                                    CryptoAlgorithm cryptoAlg;
 
                                     if (bb.Span.SequenceEqual(new byte[] { 0x2a, 0x86, 0x48, 0xce, 0x38, 0x04, 0x01 }))
-                                        sba = CryptoAlgorithm.Dsa;
+                                        cryptoAlg = CryptoAlgorithm.Dsa;
                                     else if (bb.Span.SequenceEqual(new byte[] { 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01 }))
-                                        sba = CryptoAlgorithm.Ecdsa;
+                                        cryptoAlg = CryptoAlgorithm.Ecdsa;
                                     else
                                     {
                                         await ob!.ReadUntilEofAsync().ConfigureAwait(false);
@@ -494,15 +488,15 @@ namespace AmpScm.Buckets.Cryptography
 
                                     BigInteger[] keyInts = vals.ToArray();
 
-                                    if (sba == CryptoAlgorithm.Ecdsa && vals.Count >= 2)
+                                    if (cryptoAlg == CryptoAlgorithm.Ecdsa && vals.Count >= 2)
                                     {
-                                        vals[1] = vals[1].ToCryptoValue().Skip(1).ToArray().ToBigInteger();
+                                        vals[1] = vals[1].ToCryptoValue().ToArray().ToBigInteger();
                                         keyInts = GetEcdsaValues(vals, true);
                                     }
                                     else
                                         keyInts = vals.ToArray();
 
-                                    _keys.Add(new PublicKeySignature(CreateSshFingerprint(sba, keyInts), sba, keyInts));
+                                    _keys.Add(new PublicKeySignature(CreateSshFingerprint(cryptoAlg, keyInts), cryptoAlg, keyInts));
                                 }
                                 else
                                     await der.ReadUntilEofAsync().ConfigureAwait(false);

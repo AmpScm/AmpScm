@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,14 +12,6 @@ namespace AmpScm.Buckets.Cryptography
 {
     public static partial class CryptoExtensions
     {
-
-        internal static IReadOnlyList<BigInteger> ToBigInts(this IReadOnlyList<ReadOnlyMemory<byte>> list)
-        {
-            if (list is null)
-                throw new ArgumentNullException(nameof(list));
-
-            return list.Select(x => x.ToBigInteger()).ToList();
-        }
 
 #if NETFRAMEWORK
         internal static byte[] ToByteArray(this BigInteger value, bool isUnsigned = false, bool isBigEndian = false)
@@ -46,18 +40,25 @@ namespace AmpScm.Buckets.Cryptography
             return value.ToByteArray(true, true);
         }
 
-        internal static BigInteger ToBigInteger(this ReadOnlyMemory<byte> value)
-        {
-#if NETCOREAPP
-            return new BigInteger(value.ToArray(), true, true);
-#else
-            return new BigInteger(value.ToArray().Reverse().ToArray());
-#endif
-        }
-
         internal static BigInteger ToBigInteger(this byte[] value)
         {
-            return ToBigInteger(new Memory<byte>(value));
+#if NETCOREAPP
+            return new BigInteger(value, true, true);
+#else
+            if ((value[0] & 0x80) != 0)
+            {
+                byte[] v2 = new byte[value.Length + 1];
+                value.AsSpan().CopyTo(v2.AsSpan(1));
+
+                value = v2;
+            }
+            else
+                value = value.ToArray();
+
+            Array.Reverse(value);
+
+            return new BigInteger(value);
+#endif
         }
 
         internal static BigInteger ToBigInteger(this IEnumerable<byte> value)
@@ -114,7 +115,38 @@ namespace AmpScm.Buckets.Cryptography
                 p.DQ = DQ.ToCryptoValue().AlignUp(8);
             }
 
-            rsa.ImportParameters(p);
+            try
+            {
+                //using var rsa2 = RSA.Create();
+                //
+                //var ex = rsa2.ExportParameters(true);
+                //
+                //void D(Expression<Func<RSAParameters, byte[]>> what)
+                //{
+                //    var pb = what.Compile()(p);
+                //    var pr = what.Compile()(ex);
+                //
+                //    if (pb.Length != pr.Length)
+                //    {
+                //        throw new Exception($"Different length {what}: {pb.Length} vs {pr.Length}");
+                //    }
+                //}
+                //
+                //D(x => x.Modulus);
+                //D(x => x.Exponent);
+                //D(x => x.D);
+                //D(x => x.P);
+                //D(x => x.Q);
+                //D(x => x.InverseQ);
+                //D(x => x.DP);
+                //D(x => x.DQ);
+
+                rsa.ImportParameters(p);
+            }
+            catch(CryptographicException c)
+            {
+                
+            }
         }
 
         internal static void ImportParametersFromCryptoInts(this DSA dsa, IReadOnlyList<BigInteger> ints)
@@ -128,10 +160,10 @@ namespace AmpScm.Buckets.Cryptography
 
             var p = new DSAParameters()
             {
-                P = ints[0].ToCryptoValue(),
-                Q = ints[1].ToCryptoValue(),
-                G = ints[2].ToCryptoValue(),
-                Y = ints[3].ToCryptoValue()
+                P = ints[0].ToCryptoValue().AlignUp(),
+                Q = ints[1].ToCryptoValue().AlignUp(),
+                G = ints[2].ToCryptoValue().AlignUp(),
+                Y = ints[3].ToCryptoValue().AlignUp()
             };
 
             dsa.ImportParameters(p);
@@ -157,8 +189,8 @@ namespace AmpScm.Buckets.Cryptography
 
                 Q = new ECPoint
                 {
-                    X = ints[1].ToCryptoValue().AlignUp(),
-                    Y = ints[2].ToCryptoValue().AlignUp(),
+                    X = ints[1].ToCryptoValue(),
+                    Y = ints[2].ToCryptoValue(),
                 },
             };
 

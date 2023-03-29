@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0;net48</TargetFrameworks>
     <LangVersion>9.0</LangVersion>

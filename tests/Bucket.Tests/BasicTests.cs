@@ -8,11 +8,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
 using AmpScm.BucketTests.Buckets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AmpScm;
+
+[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
 
 namespace BucketTests
 {

@@ -174,7 +174,7 @@ namespace AmpScm.Buckets.Cryptography
 
             while (ReadSshStringAsync(b).AsTask().Result is BucketBytes bb && !bb.IsEof)
             {
-                mems.Add(bb.Memory.ToBigInteger());
+                mems.Add(bb.ToArray().ToBigInteger());
             }
 
             return mems.ToArray();
@@ -663,8 +663,8 @@ namespace AmpScm.Buckets.Cryptography
                     {
                         ecdsa.ImportParametersFromCryptoInts(keyValues);
 
-                        byte[] r = signatureInfo.SignatureInts[0].ToCryptoValue();
-                        byte[] s = signatureInfo.SignatureInts[1].ToCryptoValue();
+                        byte[] r = signatureInfo.SignatureInts[0].ToCryptoValue().AlignUp(2);
+                        byte[] s = signatureInfo.SignatureInts[1].ToCryptoValue().AlignUp(2);
 
                         int klen = ecdsa.KeySize switch
                         {
@@ -678,9 +678,6 @@ namespace AmpScm.Buckets.Cryptography
 
                         r.CopyTo(sig, klen - r.Length);
                         s.CopyTo(sig, 2 * klen - s.Length);                        
-
-                        r.CopyTo(sig, klen - r.Length);
-                        s.CopyTo(sig, 2 * klen - s.Length);
 
                         return ecdsa.VerifyHash(hashValue, sig);
                     }

@@ -32,12 +32,7 @@
     <ProjectReference Include="..\..\src\AmpScm.Buckets.Security\AmpScm.Buckets.Security.csproj" />
     <ProjectReference Include="..\..\src\AmpScm.Buckets\AmpScm.Buckets.csproj" />
     <ProjectReference Include="..\..\src\AmpScm.Linq.AsyncQueryable\AmpScm.Linq.AsyncQueryable.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="cases\pack-b5a9cccacd266c9fcbdedb43ff509b02aa185b5c.bitmap">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
   </ItemGroup>
 
 </Project>

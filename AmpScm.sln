@@ -47,6 +47,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmpScm.Buckets.Security", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Security.Bucket.Tests", "tests\Security.Bucket.Tests\Security.Bucket.Tests.csproj", "{A4D0083D-F390-40A6-8053-C8F8A44CE334}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Common", "tests\Tests.Common\Tests.Common.csproj", "{238C01C6-8812-46C9-A312-2438D5EF5A3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,10 @@ Global
 		{A4D0083D-F390-40A6-8053-C8F8A44CE334}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4D0083D-F390-40A6-8053-C8F8A44CE334}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4D0083D-F390-40A6-8053-C8F8A44CE334}.Release|Any CPU.Build.0 = Release|Any CPU
+		{238C01C6-8812-46C9-A312-2438D5EF5A3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{238C01C6-8812-46C9-A312-2438D5EF5A3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{238C01C6-8812-46C9-A312-2438D5EF5A3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{238C01C6-8812-46C9-A312-2438D5EF5A3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -133,6 +139,7 @@ Global
 		{01A15A7A-5661-49F6-99CA-6E241248C8F4} = {78BFCCE6-51F9-49B2-B94A-00698882EE67}
 		{4A432E0A-AB75-4C22-9E16-A257154AEB38} = {808AB523-2A80-4630-A13C-A54CBDF95D51}
 		{A4D0083D-F390-40A6-8053-C8F8A44CE334} = {78BFCCE6-51F9-49B2-B94A-00698882EE67}
+		{238C01C6-8812-46C9-A312-2438D5EF5A3B} = {78BFCCE6-51F9-49B2-B94A-00698882EE67}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {87E00793-7FC0-4CBC-BCA7-7F684F515F8F}
