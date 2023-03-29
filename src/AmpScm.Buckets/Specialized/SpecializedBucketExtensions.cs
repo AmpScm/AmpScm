@@ -652,6 +652,17 @@ namespace AmpScm.Buckets.Specialized
             nw[array.Length] = item;
             return nw;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="mustBeSame"></param>
+        /// <returns></returns>
+        public static Bucket VerifyEqual(Bucket source, Bucket mustBeSame)
+        {
+            return new StrictCompareBucket(source, mustBeSame);
+        }
     }
 }
 

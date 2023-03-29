@@ -7,7 +7,7 @@
 [Rr]elease/
 /[Pp]ackages/
 *.user
-/TestResults/
+TestResults/
 /src/TestResults/
 coverage.*.xml
 *.local.cs

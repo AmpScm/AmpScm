@@ -74,9 +74,33 @@ namespace AmpScm.Buckets.Cryptography
             {
                 var newLen = bytes.Length - bytes.Length % mask + mask;
 
-                byte[] newBytes = new byte[newLen];
+                return bytes.PadLeft(newLen);
+            }
+        }
 
-                bytes.AsSpan().CopyTo(newBytes.AsSpan(newLen - bytes.Length));
+        internal static byte[] PadRight(this byte[] bytes, int length)
+        {
+            if (bytes.Length >= length)
+                return bytes;
+            else
+            {
+                byte[] newBytes = new byte[length];
+
+                bytes.AsSpan().CopyTo(newBytes);
+
+                return newBytes;
+            }
+        }
+
+        internal static byte[] PadLeft(this byte[] bytes, int length)
+        {
+            if (bytes.Length >= length)
+                return bytes;
+            else
+            {
+                byte[] newBytes = new byte[length];
+
+                bytes.AsSpan().CopyTo(newBytes.AsSpan(length - bytes.Length));
 
                 return newBytes;
             }

@@ -123,7 +123,7 @@ namespace AmpScm.Buckets.Cryptography
 
                                         var bi = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
 
-                                        byte[] data = rsa.Decrypt(bi.Value.ToCryptoValue(), RSAEncryptionPadding.Pkcs1);
+                                        byte[] data = rsa.Decrypt(bi.Value.ToCryptoValue().PadRight(384), RSAEncryptionPadding.Pkcs1);
                                         ushort checksum = NetBitConverter.ToUInt16(data, data.Length - 2);
 
                                         if (checksum == data.Skip(1).Take(data.Length - 3).Sum(x => (ushort)x))
