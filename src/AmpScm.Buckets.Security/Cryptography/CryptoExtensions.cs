@@ -66,7 +66,7 @@ namespace AmpScm.Buckets.Cryptography
             return ToBigInteger(value.ToArray());
         }
 
-        internal static byte[] AlignUp(this byte[] bytes, int mask=4)
+        internal static byte[] AlignUp(this byte[] bytes, int mask = 4)
         {
             if ((bytes.Length & (mask - 1)) == 0)
                 return bytes;
@@ -121,6 +121,8 @@ namespace AmpScm.Buckets.Cryptography
                 Exponent = ints[1].ToCryptoValue().AlignUp(),
             };
 
+            rsa.KeySize = p.Modulus.Length * 8;
+
             if (ints.Count > 2)
             {
                 BigInteger D = ints[2];
@@ -139,38 +141,7 @@ namespace AmpScm.Buckets.Cryptography
                 p.DQ = DQ.ToCryptoValue().AlignUp(8);
             }
 
-            try
-            {
-                //using var rsa2 = RSA.Create();
-                //
-                //var ex = rsa2.ExportParameters(true);
-                //
-                //void D(Expression<Func<RSAParameters, byte[]>> what)
-                //{
-                //    var pb = what.Compile()(p);
-                //    var pr = what.Compile()(ex);
-                //
-                //    if (pb.Length != pr.Length)
-                //    {
-                //        throw new Exception($"Different length {what}: {pb.Length} vs {pr.Length}");
-                //    }
-                //}
-                //
-                //D(x => x.Modulus);
-                //D(x => x.Exponent);
-                //D(x => x.D);
-                //D(x => x.P);
-                //D(x => x.Q);
-                //D(x => x.InverseQ);
-                //D(x => x.DP);
-                //D(x => x.DQ);
-
-                rsa.ImportParameters(p);
-            }
-            catch(CryptographicException c)
-            {
-                
-            }
+            rsa.ImportParameters(p);
         }
 
         internal static void ImportParametersFromCryptoInts(this DSA dsa, IReadOnlyList<BigInteger> ints)
@@ -239,6 +210,18 @@ namespace AmpScm.Buckets.Cryptography
                 return array;
             else
                 return Enumerable.Range(0, len - array.Length).Select(_ => (byte)0).Concat(array).ToArray();
+        }
+
+        internal static SymmetricAlgorithm ApplyModeShim(this SymmetricAlgorithm algorithm)
+        {
+#pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
+            if (algorithm.Mode == CipherMode.CFB)
+            {
+                return new CfbMapper(algorithm);
+            }
+#pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
+
+            return algorithm;
         }
     }
 }

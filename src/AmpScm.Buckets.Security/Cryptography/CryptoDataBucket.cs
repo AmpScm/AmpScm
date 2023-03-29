@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -383,6 +384,7 @@ namespace AmpScm.Buckets.Cryptography
                 case OpenPgpSymmetricAlgorithm.Aes:
                 case OpenPgpSymmetricAlgorithm.Aes192:
                 case OpenPgpSymmetricAlgorithm.Aes256:
+
                     var aes = Aes.Create();
 #pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
                     aes.Mode = CipherMode.CFB;
@@ -393,7 +395,7 @@ namespace AmpScm.Buckets.Cryptography
                     aes.Padding = PaddingMode.None;
                     aes.FeedbackSize = aes.BlockSize;
 
-                    return new RawDecryptBucket(source, aes, true);
+                    return new RawDecryptBucket(source, aes.ApplyModeShim(), true);
 
                 default:
                     throw new NotImplementedException($"Not implemented for {algorithm} algorithm yet");
@@ -420,7 +422,7 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
-        private protected record struct SignatureInfo(OpenPgpSignatureType SignatureType, byte[]? Signer, OpenPgpPublicKeyType PublicKeyType, OpenPgpHashAlgorithm HashAlgorithm, ushort HashStart, DateTimeOffset? SignTime, byte[]? SignBlob, IReadOnlyList<BigInteger> SignatureInts, byte[]? SignKeyFingerprint);
+        private protected record SignatureInfo(OpenPgpSignatureType SignatureType, byte[]? Signer, OpenPgpPublicKeyType PublicKeyType, OpenPgpHashAlgorithm HashAlgorithm, ushort HashStart, DateTimeOffset? SignTime, byte[]? SignBlob, IReadOnlyList<BigInteger> SignatureInts, byte[]? SignKeyFingerprint);
 
         private protected static async ValueTask<SignatureInfo> ParseSignatureAsync(Bucket bucket)
         {
@@ -619,11 +621,11 @@ namespace AmpScm.Buckets.Cryptography
             if (publicKeyType == OpenPgpPublicKeyType.EdDSA && signatureInts.Length == 2 /* signatureInts.All(x => x.Length == 32)*/)
             {
                 publicKeyType = OpenPgpPublicKeyType.Ed25519;
-                signatureInts = new [] { signatureInts.SelectMany(x => x.ToCryptoValue()).ToBigInteger() };
+                signatureInts = new[] { signatureInts.SelectMany(x => x.ToCryptoValue()).ToBigInteger() };
             }
             else if (publicKeyType == OpenPgpPublicKeyType.Dsa)
             {
-                signatureInts = new [] { signatureInts.SelectMany(x => x.ToCryptoValue()).ToBigInteger() };
+                signatureInts = new[] { signatureInts.SelectMany(x => x.ToCryptoValue()).ToBigInteger() };
             }
 
             return new(signatureType, signer, publicKeyType, hashAlgorithm, hashStart, signTime, signBlob, signatureInts, signKeyFingerprint);
@@ -677,7 +679,7 @@ namespace AmpScm.Buckets.Cryptography
                         byte[] sig = new byte[2 * klen];
 
                         r.CopyTo(sig, klen - r.Length);
-                        s.CopyTo(sig, 2 * klen - s.Length);                        
+                        s.CopyTo(sig, 2 * klen - s.Length);
 
                         return ecdsa.VerifyHash(hashValue, sig);
                     }

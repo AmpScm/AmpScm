@@ -19,10 +19,9 @@ namespace AmpScm.Buckets.Cryptography
     /// </summary>
     public sealed class SignatureBucket : CryptoDataBucket
     {
-        private byte[]? _signature;
         private readonly List<PublicKeySignature> _keys = new();
         private MailAddress? _mailAddress;
-        private SignatureInfo _signatureInfo;
+        private readonly List<SignatureInfo> _signatures = new();
         private readonly Bucket _outer;
 
         private new OpenPgpContainer Source => (OpenPgpContainer)base.Source;
@@ -32,6 +31,8 @@ namespace AmpScm.Buckets.Cryptography
         {
             _outer = source;
         }
+
+        public CryptoKeyChain? KeyChain { get; init; }
 
         public Func<SignaturePromptContext, string>? GetPassPhrase { get; init; }
 
@@ -60,8 +61,9 @@ namespace AmpScm.Buckets.Cryptography
                 {
                     switch (tag)
                     {
-                        case OpenPgpTagType.SignaturePublicKey when Source.IsSsh && _signatureInfo.SignatureInts is null:
+                        case OpenPgpTagType.SignaturePublicKey when Source.IsSsh:
                             {
+                                OpenPgpPublicKeyType publicKeyType;
                                 uint sshVersion = await bucket.ReadNetworkUInt32Async().ConfigureAwait(false);
 
                                 if (sshVersion != 1)
@@ -79,7 +81,7 @@ namespace AmpScm.Buckets.Cryptography
                                     if (alg.StartsWith("sk-", StringComparison.Ordinal))
                                         alg = alg.Substring(3);
 
-                                    _signatureInfo.PublicKeyType = alg switch
+                                    publicKeyType = alg switch
                                     {
                                         "ssh-rsa" => OpenPgpPublicKeyType.Rsa,
                                         "ssh-dss" => OpenPgpPublicKeyType.Dsa,
@@ -96,12 +98,11 @@ namespace AmpScm.Buckets.Cryptography
 
                                     keyInts = keyList.ToArray();
 
-                                    if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.ECDSA)
+                                    if (publicKeyType == OpenPgpPublicKeyType.ECDSA)
                                         keyInts = GetEcdsaValues(keyInts);
                                 }
 
-                                _signatureInfo.SignKeyFingerprint ??= keyFingerprint;
-                                _keys.Add(new PublicKeySignature(keyFingerprint!, GetKeyAlgo(_signatureInfo.PublicKeyType), keyInts, _mailAddress));
+                                _keys.Add(new PublicKeySignature(keyFingerprint!, GetKeyAlgo(publicKeyType), keyInts, _mailAddress));
 
                                 ByteCollector signPrefix = new(512);
                                 signPrefix.Append(new byte[] { (byte)'S', (byte)'S', (byte)'H', (byte)'S', (byte)'I', (byte)'G' });
@@ -123,7 +124,7 @@ namespace AmpScm.Buckets.Cryptography
 
                                 string sigHashAlgo = bb.ToASCIIString();
 
-                                _signatureInfo.HashAlgorithm = sigHashAlgo switch
+                                var hashAlgorithm = sigHashAlgo switch
                                 {
                                     "sha256" => OpenPgpHashAlgorithm.SHA256,
                                     "sha512" => OpenPgpHashAlgorithm.SHA512,
@@ -131,10 +132,10 @@ namespace AmpScm.Buckets.Cryptography
                                 };
 
                                 bb = await ReadSshStringAsync(bucket).ConfigureAwait(false);
-                                _signature = bb.ToArray();
-                                _signatureInfo.SignBlob = signPrefix.ToArray();
+                                var signature = bb.ToArray();
+                                var signBlob = signPrefix.ToArray();
 
-                                using var b = _signature.AsBucket();
+                                using var b = signature.AsBucket();
 
                                 var tp = await ReadSshStringAsync(b).ConfigureAwait(false);
 
@@ -142,7 +143,7 @@ namespace AmpScm.Buckets.Cryptography
                                 int i = 0;
                                 while (!(bb = await ReadSshStringAsync(b).ConfigureAwait(false)).IsEof)
                                 {
-                                    if (SplitSignatureInt(i++, _signatureInfo.PublicKeyType))
+                                    if (SplitSignatureInt(i++, publicKeyType))
                                     {
                                         var s = bb.ToArray().AsBucket();
 
@@ -157,8 +158,9 @@ namespace AmpScm.Buckets.Cryptography
                                     bigInts.Add(bb.ToArray().ToBigInteger());
                                 }
 
-                                _signatureInfo.SignatureInts = bigInts.ToArray();
+                                //_signatureInfo.SignatureInts = bigInts.ToArray();
 
+                                _signatures.Add(new(SignatureType: default, Signer: default, publicKeyType, hashAlgorithm, 0, SignTime: null, signBlob, bigInts.ToArray(), keyFingerprint));
                                 break;
                             }
                         case OpenPgpTagType.PublicKey when Source.IsSsh:
@@ -184,13 +186,7 @@ namespace AmpScm.Buckets.Cryptography
                                 break;
                             }
                         case OpenPgpTagType.SignaturePublicKey:
-                            if(_signatureInfo.SignatureInts is null)
-                                _signatureInfo = await ParseSignatureAsync(bucket).ConfigureAwait(false);
-                            else
-                            {
-                                Debug.WriteLine("Ignoring additional SignaturePublicKey");
-                                await bucket.ReadUntilEofAsync().ConfigureAwait(false);
-                            }
+                            _signatures.Add(await ParseSignatureAsync(bucket).ConfigureAwait(false));
                             break;
                         case OpenPgpTagType.PublicKey:
                         case OpenPgpTagType.PublicSubkey:
@@ -409,7 +405,7 @@ namespace AmpScm.Buckets.Cryptography
                                     // This algorithm is not implemented by .Net, but for this specific curve we have a workaround
                                     keyPublicKeyType = OpenPgpPublicKeyType.Ed25519;
                                     // Convert `0x40 | value` form to `value`
-                                    keyInts = new [] { keyInts[1].ToCryptoValue().Skip(1).ToBigInteger() };
+                                    keyInts = new[] { keyInts[1].ToCryptoValue().Skip(1).ToBigInteger() };
                                 }
                                 else if (keyPublicKeyType == OpenPgpPublicKeyType.ECDH && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
                                 {
@@ -543,7 +539,7 @@ namespace AmpScm.Buckets.Cryptography
         {
             ByteCollector bb = new(4096);
 
-            var ints = keyInts.Select(x=>x.ToCryptoValue()).ToList();
+            var ints = keyInts.Select(x => x.ToCryptoValue()).ToList();
 
             string alg;
             switch (sba)
@@ -594,7 +590,7 @@ namespace AmpScm.Buckets.Cryptography
         {
             await ReadAsync().ConfigureAwait(false);
 
-            return _signatureInfo.SignKeyFingerprint;
+            return _signatures.FirstOrDefault()?.SignKeyFingerprint;
         }
 
         public async ValueTask<bool> VerifyAsync(Bucket sourceData, PublicKeySignature? key)
@@ -604,55 +600,87 @@ namespace AmpScm.Buckets.Cryptography
 
             await ReadAsync().ConfigureAwait(false);
 
+            if (_signatures.Count == 0)
+                throw new InvalidOperationException();
+
+            if (Source.IsSsh)
+                return await VerifyAsyncSsh(sourceData, key).ConfigureAwait(false);
+
+
+            int needResults = 0;
+            foreach (var sig in _signatures)
+            {
+                var info = _signatures.First();
+
+                var keyInts = _keys.FirstOrDefault()?.GetValues(false);
+
+                var hashAlgorithm = CreatePgpHashAlgorithm(info.HashAlgorithm);
+
+                sourceData = sourceData.Hash(hashAlgorithm, (completer) =>
+                {
+                    var hashValue = completer(info.SignBlob);
+
+                    if (NetBitConverter.ToUInt16(hashValue, 0) != info.HashStart)
+                        return; // Quick check failed
+
+                    AsymetricKey? ak = key;
+
+                    ak ??= KeyChain?.FirstOrDefault(x => x.MatchesFingerprint(info.SignKeyFingerprint)) as AsymetricKey;
+
+                    var v = key?.GetValues() ?? keyInts ?? throw new InvalidOperationException("No key to verify with");
+
+                    if (key is { } && VerifySignature(info, hashValue, v))
+                    {
+                        needResults -= 1;
+                    }
+                });
+
+                needResults++;
+            }
+
+            await sourceData.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+
+            return needResults == 0;
+        }
+
+        private async ValueTask<bool> VerifyAsyncSsh(Bucket sourceData, PublicKeySignature? key)
+        {
+            var _signatureInfo = _signatures.First();
             byte[] hashValue;
 
             var keyInts = _keys.FirstOrDefault()?.GetValues(false);
+            hashValue = await CalculateHash(sourceData, _signatureInfo.HashAlgorithm).ConfigureAwait(false);
 
-            if (Source.IsSsh)
+            // SSH SignaturePublicKey signs blob that contains original hash and some other data
+            var toSign = _signatureInfo.SignBlob!.AsBucket() + NetBitConverter.GetBytes(hashValue.Length).AsBucket() + hashValue.AsBucket();
+
+            OpenPgpHashAlgorithm? overrideAlg = null;
+
+            if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.Dsa)
+                overrideAlg = OpenPgpHashAlgorithm.SHA1;
+            else if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.ECDSA)
             {
-                hashValue = await CalculateHash(sourceData, _signatureInfo.HashAlgorithm).ConfigureAwait(false);
+                string curveName = Encoding.ASCII.GetString((key?.GetValues(false)[0] ?? keyInts![2]).ToCryptoValue());
 
-                // SSH SignaturePublicKey signs blob that contains original hash and some other data
-                var toSign = _signatureInfo.SignBlob!.AsBucket() + NetBitConverter.GetBytes(hashValue.Length).AsBucket() + hashValue.AsBucket();
+                overrideAlg = OpenPgpHashAlgorithm.SHA512;
 
-                OpenPgpHashAlgorithm? overrideAlg = null;
-
-                if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.Dsa)
-                    overrideAlg = OpenPgpHashAlgorithm.SHA1;
-                else if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.ECDSA)
-                {
-                    string curveName = Encoding.ASCII.GetString((key?.GetValues(false)[0] ?? keyInts![2]).ToCryptoValue());
-
+                if (curveName.EndsWith("256", StringComparison.Ordinal) || curveName.EndsWith("256r1", StringComparison.Ordinal))
+                    overrideAlg = OpenPgpHashAlgorithm.SHA256;
+                else if (curveName.EndsWith("384", StringComparison.Ordinal))
+                    overrideAlg = OpenPgpHashAlgorithm.SHA384;
+                else if (curveName.EndsWith("521", StringComparison.Ordinal))
                     overrideAlg = OpenPgpHashAlgorithm.SHA512;
-
-                    if (curveName.EndsWith("256", StringComparison.Ordinal) || curveName.EndsWith("256r1", StringComparison.Ordinal))
-                        overrideAlg = OpenPgpHashAlgorithm.SHA256;
-                    else if (curveName.EndsWith("384", StringComparison.Ordinal))
-                        overrideAlg = OpenPgpHashAlgorithm.SHA384;
-                    else if (curveName.EndsWith("521", StringComparison.Ordinal))
-                        overrideAlg = OpenPgpHashAlgorithm.SHA512;
-                }
-                else if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.Rsa && Source.IsSsh)
-                    overrideAlg = OpenPgpHashAlgorithm.SHA512;
-
-                if (_signatureInfo.PublicKeyType != OpenPgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
-                    hashValue = await CalculateHash(toSign, overrideAlg ?? _signatureInfo.HashAlgorithm).ConfigureAwait(false);
-                else
-                    hashValue = toSign.ToArray();
-
-                if (key is null && keyInts is null)
-                    return false; // Can't verify SSH SignaturePublicKey without key (yet)
             }
+            else if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.Rsa && Source.IsSsh)
+                overrideAlg = OpenPgpHashAlgorithm.SHA512;
+
+            if (_signatureInfo.PublicKeyType != OpenPgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
+                hashValue = await CalculateHash(toSign, overrideAlg ?? _signatureInfo.HashAlgorithm).ConfigureAwait(false);
             else
-            {
-                hashValue = await CalculateHash(sourceData + _signatureInfo.SignBlob!.AsBucket(), _signatureInfo.HashAlgorithm).ConfigureAwait(false);
+                hashValue = toSign.ToArray();
 
-                if (NetBitConverter.ToUInt16(hashValue, 0) != _signatureInfo.HashStart)
-                    return false; // No need to check the actual SignaturePublicKey. The hash failed the check
-
-                if (key is null)
-                    return true; // SignaturePublicKey is a valid SignaturePublicKey, but we can't verify it
-            }
+            if (key is null && keyInts is null)
+                return false; // Can't verify SSH SignaturePublicKey without key (yet)
 
             var v = key?.GetValues() ?? keyInts ?? throw new InvalidOperationException("No key to verify with");
 

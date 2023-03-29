@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
@@ -37,7 +38,10 @@ namespace AmpScm.Buckets.Cryptography
             if (final)
             {
                 _buffer = null;
-                return _transform.TransformFinalBlock(_byteCollector.ToArray(), 0, _byteCollector.Length);
+                var bc = _byteCollector.ToArray();
+                _byteCollector.Clear();
+
+                return _transform.TransformFinalBlock(bc, 0, bc.Length);
             }
             else
             {
@@ -54,11 +58,13 @@ namespace AmpScm.Buckets.Cryptography
 
                 int n;
                 if (convertSize > 0)
+                {
                     n = _transform.TransformBlock(toConvert, 0, convertSize, _buffer!, 0);
+
+                    Debug.WriteLine($"X: {string.Join(" ", _buffer.Take(n).Select(x => x.ToString("X2")))}");
+                }
                 else
                     n = 0;
-
-                Debug.Assert(n == convertSize);
 
                 return new BucketBytes(_buffer!, 0, n);
             }
