@@ -79,12 +79,7 @@ public class OcbDecodeBucket : ConversionBucket
 
         byte[] stretched = kTop.Concat(ArrayXor(kTop.AsMemory(0, 8).ToArray(), kTop.AsMemory(1, 8))).ToArray();
 
-        //Debug.WriteLine($"kTop:      {DumpData(kTop.Span)}");
-        //Debug.WriteLine($"Stretched: {DumpData(stretched)}");
-
         _offset = GetBits(stretched, bottom, 128);
-
-        //Debug.WriteLine($"Offset_0: {DumpData(_offset)}");
 
         _checksum = new byte[16];
         TagSize = tagLen / 8;
@@ -96,7 +91,7 @@ public class OcbDecodeBucket : ConversionBucket
 
 
 
-    protected override void InnerDispose()
+    protected override void Dispose(bool disposing)
     {
         try
         {
@@ -104,23 +99,9 @@ public class OcbDecodeBucket : ConversionBucket
         }
         finally
         {
-            base.InnerDispose();
+            base.Dispose(disposing);
         }
     }
-
-#if DEBUG
-    private static string DumpData(Span<byte> span)
-    {
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < span.Length; i++)
-        {
-            sb.Append(span[i].ToString("X2", CultureInfo.InvariantCulture));
-        }
-
-        return sb.ToString();
-    }
-#endif
 
     internal static void SpanXor(Span<byte> a, ReadOnlySpan<byte> b)
     {
@@ -141,21 +122,6 @@ public class OcbDecodeBucket : ConversionBucket
         return result;
     }
 
-    private static void XorPosition(Span<byte> buf, ulong pos)
-    {
-        unchecked
-        {
-            buf[0] ^= (byte)(pos >> 56);
-            buf[1] ^= (byte)(pos >> 48);
-            buf[2] ^= (byte)(pos >> 40);
-            buf[3] ^= (byte)(pos >> 32);
-            buf[4] ^= (byte)(pos >> 24);
-            buf[5] ^= (byte)(pos >> 16);
-            buf[6] ^= (byte)(pos >> 8);
-            buf[7] ^= (byte)(pos >> 0);
-        };
-    }
-
     // If the highest bit of the 128 bit integer (encoded in network order) is 0:
     // then 2* the from value, otherwise 2* the from value ^ 0x87
     //
@@ -169,7 +135,7 @@ public class OcbDecodeBucket : ConversionBucket
         {
             data[i] = (byte)(from[i] << 1 | from[i + 1] >> 7);
         }
-        //Debug.WriteLine($"D: {(from[0] >> 7)}");
+
         data[last] = (byte)(from[last] << 1 ^ ((from[0] >> 7) * 0b10000111));
     }
 
@@ -261,7 +227,6 @@ public class OcbDecodeBucket : ConversionBucket
                 byte[] b = new byte[16];
                 SpanDouble(b, _masks[_masks.Count - 1]); // L_i = double(L_{i-1})
 
-                //Debug.WriteLine($"L_{_masks.Count}: {DumpData(b)}");
                 _masks.Add(b);
             }
         }
@@ -395,12 +360,7 @@ public class OcbDecodeBucket : ConversionBucket
         {
             ++_inChunkBlock;
 
-            //Debug.WriteLine($"trailing zeros of {_inChunkBlock} is {TrailingZeros(_inChunkBlock)}");
-            //Debug.WriteLine($"L_{TrailingZeros(_inChunkBlock)} is {DumpData(GetMask(TrailingZeros(_inChunkBlock)))}");
-
             SpanXor(_offset, GetMask(TrailingZeros(_inChunkBlock)));
-
-            //Debug.WriteLine($"Offset_{_inChunkBlock} = {DumpData(_offset)}");
 
             Array.Clear(_buf16, 0, 16);
             srcData.CopyTo(_buf16);
@@ -433,8 +393,6 @@ public class OcbDecodeBucket : ConversionBucket
                 Array.Clear(src, srcData.Length + 1, src.Length - srcData.Length - 1);
 
             src.CopyTo(_buffer2.AsSpan(offset, BlockLength));
-
-            //Debug.WriteLine($"P*: {DumpData(src.AsSpan(0, available))}");
 
             // Tag = ENCIPHER(K, Checksum_ * xor Offset_ * xor L_$) xor HASH(K, A)
             SpanXor(_checksum, src);

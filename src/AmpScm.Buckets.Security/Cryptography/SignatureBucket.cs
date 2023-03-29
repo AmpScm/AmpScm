@@ -593,7 +593,7 @@ namespace AmpScm.Buckets.Cryptography
             return _signatures.FirstOrDefault()?.SignKeyFingerprint;
         }
 
-        public async ValueTask<bool> VerifyAsync(Bucket sourceData, PublicKeySignature? key)
+        public async ValueTask<bool> VerifyAsync(Bucket sourceData, PublicKeySignature? key, bool unknownSignerOk = false)
         {
             if (sourceData is null)
                 throw new ArgumentNullException(nameof(sourceData));
@@ -627,10 +627,20 @@ namespace AmpScm.Buckets.Cryptography
 
                     ak ??= KeyChain?.FirstOrDefault(x => x.MatchesFingerprint(info.SignKeyFingerprint)) as AsymetricKey;
 
-                    var v = key?.GetValues() ?? keyInts ?? throw new InvalidOperationException("No key to verify with");
+                    var v = key?.GetValues() ?? keyInts;
 
-                    if (key is { } && VerifySignature(info, hashValue, v))
+                    if (key is { })
                     {
+                        if (VerifySignature(info, hashValue, v))
+                        {
+                            needResults -= 1;
+                        }
+                        // Bad signature, error!
+                    }
+                    else if (unknownSignerOk)
+                    {
+                        // No key. For now we say this is ok
+
                         needResults -= 1;
                     }
                 });

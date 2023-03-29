@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Specialized
             {
                 _size = _buffered;
                 _readEof = true;
-                InnerDispose();
+                Dispose(true);
             }
         }
 
@@ -81,12 +81,12 @@ namespace AmpScm.Buckets.Specialized
             return await _readBucket.PollAsync(minRequested).ConfigureAwait(false);
         }
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
             if (!_disposed)
             {
                 _disposed = true;
-                base.InnerDispose();
+                base.Dispose(disposing);
             }
         }
 

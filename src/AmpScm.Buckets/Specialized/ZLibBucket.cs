@@ -307,18 +307,26 @@ namespace AmpScm.Buckets.Specialized
             ZSetup();
         }
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
-            base.InnerDispose();
+            try
+            {
+                if (disposing)
+                {
+                    read_buffer = default;
+                    write_buffer = default;
+                    _z.NextOut = _z.NextIn = null;
 
-            read_buffer = default;
-            write_buffer = default;
-            _z.NextOut = _z.NextIn = null;
+                    if (write_data != null)
+                        System.Buffers.ArrayPool<byte>.Shared.Return(write_data);
 
-            if (write_data != null)
-                System.Buffers.ArrayPool<byte>.Shared.Return(write_data);
-
-            write_data = null!;
+                    write_data = null!;
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
         }
 
         public override Bucket Duplicate(bool reset = false)

@@ -18,15 +18,18 @@ namespace AmpScm.Buckets.Specialized
             RightSource = rightSource ?? throw new ArgumentNullException(nameof(rightSource));
         }
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
             try
             {
-                RightSource.Dispose();
+                if (disposing)
+                {
+                    RightSource.Dispose();
+                }
             }
             finally
             {
-                base.InnerDispose();
+                base.Dispose(disposing);
             }
         }
 

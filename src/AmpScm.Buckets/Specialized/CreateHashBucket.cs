@@ -120,11 +120,11 @@ namespace AmpScm.Buckets.Specialized
             _hasher?.Initialize();
         }
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
             try
             {
-                if (_hasher != null)
+                if (disposing && _hasher != null)
                 {
                     if (_onResult != null)
                         FinishHashing();
@@ -135,7 +135,7 @@ namespace AmpScm.Buckets.Specialized
             finally
             {
                 _hasher = null;
-                base.InnerDispose();
+                base.Dispose(disposing);
             }
         }
 

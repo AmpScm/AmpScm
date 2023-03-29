@@ -110,14 +110,22 @@ namespace AmpScm.Git.Objects
 
         public override string Name => _inner?.Name ?? base.Name;
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
-            base.InnerDispose();
+            try
+            {
+                if (disposing)
+                {
+                    _inner?.Dispose();
 
-            _inner?.Dispose();
-
-            _inner = null;
-            _eof = true;
+                    _inner = null;
+                    _eof = true;
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
         }
 
         public override async ValueTask SeekAsync(long newPosition)

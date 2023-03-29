@@ -45,7 +45,7 @@ namespace AmpScm.Buckets.Git
             BaseBucket = baseBucket ?? throw new ArgumentNullException(nameof(baseBucket));
         }
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace AmpScm.Buckets.Git
             }
             finally
             {
-                base.InnerDispose();
+                base.Dispose(disposing);
             }
         }
 

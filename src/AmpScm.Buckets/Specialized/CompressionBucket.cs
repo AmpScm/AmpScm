@@ -30,20 +30,23 @@ namespace AmpScm.Buckets.Specialized
                 _written = new AggregateBucket.SimpleAggregate();
         }
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
             try
             {
-                if (_buffer != null)
+                if (disposing)
                 {
-                    ArrayPool<Byte>.Shared.Return(_buffer);
-                    _buffer = null;
+                    if (_buffer != null)
+                    {
+                        ArrayPool<Byte>.Shared.Return(_buffer);
+                        _buffer = null;
+                    }
+                    Processed.Close();
                 }
-                Processed.Close();
             }
             finally
             {
-                base.InnerDispose();
+                base.Dispose(disposing);
             }
         }
 

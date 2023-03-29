@@ -210,11 +210,21 @@ namespace AmpScm.Buckets
         /// <summary>
         /// Cleans up resources hold by the bucket, including possibly hold inner buckets
         /// </summary>
+#pragma warning disable CA1063 // Implement IDisposable Correctly
         public void Dispose()
+#pragma warning restore CA1063 // Implement IDisposable Correctly
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            if (DoDispose())
+            {
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
+        }
+
+        private protected virtual bool DoDispose()
+        {
+            return true;
         }
 
         /// <summary>

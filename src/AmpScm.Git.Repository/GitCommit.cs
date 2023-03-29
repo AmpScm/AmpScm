@@ -334,7 +334,7 @@ namespace AmpScm.Git
                     foundSignature = true;
                     if (key is not null)
                     {
-                        if (!await gpg.VerifyAsync(src, key).ConfigureAwait(false))
+                        if (!await gpg.VerifyAsync(src, key, unknownSignerOk: true).ConfigureAwait(false))
                             allSucceeded = false;
                     }
                     else
@@ -377,7 +377,7 @@ namespace AmpScm.Git
 
                         if (key is not null)
                         {
-                            if (!await gpg.VerifyAsync(GitTagObjectBucket.ForSignature(commitBucket.NoDispose()), key).ConfigureAwait(false))
+                            if (!await gpg.VerifyAsync(GitTagObjectBucket.ForSignature(commitBucket.NoDispose()), key, unknownSignerOk: true).ConfigureAwait(false))
                                 allSucceeded = false;
                         }
                         else

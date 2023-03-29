@@ -52,16 +52,12 @@ namespace AmpScm.Buckets.Git
             _fetchBucketByOffset = fetchBucketByOffset;
         }
 
-        protected override void InnerDispose()
+#pragma warning disable CA2215 // Dispose methods should call base class dispose
+        protected override void Dispose(bool disposing)
+#pragma warning restore CA2215 // Dispose methods should call base class dispose
         {
-            try
-            {
+            if (disposing)
                 (_reader ?? Source)?.Dispose();
-            }
-            finally
-            {
-                _reader = Bucket.Empty;
-            }
         }
 
         public override BucketBytes Peek()

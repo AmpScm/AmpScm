@@ -231,27 +231,15 @@ namespace AmpScm.Buckets.Git
 
         sealed class DummyObjectBucket : GitObjectBucket
         {
-            private DummyObjectBucket(Bucket inner) : base(inner)
+            private DummyObjectBucket() : base(Bucket.Empty)
             {
             }
 
-            protected override void InnerDispose()
-            {
-                //base.InnerDispose();
-            }
-
-#pragma warning disable CA2215 // Dispose methods should call base class dispose
-            protected override void Dispose(bool disposing)
-#pragma warning restore CA2215 // Dispose methods should call base class dispose
-            {
-                //base.Dispose(disposing);
-            }
-
-            public static DummyObjectBucket Instance { get; } = new(Bucket.Empty);
+            public static DummyObjectBucket Instance { get; } = new();
 
             public override ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
             {
-                return Source.ReadAsync(requested);
+                return BucketBytes.Eof;
             }
 
             public override ValueTask<GitObjectType> ReadTypeAsync()

@@ -53,7 +53,7 @@ namespace AmpScm.Buckets.Specialized
             _targetHost = targetHost;
         }
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
             try
             {
@@ -61,7 +61,7 @@ namespace AmpScm.Buckets.Specialized
             }
             finally
             {
-                base.InnerDispose();
+                base.Dispose(disposing);
             }
         }
 

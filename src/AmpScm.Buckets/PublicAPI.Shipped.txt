@@ -241,7 +241,7 @@ override AmpScm.Buckets.SocketBucket.Dispose(bool disposing) -> void
 override AmpScm.Buckets.SocketBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.SocketBucket.Position.get -> long?
 override AmpScm.Buckets.SocketBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Specialized.CombineBucket.InnerDispose() -> void
+override AmpScm.Buckets.Specialized.CombineBucket.Dispose(bool disposing) -> void
 override AmpScm.Buckets.Specialized.ProxyBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
@@ -411,4 +411,3 @@ virtual AmpScm.Buckets.Specialized.ConversionBucket.SourcePeek() -> AmpScm.Bucke
 virtual AmpScm.Buckets.Specialized.ConversionBucket.SourceReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 virtual AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.WrapDuplicate(AmpScm.Buckets.Bucket! duplicatedSource, bool reset) -> TBucket?
 virtual AmpScm.Buckets.WrappingBucket.HasMultipleDisposers() -> bool
-virtual AmpScm.Buckets.WrappingBucket.InnerDispose() -> void

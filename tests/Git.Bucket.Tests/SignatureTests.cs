@@ -178,12 +178,12 @@ A couple of simplications around mwindow";
                 var rdx = new Radix64ArmorBucket(bucket);
                 using var gpg = new SignatureBucket(rdx);
 
-                var ok1 = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null);
+                var ok1 = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null, unknownSignerOk: true);
                 Assert.IsTrue(ok1, "Verify as signature from 'someone'");
 
                 verifySrcReader.Reset();
 
-                var ok = await gpg.VerifyAsync(verifySrcReader, await GetGitHubWebFlowKey());
+                var ok = await gpg.VerifyAsync(verifySrcReader, await GetGitHubWebFlowKey(), unknownSignerOk: true);
                 Assert.IsTrue(ok, "Valid sigature");
                 readGpg = true;
             }
@@ -334,11 +334,11 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
                 var rdx = new Radix64ArmorBucket(bucket);
                 using var gpg = new SignatureBucket(rdx);
 
-                var ok = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null);
+                var ok = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null, unknownSignerOk: true);
                 Assert.IsTrue(ok, "Signature appears ok");
 
                 verifySrcReader.Reset();
-                ok = await gpg.VerifyAsync(verifySrcReader, key);
+                ok = await gpg.VerifyAsync(verifySrcReader, key, unknownSignerOk: true);
                 Assert.IsTrue(ok, "Signature verified against signer");
                 readGpg = true;
             }

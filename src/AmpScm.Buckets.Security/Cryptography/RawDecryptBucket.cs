@@ -80,12 +80,20 @@ namespace AmpScm.Buckets.Cryptography
                 return requested;
         }
 
-        protected override void InnerDispose()
+        protected override void Dispose(bool disposing)
         {
-            base.InnerDispose();
-
-            _transform.Dispose();
-            _algorithm.Dispose();
+            try
+            {
+                if (disposing)
+                {
+                    _transform.Dispose();
+                    _algorithm.Dispose();
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
         }
     }
 }

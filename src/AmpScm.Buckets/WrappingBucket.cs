@@ -27,39 +27,29 @@ namespace AmpScm.Buckets
 
         public override string Name => base.Name + ">" + Source.Name;
 
+        private protected override bool DoDispose()
+        {
+            int n = Interlocked.Decrement(ref _nDispose);
+
+            if (n == 0)
+                return true;
+#if DEBUG
+            else if (n < 0)
+                throw new ObjectDisposedException(SafeName);
+#endif
+            return false;
+        }
+
         protected override void Dispose(bool disposing)
         {
             try
             {
-                if (disposing)
-                {
-                    int n = Interlocked.Decrement(ref _nDispose);
-
-                    if (n == 0)
-                        try
-                        {
-                            InnerDispose();
-                        }
-                        catch (ObjectDisposedException oe)
-                        {
-                            throw new ObjectDisposedException($"While disposing {SafeName}", oe);
-
-                        }
-#if DEBUG
-                    else if (n < 0)
-                        throw new ObjectDisposedException(SafeName);
-#endif
-                }
+                Source.Dispose();
             }
             finally
             {
                 base.Dispose(disposing);
             }
-        }
-
-        protected virtual void InnerDispose()
-        {
-            Source.Dispose();
         }
 
         protected Bucket NoDispose()
