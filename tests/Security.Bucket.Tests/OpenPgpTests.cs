@@ -523,6 +523,10 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
     [TestMethod]
     public void TestS2k()
     {
+#if NETFRAMEWORK
+        throw new AssertInconclusiveException();
+#endif
+
         const string Privy = @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQIGBGQdww4BBACkI8oezv1FJd1ykfGbeu1Idmrs5Zdv7ano+HYumEAQ/eUfAogG

@@ -19,13 +19,31 @@ namespace AmpScm.Buckets.Cryptography
             return list.Select(x => x.ToBigInteger()).ToList();
         }
 
+#if NETFRAMEWORK
+        internal static byte[] ToByteArray(this BigInteger value, bool isUnsigned = false, bool isBigEndian = false)
+        {
+            var r = value.ToByteArray();
+
+            if (isBigEndian)
+            {
+                Array.Reverse(r);
+            }
+
+            if (isUnsigned && r[0] == 0)
+            {
+                byte[] r2 = new byte[r.Length - 1];
+
+                r.AsSpan(1).CopyTo(r2);
+                r = r2;
+            }
+
+            return r;
+        }
+#endif
+
         internal static byte[] ToCryptoValue(this BigInteger value)
         {
-#if NETCOREAPP
             return value.ToByteArray(true, true);
-#else
-            return value.ToByteArray().Reverse().ToArray();
-#endif
         }
 
         internal static BigInteger ToBigInteger(this ReadOnlyMemory<byte> value)
@@ -47,6 +65,21 @@ namespace AmpScm.Buckets.Cryptography
             return ToBigInteger(value.ToArray());
         }
 
+        internal static byte[] AlignUp(this byte[] bytes, int mask=4)
+        {
+            if ((bytes.Length & (mask - 1)) == 0)
+                return bytes;
+            else
+            {
+                var newLen = bytes.Length - bytes.Length % mask + mask;
+
+                byte[] newBytes = new byte[newLen];
+
+                bytes.AsSpan().CopyTo(newBytes.AsSpan(newLen - bytes.Length));
+
+                return newBytes;
+            }
+        }
 
         internal static void ImportParametersFromCryptoInts(this RSA rsa, IReadOnlyList<BigInteger> ints)
         {
@@ -59,8 +92,8 @@ namespace AmpScm.Buckets.Cryptography
 
             var p = new RSAParameters()
             {
-                Modulus = ints[0].ToCryptoValue(),
-                Exponent = ints[1].ToCryptoValue(),
+                Modulus = ints[0].ToCryptoValue().AlignUp(),
+                Exponent = ints[1].ToCryptoValue().AlignUp(),
             };
 
             if (ints.Count > 2)
@@ -73,12 +106,12 @@ namespace AmpScm.Buckets.Cryptography
                 BigInteger DP = D % (P - 1);
                 BigInteger DQ = D % (Q - 1);
 
-                p.D = D.ToCryptoValue();
-                p.P = P.ToCryptoValue();
-                p.Q = Q.ToCryptoValue();
-                p.InverseQ = ints[5].ToCryptoValue();
-                p.DP = DP.ToCryptoValue();
-                p.DQ = DQ.ToCryptoValue();
+                p.D = D.ToCryptoValue().AlignUp(8);
+                p.P = P.ToCryptoValue().AlignUp(8);
+                p.Q = Q.ToCryptoValue().AlignUp(8);
+                p.InverseQ = ints[5].ToCryptoValue().AlignUp(8);
+                p.DP = DP.ToCryptoValue().AlignUp(8);
+                p.DQ = DQ.ToCryptoValue().AlignUp(8);
             }
 
             rsa.ImportParameters(p);
@@ -124,8 +157,8 @@ namespace AmpScm.Buckets.Cryptography
 
                 Q = new ECPoint
                 {
-                    X = ints[1].ToCryptoValue(),
-                    Y = ints[2].ToCryptoValue(),
+                    X = ints[1].ToCryptoValue().AlignUp(),
+                    Y = ints[2].ToCryptoValue().AlignUp(),
                 },
             };
 
