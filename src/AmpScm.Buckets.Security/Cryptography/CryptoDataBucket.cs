@@ -18,8 +18,12 @@ namespace AmpScm.Buckets.Cryptography
         readonly private Stack<CryptoChunkBucket> _stack = new();
         Bucket? _reader;
 
-        private protected CryptoDataBucket(Bucket source) : base(source)
+        private protected new CryptoChunkBucket Source => (CryptoChunkBucket)base.Source;
+
+        private protected CryptoDataBucket(CryptoChunkBucket source) : base(source)
         {
+            if (Source is { })
+                PushChunkReader(Source);
         }
 
         private protected static int GetKeySize(OpenPgpSymmetricAlgorithm cipherAlgorithm)
