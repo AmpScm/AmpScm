@@ -237,7 +237,9 @@ namespace AmpScm.Buckets.Git
 
             public static DummyObjectBucket Instance { get; } = new();
 
+#pragma warning disable CA2215 // Dispose methods should call base class dispose
             protected override void Dispose(bool disposing)
+#pragma warning restore CA2215 // Dispose methods should call base class dispose
             {
                 //base.Dispose(disposing);
             }

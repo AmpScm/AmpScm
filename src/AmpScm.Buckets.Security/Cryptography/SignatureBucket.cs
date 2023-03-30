@@ -519,7 +519,7 @@ namespace AmpScm.Buckets.Cryptography
                                 }
                             }
 
-                            if (_keys.Count > 1)
+                            if (_keys.Count > 0)
                                 _keys[0] = _keys[0].WithSubKeys(_keys[0].SubKeys.Cast<PublicKeySignature>(), _mailAddress);
                             break;
                         default:
@@ -623,11 +623,9 @@ namespace AmpScm.Buckets.Cryptography
                     if (NetBitConverter.ToUInt16(hashValue, 0) != info.HashStart)
                         return; // Quick check failed
 
-                    AsymetricKey? ak = key;
+                    var ak = key ?? KeyChain?.FindKey(info.SignKeyFingerprint);
 
-                    ak ??= KeyChain?.FirstOrDefault(x => x.MatchesFingerprint(info.SignKeyFingerprint)) as AsymetricKey;
-
-                    var v = key?.GetValues() ?? keyInts;
+                    var v = ak?.GetValues() ?? keyInts ?? throw new InvalidOperationException();
 
                     if (key is { })
                     {

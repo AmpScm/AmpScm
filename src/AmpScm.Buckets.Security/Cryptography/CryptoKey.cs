@@ -3,12 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Cryptography;
-
 
 public enum CryptoAlgorithm
 {
@@ -22,10 +22,9 @@ public enum CryptoAlgorithm
     Elgamal,
 }
 
-
-public record class CryptoKey
+public abstract record class AsymmetricCryptoKey
 {
-    private protected CryptoKey(CryptoAlgorithm algorithm)
+    private protected AsymmetricCryptoKey(CryptoAlgorithm algorithm)
     {
         Algorithm = algorithm;
     }
@@ -34,7 +33,7 @@ public record class CryptoKey
 
     [return: NotNullIfNotNull(nameof(key1)), NotNullIfNotNull(nameof(key2))]
 #pragma warning disable CA2225 // Operator overloads have named alternates
-    public static CryptoKeyChain? operator +(CryptoKey? key1, CryptoKey? key2)
+    public static CryptoKeyChain? operator +(AsymmetricCryptoKey? key1, AsymmetricCryptoKey? key2)
 #pragma warning restore CA2225 // Operator overloads have named alternates
     {
         if (key1 is null)
@@ -46,7 +45,7 @@ public record class CryptoKey
     }
 
     [return: NotNullIfNotNull(nameof(key))]
-    public static implicit operator CryptoKeyChain?(CryptoKey? key)
+    public static implicit operator CryptoKeyChain?(AsymmetricCryptoKey? key)
     {
         return key is null ? null : new CryptoKeyChain(key);
     }
@@ -56,46 +55,42 @@ public record class CryptoKey
         return new CryptoKeyChain(this);
     }
 
-    public virtual IEnumerable<CryptoKey> SubKeys => Enumerable.Empty<CryptoKey>();
+    public virtual IEnumerable<AsymmetricCryptoKey> SubKeys => Enumerable.Empty<AsymmetricCryptoKey>();
 
     public virtual bool MatchesFingerprint(ReadOnlyMemory<byte> fingerprint, CryptoAlgorithm algorithm = default, bool requirePrivateKey = false)
     {
         return false;
     }
+
+    public bool HasPrivateKey { get; protected set; }
+
+    public abstract IReadOnlyList<BigInteger> GetValues(bool includePrivate=false);
 }
 
-public record class AsymetricKey : CryptoKey
+public class CryptoKeyChain : IEnumerable<AsymmetricCryptoKey>
 {
-    protected AsymetricKey(CryptoKey original) : base(original)
+    protected IEnumerable<AsymmetricCryptoKey> Items { get; init; }
+
+    public CryptoKeyChain()
     {
+        Items = Enumerable.Empty<AsymmetricCryptoKey>();
     }
 
-    private protected AsymetricKey(CryptoAlgorithm algorithm) : base(algorithm)
-    {
-    }
-
-    public virtual bool HasPrivateKey { get; protected init; }
-}
-
-public sealed class CryptoKeyChain : IEnumerable<CryptoKey>
-{
-    IEnumerable<CryptoKey> Items { get; init; }
-
-    public CryptoKeyChain(CryptoKey key)
+    public CryptoKeyChain(AsymmetricCryptoKey key)
     {
         if (key == null) throw new ArgumentNullException(nameof(key));
 
         Items = new[] { key };
     }
 
-    public CryptoKeyChain(params CryptoKey[] keys)
+    public CryptoKeyChain(params AsymmetricCryptoKey[] keys)
     {
         if (keys == null) throw new ArgumentNullException(nameof(keys));
 
         Items = keys;
     }
 
-    public CryptoKeyChain(IEnumerable<CryptoKey> keys)
+    public CryptoKeyChain(IEnumerable<AsymmetricCryptoKey> keys)
     {
         if (keys == null) throw new ArgumentNullException(nameof(keys));
 
@@ -116,13 +111,34 @@ public sealed class CryptoKeyChain : IEnumerable<CryptoKey>
         return new CryptoKeyChain(key1.Items.Concat(key2.Items));
     }
 
-    IEnumerator<CryptoKey> IEnumerable<CryptoKey>.GetEnumerator()
+#pragma warning disable CA1033 // Interface methods should be callable by child types
+    IEnumerator<AsymmetricCryptoKey> IEnumerable<AsymmetricCryptoKey>.GetEnumerator()
+#pragma warning restore CA1033 // Interface methods should be callable by child types
     {
         return Items.GetEnumerator();
     }
 
+#pragma warning disable CA1033 // Interface methods should be callable by child types
     IEnumerator IEnumerable.GetEnumerator()
+#pragma warning restore CA1033 // Interface methods should be callable by child types
     {
         return ((IEnumerable)Items).GetEnumerator();
+    }
+
+    public virtual AsymmetricCryptoKey? FindKey(ReadOnlyMemory<byte> fingerprint, CryptoAlgorithm cryptoAlgorithm = default, bool requirePrivateKey = false)
+    {
+        foreach (var key in this.Where(x => x.MatchesFingerprint(fingerprint, cryptoAlgorithm, requirePrivateKey)))
+        {
+            if (key is PublicKeySignature pks)
+            {
+                var r = pks.MatchFingerprint(fingerprint, cryptoAlgorithm, requirePrivateKey);
+
+                if (r is not null)
+                    return r;
+            }
+            else
+                return key;
+        }
+        return null;
     }
 }

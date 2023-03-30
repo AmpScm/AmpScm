@@ -30,7 +30,7 @@ namespace AmpScm.Git.Objects
         }
 
         [CLSCompliant(false)]
-        public PublicKeySignature ToSignature()
+        public PublicKeySignature ToPublicKeySignature()
         {
             return _key;
         }

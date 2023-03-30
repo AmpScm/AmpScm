@@ -31,6 +31,9 @@ public class SshTests
 #if !NET6_0_OR_GREATER
         if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
             Assert.Inconclusive("");
+#else
+        if (OperatingSystem.IsMacOS() && type == "ecdsa" && ex.Contains("521"))
+            Assert.Inconclusive("OS/X Crypto doesn't like this");
 #endif
         var dir = TestContext.PerTestDirectory(type + ex);
 

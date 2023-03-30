@@ -177,7 +177,7 @@ AmpScm.Git.Objects.GitPublicKey.Fingerprint.get -> System.ReadOnlyMemory<byte>
 AmpScm.Git.Objects.GitPublicKey.FingerprintString.get -> string!
 AmpScm.Git.Objects.GitPublicKey.Principal.get -> string?
 AmpScm.Git.Objects.GitPublicKey.Principal.init -> void
-AmpScm.Git.Objects.GitPublicKey.ToSignature() -> AmpScm.Buckets.Cryptography.Signature!
+AmpScm.Git.Objects.GitPublicKey.ToPublicKeySignature() -> AmpScm.Buckets.Cryptography.PublicKeySignature!
 AmpScm.Git.Objects.GitPublicKeyRepository
 AmpScm.Git.Objects.GitPublicKeyRepository.Dispose() -> void
 AmpScm.Git.Objects.GitPublicKeyRepository.Repository.get -> AmpScm.Git.GitRepository!
@@ -360,7 +360,7 @@ static AmpScm.Git.Objects.GitObjectWriterExtensions.AsWriter(this AmpScm.Git.Git
 static AmpScm.Git.Objects.GitObjectWriterExtensions.AsWriter(this AmpScm.Git.GitTagObject! tag) -> AmpScm.Git.Objects.GitTagObjectWriter!
 static AmpScm.Git.Objects.GitObjectWriterExtensions.AsWriter(this AmpScm.Git.GitTree! tree) -> AmpScm.Git.Objects.GitTreeWriter!
 static AmpScm.Git.Objects.GitObjectWriterExtensions.FastImportAsync(this AmpScm.Git.GitRepository! repository, AmpScm.Buckets.Bucket! source) -> System.Threading.Tasks.ValueTask
-static AmpScm.Git.Objects.GitPublicKey.implicit operator AmpScm.Buckets.Cryptography.Signature?(AmpScm.Git.Objects.GitPublicKey! k) -> AmpScm.Buckets.Cryptography.Signature?
+static AmpScm.Git.Objects.GitPublicKey.implicit operator AmpScm.Buckets.Cryptography.PublicKeySignature?(AmpScm.Git.Objects.GitPublicKey! k) -> AmpScm.Buckets.Cryptography.PublicKeySignature?
 static AmpScm.Git.Objects.GitPublicKey.TryParse(string! keyText, out AmpScm.Git.Objects.GitPublicKey? result) -> bool
 static AmpScm.Git.Objects.GitTagObjectWriter.Create(AmpScm.Git.Objects.IGitLazy<AmpScm.Git.GitObject!>! objectToTag, string! name) -> AmpScm.Git.Objects.GitTagObjectWriter!
 static AmpScm.Git.Objects.GitTreeWriter.CreateEmpty() -> AmpScm.Git.Objects.GitTreeWriter!

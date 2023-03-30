@@ -16,9 +16,9 @@ namespace AmpScm.Buckets.Cryptography;
 /// Public key for usage with <see cref="SignatureBucket"/>
 /// </summary>
 [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
-public sealed record class PublicKeySignature : AsymetricKey
+public sealed record class PublicKeySignature : AsymmetricCryptoKey
 {
-    private readonly IEnumerable<AsymetricKey>? _subKeys;
+    private readonly IEnumerable<AsymmetricCryptoKey>? _subKeys;
 
     internal PublicKeySignature(ReadOnlyMemory<byte> fingerprint, CryptoAlgorithm algorithm, IReadOnlyList<BigInteger> values, System.Net.Mail.MailAddress? mailAddress = null, bool hasSecret = false, IEnumerable<PublicKeySignature>? subKeys = null)
         : base(algorithm)
@@ -42,7 +42,7 @@ public sealed record class PublicKeySignature : AsymetricKey
 
     public System.Net.Mail.MailAddress? MailAddress { get; }
 
-    public override IEnumerable<CryptoKey> SubKeys => _subKeys ?? Enumerable.Empty<PublicKeySignature>();
+    public override IEnumerable<AsymmetricCryptoKey> SubKeys => _subKeys ?? Enumerable.Empty<PublicKeySignature>();
 
 
     public override bool MatchesFingerprint(ReadOnlyMemory<byte> fingerprint, CryptoAlgorithm algorithm = default, bool requirePrivateKey = false)
@@ -60,18 +60,20 @@ public sealed record class PublicKeySignature : AsymetricKey
     /// </summary>
     /// <param name="fingerprint"></param>
     /// <param name="algorithm"></param>
+    /// <param name="requirePrivateKey"></param>
     /// <returns></returns>
-    internal PublicKeySignature? MatchFingerprint(ReadOnlyMemory<byte> fingerprint, CryptoAlgorithm algorithm = default)
+    internal AsymmetricCryptoKey? MatchFingerprint(ReadOnlyMemory<byte> fingerprint, CryptoAlgorithm algorithm = default, bool requirePrivateKey = false)
     {
         int len = Math.Min(fingerprint.Length, fingerprint.Length);
 
         if (fingerprint.Span.Slice(fingerprint.Length - len)
-            .SequenceEqual(Fingerprint.Span.Slice(Fingerprint.Length - len)))
+            .SequenceEqual(Fingerprint.Span.Slice(Fingerprint.Length - len))
+            && (!requirePrivateKey || HasPrivateKey))
         {
             return this;
         }
 
-        return _subKeys?.FirstOrDefault(x => x.MatchesFingerprint(fingerprint, algorithm)) as PublicKeySignature;
+        return _subKeys?.FirstOrDefault(x => x.MatchesFingerprint(fingerprint, algorithm) && (!requirePrivateKey || x.HasPrivateKey));
     }
 
     public static bool TryParse(string keyText, [NotNullWhen(true)] out PublicKeySignature? value)
@@ -112,7 +114,7 @@ public sealed record class PublicKeySignature : AsymetricKey
         }
     }
 
-    public IReadOnlyList<BigInteger> GetValues(bool publicOnly=true)
+    public override IReadOnlyList<BigInteger> GetValues(bool includePrivate = false)
     {
         return Values;
     }

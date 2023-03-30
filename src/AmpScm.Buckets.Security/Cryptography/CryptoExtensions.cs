@@ -213,8 +213,8 @@ namespace AmpScm.Buckets.Cryptography
 
                 Q = new ECPoint
                 {
-                    X = ints[1].ToCryptoValue(),
-                    Y = ints[2].ToCryptoValue(),
+                    X = ints[1].ToCryptoValue().AlignUp(),
+                    Y = ints[2].ToCryptoValue().AlignUp(),
                 },
             };
 

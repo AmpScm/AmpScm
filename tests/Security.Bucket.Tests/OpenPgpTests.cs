@@ -363,6 +363,56 @@ cEgAjelaGkn3RJOwXWoJbA==
     }
 
     [TestMethod]
+    public async Task TestPrivateKeys2()
+    {
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
+        Assert.AreEqual(rsa_key1_fingerprint, key1.FingerprintString);
+        Assert.AreEqual(new MailAddress("test@rsa", "RSA Test"), key1.MailAddress);
+        Assert.AreEqual(CryptoAlgorithm.Rsa, key1.Algorithm);
+        Assert.IsTrue(key1.HasPrivateKey, "Key1 has secret");
+
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key2, out var key2));
+        Assert.AreEqual(rsa_key2_fingerprint, key2.FingerprintString);
+        Assert.AreEqual(new MailAddress("test-3072@rsa", "RSA Test 3072"), key2.MailAddress);
+        Assert.AreEqual(CryptoAlgorithm.Rsa, key2.Algorithm);
+        Assert.IsTrue(key1.HasPrivateKey, "Key2 has secret");
+
+        using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2_2).AsBucket());
+
+        using var dec = new DecryptBucket(decr) { KeyChain = key1+key2 };
+
+
+        var bb = await dec.ReadExactlyAsync(1024);
+
+        Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
+    }
+
+    [TestMethod]
+    public async Task TestPrivateKeys3()
+    {
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
+        Assert.AreEqual(rsa_key1_fingerprint, key1.FingerprintString);
+        Assert.AreEqual(new MailAddress("test@rsa", "RSA Test"), key1.MailAddress);
+        Assert.AreEqual(CryptoAlgorithm.Rsa, key1.Algorithm);
+        Assert.IsTrue(key1.HasPrivateKey, "Key1 has secret");
+
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key2, out var key2));
+        Assert.AreEqual(rsa_key2_fingerprint, key2.FingerprintString);
+        Assert.AreEqual(new MailAddress("test-3072@rsa", "RSA Test 3072"), key2.MailAddress);
+        Assert.AreEqual(CryptoAlgorithm.Rsa, key2.Algorithm);
+        Assert.IsTrue(key1.HasPrivateKey, "Key2 has secret");
+
+        using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2_3).AsBucket());
+
+        using var dec = new DecryptBucket(decr) { KeyChain = key1 + key2 };
+
+
+        var bb = await dec.ReadExactlyAsync(1024);
+
+        Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
+    }
+
+    [TestMethod]
     public async Task TestOCBTestData()
     {
         OCBTests.InconclusiveOnMono();
