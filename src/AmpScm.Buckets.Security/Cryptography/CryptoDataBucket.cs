@@ -60,8 +60,7 @@ namespace AmpScm.Buckets.Cryptography
                 }
 
                 if (zeros > 0)
-                    pwd = Enumerable.Range(0, zeros).Select(_ => (byte)0).Concat(pwd);
-                zeros++;
+                    pwd = Enumerable.Range(0, zeros).Select(_ => (byte)0).Concat(pwd);;
 
                 byte[] toHash = pwd.ToArray();
 
@@ -73,19 +72,22 @@ namespace AmpScm.Buckets.Cryptography
                     continue;
                 }
 
-                int nHashBytes = s2k.HashByteCount;
+                int nHashBytes = s2k.HashByteCount + zeros;
+                int nn = 0;
                 do
                 {
-                    int n = Math.Min(nHashBytes, toHash.Length);
-                    ha.TransformBlock(toHash, 0, n, null, 0);
+                    int n = Math.Min(nHashBytes, toHash.Length-nn);
+                    ha.TransformBlock(toHash, nn, n, null, 0);
 
                     nHashBytes -= n;
+                    nn = zeros;
                 }
                 while (nHashBytes > 0);
 
                 ha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
 
                 result.AddRange(ha.Hash!);
+                zeros++;
             }
 
             return result.Take(bytesRequired).ToArray();
