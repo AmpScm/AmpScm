@@ -625,11 +625,11 @@ namespace AmpScm.Buckets.Cryptography
 
                     var ak = key ?? KeyChain?.FindKey(info.SignKeyFingerprint);
 
-                    var v = ak?.GetValues() ?? keyInts ?? throw new InvalidOperationException();
+                    var v = ak?.GetValues() ?? keyInts;
 
                     if (key is { })
                     {
-                        if (VerifySignature(info, hashValue, v))
+                        if (VerifySignature(info, hashValue, v ?? throw new InvalidOperationException()))
                         {
                             needResults -= 1;
                         }

@@ -12,25 +12,24 @@ namespace AmpScm.Buckets.Specialized
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private HashAlgorithm? _hasher;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private Action<byte[]>? _onResult;
+        private Action<Func<byte[]?, byte[]>>? _onResult;
         private readonly bool _complete;
 
-        public CreateHashBucket(Bucket source, HashAlgorithm hasher)
+        private CreateHashBucket(Bucket source, HashAlgorithm hasher)
             : base(source)
         {
             _hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
         }
 
-        public CreateHashBucket(Bucket inner, HashAlgorithm hasher, Action<byte[]>? hashCreated)
-            : this(inner, hasher)
+        public CreateHashBucket(Bucket inner, HashAlgorithm hasher, Action<byte[]> hashCreated)
+            : this(inner, hasher, x => hashCreated(x(Array.Empty<byte>())))
         {
-            _onResult = hashCreated;
         }
 
         public CreateHashBucket(Bucket inner, HashAlgorithm hasher, Action<Func<byte[]?, byte[]>> completer)
             : this(inner, hasher)
         {
-            _onResult = (_ => completer(CompleteHandler));
+            _onResult = completer;
             _complete = true;
         }
 
@@ -51,32 +50,10 @@ namespace AmpScm.Buckets.Specialized
 
         private void FinishHashing()
         {
-            if (_hasher != null)
+            if (_hasher != null && _onResult is { } onResult)
             {
-                if (_complete)
-                {
-                    try
-                    {
-                        _onResult?.Invoke(null!);
-                    }
-                    finally
-                    {
-                        _onResult = null;
-                    }
-                }
-                else
-                {
-                    _hasher.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-
-                    try
-                    {
-                        _onResult?.Invoke(_hasher.Hash ?? throw new InvalidOperationException());
-                    }
-                    finally
-                    {
-                        _onResult = null;
-                    }
-                }
+                _onResult = null;
+                onResult(CompleteHandler);
             }
         }
 
@@ -84,8 +61,11 @@ namespace AmpScm.Buckets.Specialized
         {
             if (_hasher != null)
             {
-                _hasher.TransformFinalBlock(suffix ?? Array.Empty<byte>(), 0, suffix?.Length ?? 0);
-                return _hasher.Hash ?? throw new InvalidOperationException();
+                using var h = _hasher;
+                _hasher = null;
+
+                h.TransformFinalBlock(suffix ?? Array.Empty<byte>(), 0, suffix?.Length ?? 0);
+                return  h.Hash ?? throw new InvalidOperationException();
             }
             else
                 return null!;

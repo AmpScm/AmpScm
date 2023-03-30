@@ -53,7 +53,7 @@ override AmpScm.Buckets.Cryptography.DecryptBucket.Peek() -> AmpScm.Buckets.Buck
 override AmpScm.Buckets.Cryptography.DecryptBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertRequested(int requested) -> int
-override AmpScm.Buckets.Cryptography.OcbDecodeBucket.InnerDispose() -> void
+override AmpScm.Buckets.Cryptography.OcbDecodeBucket.Dispose(bool disposing) -> void
 override AmpScm.Buckets.Cryptography.PublicKeySignature.GetValues(bool includePrivate = false) -> System.Collections.Generic.IReadOnlyList<System.Numerics.BigInteger>!
 override AmpScm.Buckets.Cryptography.PublicKeySignature.MatchesFingerprint(System.ReadOnlyMemory<byte> fingerprint, AmpScm.Buckets.Cryptography.CryptoAlgorithm algorithm = AmpScm.Buckets.Cryptography.CryptoAlgorithm.None, bool requirePrivateKey = false) -> bool
 override AmpScm.Buckets.Cryptography.PublicKeySignature.SubKeys.get -> System.Collections.Generic.IEnumerable<AmpScm.Buckets.Cryptography.AsymmetricCryptoKey!>!

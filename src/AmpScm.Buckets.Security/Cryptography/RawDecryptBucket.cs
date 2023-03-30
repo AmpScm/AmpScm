@@ -61,7 +61,7 @@ namespace AmpScm.Buckets.Cryptography
                 {
                     n = _transform.TransformBlock(toConvert, 0, convertSize, _buffer!, 0);
 
-                    Debug.WriteLine($"X: {string.Join(" ", _buffer.Take(n).Select(x => x.ToString("X2")))}");
+                    //Debug.WriteLine($"X: {string.Join(" ", _buffer.Take(n).Select(x => x.ToString("X2")))}");
                 }
                 else
                     n = 0;
