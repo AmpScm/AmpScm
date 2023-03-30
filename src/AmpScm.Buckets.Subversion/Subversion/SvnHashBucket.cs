@@ -9,10 +9,10 @@ namespace AmpScm.Buckets.Subversion
         private Action? _atEof;
         bool _readEol;
 
-        public SvnHashBucket(Bucket inner, Action? atEof = null)
-            : base(inner)
+        public SvnHashBucket(Bucket source, Action? atEof = null)
+            : base(source)
         {
-            this._atEof = atEof ?? (() => { });
+            _atEof = atEof ?? (() => { });
         }
 
         public async ValueTask<(string key, BucketBytes value)?> ReadValue()

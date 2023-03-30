@@ -25,13 +25,13 @@ namespace AmpScm.Buckets.Git.Objects
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         readonly Func<GitSubBucketType, Bucket, ValueTask>? _handleSubBucket;
 
-        public GitCommitObjectBucket(Bucket inner)
-            : this(inner, null)
+        public GitCommitObjectBucket(Bucket source)
+            : this(source, null)
         {
         }
 
-        public GitCommitObjectBucket(Bucket inner, Func<GitSubBucketType, Bucket, ValueTask>? handleSubBucket)
-            : base(inner)
+        public GitCommitObjectBucket(Bucket source, Func<GitSubBucketType, Bucket, ValueTask>? handleSubBucket)
+            : base(source)
         {
             _handleSubBucket = handleSubBucket;
         }

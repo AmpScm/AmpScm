@@ -17,8 +17,8 @@ namespace AmpScm.Buckets.Cryptography
         private ByteCollector _byteCollector;
         private readonly int _blocksizeBytes;
 
-        public RawDecryptBucket(Bucket inner, SymmetricAlgorithm algorithm, bool decrypt)
-            : base(inner)
+        public RawDecryptBucket(Bucket source, SymmetricAlgorithm algorithm, bool decrypt)
+            : base(source)
         {
             _algorithm = algorithm;
 

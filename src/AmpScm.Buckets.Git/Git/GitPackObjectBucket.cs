@@ -44,20 +44,20 @@ namespace AmpScm.Buckets.Git
         const GitObjectType GitObjectType_DeltaOffset = (GitObjectType)6;
         const GitObjectType GitObjectType_DeltaReference = (GitObjectType)7;
 
-        public GitPackObjectBucket(Bucket inner, GitIdType idType, Func<GitId, ValueTask<GitObjectBucket?>>? fetchBucketById = null, Func<long, ValueTask<GitObjectBucket>>? fetchBucketByOffset = null)
-            : base(inner.WithPosition())
+        public GitPackObjectBucket(Bucket source, GitIdType idType, Func<GitId, ValueTask<GitObjectBucket?>>? fetchBucketById = null, Func<long, ValueTask<GitObjectBucket>>? fetchBucketByOffset = null)
+            : base(source.WithPosition())
         {
             _idType = idType;
             _fetchBucketById = fetchBucketById;
             _fetchBucketByOffset = fetchBucketByOffset;
         }
 
-#pragma warning disable CA2215 // Dispose methods should call base class dispose
         protected override void Dispose(bool disposing)
-#pragma warning restore CA2215 // Dispose methods should call base class dispose
         {
-            if (disposing)
-                (_reader ?? Source)?.Dispose();
+            if (_reader != null)
+                _reader.Dispose();
+            else
+                base.Dispose(disposing);
         }
 
         public override BucketBytes Peek()

@@ -94,13 +94,11 @@ namespace AmpScm.Buckets.Cryptography
         private sealed class Decryptor : ICryptoTransform
         {
             readonly byte[] _feedback;
-            int _nBlock;
 
             public Decryptor(CfbMapper mapper, int feedbackSize, byte[]? rgbIV)
             {
                 Mapper = mapper;
                 Algorithm = mapper.Algorithm;
-                //Transform = cryptoTransform;
                 _feedback = rgbIV?.ToArray() ?? new byte[Algorithm.FeedbackSize];
             }
 

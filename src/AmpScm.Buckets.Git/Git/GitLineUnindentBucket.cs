@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Git
         bool _cont;
         bool _eof;
 
-        public GitLineUnindentBucket(Bucket inner, BucketEol acceptableEols = BucketEol.LF) : base(inner)
+        public GitLineUnindentBucket(Bucket source, BucketEol acceptableEols = BucketEol.LF) : base(source)
         {
             _acceptableEols = acceptableEols;
         }

@@ -102,7 +102,7 @@ namespace AmpScm.Buckets.Git
         GitId? _lastId;
         int? _idLength;
 
-        public GitReferenceLogBucket(Bucket inner) : base(inner)
+        public GitReferenceLogBucket(Bucket source) : base(source)
         {
         }
 

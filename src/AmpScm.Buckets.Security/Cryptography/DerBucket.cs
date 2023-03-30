@@ -37,7 +37,7 @@ namespace AmpScm.Buckets.Cryptography
         private bool _eof;
         private bool _reading;
 
-        public DerBucket(Bucket inner) : base(inner)
+        public DerBucket(Bucket source) : base(source)
         {
         }
 

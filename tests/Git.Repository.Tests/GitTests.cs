@@ -79,6 +79,8 @@ namespace GitRepositoryTests
 
                     TestContext.WriteLine();
                     Assert.AreEqual(0, crc); // Not calculated yet. We didn't get EOF yet
+
+                    await pf.ReadUntilEofAsync();
                 }
 
                 hashes.Add(checksum!, (offset!.Value, crc));

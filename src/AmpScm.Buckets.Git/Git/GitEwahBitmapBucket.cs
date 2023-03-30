@@ -29,8 +29,8 @@ namespace AmpScm.Buckets.Git
         bool _repBit;
         int _position;
 
-        public GitEwahBitmapBucket(Bucket inner)
-            : base(inner)
+        public GitEwahBitmapBucket(Bucket source)
+            : base(source)
         {
             _state = ewah_state.init;
             _buffer = new byte[512];

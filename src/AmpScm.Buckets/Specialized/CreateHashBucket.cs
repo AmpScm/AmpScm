@@ -13,7 +13,6 @@ namespace AmpScm.Buckets.Specialized
         private HashAlgorithm? _hasher;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private Action<Func<byte[]?, byte[]>>? _onResult;
-        private readonly bool _complete;
 
         private CreateHashBucket(Bucket source, HashAlgorithm hasher)
             : base(source)
@@ -21,16 +20,15 @@ namespace AmpScm.Buckets.Specialized
             _hasher = hasher ?? throw new ArgumentNullException(nameof(hasher));
         }
 
-        public CreateHashBucket(Bucket inner, HashAlgorithm hasher, Action<byte[]> hashCreated)
-            : this(inner, hasher, x => hashCreated(x(Array.Empty<byte>())))
+        public CreateHashBucket(Bucket source, HashAlgorithm hasher, Action<byte[]> hashCreated)
+            : this(source, hasher, x => hashCreated(x(null)))
         {
         }
 
-        public CreateHashBucket(Bucket inner, HashAlgorithm hasher, Action<Func<byte[]?, byte[]>> completer)
-            : this(inner, hasher)
+        public CreateHashBucket(Bucket source, HashAlgorithm hasher, Action<Func<byte[]?, byte[]>> completer)
+            : this(source, hasher)
         {
             _onResult = completer;
-            _complete = true;
         }
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
@@ -44,6 +42,8 @@ namespace AmpScm.Buckets.Specialized
                 var (bytes, offset) = r.ExpandToArray();
                 _hasher?.TransformBlock(bytes, offset, r.Length, null!, 0);
             }
+            else
+                Debug.Assert(false, "Reading empty");
 
             return r;
         }
@@ -109,7 +109,7 @@ namespace AmpScm.Buckets.Specialized
                     if (_onResult != null)
                         FinishHashing();
 
-                    _hasher.Dispose();
+                    _hasher?.Dispose();
                 }
             }
             finally

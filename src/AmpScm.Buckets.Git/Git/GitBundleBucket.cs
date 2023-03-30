@@ -26,7 +26,7 @@ namespace AmpScm.Buckets.Git
         }
 
 
-        public GitBundleBucket(Bucket inner) : base(inner)
+        public GitBundleBucket(Bucket source) : base(source)
         {
         }
 

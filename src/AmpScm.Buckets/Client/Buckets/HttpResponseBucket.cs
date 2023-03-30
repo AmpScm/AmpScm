@@ -29,8 +29,8 @@ namespace AmpScm.Buckets.Client.Buckets
         public int? HttpStatus { get; private set; }
         public string? HttpMessage { get; private set; }
 
-        internal HttpResponseBucket(Bucket inner, HttpBucketWebRequest request, bool readEol)
-            : base(inner, request)
+        internal HttpResponseBucket(Bucket source, HttpBucketWebRequest request, bool readEol)
+            : base(source, request)
         {
             _nRedirects = request.MaxRedirects;
             _readEol = readEol;

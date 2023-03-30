@@ -35,8 +35,8 @@ namespace AmpScm.Buckets.Specialized
             _default = DefaultEncoding;
         }
 
-        public TextNormalizeBucket(Bucket inner, Encoding fallbackEncoding)
-            : this(inner)
+        public TextNormalizeBucket(Bucket source, Encoding fallbackEncoding)
+            : this(source)
         {
             _default = fallbackEncoding ?? DefaultEncoding;
         }

@@ -8,8 +8,8 @@ namespace AmpScm.Buckets.Client
 {
     public abstract class ResponseBucket : WrappingBucket
     {
-        protected ResponseBucket(Bucket inner, BucketWebRequest request)
-            : base(inner, true)
+        protected ResponseBucket(Bucket source, BucketWebRequest request)
+            : base(source, true)
         {
             Request = request ?? throw new ArgumentNullException(nameof(request));
         }

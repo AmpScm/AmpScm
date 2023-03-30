@@ -102,15 +102,15 @@ namespace AmpScm.Buckets.Git
 
         public int? IndexVersion => _version > 0 ? _version : null;
 
-        public GitDirectoryBucket(Bucket inner, GitDirectoryOptions? options) : base(inner)
+        public GitDirectoryBucket(Bucket source, GitDirectoryOptions? options) : base(source)
         {
             _idType = options?.IdType ?? GitIdType.Sha1;
             _lookForEndOfIndex = options?.LookForEndOfIndex ?? false;
             _preLoadExtensions = options?.PreLoadExtensions ?? false;
         }
 
-        public GitDirectoryBucket(Bucket inner)
-            : this(inner, options: null)
+        public GitDirectoryBucket(Bucket source)
+            : this(source, options: null)
         {
         }
 

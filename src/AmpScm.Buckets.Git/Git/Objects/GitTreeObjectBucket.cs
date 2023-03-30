@@ -33,7 +33,7 @@ namespace AmpScm.Buckets.Git.Objects
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool _checkedType;
 
-        public GitTreeObjectBucket(Bucket inner, GitIdType idType) : base(inner)
+        public GitTreeObjectBucket(Bucket source, GitIdType idType) : base(source)
         {
             _idType = idType;
         }

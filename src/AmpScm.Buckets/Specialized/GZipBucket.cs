@@ -25,8 +25,8 @@ namespace AmpScm.Buckets.Specialized
             _readHeader = true;
         }
 
-        private GZipBucket(Bucket inner)
-            : base(inner)
+        private GZipBucket(Bucket source)
+            : base(source)
         {
 
         }

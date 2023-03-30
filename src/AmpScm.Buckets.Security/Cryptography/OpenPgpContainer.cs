@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Cryptography
         private bool _reading;
         private bool _isDer;
 
-        public OpenPgpContainer(Bucket inner) : base(inner)
+        public OpenPgpContainer(Bucket source) : base(source)
         {
         }
 

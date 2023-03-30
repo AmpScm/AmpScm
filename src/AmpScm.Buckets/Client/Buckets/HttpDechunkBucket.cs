@@ -24,8 +24,8 @@ namespace AmpScm.Buckets.Client.Buckets
         private byte[]? _start;
         private readonly bool _noFin;
 
-        public HttpDechunkBucket(Bucket inner, bool leaveFinalEol = false)
-            : base(inner)
+        public HttpDechunkBucket(Bucket source, bool leaveFinalEol = false)
+            : base(source)
         {
             _noFin = leaveFinalEol;
         }

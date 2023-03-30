@@ -15,8 +15,8 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private bool _done;
 
-        public AeadChunkReader(Bucket inner, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional) 
-            : base(inner)
+        public AeadChunkReader(Bucket source, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional) 
+            : base(source)
         {
             if (maxChunkSize < 16)
                 throw new ArgumentOutOfRangeException(nameof(maxChunkSize), maxChunkSize, message: null);

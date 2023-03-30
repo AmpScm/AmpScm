@@ -19,7 +19,7 @@ namespace AmpScm.Buckets.Client.Buckets
         private static readonly ReadOnlyMemory<byte> ZeroCRLFCRLF = new byte[] { (byte)'0', 0x0d, 0x0a, 0x0d, 0x0a };
         private const int MaxChunkSize = 16 * 1024 * 1024;
 
-        public HttpChunkBucket(Bucket inner) : base(inner)
+        public HttpChunkBucket(Bucket source) : base(source)
         {
         }
 

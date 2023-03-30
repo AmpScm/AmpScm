@@ -17,8 +17,8 @@ namespace AmpScm.Buckets.Git
         long? _length;
         GitObjectType _type;
 
-        public GitFileObjectBucket(Bucket inner)
-            : base(new ZLibBucket(inner, BucketCompressionAlgorithm.ZLib))
+        public GitFileObjectBucket(Bucket source)
+            : base(new ZLibBucket(source, BucketCompressionAlgorithm.ZLib))
         {
         }
 

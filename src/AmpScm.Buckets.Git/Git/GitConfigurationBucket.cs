@@ -80,7 +80,7 @@ namespace AmpScm.Buckets.Git
         string? _subGroup;
         readonly BucketEolState _state = new();
 
-        public GitConfigurationBucket(Bucket inner) : base(inner)
+        public GitConfigurationBucket(Bucket source) : base(source)
         {
         }
 

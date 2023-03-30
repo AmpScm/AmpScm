@@ -70,11 +70,11 @@ namespace AmpScm.Buckets.Specialized
 
         internal abstract class WithPoll : ProxyBucket<TBucket>, IBucketPoll
         {
-            protected WithPoll(Bucket inner) : base(inner)
+            protected WithPoll(Bucket source) : base(source)
             {
             }
 
-            protected WithPoll(Bucket inner, bool noDispose) : base(inner, noDispose)
+            protected WithPoll(Bucket source, bool noDispose) : base(source, noDispose)
             {
             }
 
@@ -98,7 +98,7 @@ namespace AmpScm.Buckets.Specialized
         public override string Name => _name ?? (_name = (GetType() == typeof(ProxyBucket) ? "Proxy" : base.Name) + ">" + Source.Name);
 
 
-        internal ProxyBucket(Bucket inner, bool noDispose) : base(inner, noDispose)
+        internal ProxyBucket(Bucket source, bool noDispose) : base(source, noDispose)
         {
         }
 

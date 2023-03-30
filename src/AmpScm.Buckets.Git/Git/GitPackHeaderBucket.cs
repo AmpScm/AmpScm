@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Git
     {
         GitPackHeader? _header;
 
-        public GitPackHeaderBucket(Bucket inner) : base(inner)
+        public GitPackHeaderBucket(Bucket source) : base(source)
         {
         }
 

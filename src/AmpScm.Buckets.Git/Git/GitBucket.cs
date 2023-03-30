@@ -4,7 +4,7 @@ namespace AmpScm.Buckets.Git
 {
     public abstract class GitBucket : WrappingBucket
     {
-        protected GitBucket(Bucket inner) : base(inner)
+        protected GitBucket(Bucket source) : base(source)
         {
         }
     }

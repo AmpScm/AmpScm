@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Subversion
         bool _readEndRep;
         int _idx;
 
-        public SvnFsFsRevisionBucket(Bucket inner, Func<long, long, long, ValueTask<Bucket>>? fetchBase = null) : base(inner)
+        public SvnFsFsRevisionBucket(Bucket source, Func<long, long, long, ValueTask<Bucket>>? fetchBase = null) : base(source)
         {
             _fetchBase = fetchBase;
         }

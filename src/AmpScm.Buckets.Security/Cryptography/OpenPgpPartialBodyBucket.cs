@@ -8,8 +8,8 @@ namespace AmpScm.Buckets.Cryptography
         private int _remaining;
         private bool _final;
 
-        public OpenPgpPartialBodyBucket(Bucket inner, uint firstLength)
-            : base(inner)
+        public OpenPgpPartialBodyBucket(Bucket source, uint firstLength)
+            : base(source)
         {
             _remaining = (int)firstLength;
         }

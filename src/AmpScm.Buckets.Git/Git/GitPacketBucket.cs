@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Git
     {
         int _packetLength;
 
-        public GitPacketBucket(Bucket inner) : base(inner)
+        public GitPacketBucket(Bucket source) : base(source)
         {
         }
 

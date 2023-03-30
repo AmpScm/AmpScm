@@ -21,7 +21,7 @@ namespace AmpScm.Buckets.Git
         int _objCount;
         GitId? _checksum;
 
-        public GitBitmapHeaderBucket(Bucket inner, GitIdType idType) : base(inner)
+        public GitBitmapHeaderBucket(Bucket source, GitIdType idType) : base(source)
         {
             _idType = idType;
         }

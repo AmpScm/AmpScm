@@ -58,7 +58,7 @@ AmpScm.Buckets.Client.BucketWebRequest.RequestUri.get -> System.Uri!
 AmpScm.Buckets.Client.HttpBucketWebRequest
 AmpScm.Buckets.Client.ResponseBucket
 AmpScm.Buckets.Client.ResponseBucket.Request.get -> AmpScm.Buckets.Client.BucketWebRequest!
-AmpScm.Buckets.Client.ResponseBucket.ResponseBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Client.BucketWebRequest! request) -> void
+AmpScm.Buckets.Client.ResponseBucket.ResponseBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Client.BucketWebRequest! request) -> void
 AmpScm.Buckets.Client.WebHeaderDictionary
 AmpScm.Buckets.Client.WebHeaderDictionary.Contains(string! header) -> bool
 AmpScm.Buckets.Client.WebHeaderDictionary.Contains(System.Net.HttpRequestHeader requestHeader) -> bool

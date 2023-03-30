@@ -10,7 +10,7 @@ namespace AmpScm.Buckets.Git
 {
     public abstract class GitObjectBucket : GitBucket, IBucketSeek
     {
-        protected GitObjectBucket(Bucket inner) : base(inner)
+        protected GitObjectBucket(Bucket source) : base(source)
         {
         }
 

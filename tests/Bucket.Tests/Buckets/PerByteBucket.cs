@@ -6,7 +6,7 @@ namespace AmpScm.BucketTests.Buckets
 {
     public sealed class PerByteBucket : ProxyBucket<PerByteBucket>
     {
-        public PerByteBucket(Bucket inner) : base(inner)
+        public PerByteBucket(Bucket source) : base(source)
         {
         }
 

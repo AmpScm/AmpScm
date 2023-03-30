@@ -1,15 +1,18 @@
 ﻿#nullable enable
 abstract AmpScm.Buckets.Git.GitObjectBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Git.GitBitmapHeaderBucket.GitBitmapHeaderBucket(AmpScm.Buckets.Bucket! source, AmpScm.Git.GitIdType idType) -> void
+AmpScm.Buckets.Git.GitBucket.GitBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Git.GitBundleBucket
-AmpScm.Buckets.Git.GitBundleBucket.GitBundleBucket(AmpScm.Buckets.Bucket! inner) -> void
+AmpScm.Buckets.Git.GitBundleBucket.GitBundleBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Git.GitBundleBucket.ReadCapabilityAsync() -> System.Threading.Tasks.ValueTask<(string? Key, string? Value)>
 AmpScm.Buckets.Git.GitBundleBucket.ReadPackBucketAsync() -> System.Threading.Tasks.ValueTask<(AmpScm.Buckets.Bucket! Bucket, AmpScm.Git.GitIdType IdType)>
 AmpScm.Buckets.Git.GitBundleBucket.ReadPrerequisiteAsync() -> System.Threading.Tasks.ValueTask<(AmpScm.Git.GitId? Id, string? Comment)>
 AmpScm.Buckets.Git.GitBundleBucket.ReadReferenceAsync() -> System.Threading.Tasks.ValueTask<(AmpScm.Git.GitId? Id, string? Name)>
 AmpScm.Buckets.Git.GitBundleBucket.ReadVersionAsync() -> System.Threading.Tasks.ValueTask<int>
+AmpScm.Buckets.Git.GitConfigurationBucket.GitConfigurationBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket
-AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner) -> void
-AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.Git.GitDirectoryOptions? options) -> void
+AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Git.GitDirectoryOptions? options) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(string! gitDirectory) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket.GitDirectoryBucket(string! gitDirectory, AmpScm.Buckets.Git.GitDirectoryOptions? options) -> void
 AmpScm.Buckets.Git.GitDirectoryBucket.IndexVersion.get -> int?
@@ -56,19 +59,29 @@ AmpScm.Buckets.Git.GitDirectoryOptions.LookForEndOfIndex.set -> void
 AmpScm.Buckets.Git.GitDirectoryOptions.PreLoadExtensions.get -> bool
 AmpScm.Buckets.Git.GitDirectoryOptions.PreLoadExtensions.set -> void
 AmpScm.Buckets.Git.GitEwahBitmapBucket.AllBits.get -> System.Collections.Generic.IAsyncEnumerable<bool>!
+AmpScm.Buckets.Git.GitEwahBitmapBucket.GitEwahBitmapBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Git.GitEwahBitmapBucket.ReadLengthAsync() -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.Git.GitEwahBitmapBucket.SetIndexes.get -> System.Collections.Generic.IAsyncEnumerable<int>!
+AmpScm.Buckets.Git.GitFileObjectBucket.GitFileObjectBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Git.GitLineIndentBucket
-AmpScm.Buckets.Git.GitLineIndentBucket.GitLineIndentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
+AmpScm.Buckets.Git.GitLineIndentBucket.GitLineIndentBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
 AmpScm.Buckets.Git.GitLineUnindentBucket
-AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bucket! inner, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
-AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
+AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
+AmpScm.Buckets.Git.GitObjectBucket.GitObjectBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.Git.GitPacketBucket.GitPacketBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.Git.GitPackHeaderBucket.GitPackHeaderBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.Git.GitPackObjectBucket.GitPackObjectBucket(AmpScm.Buckets.Bucket! source, AmpScm.Git.GitIdType idType, System.Func<AmpScm.Git.GitId!, System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitObjectBucket?>>? fetchBucketById = null, System.Func<long, System.Threading.Tasks.ValueTask<AmpScm.Buckets.Git.GitObjectBucket!>>? fetchBucketByOffset = null) -> void
+AmpScm.Buckets.Git.GitReferenceLogBucket.GitReferenceLogBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! source, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitSubBucketType
 AmpScm.Buckets.Git.Objects.GitSubBucketType.MergeTag = 0 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
 AmpScm.Buckets.Git.Objects.GitSubBucketType.Signature = 1 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
 AmpScm.Buckets.Git.Objects.GitSubBucketType.SignatureSha256 = 2 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
-AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! inner, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! source) -> void
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! source, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadSignatureBytesAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+AmpScm.Buckets.Git.Objects.GitTreeObjectBucket.GitTreeObjectBucket(AmpScm.Buckets.Bucket! source, AmpScm.Git.GitIdType idType) -> void
 override AmpScm.Buckets.Git.GitBundleBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitFileObjectBucket.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
 override AmpScm.Buckets.Git.GitLineIndentBucket.Peek() -> AmpScm.Buckets.BucketBytes

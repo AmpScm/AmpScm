@@ -28,7 +28,7 @@ namespace AmpScm.Buckets.Cryptography
             Trailer,
             Eof
         }
-        public Radix64ArmorBucket(Bucket inner) : base(inner)
+        public Radix64ArmorBucket(Bucket source) : base(source)
         {
         }
 
@@ -189,7 +189,7 @@ namespace AmpScm.Buckets.Cryptography
             private readonly byte[] _stopAt;
             private bool _eof;
 
-            public StopAtLineStartBucket(Bucket inner, params byte[] stopAt) : base(inner)
+            public StopAtLineStartBucket(Bucket source, params byte[] stopAt) : base(source)
             {
                 _stopAt = (byte[])stopAt.Clone();
             }

@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Git
         BucketBytes _next;
         bool _lastWasEol;
 
-        public GitLineIndentBucket(Bucket inner, BucketEol acceptableEols = BucketEol.LF) : base(inner)
+        public GitLineIndentBucket(Bucket source, BucketEol acceptableEols = BucketEol.LF) : base(source)
         {
             _acceptableEols = acceptableEols;
             _next = _indentData;

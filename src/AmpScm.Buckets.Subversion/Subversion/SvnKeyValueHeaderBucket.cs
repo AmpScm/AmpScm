@@ -7,8 +7,8 @@ namespace AmpScm.Buckets.Subversion
     {
         Action? _atEof;
 
-        public SvnKeyValueHeaderBucket(Bucket inner, Action? atEof=null)
-            : base(inner)
+        public SvnKeyValueHeaderBucket(Bucket source, Action? atEof = null)
+            : base(source)
         {
             _atEof = atEof ?? (() => { });
         }
@@ -39,7 +39,7 @@ namespace AmpScm.Buckets.Subversion
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
         {
-            while(await ReadKeyAsync().ConfigureAwait(false) is (var key, var value))
+            while (await ReadKeyAsync().ConfigureAwait(false) is (var key, var value))
             {
                 Console.WriteLine($"{key.ToASCIIString()}: {value.ToASCIIString()}");
             }
