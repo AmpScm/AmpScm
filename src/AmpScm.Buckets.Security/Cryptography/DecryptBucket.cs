@@ -26,8 +26,6 @@ public sealed class DecryptBucket : CryptoDataBucket
     {
     }
 
-    public CryptoKeyChain KeyChain { get; init; } = new CryptoKeyChain();
-
     public Func<SignatureFetchContext, PublicKeySignature?>? GetKey { get; init; }
     public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
@@ -55,7 +53,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                             throw new NotImplementedException($"Compression algorithm {(OpenPgpCompressionType)b} not implemented");
                     }
 
-                    PushChunkReader(new CryptoChunkBucket(rd));
+                    PushChunkReader(new CryptoChunkBucket(rd.NoDispose()));
                     return false;
                 }
 
@@ -157,7 +155,10 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                     // Encrypted data
 
-                    bucket = bucket.Leave(16, (_, _) => { });
+                    bucket = bucket.Leave(16, (_, _) =>
+                    {
+                        // TODO: Handle the final chunk!
+                    });
 
                     bucket = new AeadChunkReader(bucket, (int)chunk_size, 16,
                         (n, data) =>
@@ -177,7 +178,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                             });
                         });
 
-                    PushChunkReader(new CryptoChunkBucket(bucket));
+                    PushChunkReader(new CryptoChunkBucket(bucket.NoDispose()));
                     return false;
                 }
             case CryptoTag.SymetricEncryptedIntegrity:
@@ -185,7 +186,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                     var b = await StartDecrypt(bucket).ConfigureAwait(false);
 
-                    PushChunkReader(new CryptoChunkBucket(b));
+                    PushChunkReader(new CryptoChunkBucket(b.NoDispose()));
                     return false;
                 }
             case CryptoTag.UserID:
@@ -251,7 +252,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                         bool? verified_as_ok = null;
 
-                        using var ocb = new OcbDecodeBucket(bucket, key.ToArray(), 128, nonce,
+                        var ocb = new OcbDecodeBucket(bucket, key.ToArray(), 128, nonce,
                             associatedData: new byte[] { (byte)(0xc0 | (int)tag), version, (byte)cipherAlgorithm, 0x02 /* s2k type */ },
                             verifyResult: (result) => verified_as_ok = result);
 
@@ -266,7 +267,6 @@ public sealed class DecryptBucket : CryptoDataBucket
                             _sessionKey = k.ToArray();
                         }
                     }
-
                 }
                 break;
             case CryptoTag.SignaturePublicKey:
@@ -276,7 +276,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     var p = _sigs.Pop();
 
                     byte[] hashValue = p.Completer!(r.SignBlob)!;
-                    Trace.WriteLine(BucketExtensions.HashToString(hashValue));
+                    //Trace.WriteLine(BucketExtensions.HashToString(hashValue));
 
                     if (GetKey?.Invoke(new() { Fingerprint = r.SignKeyFingerprint, RequiresPrivateKey = false }) is { } key
                         && key?.MatchFingerprint(r.SignKeyFingerprint) is { } matchedKey)
@@ -289,6 +289,11 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                     if (NetBitConverter.ToUInt16(hashValue, 0) != r.HashStart)
                         throw new BucketDecryptionException("Hashing towards SignaturePublicKey failed");
+                }
+                break;
+            case CryptoTag.ModificationDetected:
+                {
+                    var bb = await bucket.ReadExactlyAsync(20).ConfigureAwait(false);
                 }
                 break;
             default:

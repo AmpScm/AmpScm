@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Cryptography
@@ -19,6 +20,8 @@ namespace AmpScm.Buckets.Cryptography
         Bucket? _reader;
 
         private protected new CryptoChunkBucket Source => (CryptoChunkBucket)base.Source;
+
+    public CryptoKeyChain KeyChain { get; init; } = new CryptoKeyChain();
 
         private protected CryptoDataBucket(CryptoChunkBucket source) : base(source)
         {
@@ -468,7 +471,8 @@ namespace AmpScm.Buckets.Cryptography
 
                 if (bucket is { })
                 {
-                    await HandleChunk(bucket, type).ConfigureAwait(false);
+                    if (await HandleChunk(bucket, type).ConfigureAwait(false))
+                        bucket.Dispose();
 
                     if (_reader != null)
                         break; // Jump to returning actual data
@@ -497,12 +501,10 @@ namespace AmpScm.Buckets.Cryptography
 
         private protected void PushResultReader(Bucket bucket)
         {
-            _reader = bucket.AtEof(() =>
-            {
-                var r = _reader;
-                _reader = null;
-                r.Dispose();
-            });
+            if (_reader != null)
+                throw new InvalidOperationException();
+
+            _reader = bucket;
         }
 
         private protected abstract ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag type);

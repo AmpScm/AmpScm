@@ -32,8 +32,6 @@ public sealed class SignatureBucket : CryptoDataBucket
         _outer = source;
     }
 
-    public CryptoKeyChain? KeyChain { get; init; }
-
     public Func<SignaturePromptContext, string>? GetPassPhrase { get; init; }
 
     private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag tag)
