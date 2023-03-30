@@ -10,8 +10,8 @@
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <RootNamespace>AmpScm.Git</RootNamespace>
-    <NoWarn>1701;1702;1591</NoWarn>
-    <WarningLevel>5</WarningLevel>
+    <NoWarn>1701;1702;1591;CA1510</NoWarn>
+    <WarningLevel>7</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>

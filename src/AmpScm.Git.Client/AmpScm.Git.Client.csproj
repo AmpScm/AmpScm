@@ -9,8 +9,8 @@
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <NoWarn>1701;1702;1591</NoWarn>
-    <WarningLevel>5</WarningLevel>
+    <NoWarn>1701;1702;1591;CA1510</NoWarn>
+    <WarningLevel>7</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
@@ -39,7 +39,7 @@
     <PackageReference Include="GitVersion.MsBuild" Version="5.10.1">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
