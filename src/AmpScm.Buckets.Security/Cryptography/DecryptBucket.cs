@@ -246,27 +246,60 @@ public sealed class DecryptBucket : CryptoDataBucket
                         key = DeriveS2kKey(s2k, password);
                     }
 
-                    if (version == 5 && key is { })
+                    if (key is not { })
+                        break;
+
+                    var symmetricKeyLength = GetKeySize(cipherAlgorithm) / 8;
+                    switch (version)
                     {
-                        byte[] nonce = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
+                        case 5:
+                            {
+                                byte[] nonce = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
 
-                        bool? verified_as_ok = null;
+                                bool? verified_as_ok = null;
 
-                        var ocb = new OcbDecodeBucket(bucket, key.ToArray(), 128, nonce,
-                            associatedData: new byte[] { (byte)(0xc0 | (int)tag), version, (byte)cipherAlgorithm, 0x02 /* s2k type */ },
-                            verifyResult: (result) => verified_as_ok = result);
+                                var ocb = new OcbDecodeBucket(bucket, key.ToArray(), 128, nonce,
+                                    associatedData: new byte[] { (byte)(0xc0 | (int)tag), version, (byte)cipherAlgorithm, 0x02 /* s2k type */ },
+                                    verifyResult: (result) => verified_as_ok = result);
 
-                        var k = await ocb.ReadExactlyAsync(17).ConfigureAwait(false);
+                                var k = await ocb.ReadExactlyAsync(symmetricKeyLength + 1).ConfigureAwait(false);
 
 #pragma warning disable CA1508 // Avoid dead conditional code // Bad diagnostic, as used in lambda.
-                        Debug.Assert(verified_as_ok != null, "Verify not called");
-                        if (k.Length == 16 && verified_as_ok == true)
+                                Debug.Assert(verified_as_ok != null, "Verify not called");
+                                if (k.Length == symmetricKeyLength && verified_as_ok == true)
 #pragma warning restore CA1508 // Avoid dead conditional code
-                        {
-                            _sessionAlgorithm = cipherAlgorithm;
-                            _sessionKey = k.ToArray();
-                        }
+                                {
+                                    _sessionAlgorithm = cipherAlgorithm;
+                                    _sessionKey = k.ToArray();
+                                }
+                                break;
+                            }
+                        case 4 when (await bucket.ReadRemainingBytesAsync() == 0):
+                            {
+                                _sessionAlgorithm = cipherAlgorithm;
+                                _sessionKey = key.ToArray();
+                                break;
+                            }
+
+                        case 4:
+                            {
+                                using var keySrc = CreateDecryptBucket(bucket, s2k.CipherAlgorithm, key, iv: new byte[key.Length]);
+
+                                var k = await keySrc.ReadExactlyAsync(key.Length+2).ConfigureAwait(false);
+
+                                if (k.Length == key.Length-1)
+#pragma warning restore CA1508 // Avoid dead conditional code
+                                {
+                                    _sessionAlgorithm = cipherAlgorithm;
+                                    _sessionKey = k.Slice(1).ToArray();
+                                }
+                                break;
+                            }
+                        default:
+
+                            break;
                     }
+                    
                 }
                 break;
             case CryptoTag.SignaturePublicKey:

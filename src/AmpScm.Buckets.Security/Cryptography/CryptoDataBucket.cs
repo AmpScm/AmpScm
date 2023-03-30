@@ -21,7 +21,7 @@ namespace AmpScm.Buckets.Cryptography
 
         private protected new CryptoChunkBucket Source => (CryptoChunkBucket)base.Source;
 
-    public CryptoKeyChain KeyChain { get; init; } = new CryptoKeyChain();
+        public CryptoKeyChain KeyChain { get; init; } = new CryptoKeyChain();
 
         private protected CryptoDataBucket(CryptoChunkBucket source) : base(source)
         {
@@ -40,7 +40,7 @@ namespace AmpScm.Buckets.Cryptography
             };
         }
 
-        private protected record struct S2KSpecifier(OpenPgpHashAlgorithm HashAlgorithm, byte[]? Salt, int HashByteCount, OpenPgpSymmetricAlgorithm CipherAlgorithm);
+        private protected record struct S2KSpecifier(OpenPgpHashAlgorithm HashAlgorithm, byte[]? Salt, int HashByteCount, OpenPgpSymmetricAlgorithm CipherAlgorithm, byte Type);
 
         private protected static byte[] DeriveS2kKey(S2KSpecifier s2k, string password)
         {
@@ -203,14 +203,14 @@ namespace AmpScm.Buckets.Cryptography
                     { // Simple S2K
                         alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                        return new(alg, null, 0, algorithm);
+                        return new(alg, null, 0, algorithm, type);
                     }
                 case 1:
                     { // Salted S2k
                         alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                         salt = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
 
-                        return new(alg, salt, 0, algorithm);
+                        return new(alg, salt, 0, algorithm, type);
                     }
                 // 2 : reserved
                 case 3:
@@ -221,7 +221,7 @@ namespace AmpScm.Buckets.Cryptography
 
                         int c = 16 + (count & 0xF) << ((count >> 4) + 6);
 
-                        return new(alg, salt, c, algorithm);
+                        return new(alg, salt, c, algorithm, type);
                     }
                 default:
                     throw new NotImplementedException();
