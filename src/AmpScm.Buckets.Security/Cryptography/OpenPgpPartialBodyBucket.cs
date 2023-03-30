@@ -33,7 +33,7 @@ namespace AmpScm.Buckets.Cryptography
 
             if (_remaining == 0 && !_final)
             {
-                var (len, partial) = await OpenPgpContainer.ReadLengthAsync(Source).ConfigureAwait(false);
+                var (len, partial) = await CryptoChunkBucket.ReadLengthAsync(Source).ConfigureAwait(false);
 
                 _final = !partial;
                 _remaining = (int)len!.Value;

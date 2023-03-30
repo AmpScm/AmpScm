@@ -16,24 +16,20 @@ namespace AmpScm.Buckets.Cryptography
     public sealed class DecryptBucket : CryptoDataBucket
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private bool _inBody;
-        private readonly OpenPgpContainer _container;
         private Bucket? _reader;
         private OpenPgpSymmetricAlgorithm _sessionAlgorithm;
         private ReadOnlyMemory<byte> _sessionKey; // The symetric key
         private string? _fileName;
         private DateTime? _fileDate;
-        private OpenPgpContainer _q;
         private readonly Stack<PgpSignature> _sigs = new();
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        private new OpenPgpContainer Source => (OpenPgpContainer)base.Source;
+        private new CryptoChunkBucket Source => (CryptoChunkBucket)base.Source;
 
         public DecryptBucket(Bucket source)
-            : base(new OpenPgpContainer(source))
+            : base(new CryptoChunkBucket(source))
         {
-            _container = Source;
-            _q = _container;
+            PushChunkReader(Source);
         }
 
         public CryptoKeyChain KeyChain { get; init; } = new CryptoKeyChain();
@@ -41,21 +37,14 @@ namespace AmpScm.Buckets.Cryptography
         public Func<SignatureFetchContext, PublicKeySignature?>? GetKey { get; init; }
         public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
-        private async ValueTask ReadHeader()
+        private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag type)
         {
-            if (_inBody)
-                return;
-
-            while (true)
+            var tag = type;
             {
-                var (bucket, tag) = await _q.ReadPacketAsync().ConfigureAwait(false);
-
-                if (bucket is null)
-                    return;
 
                 switch (tag)
                 {
-                    case OpenPgpTagType.CompressedData:
+                    case CryptoTag.CompressedData:
                         {
                             byte? b = await bucket.ReadByteAsync().ConfigureAwait(false);
 
@@ -75,11 +64,11 @@ namespace AmpScm.Buckets.Cryptography
                                     throw new NotImplementedException($"Compression algorithm {(OpenPgpCompressionType)b} not implemented");
                             }
 
-                            _q = new OpenPgpContainer(rd);
-                            continue;
+                            PushChunkReader(new CryptoChunkBucket(rd));
+                            return false;
                         }
 
-                    case OpenPgpTagType.PublicKeySession:
+                    case CryptoTag.PublicKeySession:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
@@ -142,7 +131,7 @@ namespace AmpScm.Buckets.Cryptography
                             }
                         }
                         break;
-                    case OpenPgpTagType.OnePassSignature:
+                    case CryptoTag.OnePassSignature:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                             var signatureType = (OpenPgpSignatureType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
@@ -158,7 +147,7 @@ namespace AmpScm.Buckets.Cryptography
                             _sigs.Push(new(version, signatureType, hashAlgorithm, pkt, signer));
                         }
                         break;
-                    case OpenPgpTagType.OCBEncryptedData:
+                    case CryptoTag.OCBEncryptedData:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                             var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
@@ -182,7 +171,7 @@ namespace AmpScm.Buckets.Cryptography
                             bucket = new AeadChunkReader(bucket, (int)chunk_size, 16,
                                 (n, data) =>
                                 {
-                                    byte[] associatedData = new byte[] { 0xC0 | (int)OpenPgpTagType.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
+                                    byte[] associatedData = new byte[] { 0xC0 | (int)CryptoTag.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
                                         .Concat(NetBitConverter.GetBytes((long)n)).ToArray();
 
 
@@ -197,19 +186,18 @@ namespace AmpScm.Buckets.Cryptography
                                     });
                                 });
 
-                            _q = new OpenPgpContainer(bucket);
-
-                            continue;
+                            PushChunkReader(new CryptoChunkBucket(bucket));
+                            return false;
                         }
-                    case OpenPgpTagType.SymetricEncryptedIntegrity:
+                    case CryptoTag.SymetricEncryptedIntegrity:
                         {
                             byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                             var b = await StartDecrypt(bucket).ConfigureAwait(false);
 
-                            _q = new OpenPgpContainer(b);
-                            continue;
+                            PushChunkReader(new CryptoChunkBucket(b));
+                            return false;
                         }
-                    case OpenPgpTagType.UserID:
+                    case CryptoTag.UserID:
 #if DEBUG
                         {
                             var bb = await bucket.ReadExactlyAsync(MaxRead).ConfigureAwait(false);
@@ -218,7 +206,7 @@ namespace AmpScm.Buckets.Cryptography
                         }
 #endif
                         break;
-                    case OpenPgpTagType.Literal:
+                    case CryptoTag.Literal:
                         {
                             byte dataType = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                             byte fileNameLen = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
@@ -233,23 +221,18 @@ namespace AmpScm.Buckets.Cryptography
 
                             var dt = await bucket.ReadExactlyAsync(4).ConfigureAwait(false); // Date
                             _fileDate = DateTimeOffset.FromUnixTimeSeconds(NetBitConverter.ToUInt32(dt, 0)).DateTime;
-                            _inBody = true;
 
                             foreach (var s in _sigs)
                             {
                                 var ha = s.HashAlgorithm;
-                                bucket = CreateHasher(bucket, s.HashAlgorithm, a => s.Completer = a);
+                                bucket = CreateHasher(bucket, s.HashAlgorithm, a => s.Completer = a).NoDispose();
                             }
 
-                            _reader = bucket.AtEof(() =>
-                                {
-                                    _reader = null;
-                                    _inBody = false;
-                                });
-                            return;
+                            PushResultReader(bucket);
+                            return false;
                         }
 
-                    case OpenPgpTagType.SymetricSessionKey:
+                    case CryptoTag.SymetricSessionKey:
                         {
                             if (!_sessionKey.IsEmpty)
                                 break; // Ignore session key if we already have one
@@ -295,7 +278,7 @@ namespace AmpScm.Buckets.Cryptography
 
                         }
                         break;
-                    case OpenPgpTagType.SignaturePublicKey:
+                    case CryptoTag.SignaturePublicKey:
                         {
                             var r = await ParseSignatureAsync(bucket).ConfigureAwait(false);
 
@@ -326,6 +309,7 @@ namespace AmpScm.Buckets.Cryptography
                     long n = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                     Debug.Assert(n == 0, $"Unread data left in {bucket} of tagType {tag}");
                 }
+                return true;
             }
         }
 
@@ -361,29 +345,10 @@ namespace AmpScm.Buckets.Cryptography
 
         public async ValueTask<(string? fileName, DateTime? fileTime)> ReadFileInfo()
         {
-            await ReadHeader().ConfigureAwait(false);
+            if (_fileName != null)
+                await ReadHeaderChunksAsync().ConfigureAwait(false);
 
             return (_fileName, _fileDate);
-        }
-
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
-        {
-            await ReadHeader().ConfigureAwait(false);
-
-            var bb = (_reader != null) ? await _reader.ReadAsync(requested).ConfigureAwait(false) : BucketBytes.Empty;
-
-            if (!_inBody && bb.IsEmpty)
-                await ReadHeader().ConfigureAwait(false);
-
-            return bb;
-        }
-
-        public override BucketBytes Peek()
-        {
-            if (_reader != null)
-                return _reader.Peek();
-
-            return base.Peek();
         }
 
         private sealed record PgpSignature

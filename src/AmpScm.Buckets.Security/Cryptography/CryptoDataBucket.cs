@@ -15,6 +15,9 @@ namespace AmpScm.Buckets.Cryptography
 
     public abstract class CryptoDataBucket : WrappingBucket
     {
+        readonly private Stack<CryptoChunkBucket> _stack = new();
+        Bucket? _reader;
+
         private protected CryptoDataBucket(Bucket source) : base(source)
         {
         }
@@ -292,7 +295,7 @@ namespace AmpScm.Buckets.Cryptography
 
         private protected static async ValueTask<uint?> ReadLengthAsync(Bucket bucket)
         {
-            return (await OpenPgpContainer.ReadLengthAsync(bucket).ConfigureAwait(false)).Length;
+            return (await CryptoChunkBucket.ReadLengthAsync(bucket).ConfigureAwait(false)).Length;
         }
 
         private protected static async ValueTask<BucketBytes> ReadSshStringAsync(Bucket bucket)
@@ -423,6 +426,82 @@ namespace AmpScm.Buckets.Cryptography
         }
 
         private protected sealed record SignatureInfo(OpenPgpSignatureType SignatureType, byte[]? Signer, OpenPgpPublicKeyType PublicKeyType, OpenPgpHashAlgorithm HashAlgorithm, ushort HashStart, DateTimeOffset? SignTime, byte[]? SignBlob, IReadOnlyList<BigInteger> SignatureInts, byte[]? SignKeyFingerprint);
+
+
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        {
+            do
+            {
+                if (_reader != null)
+                {
+                    var bb = await _reader.ReadAsync(requested).ConfigureAwait(false);
+
+                    if (!bb.IsEmpty)
+                        return bb;
+                    else
+                    {
+                        _reader?.Dispose();
+                        _reader = null;
+                    }
+                }
+
+                await ReadHeaderChunksAsync().ConfigureAwait(false);
+            }
+            while (_reader != null);
+
+            return BucketBytes.Eof;
+        }
+
+        private protected async ValueTask ReadHeaderChunksAsync()
+        {
+            if (_reader != null)
+                return;
+
+            while (_stack.Count > 0)
+            {
+                var rdr = _stack.Peek();
+                var (bucket, type) = await rdr.ReadChunkAsync().ConfigureAwait(false);
+
+                if (bucket is { })
+                {
+                    await HandleChunk(bucket, type).ConfigureAwait(false);
+
+                    if (_reader != null)
+                        break; // Jump to returning actual data
+                }
+                else
+                {
+                    _stack.Pop();
+                    if (rdr != Source)
+                        rdr.Dispose();
+                }
+            }
+        }
+
+        public override BucketBytes Peek()
+        {
+            if (_reader is { })
+                return _reader.Peek();
+            else
+                return BucketBytes.Empty;
+        }
+
+        private protected void PushChunkReader(CryptoChunkBucket bucket)
+        {
+            _stack.Push(bucket);
+        }
+
+        private protected void PushResultReader(Bucket bucket)
+        {
+            _reader = bucket.AtEof(() =>
+            {
+                var r = _reader;
+                _reader = null;
+                r.Dispose();
+            });
+        }
+
+        private protected abstract ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag type);
 
         private protected static async ValueTask<SignatureInfo> ParseSignatureAsync(Bucket bucket)
         {

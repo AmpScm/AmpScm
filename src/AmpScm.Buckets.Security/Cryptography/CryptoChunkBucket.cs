@@ -4,14 +4,14 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Cryptography
 {
-    internal sealed class OpenPgpContainer : WrappingBucket
+    internal sealed class CryptoChunkBucket : WrappingBucket
     {
         private bool _notFirst;
         private bool _isSsh;
         private bool _reading;
         private bool _isDer;
 
-        public OpenPgpContainer(Bucket source) : base(source)
+        public CryptoChunkBucket(Bucket inner) : base(inner)
         {
         }
 
@@ -21,14 +21,14 @@ namespace AmpScm.Buckets.Cryptography
         {
             while (true)
             {
-                var (bucket, _) = await ReadPacketAsync().ConfigureAwait(false);
+                var (bucket, _) = await ReadChunkAsync().ConfigureAwait(false);
 
                 if (bucket is null)
                     return BucketBytes.Eof;
             }
         }
 
-        public async ValueTask<(Bucket? Bucket, OpenPgpTagType Type)> ReadPacketAsync()
+        public async ValueTask<(Bucket? Bucket, CryptoTag Type)> ReadChunkAsync()
         {
             if (_reading)
                 throw new BucketException("Can't obtain new packet, when the last one is not completely read");
@@ -80,7 +80,7 @@ namespace AmpScm.Buckets.Cryptography
             {
                 if (first)
                 {
-                    return (inner.NoDispose(), sshPublicKey ? OpenPgpTagType.PublicKey : OpenPgpTagType.SignaturePublicKey);
+                    return (inner.NoDispose(), sshPublicKey ? CryptoTag.PublicKey : CryptoTag.SignaturePublicKey);
                 }
                 else
                 {
@@ -92,7 +92,7 @@ namespace AmpScm.Buckets.Cryptography
             {
                 if (first)
                 {
-                    return (new DerBucket(Source.NoDispose()), OpenPgpTagType.DerValue);
+                    return (new DerBucket(Source.NoDispose()), CryptoTag.DerValue);
                 }
                 else
                 {
@@ -109,7 +109,7 @@ namespace AmpScm.Buckets.Cryptography
 
                 byte b = bq.Value;
                 bool oldFormat;
-                OpenPgpTagType tag;
+                CryptoTag tag;
                 uint remaining = 0;
 
                 if ((b & 0x80) == 0)
@@ -118,11 +118,11 @@ namespace AmpScm.Buckets.Cryptography
                 oldFormat = 0 == (b & 0x40);
                 if (oldFormat)
                 {
-                    tag = (OpenPgpTagType)((b & 0x3c) >> 2);
+                    tag = (CryptoTag)((b & 0x3c) >> 2);
                     remaining = (uint)(b & 0x3);
                 }
                 else
-                    tag = (OpenPgpTagType)(b & 0x3F);
+                    tag = (CryptoTag)(b & 0x3F);
 
                 if (!oldFormat)
                 {

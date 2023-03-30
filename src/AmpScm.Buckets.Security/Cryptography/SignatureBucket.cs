@@ -24,10 +24,10 @@ namespace AmpScm.Buckets.Cryptography
         private readonly List<SignatureInfo> _signatures = new();
         private readonly Bucket _outer;
 
-        private new OpenPgpContainer Source => (OpenPgpContainer)base.Source;
+        private new CryptoChunkBucket Source => (CryptoChunkBucket)base.Source;
 
         public SignatureBucket(Bucket source)
-            : base(new OpenPgpContainer(source))
+            : base(new CryptoChunkBucket(source))
         {
             _outer = source;
         }
@@ -48,11 +48,16 @@ namespace AmpScm.Buckets.Cryptography
             return bb;
         }
 
+        private protected override ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag type)
+        {
+            throw new NotImplementedException();
+        }
+
         public async ValueTask ReadAsync()
         {
             while (true)
             {
-                var (bucket, tag) = await Source.ReadPacketAsync().ConfigureAwait(false);
+                var (bucket, tag) = await Source.ReadChunkAsync().ConfigureAwait(false);
 
                 if (bucket is null)
                     return;
@@ -61,7 +66,7 @@ namespace AmpScm.Buckets.Cryptography
                 {
                     switch (tag)
                     {
-                        case OpenPgpTagType.SignaturePublicKey when Source.IsSsh:
+                        case CryptoTag.SignaturePublicKey when Source.IsSsh:
                             {
                                 OpenPgpPublicKeyType publicKeyType;
                                 uint sshVersion = await bucket.ReadNetworkUInt32Async().ConfigureAwait(false);
@@ -163,7 +168,7 @@ namespace AmpScm.Buckets.Cryptography
                                 _signatures.Add(new(SignatureType: default, Signer: default, publicKeyType, hashAlgorithm, 0, SignTime: null, signBlob, bigInts.ToArray(), keyFingerprint));
                                 break;
                             }
-                        case OpenPgpTagType.PublicKey when Source.IsSsh:
+                        case CryptoTag.PublicKey when Source.IsSsh:
                             {
                                 BucketBytes bb;
                                 ByteCollector bc = new();
@@ -185,19 +190,19 @@ namespace AmpScm.Buckets.Cryptography
                                 }
                                 break;
                             }
-                        case OpenPgpTagType.SignaturePublicKey:
+                        case CryptoTag.SignaturePublicKey:
                             _signatures.Add(await ParseSignatureAsync(bucket).ConfigureAwait(false));
                             break;
-                        case OpenPgpTagType.PublicKey:
-                        case OpenPgpTagType.PublicSubkey:
-                        case OpenPgpTagType.SecretKey:
-                        case OpenPgpTagType.SecretSubkey:
+                        case CryptoTag.PublicKey:
+                        case CryptoTag.PublicSubkey:
+                        case CryptoTag.SecretKey:
+                        case CryptoTag.SecretSubkey:
                             {
                                 DateTime keyTime;
                                 BigInteger[]? keyInts;
                                 byte[]? keyFingerprint = null;
                                 OpenPgpPublicKeyType keyPublicKeyType;
-                                bool hasSecretKey = (tag is OpenPgpTagType.SecretKey or OpenPgpTagType.SecretSubkey);
+                                bool hasSecretKey = (tag is CryptoTag.SecretKey or CryptoTag.SecretSubkey);
 
                                 var csum = bucket.NoDispose().Buffer();
                                 uint len = (uint)await csum.ReadRemainingBytesAsync().ConfigureAwait(false);
@@ -416,7 +421,7 @@ namespace AmpScm.Buckets.Cryptography
                                 _keys.Add(new PublicKeySignature(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts, _mailAddress, hasSecretKey));
                             }
                             break;
-                        case OpenPgpTagType.DerValue:
+                        case CryptoTag.DerValue:
                             {
                                 var db = (DerBucket)bucket;
                                 var (derRoot, t) = await db.ReadValueAsync().ConfigureAwait(false);
@@ -498,7 +503,7 @@ namespace AmpScm.Buckets.Cryptography
                                     await der.ReadUntilEofAsync().ConfigureAwait(false);
                             }
                             break;
-                        case OpenPgpTagType.UserID:
+                        case CryptoTag.UserID:
                             {
                                 var bb = await bucket.ReadExactlyAsync(MaxRead).ConfigureAwait(false);
 

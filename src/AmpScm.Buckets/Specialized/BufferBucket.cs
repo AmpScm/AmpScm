@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Specialized
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly Bucket _readBucket;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        private readonly IBucketWriter _writer;
+        private readonly /*IBucketWriter*/ MyWriter _writer;
         private long _buffered;
         private long? _size;
         private bool _readEof;

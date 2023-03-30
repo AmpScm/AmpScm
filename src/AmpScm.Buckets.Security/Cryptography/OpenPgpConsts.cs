@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Cryptography
 {
-    internal enum OpenPgpTagType
+    internal enum CryptoTag
     {
         /// <summary>Reserved</summary>
         None = 0,
