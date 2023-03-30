@@ -30,39 +30,16 @@ namespace AmpScm.Buckets.Cryptography
             : base(new CryptoChunkBucket(source))
         {
             _outer = source;
+            PushChunkReader(Source);
         }
 
         public CryptoKeyChain? KeyChain { get; init; }
 
         public Func<SignaturePromptContext, string>? GetPassPhrase { get; init; }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
+        private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag tag)
         {
-            await ReadAsync().ConfigureAwait(false);
-
-            var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
-
-            if (!bb.IsEof)
-                throw new BucketException($"Unexpected trailing data in {Source.Name} Bucket");
-
-            return bb;
-        }
-
-        private protected override ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag type)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async ValueTask ReadAsync()
-        {
-            while (true)
             {
-                var (bucket, tag) = await Source.ReadChunkAsync().ConfigureAwait(false);
-
-                if (bucket is null)
-                    return;
-
-                using (bucket)
                 {
                     switch (tag)
                     {
@@ -288,13 +265,13 @@ namespace AmpScm.Buckets.Cryptography
 
                                 if (version == 4)
                                 {
-                                    await (new byte[] { 0x99 }.AsBucket() + NetBitConverter.GetBytes((ushort)take).AsBucket() + csum.Take(take))
+                                    await(new byte[] { 0x99 }.AsBucket() + NetBitConverter.GetBytes((ushort)take).AsBucket() + csum.Take(take))
                                         .SHA1(x => keyFingerprint = x)
                                         .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                                 }
                                 else if (version == 5)
                                 {
-                                    await (new byte[] { 0x9A }.AsBucket() + NetBitConverter.GetBytes((int)take).AsBucket() + csum.Take(take))
+                                    await(new byte[] { 0x9A }.AsBucket() + NetBitConverter.GetBytes((int)take).AsBucket() + csum.Take(take))
                                         .SHA256(x => keyFingerprint = x)
                                         .ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                                 }
@@ -531,6 +508,7 @@ namespace AmpScm.Buckets.Cryptography
                             break;
                     }
 
+
                     {
                         var rem = await bucket.ReadUntilEofAsync().ConfigureAwait(false);
 
@@ -538,6 +516,8 @@ namespace AmpScm.Buckets.Cryptography
                     }
                 }
             }
+
+            return true;
         }
 
         private static ReadOnlyMemory<byte> CreateSshFingerprint(CryptoAlgorithm sba, IReadOnlyList<BigInteger> keyInts)
