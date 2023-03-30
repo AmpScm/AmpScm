@@ -106,6 +106,35 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
+        static BigInteger ModInverse(BigInteger a, BigInteger n)
+        {
+            BigInteger t = 0;
+            BigInteger newt = 1;
+            BigInteger r = n;
+            BigInteger newr = a;
+
+            if (a < 0)
+                throw new ArgumentOutOfRangeException(nameof(a), a, message: default);
+            if (n < 0)
+                throw new ArgumentOutOfRangeException(nameof(n), n, message: default);
+
+            while (newr != 0)
+            {
+                var quotient = r / newr;
+
+                (t, newt) = (newt, t - quotient * newt);
+                (r, newr) = (newr, r - quotient * newr);
+            }
+
+            if (r > 1)
+                throw new ArgumentOutOfRangeException(nameof(a), a, "not convertable");
+
+            if (t < 0)
+                t = t + n;
+
+            return t;
+        }
+
         internal static void ImportParametersFromCryptoInts(this RSA rsa, IReadOnlyList<BigInteger> ints)
         {
             if (rsa is null)
@@ -128,17 +157,17 @@ namespace AmpScm.Buckets.Cryptography
                 BigInteger D = ints[2];
                 BigInteger P = ints[3];
                 BigInteger Q = ints[4];
-
+                // ints[5] is ignored. This is NOT InverseQ
 
                 BigInteger DP = D % (P - 1);
                 BigInteger DQ = D % (Q - 1);
 
-                p.D = D.ToCryptoValue().AlignUp(8);
-                p.P = P.ToCryptoValue().AlignUp(8);
-                p.Q = Q.ToCryptoValue().AlignUp(8);
-                p.InverseQ = ints[5].ToCryptoValue().AlignUp(8);
-                p.DP = DP.ToCryptoValue().AlignUp(8);
-                p.DQ = DQ.ToCryptoValue().AlignUp(8);
+                p.D = D.ToCryptoValue().AlignUp();
+                p.P = P.ToCryptoValue().AlignUp();
+                p.Q = Q.ToCryptoValue().AlignUp();
+                p.InverseQ = ModInverse(Q, P).ToCryptoValue().AlignUp();
+                p.DP = DP.ToCryptoValue().AlignUp();
+                p.DQ = DQ.ToCryptoValue().AlignUp();
             }
 
             rsa.ImportParameters(p);
