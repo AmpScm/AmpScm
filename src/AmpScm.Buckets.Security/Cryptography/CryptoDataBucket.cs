@@ -59,8 +59,7 @@ namespace AmpScm.Buckets.Cryptography
                     pwd = s2k.Salt.Concat(pwd);
                 }
 
-                if (zeros > 0)
-                    pwd = Enumerable.Range(0, zeros).Select(_ => (byte)0).Concat(pwd);
+                var zeroBytes =(zeros > 0) ? Enumerable.Range(0, zeros).Select(_ => (byte)0).ToArray() : null;
                 zeros++;
 
                 byte[] toHash = pwd.ToArray();
@@ -69,9 +68,12 @@ namespace AmpScm.Buckets.Cryptography
 
                 if (s2k.HashByteCount <= toHash.Length)
                 {
-                    result.AddRange(ha.ComputeHash(toHash));
+                    result.AddRange(ha.ComputeHash(zeroBytes is null ? toHash : zeroBytes.Concat(toHash).ToArray()));
                     continue;
                 }
+
+                if (zeroBytes is { })
+                    ha.TransformBlock(zeroBytes, 0, zeroBytes.Length, null, 0);
 
                 int nHashBytes = s2k.HashByteCount;
                 do
@@ -447,7 +449,7 @@ namespace AmpScm.Buckets.Cryptography
                         return bb;
                     else
                     {
-                        _reader?.Dispose();
+                        _reader.Dispose();
                         _reader = null;
                     }
                 }

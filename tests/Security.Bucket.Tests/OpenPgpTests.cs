@@ -379,7 +379,7 @@ cEgAjelaGkn3RJOwXWoJbA==
 
         using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2_2).AsBucket());
 
-        using var dec = new DecryptBucket(decr) { KeyChain = key1+key2 };
+        using var dec = new DecryptBucket(decr) { KeyChain = key1 + key2 };
 
 
         var bb = await dec.ReadExactlyAsync(1024);
@@ -668,7 +668,7 @@ f9nwhs2r0FA7IKmrcLiL2sClVAAl
     }
 
     [TestMethod]
-    public async Task DecryptPW()
+    public async Task DecryptJustPW128()
     {
         const string msg =
 @"-----BEGIN PGP MESSAGE-----
@@ -678,6 +678,7 @@ jA0EBwMCQi+5GH+oZubQ0koB9PWodsCh7cj0Eayi8bNBF5KxVwBt/TgEEosQPAX5
 =dr8v
 -----END PGP MESSAGE-----";
 
+        // Message is AES encrypted, so needs one pass through S2k
         using var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
         {
             GetPassword = (_) => "PW"
@@ -688,26 +689,18 @@ jA0EBwMCQi+5GH+oZubQ0koB9PWodsCh7cj0Eayi8bNBF5KxVwBt/TgEEosQPAX5
         Assert.AreEqual("Password encrypted.\r\n", bb.ToUTF8String());
     }
 
-    //[TestMethod]
-    public async Task DecryptPWOCB()
+    [TestMethod]
+    public async Task DecryptJustPW256()
     {
         const string msg =
 @"-----BEGIN PGP MESSAGE-----
 
-hQGMAzI//wS08Dw8AQwApBK7XsDC0NyJd7/PWDouRBD+ycE78wG9d4TzYMvXHtsH
-YlWrbcbk685qHs3YHWUVrAZJM/ZVAI/m8fZZS7VUuzSWmI0eYZZ0ny3fgW2VVWxd
-WI2lpMjxVEzDFe7K0/xtRL7QluifzdWkwz7HuvBbNmtZOaxkWwqsaliGfrwNn3lb
-m+0P8rs9VY2zJiOG7og1Gwx9u/iWdXqv7EZPTWoQc7FyHVJQ85DHqolJy/ETpakE
-YiljEOqFJNz0QcOmstziRb4MYDW2m5nNpiEyzPUpjhwc4b7278Vzh2rlrXOxZIXh
-eNK4/jUZgwKQeJXDZj8DbeWvzMl8NjJIPLYXa0CZ65dPYAb8v0kEc7Lt7gqso9wR
-0srj8yvKbBN5Cbvurh/fwcrJmvIfkc3vzA2FTJa4Pnq+hjiTV1xlCcRGXmUso5qg
-k83SHhqocwoMB8MJBQlQtnJjQzQ9f0bWaNJFe3vXtvIJ/6zi8/Wn56GrDjwSQWbx
-SZzb3ckd4EyWluTZ6Jy21FoBCQIQo/zPv4oIYz13wje1cvieKB6bHssXvuvEgqln
-8JaSA2uo9ayerINSYKX2ykBDkQo+s98QTcUoUUeLJHVMwTQqt8HhyBtVyT9tIn15
-EcNwuX2u4kRfUh8=
-=KpEf
+jA0ECQMCCrVgSxB6fx/O0kEBtIi5fgY9ki64HJl0hlet3PsZXkNTfbPapgrjv7CQ
+twLUuM6VyHcewSpuu2Lv06liNCE5Kn+TsTmgR/PmD8yLow==
+=tq7d
 -----END PGP MESSAGE-----";
 
+        // Message is AES256 encrypted, so needs two passes through S2k
         using var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
         {
             GetPassword = (_) => "PW"
@@ -715,6 +708,7 @@ EcNwuX2u4kRfUh8=
 
         var bb = await dc.ReadExactlyAsync(1024);
 
-        Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
+        Assert.AreEqual("Some text \r\n", bb.ToUTF8String());
     }
+
 }
