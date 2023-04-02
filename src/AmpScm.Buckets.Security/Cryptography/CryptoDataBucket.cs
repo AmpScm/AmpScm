@@ -36,7 +36,9 @@ namespace AmpScm.Buckets.Cryptography
                 OpenPgpSymmetricAlgorithm.Aes => 128,
                 OpenPgpSymmetricAlgorithm.Aes192 => 192,
                 OpenPgpSymmetricAlgorithm.Aes256 => 256,
-                _ => throw new NotImplementedException()
+                OpenPgpSymmetricAlgorithm.TripleDes => 192,
+                OpenPgpSymmetricAlgorithm.Blowfish128 => 128,
+                _ => throw new NotImplementedException($"Keysize for cipher {cipherAlgorithm} not implemented yet.")
             };
         }
 

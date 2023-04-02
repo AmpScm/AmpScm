@@ -8,6 +8,7 @@
 /[Pp]ackages/
 *.user
 TestResults/
+nuspec/
 /src/TestResults/
 coverage.*.xml
 *.local.cs

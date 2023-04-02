@@ -395,7 +395,10 @@ namespace AmpScm.Buckets.Specialized
                 return;
             }
 
-            long curPosition = bucket.Position!.Value;
+            if (bucket.Position is not { } curPosition)
+            {
+                throw new InvalidOperationException();
+            }
 
             if (newPosition < curPosition)
             {

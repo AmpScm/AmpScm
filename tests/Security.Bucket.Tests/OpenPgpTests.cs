@@ -711,4 +711,106 @@ twLUuM6VyHcewSpuu2Lv06liNCE5Kn+TsTmgR/PmD8yLow==
         Assert.AreEqual("Some text \r\n", bb.ToUTF8String());
     }
 
+
+
+    [TestMethod]
+    public async Task DecryptTwice()
+    {
+        // echo Some more text |gpg --passphrase PW -r 1E4EA61FCC73D2D96075A9835B15B06B7943D080 -e -c -a
+        const string msg =
+@"-----BEGIN PGP MESSAGE-----
+
+hQEMA/dXtoIexmrPAQf8DELsvEv9QIleXuH0KH2w+WUCdZ45MD5QLO4G2Gtp8SIf
+0oabipPX7NK6vsP5GAVjXLXH7SltO7KB37YCR+C6arn7reBJBurkBIRkUiRZaB4F
+VcKZ6hxkrNCe8xu78dbIfYP+6iWm6DO4wRM8umqGczXZymbWMXFL+KVGt0wTEMzT
+NWOoIKd8rggevsvBTSPyKFHn1rfGb3cfnf3TySRRwQPy2+JDS4wnyGitPDQtfkRe
+D1Wj18evNDIL6PsRYijzLg8+RBr4X0opCDGZju9004+IrGopAvg2WwNhCt9DTTxq
+YeAL83loRTDRTHs5nsySoPaVUilKY2GIiqdXG8sSkIxNBQkCAwKj0GWFlFWLVM4Q
+DtmmHkI7ULe9SKkhtf5sEOuNDwlP8FBstLMLeZ9AFeknUGBghp3Z2U9m5lwHHyzu
+3FCTOWwHyqzdFF33qv/UVgEJAhDZnho7gudz6eEQD90PO1ybDRBOQJFRlt3yJUCF
+wJmwSs2v4TD1KbyUJk5mUdugJ6X+Pee2eaKgteQwIZW1r/46bjU4WsjkxwvXTdAz
+UL6Ey7aK
+=WHnI
+-----END PGP MESSAGE-----";
+
+        using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
+        {
+
+            // Decrypt using password
+            var bb = await dc.ReadExactlyAsync(1024);
+            Assert.AreEqual("Some more text \r\n", bb.ToUTF8String());
+
+        }
+
+        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
+        using (var dc2 = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
+        {
+            KeyChain = key1
+        })
+        {
+
+            // Decrypt using key
+            var bb = await dc2.ReadExactlyAsync(1024);
+            Assert.AreEqual("Some more text \r\n", bb.ToUTF8String());
+        }
+    }
+
+    [TestMethod]
+    public void DecryptSeek()
+    {
+        // echo Some more text |gpg --passphrase PW -r 1E4EA61FCC73D2D96075A9835B15B06B7943D080 -e -c -a
+        const string msg =
+@"-----BEGIN PGP MESSAGE-----
+
+hQEMA/dXtoIexmrPAQf8DELsvEv9QIleXuH0KH2w+WUCdZ45MD5QLO4G2Gtp8SIf
+0oabipPX7NK6vsP5GAVjXLXH7SltO7KB37YCR+C6arn7reBJBurkBIRkUiRZaB4F
+VcKZ6hxkrNCe8xu78dbIfYP+6iWm6DO4wRM8umqGczXZymbWMXFL+KVGt0wTEMzT
+NWOoIKd8rggevsvBTSPyKFHn1rfGb3cfnf3TySRRwQPy2+JDS4wnyGitPDQtfkRe
+D1Wj18evNDIL6PsRYijzLg8+RBr4X0opCDGZju9004+IrGopAvg2WwNhCt9DTTxq
+YeAL83loRTDRTHs5nsySoPaVUilKY2GIiqdXG8sSkIxNBQkCAwKj0GWFlFWLVM4Q
+DtmmHkI7ULe9SKkhtf5sEOuNDwlP8FBstLMLeZ9AFeknUGBghp3Z2U9m5lwHHyzu
+3FCTOWwHyqzdFF33qv/UVgEJAhDZnho7gudz6eEQD90PO1ybDRBOQJFRlt3yJUCF
+wJmwSs2v4TD1KbyUJk5mUdugJ6X+Pee2eaKgteQwIZW1r/46bjU4WsjkxwvXTdAz
+UL6Ey7aK
+=WHnI
+-----END PGP MESSAGE-----";
+
+        using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
+        {
+
+
+            var s = dc.NoDispose().Buffer().AsStream();
+
+            s.Seek(0, SeekOrigin.Begin); // Stupid hardcoded default in some third party code
+
+            using (var sr = new StreamReader(s))
+            {
+                Assert.AreEqual("Some more text \r\n", sr.ReadToEnd());
+            }
+        }
+    }
+
+
+    [TestMethod]
+    public async Task DecryptTrippleDes()
+    {
+        // echo "This is (was) triple des" | gpg --batch --passphrase 3des --allow-old-cipher-algo --cipher-algo 3DES --symmetric -a
+        const string msg =
+@"-----BEGIN PGP MESSAGE-----
+
+jA0EAgMCn0hY6F1DihXM0kQBUdLXmnQ4eQ8oHo/6FXiQp2Z4vFqtY5L1UaDF4l3p
+meYB0A6OXDi4z0cpa097TG9MiC3vmRIpUjpPr8WeDJA2r03imw==
+=hDJ4
+-----END PGP MESSAGE-----
+";
+
+        using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "3des" })
+        {
+
+            // Decrypt using password
+            var bb = await dc.ReadExactlyAsync(1024);
+            Assert.AreEqual("This is (was) triple des\n", bb.ToUTF8String());
+
+        }
+    }
 }

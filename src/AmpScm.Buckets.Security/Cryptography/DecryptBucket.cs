@@ -227,7 +227,10 @@ public sealed class DecryptBucket : CryptoDataBucket
             case CryptoTag.SymetricSessionKey:
                 {
                     if (!_sessionKey.IsEmpty)
-                        break; // Ignore session key if we already have one
+                    {
+                        await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                        return true; // Ignore session key; we already have one
+                    }
 
                     byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                     var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
@@ -247,7 +250,10 @@ public sealed class DecryptBucket : CryptoDataBucket
                     }
 
                     if (key is not { })
-                        break;
+                    {
+                        await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                        return true; // Ignore session key
+                    }
 
                     var symmetricKeyLength = GetKeySize(cipherAlgorithm) / 8;
                     switch (version)
@@ -285,9 +291,9 @@ public sealed class DecryptBucket : CryptoDataBucket
                             {
                                 using var keySrc = CreateDecryptBucket(bucket, s2k.CipherAlgorithm, key, iv: new byte[key.Length]);
 
-                                var k = await keySrc.ReadExactlyAsync(key.Length+2).ConfigureAwait(false);
+                                var k = await keySrc.ReadExactlyAsync(key.Length + 2).ConfigureAwait(false);
 
-                                if (k.Length == key.Length-1)
+                                if (k.Length == key.Length - 1)
 #pragma warning restore CA1508 // Avoid dead conditional code
                                 {
                                     _sessionAlgorithm = cipherAlgorithm;
@@ -296,10 +302,10 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 break;
                             }
                         default:
-
+                            await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                             break;
                     }
-                    
+
                 }
                 break;
             case CryptoTag.SignaturePublicKey:
@@ -349,26 +355,49 @@ public sealed class DecryptBucket : CryptoDataBucket
             case OpenPgpSymmetricAlgorithm.Aes:
             case OpenPgpSymmetricAlgorithm.Aes192:
             case OpenPgpSymmetricAlgorithm.Aes256:
-                var aes = Aes.Create();
+                {
+                    var aes = Aes.Create();
 #pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
-                aes.Mode = CipherMode.CFB;
+                    aes.Mode = CipherMode.CFB;
 #pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
-                aes.Key = _sessionKey.ToArray();
-                aes.IV = new byte[aes.BlockSize / 8];
-                aes.Padding = PaddingMode.None;
-                aes.FeedbackSize = aes.BlockSize;
+                    aes.Key = _sessionKey.ToArray();
+                    aes.IV = new byte[aes.BlockSize / 8];
+                    aes.Padding = PaddingMode.None;
+                    aes.FeedbackSize = aes.BlockSize;
 
-                var dcb = new RawDecryptBucket(bucket, aes.ApplyModeShim(), true);
+                    var dcb = new RawDecryptBucket(bucket, aes.ApplyModeShim(), true);
 
-                var bb = await dcb.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
+                    var bb = await dcb.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
 
-                if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
-                    throw new InvalidOperationException("AES-256 decrypt failed");
+                    if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
+                        throw new InvalidOperationException("AES-256 decrypt failed");
 
-                return dcb;
+                    return dcb;
+                }
+            case OpenPgpSymmetricAlgorithm.TripleDes:
+                {
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
+                    var tripleDes = TripleDES.Create();
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
+#pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
+                    tripleDes.Mode = CipherMode.CFB;
+#pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
+                    tripleDes.Key = _sessionKey.ToArray();
+                    tripleDes.IV = new byte[tripleDes.BlockSize / 8];
+                    tripleDes.Padding = PaddingMode.None;
+                    tripleDes.FeedbackSize = tripleDes.BlockSize;
 
+                    var dcb = new RawDecryptBucket(bucket, tripleDes.ApplyModeShim(), true);
+
+                    var bb = await dcb.ReadExactlyAsync(tripleDes.BlockSize / 8 + 2).ConfigureAwait(false);
+
+                    if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
+                        throw new InvalidOperationException("TripleDes decrypt failed");
+
+                    return dcb;
+                }
             default:
-                throw new NotImplementedException();
+                throw new NotImplementedException($"Decrypt for cipher {_sessionAlgorithm} not implemented yet.");
         }
     }
 

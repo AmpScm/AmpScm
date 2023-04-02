@@ -123,7 +123,7 @@ namespace AmpScm.Buckets.Cryptography
     {
         None,
         Idea = 1,
-        T3Des = 2,
+        TripleDes = 2,
         Cast5 = 3,
         Blowfish128 = 4,
         Aes = 7,
