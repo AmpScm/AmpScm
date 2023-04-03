@@ -756,7 +756,7 @@ UL6Ey7aK
     }
 
     [TestMethod]
-    public void DecryptSeek()
+    public async Task DecryptSeek()
     {
         // echo Some more text |gpg --passphrase PW -r 1E4EA61FCC73D2D96075A9835B15B06B7943D080 -e -c -a
         const string msg =
@@ -777,9 +777,7 @@ UL6Ey7aK
 
         using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
         {
-
-
-            var s = dc.NoDispose().Buffer().AsStream();
+            var s = dc.NoDispose().AsStream();
 
             s.Seek(0, SeekOrigin.Begin); // Stupid hardcoded default in some third party code
 
@@ -787,6 +785,22 @@ UL6Ey7aK
             {
                 Assert.AreEqual("Some more text \r\n", sr.ReadToEnd());
             }
+        }
+
+
+        using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
+        {
+
+            var bb = await dc.ReadExactlyAsync(5);
+
+            Assert.AreEqual(5, bb.Length);
+
+            await dc.SeekAsync(0);
+
+
+            bb = await dc.ReadExactlyAsync(1024);
+
+            Assert.AreEqual("Some more text \r\n", bb.ToUTF8String());
         }
     }
 

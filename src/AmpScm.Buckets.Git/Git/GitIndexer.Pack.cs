@@ -272,8 +272,8 @@ namespace AmpScm.Buckets.Git
 #pragma warning disable CA2213 // Disposable fields should be disposed
             readonly Bucket _buffer;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-            public BufferObjectBucket(GitObjectBucket inner)
-                : base(inner)
+            public BufferObjectBucket(GitObjectBucket source)
+                : base(source)
             {
                 _buffer = Source.Buffer();
             }

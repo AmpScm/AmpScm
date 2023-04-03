@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Cryptography
         private bool _reading;
         private bool _isDer;
 
-        public CryptoChunkBucket(Bucket inner) : base(inner)
+        public CryptoChunkBucket(Bucket source) : base(source)
         {
         }
 
@@ -183,6 +183,18 @@ namespace AmpScm.Buckets.Cryptography
 
                 return (partialBodyLen, true);
             }
+        }
+
+        public override bool CanReset => Source.CanReset;
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            _notFirst = false;
+            _isSsh = false;
+            _reading = false;
+            _isDer = false;
         }
     }
 }

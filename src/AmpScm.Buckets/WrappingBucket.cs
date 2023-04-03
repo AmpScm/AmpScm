@@ -71,5 +71,12 @@ namespace AmpScm.Buckets
         {
             return Source;
         }
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            Source.Reset();
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Specialized
     {
         private static int _idNext;
 
-        private Bucket Inner { get; }
+        private Bucket Source { get; }
         private int Id { get; }
 
         private int _nDispose;
@@ -22,17 +22,17 @@ namespace AmpScm.Buckets.Specialized
 
         public TraceBucket(Bucket source, string? name=null)
         {
-            Inner = source ?? throw new ArgumentNullException(nameof(source));
+            Source = source ?? throw new ArgumentNullException(nameof(source));
             Id = Interlocked.Increment(ref _idNext);
 
-            _name = name ?? Inner.Name; ;
+            _name = name ?? Source.Name; ;
             Trace.WriteLine($"{Ident}0x{Id:x2} tracing read from");
             
         }
 
-        public override string Name => "Trace>" + Inner.Name;
+        public override string Name => "Trace>" + Source.Name;
 
-        private string Ident => _indent ??= $"{new string(' ', Inner.Name.Count(x => x == '>'))}{_name}/0x{Id:x3}:";
+        private string Ident => _indent ??= $"{new string(' ', Source.Name.Count(x => x == '>'))}{_name}/0x{Id:x3}:";
 
         protected override void Dispose(bool disposing)
         {
@@ -41,10 +41,10 @@ namespace AmpScm.Buckets.Specialized
                 if (_nDispose-- == 0)
 {
                     Trace.WriteLine($"{Ident} disposing");
-                    Inner.Dispose();
+                    Source.Dispose();
                 }
                 else
-                    Trace.WriteLine($"{Ident} ignoring dispose {Inner.Name}");
+                    Trace.WriteLine($"{Ident} ignoring dispose {Source.Name}");
             }
             finally
             {
@@ -65,7 +65,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override BucketBytes Peek()
         {
-            var bb = Inner.Peek();
+            var bb = Source.Peek();
 
             Trace.WriteLine($"{Ident} peeking {bb.Length} bytes{(bb.IsEof ? ", eof=True" : "")} {Sum(bb)}");
             return bb;
@@ -73,7 +73,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
-            var bb = await Inner.ReadAsync(requested).ConfigureAwait(false);
+            var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
 
             Trace.WriteLine($"{Ident} reading {bb.Length}/{requested} bytes{(bb.IsEof ? ", eof=True" : "")} {Sum(bb)}");
             return bb;
@@ -81,7 +81,7 @@ namespace AmpScm.Buckets.Specialized
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
-            long? l = await Inner.ReadRemainingBytesAsync().ConfigureAwait(false);
+            long? l = await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
 
             Trace.WriteLine($"{Ident} reading {l ?? -1L} bytes remaining");
 
@@ -90,7 +90,7 @@ namespace AmpScm.Buckets.Specialized
 
         async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested)
         {
-            var bb = await Inner.PollAsync(minRequested).ConfigureAwait(false);
+            var bb = await Source.PollAsync(minRequested).ConfigureAwait(false);
 
             Trace.WriteLine($"{Ident} polling {bb.Length}/{minRequested} bytes{(bb.IsEof ? ", eof=True" : "")} {Sum(bb)}");
             return bb;

@@ -18,6 +18,7 @@ namespace AmpScm.Buckets.Cryptography
     {
         readonly private Stack<CryptoChunkBucket> _stack = new();
         Bucket? _reader;
+        long _position;
 
         private protected new CryptoChunkBucket Source => (CryptoChunkBucket)base.Source;
 
@@ -448,7 +449,10 @@ namespace AmpScm.Buckets.Cryptography
                     var bb = await _reader.ReadAsync(requested).ConfigureAwait(false);
 
                     if (!bb.IsEmpty)
+                    {
+                        _position += bb.Length;
                         return bb;
+                    }
                     else
                     {
                         _reader.Dispose();
@@ -783,5 +787,18 @@ namespace AmpScm.Buckets.Cryptography
                     throw new NotImplementedException($"Public Key type {signatureInfo.PublicKeyType} not implemented yet");
             }
         }
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            _stack.Clear();
+            _stack.Push(Source);
+
+            _reader = null;
+            _position = 0;
+        }
+
+        public override long? Position => _position;
     }
 }

@@ -409,10 +409,19 @@ public sealed class DecryptBucket : CryptoDataBucket
         return (_fileName, _fileDate);
     }
 
+    public override bool CanReset => Source.CanReset;
+
+    public override void Reset()
+    {
+        base.Reset();
+        _sigs.Clear();
+    }
+
     private sealed record PgpSignature
     {
         public PgpSignature(byte version, OpenPgpSignatureType signatureType, OpenPgpHashAlgorithm hashAlgorithm, OpenPgpPublicKeyType pkt, byte[] signer)
         {
+            Version = version;
             SignatureType = signatureType;
             HashAlgorithm = hashAlgorithm;
             Pkt = pkt;
@@ -420,7 +429,6 @@ public sealed class DecryptBucket : CryptoDataBucket
         }
 
         public byte Version { get; }
-
         public OpenPgpSignatureType SignatureType { get; }
         public OpenPgpHashAlgorithm HashAlgorithm { get; }
         public OpenPgpPublicKeyType Pkt { get; }

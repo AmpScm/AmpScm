@@ -228,5 +228,18 @@ namespace AmpScm.Buckets.Cryptography
                     return bb;
             }
         }
+
+        public override bool CanReset => Source.CanReset;
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            _state = default;
+            _base64Decode = null;
+            _crc24Result = default;
+            _sshBegin = false;
+            PublicKeyType = null;
+        }
     }
 }
