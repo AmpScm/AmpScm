@@ -41,11 +41,6 @@ namespace AmpScm.Buckets.Specialized
             return Source.ReadSkipAsync(requested);
         }
 
-        public override void Reset()
-        {
-            Source.Reset();
-        }
-
         public override Bucket Duplicate(bool reset = false)
         {
             var r = Source.Duplicate(reset);

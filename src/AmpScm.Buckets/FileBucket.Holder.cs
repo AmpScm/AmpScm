@@ -198,7 +198,9 @@ namespace AmpScm.Buckets
 
                         for (int i = 1; i < 16; i++)
                         {
+#pragma warning disable CA2020 // Prevent from behavioral change
                             var f = new FileWaitHandler((IntPtr)((long)p + i * sz));
+#pragma warning restore CA2020 // Prevent from behavioral change
                             _disposers += f.Dispose;
                             _waitHandlers.Push(f);
                         }

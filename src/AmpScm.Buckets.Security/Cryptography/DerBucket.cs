@@ -67,7 +67,7 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             Bucket? b;
             do
@@ -120,6 +120,7 @@ namespace AmpScm.Buckets.Cryptography
             else
                 type = (b & 0x1F);
 
+            var derType = (DerType)type;
             bool isPrimitive = (b & 0x40) != 0;
             int tagClass = b >> 6;
 
@@ -131,7 +132,7 @@ namespace AmpScm.Buckets.Cryptography
             if ((b & 0x80) == 0)
             {
                 _reading = true;
-                return (Source.NoDispose().TakeExactly(b).AtEof(() => _reading = false), (DerType)type);
+                return (Source.NoDispose().TakeExactly(b).AtEof(() => _reading = false), derType);
             }
             else if (b > 0x80 && b < 0xFF)
             {
@@ -148,7 +149,7 @@ namespace AmpScm.Buckets.Cryptography
                 }
 
                 _reading = true;
-                return (Source.NoDispose().TakeExactly(len).AtEof(() => _reading = false), (DerType)type);
+                return (Source.NoDispose().TakeExactly(len).AtEof(() => _reading = false), derType);
             }
             else
                 throw new InvalidOperationException("Unsupported DER form");

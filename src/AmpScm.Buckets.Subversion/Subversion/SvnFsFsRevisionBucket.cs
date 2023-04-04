@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Subversion
             _fetchBase = fetchBase;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             while (await ReadRepresentationAsync().ConfigureAwait(false) is (var bk, _))
             {

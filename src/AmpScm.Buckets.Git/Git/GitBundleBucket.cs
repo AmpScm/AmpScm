@@ -72,7 +72,7 @@ namespace AmpScm.Buckets.Git
         }
 
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (!_ret)
             {

@@ -8,7 +8,11 @@ namespace AmpScm.Buckets
 {
     public abstract class WrappingBucket : Bucket, IBucketNoDispose
     {
+        /// <summary>
+        /// The wrapped source <see cref="Bucket"/>
+        /// </summary>
         protected Bucket Source { get; }
+
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private int _nDispose;
 
@@ -44,7 +48,8 @@ namespace AmpScm.Buckets
         {
             try
             {
-                Source.Dispose();
+                if (disposing)
+                    Source.Dispose();
             }
             finally
             {

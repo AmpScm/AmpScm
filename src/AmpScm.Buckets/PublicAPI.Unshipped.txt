@@ -165,6 +165,7 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEofAndClo
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA384(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Trace(this AmpScm.Buckets.Bucket! bucket, string? name = null) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.VerifyEqual(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Bucket! mustBeSame) -> AmpScm.Buckets.Bucket!
+virtual AmpScm.Buckets.Bucket.AcceptDisposing() -> bool
 virtual AmpScm.Buckets.Client.BucketWebClient.Dispose(bool disposing) -> void
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.get -> string?
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.set -> void

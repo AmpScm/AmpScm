@@ -727,9 +727,6 @@ namespace AmpScm.Buckets.Cryptography
 
                         return dsa.VerifySignature(hashValue, SignaturePublicKey.ToCryptoValue());
                     }
-                case OpenPgpPublicKeyType.Elgamal:
-                    // P, G, Y
-                    goto default;
                 case OpenPgpPublicKeyType.ECDSA:
                     using (var ecdsa = ECDsa.Create())
                     {

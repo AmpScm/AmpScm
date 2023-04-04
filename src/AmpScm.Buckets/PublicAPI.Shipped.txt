@@ -252,7 +252,6 @@ override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadBucket<TReadBucket>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadSkipAsync(long requested) -> System.Threading.Tasks.ValueTask<long>
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.ReadUntilEolAsync(AmpScm.Buckets.BucketEol acceptableEols, int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketLine>
-override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Reset() -> void
 override AmpScm.Buckets.Specialized.ZLibBucket.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.ZLibBucket.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
 override AmpScm.Buckets.Specialized.ZLibBucket.Name.get -> string!

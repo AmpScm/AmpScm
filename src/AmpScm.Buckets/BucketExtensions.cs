@@ -286,6 +286,15 @@ namespace AmpScm.Buckets
             return new LeaveBucket(bucket, leave, (lft, length) => { left(lft, length); return new(); });
         }
 
+        /// <summary>
+        /// Returns an optimized bucket that doesn't dispose bucket when calling <see cref="Bucket.Dispose()"/> on it.
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="alwaysWrap"></param>
+        /// <returns></returns>
+        /// <remarks>The default implementation returns a wrapping bucket, but specialized implementations may just
+        /// implement reference counting on the <paramref name="bucket"/> bucket. A typical implementation for this
+        /// is the generic <see cref="WrappingBucket"/></remarks>
         public static Bucket NoDispose(this Bucket bucket, bool alwaysWrap = false)
         {
             if (!alwaysWrap && bucket is IBucketNoDispose nc)

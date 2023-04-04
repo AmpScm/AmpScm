@@ -26,7 +26,7 @@ namespace AmpScm.Buckets.Cryptography
             return b;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested < 1)
                 throw new ArgumentOutOfRangeException(nameof(requested), requested, null);

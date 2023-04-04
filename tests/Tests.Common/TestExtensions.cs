@@ -39,11 +39,11 @@ public static class TestExtensions
     {
         string dir;
         if (!string.IsNullOrEmpty(subPath))
-            dir = Path.Combine(tc.FullyQualifiedTestClassName, tc.TestName, subPath);
+            dir = Path.Combine(tc.FullyQualifiedTestClassName!, tc.TestName!, subPath);
         else
-            dir = Path.Combine(tc.FullyQualifiedTestClassName, tc.TestName);
+            dir = Path.Combine(tc.FullyQualifiedTestClassName!, tc.TestName!);
 
-        if (dir.Length + tc.TestResultsDirectory.Length > 100)
+        if (dir.Length + tc.TestResultsDirectory!.Length > 100)
             dir = Path.Combine(tc.TestResultsDirectory, SHA1String(dir).Substring(0, 10));
         else
             dir = Path.Combine(tc.TestResultsDirectory, dir);

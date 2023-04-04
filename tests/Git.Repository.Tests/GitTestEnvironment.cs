@@ -45,7 +45,7 @@ namespace GitRepositoryTests
         [AssemblyInitialize]
         public static void AssemblyInit(TestContext ctx)
         {
-            SetupRepositories(ctx.TestRunDirectory);
+            SetupRepositories(ctx.TestRunDirectory!);
         }
 
         public static IEnumerable<GitTestDir> TestDirectories

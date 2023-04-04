@@ -17,7 +17,7 @@ namespace AmpScm.Buckets.Cryptography
 
         public bool IsSsh => _isSsh;
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             while (true)
             {

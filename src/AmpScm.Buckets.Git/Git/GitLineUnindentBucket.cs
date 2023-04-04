@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Git
             _acceptableEols = acceptableEols;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             BucketBytes bb;
 

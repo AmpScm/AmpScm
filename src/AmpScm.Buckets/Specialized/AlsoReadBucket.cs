@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Specialized
             _reader = reader;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
+        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
 

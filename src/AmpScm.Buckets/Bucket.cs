@@ -222,6 +222,11 @@ namespace AmpScm.Buckets
             }
         }
 
+        /// <summary>
+        /// When overridden, allows not calling dispose now.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>Used by reference counting implementations such as <see cref="WrappingBucket"/>, with <see cref="BucketExtensions.NoDispose(Bucket, bool)"/> helpers</remarks>
         protected virtual bool AcceptDisposing()
         {
             return true;
