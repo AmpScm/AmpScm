@@ -296,35 +296,41 @@ namespace AmpScm.Buckets.Cryptography
                 throw new ArgumentNullException(nameof(eCDsa));
             else if (ints is null)
                 throw new ArgumentNullException(nameof(ints));
-            else if (ints.Count is not 3)
+            else if (ints.Count is not 2)
                 throw new ArgumentOutOfRangeException(nameof(ints), ints.Count, message: null);
 
-            string curveName = Encoding.ASCII.GetString(ints[0].ToCryptoValue());
+            var curveValue = ints[0].ToCryptoValue();
 
-            // SignaturePublicKey must be concattenation of 2 values with same number of bytes
+
+            byte[] v1 = ints[1].ToCryptoValue();
+            byte[] v2;
+
+            if (v1[0] == 0x04)
+            {
+                int n = (v1.Length - 1) / 2;
+
+                v2 = v1.Skip(n + 1).ToArray();
+                v1 = v1.Skip(1).Take(n).ToArray();
+            }
+            else
+                throw new NotImplementedException();
+
+
+            var oidString = ParseOid(curveValue);
+
+            var oid = new Oid(oidString);
 
             var p = new ECParameters()
             {
                 // The name is stored as integer... Nice :(
-                Curve = ECCurve.CreateFromFriendlyName(curveName),
+                Curve = ECCurve.CreateFromOid(oid),
 
                 Q = new ECPoint
                 {
-                    X = ints[1].ToCryptoValue().AlignUp(),
-                    Y = ints[2].ToCryptoValue().AlignUp(),
+                    X = v1,
+                    Y = v2,
                 },
             };
-
-            if (p.Q.X.Length != p.Q.Y.Length)
-            {
-                int len = Math.Max(p.Q.X.Length, p.Q.Y.Length);
-
-                p.Q = new ECPoint
-                {
-                    X = MakeLength(p.Q.X, len),
-                    Y = MakeLength(p.Q.Y, len),
-                };
-            }
 
             eCDsa.ImportParameters(p);
 
@@ -348,6 +354,16 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
 
             return algorithm;
+        }
+
+        internal static string GetCurveName(BigInteger bigInteger)
+        {
+            var bytes = bigInteger.ToCryptoValue();
+            var oid = ParseOid(bytes);
+
+            var c = new Oid(oid);
+
+            return c.FriendlyName;
         }
     }
 }

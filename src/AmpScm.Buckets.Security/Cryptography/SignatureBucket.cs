@@ -534,9 +534,6 @@ public sealed class SignatureBucket : CryptoDataBucket
             case CryptoAlgorithm.Ecdsa:
                 string kv = Encoding.ASCII.GetString(keyInts[0].ToCryptoValue());
                 alg = "ecdsa-sha2-" + kv.ToString();
-
-                ints[1] = new byte[] { 4 }.Concat(ints[1]).Concat(ints[2]).ToArray();
-                ints.RemoveAt(2);
                 break;
             default:
                 throw new NotImplementedException();
@@ -645,7 +642,7 @@ public sealed class SignatureBucket : CryptoDataBucket
             overrideAlg = OpenPgpHashAlgorithm.SHA1;
         else if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.ECDSA)
         {
-            string curveName = Encoding.ASCII.GetString((key?.GetValues(false)[0] ?? keyInts![2]).ToCryptoValue());
+            string curveName = CryptoExtensions.GetCurveName(key?.GetValues(false)[0] ?? keyInts![2]);
 
             overrideAlg = OpenPgpHashAlgorithm.SHA512;
 

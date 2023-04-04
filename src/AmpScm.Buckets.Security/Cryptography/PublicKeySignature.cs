@@ -177,8 +177,8 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
             case "ecdsa-sha2-nistp384":
             case "ecdsa-sha2-nistp521":
                 {
-                    var SignaturePublicKey = CryptoDataBucket.GetEcdsaValues(vals.Skip(1).ToArray());
-                    value = new PublicKeySignature(data, CryptoAlgorithm.Ecdsa, SignaturePublicKey);
+                    var values = CryptoDataBucket.GetEcdsaValues(vals.Skip(1).ToArray(), false);
+                    value = new PublicKeySignature(data, CryptoAlgorithm.Ecdsa, values);
                     return true;
                 }
             default:

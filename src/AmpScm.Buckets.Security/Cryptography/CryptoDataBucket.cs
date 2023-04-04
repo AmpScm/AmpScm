@@ -124,58 +124,35 @@ namespace AmpScm.Buckets.Cryptography
         internal static BigInteger[] GetEcdsaValues(IReadOnlyList<BigInteger> vals, bool pgp = false)
         {
             var curveValue = vals[0].ToCryptoValue();
-            byte[] v2 = vals[1].ToCryptoValue();
 
-            if (pgp)
+            if (!pgp)
             {
-                string curveName;
-                ReadOnlyMemory<byte> curve = curveValue;
+                string name = Encoding.ASCII.GetString(curveValue).Replace('p', 'P');
+                
 
-                if (curve.Span.SequenceEqual(new byte[] { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07 }))
-                    curveName = nameof(ECCurve.NamedCurves.nistP256);
-                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x22 }))
-                    curveName = nameof(ECCurve.NamedCurves.nistP384);
-                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x23 }))
-                    curveName = nameof(ECCurve.NamedCurves.nistP521);
-                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07 }))
-                    curveName = nameof(ECCurve.NamedCurves.brainpoolP256r1);
-                else if (curve.Span.SequenceEqual(new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D }))
-                    curveName = nameof(ECCurve.NamedCurves.brainpoolP512t1);
-                else
-                    throw new NotImplementedException("Unknown curve oid in ecdsa key");
-
-#pragma warning disable CA1308 // Normalize strings to uppercase
-                curveValue = Encoding.ASCII.GetBytes(curveName.ToLowerInvariant());
-#pragma warning restore CA1308 // Normalize strings to uppercase
+                switch(name) 
+                {
+                    case nameof(ECCurve.NamedCurves.nistP256):
+                        curveValue = new byte[] { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07 };
+                        break;
+                    case nameof(ECCurve.NamedCurves.nistP384):
+                        curveValue = new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x22 };
+                        break;
+                    case nameof(ECCurve.NamedCurves.nistP521):
+                        curveValue = new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x23 };
+                        break;
+                    case nameof(ECCurve.NamedCurves.brainpoolP256r1):
+                        curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07 };
+                        break;
+                    case nameof(ECCurve.NamedCurves.brainpoolP512t1):
+                        curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D };
+                        break;
+                    default:
+                        throw new NotImplementedException($"Unknown curve {name}");
+                }
             }
 
-            return v2[0] switch
-            {
-                4 => // X and Y follow
-                     // X and Y both have the same number of bits... Half the value
-                    new[]
-                    {
-                // The Curve name is stored as integer... Nice :(.. But at least consistent
-                        curveValue.ToBigInteger(),
-
-                        v2.Skip(1).Take(v2.Length / 2).ToBigInteger(),
-                        v2.Skip(1 + v2.Length / 2).Take(v2.Length / 2).ToBigInteger(),
-                    },
-
-                0x40 when pgp // Custom compressed poing see rfc4880bis-06
-                    => new[]
-                    {
-                        curveValue.ToBigInteger(),
-
-                        v2.Skip(1).ToBigInteger(),
-                    },
-                2       // Y is even
-                or 3    // Y is odd
-                or _ =>
-                    // TODO: Find some implementation to calculate X from Y
-                    throw new NotImplementedException("Only X and Y follow format is supported at this time"),
-            };
-
+            return new[] { curveValue.ToBigInteger() }.Concat(vals.Skip(1)).ToArray();
         }
 
         internal static BigInteger[] ParseSshStrings(ReadOnlyMemory<byte> data)
