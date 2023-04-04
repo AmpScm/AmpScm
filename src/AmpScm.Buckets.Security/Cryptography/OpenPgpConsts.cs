@@ -94,9 +94,9 @@ namespace AmpScm.Buckets.Cryptography
         SHA384 = 9,
         SHA512 = 10,
         SHA224 = 11,
-        SHA256v3 = 12,
+        SHA3k256 = 12,
         // 13 is reserved
-        SHA512v3 = 14,
+        SHA3k512v = 14,
     }
 
     internal enum OpenPgpPublicKeyType

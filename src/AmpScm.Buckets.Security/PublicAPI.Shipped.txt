@@ -11,6 +11,8 @@ AmpScm.Buckets.Cryptography.BucketDecryptionException.BucketDecryptionException(
 AmpScm.Buckets.Cryptography.BucketDecryptionException.BucketDecryptionException(string! message, System.Exception! innerException) -> void
 AmpScm.Buckets.Cryptography.BucketDecryptionException.BucketDecryptionException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.Cryptography.CryptoDataBucket
+AmpScm.Buckets.Cryptography.CryptoDataBucket.KeyChain.get -> AmpScm.Buckets.Cryptography.CryptoKeyChain!
+AmpScm.Buckets.Cryptography.CryptoDataBucket.KeyChain.init -> void
 AmpScm.Buckets.Cryptography.CryptoExtensions
 AmpScm.Buckets.Cryptography.DecryptBucket
 AmpScm.Buckets.Cryptography.DecryptBucket.DecryptBucket(AmpScm.Buckets.Bucket! source) -> void
@@ -23,7 +25,22 @@ AmpScm.Buckets.Cryptography.SignatureBucket
 AmpScm.Buckets.Cryptography.SignatureBucket.ReadFingerprintAsync() -> System.Threading.Tasks.ValueTask<System.ReadOnlyMemory<byte>>
 AmpScm.Buckets.Cryptography.SignatureBucket.ReadKeyAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Cryptography.PublicKeySignature!>
 AmpScm.Buckets.Cryptography.SignatureBucket.SignatureBucket(AmpScm.Buckets.Bucket! source) -> void
-AmpScm.Buckets.Cryptography.SignatureBucket.VerifyAsync(AmpScm.Buckets.Bucket! sourceData, AmpScm.Buckets.Cryptography.PublicKeySignature? key) -> System.Threading.Tasks.ValueTask<bool>
+const AmpScm.Buckets.Cryptography.OcbDecodeBucket.BlockLength = 16 -> int
+const AmpScm.Buckets.Cryptography.OcbDecodeBucket.MaxNonceLength = 15 -> int
+override AmpScm.Buckets.Cryptography.CryptoDataBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Cryptography.CryptoDataBucket.Position.get -> long?
+override AmpScm.Buckets.Cryptography.CryptoDataBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Cryptography.CryptoDataBucket.Reset() -> void
+override AmpScm.Buckets.Cryptography.DecryptBucket.CanReset.get -> bool
+override AmpScm.Buckets.Cryptography.DecryptBucket.Reset() -> void
+override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertRequested(int requested) -> int
+override AmpScm.Buckets.Cryptography.OcbDecodeBucket.Dispose(bool disposing) -> void
 override AmpScm.Buckets.Cryptography.PublicKeySignature.GetValues(bool includePrivate = false) -> System.Collections.Generic.IReadOnlyList<System.Numerics.BigInteger>!
 override AmpScm.Buckets.Cryptography.PublicKeySignature.MatchesFingerprint(System.ReadOnlyMemory<byte> fingerprint, AmpScm.Buckets.Cryptography.CryptoAlgorithm algorithm = AmpScm.Buckets.Cryptography.CryptoAlgorithm.None, bool requirePrivateKey = false) -> bool
 override AmpScm.Buckets.Cryptography.PublicKeySignature.SubKeys.get -> System.Collections.Generic.IEnumerable<AmpScm.Buckets.Cryptography.AsymmetricCryptoKey!>!
+override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.CanReset.get -> bool
+override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Reset() -> void
+static AmpScm.Buckets.Cryptography.Radix64ArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using System.ComponentModel;
+[assembly: CLSCompliant(true)]
 
 #if !NET5_0_OR_GREATER
 namespace System.Runtime.CompilerServices

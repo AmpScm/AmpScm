@@ -13,7 +13,9 @@ using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+#if !DEBUG
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
+#endif
 
 namespace SecurityBucketTests;
 

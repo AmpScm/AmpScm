@@ -8,8 +8,6 @@ AmpScm.Buckets.Cryptography.CryptoAlgorithm.Ed25519 = 4 -> AmpScm.Buckets.Crypto
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.Elgamal = 7 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.None = 0 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.Rsa = 1 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
-AmpScm.Buckets.Cryptography.CryptoDataBucket.KeyChain.get -> AmpScm.Buckets.Cryptography.CryptoKeyChain!
-AmpScm.Buckets.Cryptography.CryptoDataBucket.KeyChain.init -> void
 AmpScm.Buckets.Cryptography.CryptoKeyChain
 AmpScm.Buckets.Cryptography.CryptoKeyChain.CryptoKeyChain() -> void
 AmpScm.Buckets.Cryptography.CryptoKeyChain.CryptoKeyChain(AmpScm.Buckets.Cryptography.AsymmetricCryptoKey! key) -> void
@@ -28,34 +26,16 @@ AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Radix64ArmorBucket(AmpScm.Buckets
 AmpScm.Buckets.Cryptography.Radix64ArmorBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Cryptography.SignatureBucket.GetPassPhrase.get -> System.Func<AmpScm.Buckets.Cryptography.SignaturePromptContext!, string!>?
 AmpScm.Buckets.Cryptography.SignatureBucket.GetPassPhrase.init -> void
-AmpScm.Buckets.Cryptography.SignatureBucket.KeyChain.get -> AmpScm.Buckets.Cryptography.CryptoKeyChain?
-AmpScm.Buckets.Cryptography.SignatureBucket.KeyChain.init -> void
 AmpScm.Buckets.Cryptography.SignatureBucket.VerifyAsync(AmpScm.Buckets.Bucket! sourceData, AmpScm.Buckets.Cryptography.PublicKeySignature? key, bool unknownSignerOk = false) -> System.Threading.Tasks.ValueTask<bool>
 AmpScm.Buckets.Cryptography.SignatureFetchContext
 AmpScm.Buckets.Cryptography.SignatureFetchContext.Fingerprint.get -> System.ReadOnlyMemory<byte>
 AmpScm.Buckets.Cryptography.SignatureFetchContext.RequiresPrivateKey.get -> bool
 AmpScm.Buckets.Cryptography.SignaturePromptContext
-const AmpScm.Buckets.Cryptography.OcbDecodeBucket.BlockLength = 16 -> int
-const AmpScm.Buckets.Cryptography.OcbDecodeBucket.MaxNonceLength = 15 -> int
-override AmpScm.Buckets.Cryptography.CryptoDataBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Cryptography.CryptoDataBucket.Position.get -> long?
-override AmpScm.Buckets.Cryptography.CryptoDataBucket.Reset() -> void
-override AmpScm.Buckets.Cryptography.DecryptBucket.CanReset.get -> bool
-override AmpScm.Buckets.Cryptography.DecryptBucket.Reset() -> void
-override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertRequested(int requested) -> int
-override AmpScm.Buckets.Cryptography.OcbDecodeBucket.Dispose(bool disposing) -> void
-override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.CanReset.get -> bool
-override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Reset() -> void
-override AmpScm.Buckets.Cryptography.SignatureBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.implicit operator AmpScm.Buckets.Cryptography.CryptoKeyChain?(AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key) -> AmpScm.Buckets.Cryptography.CryptoKeyChain?
 static AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.operator +(AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key1, AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key2) -> AmpScm.Buckets.Cryptography.CryptoKeyChain?
 static AmpScm.Buckets.Cryptography.CryptoKeyChain.operator +(AmpScm.Buckets.Cryptography.CryptoKeyChain? key1, AmpScm.Buckets.Cryptography.CryptoKeyChain? key2) -> AmpScm.Buckets.Cryptography.CryptoKeyChain?
 static AmpScm.Buckets.Cryptography.PublicKeySignature.TryParse(string! keyText, out AmpScm.Buckets.Cryptography.PublicKeySignature? value) -> bool
 static AmpScm.Buckets.Cryptography.PublicKeySignature.TryParse(string! keyText, System.Func<AmpScm.Buckets.Cryptography.SignaturePromptContext!, string!>? getPassPhrase, out AmpScm.Buckets.Cryptography.PublicKeySignature? value) -> bool
-static AmpScm.Buckets.Cryptography.Radix64ArmorBucket.IsHeader(AmpScm.Buckets.BucketBytes bb, AmpScm.Buckets.BucketEol eol) -> bool
 static AmpScm.Buckets.Cryptography.SignaturePromptContext.Empty.get -> AmpScm.Buckets.Cryptography.SignaturePromptContext!
 virtual AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.MatchesFingerprint(System.ReadOnlyMemory<byte> fingerprint, AmpScm.Buckets.Cryptography.CryptoAlgorithm algorithm = AmpScm.Buckets.Cryptography.CryptoAlgorithm.None, bool requirePrivateKey = false) -> bool
 virtual AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.SubKeys.get -> System.Collections.Generic.IEnumerable<AmpScm.Buckets.Cryptography.AsymmetricCryptoKey!>!

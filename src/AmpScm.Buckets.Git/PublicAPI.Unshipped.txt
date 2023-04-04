@@ -62,10 +62,12 @@ AmpScm.Buckets.Git.GitLineIndentBucket
 AmpScm.Buckets.Git.GitLineIndentBucket.GitLineIndentBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
 AmpScm.Buckets.Git.GitLineUnindentBucket
 AmpScm.Buckets.Git.GitLineUnindentBucket.GitLineUnindentBucket(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.BucketEol acceptableEols = AmpScm.Buckets.BucketEol.LF) -> void
+AmpScm.Buckets.Git.Objects.GitCommitObjectBucket.GitCommitObjectBucket(AmpScm.Buckets.Bucket! source, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitSubBucketType
 AmpScm.Buckets.Git.Objects.GitSubBucketType.MergeTag = 0 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
 AmpScm.Buckets.Git.Objects.GitSubBucketType.Signature = 1 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
 AmpScm.Buckets.Git.Objects.GitSubBucketType.SignatureSha256 = 2 -> AmpScm.Buckets.Git.Objects.GitSubBucketType
+AmpScm.Buckets.Git.Objects.GitTagObjectBucket.GitTagObjectBucket(AmpScm.Buckets.Bucket! source, System.Func<AmpScm.Buckets.Git.Objects.GitSubBucketType, AmpScm.Buckets.Bucket!, System.Threading.Tasks.ValueTask>? handleSubBucket) -> void
 AmpScm.Buckets.Git.Objects.GitTagObjectBucket.ReadSignatureBytesAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitBundleBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.Git.GitFileObjectBucket.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!

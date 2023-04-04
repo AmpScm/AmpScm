@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+[assembly: CLSCompliant(true)]
+
 namespace AmpScm.Git.Client
 {
     public class GitClient : GitRepository

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -72,24 +73,15 @@ public sealed class DecryptBucket : CryptoDataBucket
                     var fingerprint = bb.ToArray();
                     var pca = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                    var key = KeyChain?.FindKey(fingerprint, requirePrivateKey: true) as PublicKeySignature;
+                    var key = KeyChain?.FindKey(bb.Memory, requirePrivateKey: true) as PublicKeySignature;
 
                     if (!(key?.HasPrivateKey ?? false) || key?.MatchFingerprint(fingerprint) is not { } matchedKey)
                     {
-                        if (KeyChain?.FirstOrDefault(x => x.MatchesFingerprint(bb)) is { } kk
-                            && (kk as PublicKeySignature)?.MatchFingerprint(fingerprint) is { } mk
-                            && mk.HasPrivateKey)
-                        {
-                            matchedKey = mk;
-                        }
-                        else
-                        {
-                            await bucket.ReadUntilEofAsync().ConfigureAwait(false);
-                            break; // Ignore rest of packet
-                        }
+                        await bucket.ReadUntilEofAsync().ConfigureAwait(false);
+                        break; // Ignore rest of packet
                     }
 
-                    var keyValues = matchedKey.GetValues(false);
+                    var keyValues = matchedKey.GetValues(true);
 
                     switch (matchedKey.Algorithm)
                     {
@@ -116,13 +108,22 @@ public sealed class DecryptBucket : CryptoDataBucket
                             {
                                 ecdh.ImportParametersFromCryptoInts(keyValues);
 
-                                var bi1 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
+                                var bi1 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket);
+
+                                var pk = ecdh.CreatePublicKey(bi1);
+                                var dk = ecdh.DeriveKeyMaterial(pk);
+
                                 var b = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 var kdf = await bucket.ReadExactlyAsync(b).ConfigureAwait(false);
 
-                                var kb = kdf.Memory.AsBucket();
+                                //var kb = kdf.Memory.AsBucket();
+                                //
+                                //var curveLen = await kb.ReadByteAsync().ConfigureAwait(false) ?? 0; // reserved. Should be 1, but isn't
+                                //var curve = await kb.ReadExactlyAsync(curveLen).ConfigureAwait(false);
+                                //var pkAlg = await kb.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                                //var hashType = await kb.ReadByteAsync().ConfigureAwait(false) ?? 0; // hashType, but unrecognizable
 
-                                b = await kb.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                                //OpenPgpHashAlgorithm
 
                                 //var sd = await kb.ReadExactlyAsync(b).ConfigureAwait(false);
                                 //
@@ -131,6 +132,20 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 //var sd2 = await kb.ReadExactlyAsync(b).ConfigureAwait(false);
                                 //
                                 //byte[] data = null!;// ecdh.dec.Decrypt(bi.Value.ToCryptoValue(), RSAEncryptionPadding.Pkcs1);
+                            }
+                            break;
+
+                        case CryptoAlgorithm.Elgamal:
+                            {
+                                BigInteger P = keyValues[0]; // Elgamal prime p
+                                BigInteger G = keyValues[1]; // Elgamal group generator g;
+                                BigInteger Y = keyValues[2]; // Elgamal public key value y (= g**x mod p where x is secret).
+                                BigInteger X = keyValues[3]; // Elgamal secret exponent x.
+                                var b1 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket); // g**k mod p.
+                                var b2 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket); // y**k mod p
+
+                                //Elgamal.
+                                GC.KeepAlive(P + G + Y + X + b1 + b2);
                             }
                             break;
 

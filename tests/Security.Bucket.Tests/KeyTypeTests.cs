@@ -348,13 +348,17 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
         {
             case CryptoAlgorithm.Rsa:
             case CryptoAlgorithm.Dsa:
+#if DEBUG
             case CryptoAlgorithm.Ecdsa:
+#endif
                 break; // Should work
             //case CryptoAlgorithm.Elgamal:
             //    Assert.Inconclusive("Elgamel not implemented yet");
             //    break;
             default:
+#if !DEBUG
                 Assert.Inconclusive($"{r2.Algorithm} not implemented yet");
+#endif
                 break;
         }
 

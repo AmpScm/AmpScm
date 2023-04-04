@@ -373,22 +373,18 @@ public sealed class SignatureBucket : CryptoDataBucket
                         throw new BucketException($"Unexpected data after {keyPublicKeyType} key");
 
                     keyInts = bigInts.ToArray();
-                    if (keyPublicKeyType == OpenPgpPublicKeyType.ECDSA)
-                    {
-                        keyInts = GetEcdsaValues(keyInts, true);
-                    }
-                    else if (keyPublicKeyType == OpenPgpPublicKeyType.EdDSA && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
+                    if (keyPublicKeyType == OpenPgpPublicKeyType.EdDSA && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
                     {
                         // This algorithm is not implemented by .Net, but for this specific curve we have a workaround
                         keyPublicKeyType = OpenPgpPublicKeyType.Ed25519;
                         // Convert `0x40 | value` form to `value`
                         keyInts = new[] { keyInts[1].ToCryptoValue().Skip(1).ToBigInteger() };
                     }
-                    //else if (keyPublicKeyType == OpenPgpPublicKeyType.ECDH && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
-                    //{
-                    //    keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
-                    //    keyInts = keyInts.Skip(1).ToArray();
-                    //}
+                    else if (keyPublicKeyType == OpenPgpPublicKeyType.ECDH && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
+                    {
+                        keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
+                        keyInts = keyInts.Skip(1).ToArray();
+                    }
 
                     _keys.Add(new PublicKeySignature(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts, _mailAddress, hasSecretKey));
                 }
@@ -460,13 +456,6 @@ public sealed class SignatureBucket : CryptoDataBucket
                         await SequenceToList(vals, der).ConfigureAwait(false);
 
                         BigInteger[] keyInts = vals.ToArray();
-
-                        if (cryptoAlg == CryptoAlgorithm.Ecdsa && vals.Count >= 2)
-                        {
-                            keyInts = GetEcdsaValues(vals, true);
-                        }
-                        else
-                            keyInts = vals.ToArray();
 
                         _keys.Add(new PublicKeySignature(CreateSshFingerprint(cryptoAlg, keyInts), cryptoAlg, keyInts));
                     }

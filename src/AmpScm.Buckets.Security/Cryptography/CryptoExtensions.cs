@@ -188,7 +188,7 @@ namespace AmpScm.Buckets.Cryptography
 
             var v = ints[0].ToCryptoValue();
             var v2 = ints[1].ToCryptoValue();
-            var v3 = ints[2].ToCryptoValue();
+            byte[] v3;
 
             var curveOid = ParseOid(v);
             if (v2[0] == 0x04)
@@ -198,6 +198,8 @@ namespace AmpScm.Buckets.Cryptography
                 v3 = v2.Skip(n + 1).ToArray();
                 v2 = v2.Skip(1).Take(n).ToArray();
             }
+            else
+                throw new NotImplementedException();
 
             var p = new ECParameters()
             {
@@ -211,21 +213,33 @@ namespace AmpScm.Buckets.Cryptography
                 },
             };
 
+            //ECParameters.De
+
             if (ints.Count == 4)
                 p.D = ints[3].ToCryptoValue().AlignUp();
 
-            if (p.Q.X.Length != p.Q.Y.Length)
-            {
-                int len = Math.Max(p.Q.X.Length, p.Q.Y.Length);
-
-                p.Q = new ECPoint
-                {
-                    X = MakeLength(p.Q.X, len),
-                    Y = MakeLength(p.Q.Y, len),
-                };
-            }
-
             ecdh.ImportParameters(p);
+        }
+
+        internal static ECDiffieHellmanPublicKey CreatePublicKey(this ECDiffieHellman ecdh, BigInteger point)
+        {
+            using ECDiffieHellman ecdh2 = ECDiffieHellman.Create();
+
+            var p = ecdh.ExportParameters(false);
+
+            var v = point.ToCryptoValue();
+            if (v[0] != 0x04)
+                throw new InvalidOperationException();
+
+            int n = (v.Length - 1)/2;
+            var v1 = v.Skip(1).Take(n).ToArray();
+            var v2 = v.Skip(1+n).ToArray();
+
+            p.Q = new ECPoint { X = v1.AlignUp(), Y = v2.AlignUp() };
+
+            ecdh2.ImportParameters(p);
+
+            return ecdh.PublicKey;
         }
 
         private static string ParseOid(byte[] v)
@@ -336,14 +350,6 @@ namespace AmpScm.Buckets.Cryptography
 
         }
 
-        private static byte[] MakeLength(byte[] array, int len)
-        {
-            if (array.Length == len)
-                return array;
-            else
-                return Enumerable.Range(0, len - array.Length).Select(_ => (byte)0).Concat(array).ToArray();
-        }
-
         internal static SymmetricAlgorithm ApplyModeShim(this SymmetricAlgorithm algorithm)
         {
 #pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
@@ -363,7 +369,7 @@ namespace AmpScm.Buckets.Cryptography
 
             var c = new Oid(oid);
 
-            return c.FriendlyName;
+            return c.FriendlyName ?? throw new ArgumentOutOfRangeException(nameof(bigInteger), bigInteger, message: null);
         }
     }
 }
