@@ -1,5 +1,4 @@
 ﻿#nullable enable
-abstract AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.GetValues(bool includePrivate = false) -> System.Collections.Generic.IReadOnlyList<System.Numerics.BigInteger>!
 AmpScm.Buckets.Cryptography.CryptoAlgorithm
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.Curve25519 = 6 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.Dsa = 2 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
@@ -9,6 +8,8 @@ AmpScm.Buckets.Cryptography.CryptoAlgorithm.Ed25519 = 4 -> AmpScm.Buckets.Crypto
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.Elgamal = 7 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.None = 0 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.Rsa = 1 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
+AmpScm.Buckets.Cryptography.CryptoDataBucket.KeyChain.get -> AmpScm.Buckets.Cryptography.CryptoKeyChain!
+AmpScm.Buckets.Cryptography.CryptoDataBucket.KeyChain.init -> void
 AmpScm.Buckets.Cryptography.CryptoKeyChain
 AmpScm.Buckets.Cryptography.CryptoKeyChain.CryptoKeyChain() -> void
 AmpScm.Buckets.Cryptography.CryptoKeyChain.CryptoKeyChain(AmpScm.Buckets.Cryptography.AsymmetricCryptoKey! key) -> void
@@ -16,8 +17,6 @@ AmpScm.Buckets.Cryptography.CryptoKeyChain.CryptoKeyChain(params AmpScm.Buckets.
 AmpScm.Buckets.Cryptography.CryptoKeyChain.CryptoKeyChain(System.Collections.Generic.IEnumerable<AmpScm.Buckets.Cryptography.AsymmetricCryptoKey!>! keys) -> void
 AmpScm.Buckets.Cryptography.CryptoKeyChain.Items.get -> System.Collections.Generic.IEnumerable<AmpScm.Buckets.Cryptography.AsymmetricCryptoKey!>!
 AmpScm.Buckets.Cryptography.CryptoKeyChain.Items.init -> void
-AmpScm.Buckets.Cryptography.DecryptBucket.GetKey.get -> System.Func<AmpScm.Buckets.Cryptography.SignatureFetchContext!, AmpScm.Buckets.Cryptography.PublicKeySignature?>?
-AmpScm.Buckets.Cryptography.DecryptBucket.GetKey.init -> void
 AmpScm.Buckets.Cryptography.DecryptBucket.GetPassword.get -> System.Func<AmpScm.Buckets.Cryptography.SignaturePromptContext!, string!>?
 AmpScm.Buckets.Cryptography.DecryptBucket.GetPassword.init -> void
 AmpScm.Buckets.Cryptography.DecryptBucket.ReadFileInfo() -> System.Threading.Tasks.ValueTask<(string? fileName, System.DateTime? fileTime)>
@@ -38,13 +37,18 @@ AmpScm.Buckets.Cryptography.SignatureFetchContext.RequiresPrivateKey.get -> bool
 AmpScm.Buckets.Cryptography.SignaturePromptContext
 const AmpScm.Buckets.Cryptography.OcbDecodeBucket.BlockLength = 16 -> int
 const AmpScm.Buckets.Cryptography.OcbDecodeBucket.MaxNonceLength = 15 -> int
-override AmpScm.Buckets.Cryptography.DecryptBucket.Peek() -> AmpScm.Buckets.BucketBytes
-override AmpScm.Buckets.Cryptography.DecryptBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Cryptography.CryptoDataBucket.Peek() -> AmpScm.Buckets.BucketBytes
+override AmpScm.Buckets.Cryptography.CryptoDataBucket.Position.get -> long?
+override AmpScm.Buckets.Cryptography.CryptoDataBucket.Reset() -> void
+override AmpScm.Buckets.Cryptography.DecryptBucket.CanReset.get -> bool
+override AmpScm.Buckets.Cryptography.DecryptBucket.Reset() -> void
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.ConvertRequested(int requested) -> int
 override AmpScm.Buckets.Cryptography.OcbDecodeBucket.Dispose(bool disposing) -> void
+override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.CanReset.get -> bool
 override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Reset() -> void
 override AmpScm.Buckets.Cryptography.SignatureBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.implicit operator AmpScm.Buckets.Cryptography.CryptoKeyChain?(AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key) -> AmpScm.Buckets.Cryptography.CryptoKeyChain?
 static AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.operator +(AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key1, AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key2) -> AmpScm.Buckets.Cryptography.CryptoKeyChain?

@@ -70,13 +70,13 @@ public sealed class SignatureBucket : CryptoDataBucket
                         List<BigInteger> keyList = new();
                         while (!(bb = await ReadSshStringAsync(ib).ConfigureAwait(false)).IsEof)
                         {
-                            keyList.Add(bb.ToArray().ToBigInteger());
+                            keyList.Add(bb.Memory.ToBigInteger());
                         }
 
                         keyInts = keyList.ToArray();
 
                         if (publicKeyType == OpenPgpPublicKeyType.ECDSA)
-                            keyInts = GetEcdsaValues(keyInts);
+                            keyInts = GetEcdsaValues(keyInts, false);
                     }
 
                     _keys.Add(new PublicKeySignature(keyFingerprint!, GetKeyAlgo(publicKeyType), keyInts, _mailAddress));
@@ -122,17 +122,17 @@ public sealed class SignatureBucket : CryptoDataBucket
                     {
                         if (SplitSignatureInt(i++, publicKeyType))
                         {
-                            var s = bb.ToArray().AsBucket();
+                            var s = bb.Memory.AsBucket();
 
                             while (!(bb = await ReadSshStringAsync(s).ConfigureAwait(false)).IsEof)
                             {
-                                bigInts.Add(bb.ToArray().ToBigInteger());
+                                bigInts.Add(bb.Memory.ToBigInteger());
                             }
 
                             continue;
                         }
 
-                        bigInts.Add(bb.ToArray().ToBigInteger());
+                        bigInts.Add(bb.Memory.ToBigInteger());
                     }
 
                     //_signatureInfo.SignatureInts = bigInts.ToArray();
@@ -225,7 +225,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         if (bb.Length != b)
                             throw new BucketEofException(bucket);
 
-                        bigInts.Add(bb.ToArray().ToBigInteger());
+                        bigInts.Add(bb.Memory.ToBigInteger());
                     }
 
                     if (keyPublicKeyType is OpenPgpPublicKeyType.ECDH)
@@ -243,7 +243,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         if (bb.Length != b)
                             throw new BucketEofException(bucket);
 
-                        bigInts.Add(bb.ToArray().ToBigInteger());
+                        bigInts.Add(bb.Memory.ToBigInteger());
                     }
 
 
@@ -358,7 +358,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                             if (sku is 0 or 255)
                             {
-                                await bucket.ReadNetworkUInt16Async().ConfigureAwait(false);
+                                var cs = await bucket.ReadNetworkUInt16Async().ConfigureAwait(false);
                             }
                             else if (sku is 254)
                             {
@@ -384,11 +384,11 @@ public sealed class SignatureBucket : CryptoDataBucket
                         // Convert `0x40 | value` form to `value`
                         keyInts = new[] { keyInts[1].ToCryptoValue().Skip(1).ToBigInteger() };
                     }
-                    else if (keyPublicKeyType == OpenPgpPublicKeyType.ECDH && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
-                    {
-                        keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
-                        keyInts = keyInts.Skip(1).ToArray();
-                    }
+                    //else if (keyPublicKeyType == OpenPgpPublicKeyType.ECDH && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
+                    //{
+                    //    keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
+                    //    keyInts = keyInts.Skip(1).ToArray();
+                    //}
 
                     _keys.Add(new PublicKeySignature(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts, _mailAddress, hasSecretKey));
                 }
@@ -417,7 +417,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                             var (b, bt) = rd;
 
                             bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
-                            vals.Add(bb.ToArray().ToBigInteger());
+                            vals.Add(bb.Memory.ToBigInteger());
                         }
 
                         var keyInts = vals.ToArray();
@@ -463,7 +463,6 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                         if (cryptoAlg == CryptoAlgorithm.Ecdsa && vals.Count >= 2)
                         {
-                            vals[1] = vals[1].ToCryptoValue().ToArray().ToBigInteger();
                             keyInts = GetEcdsaValues(vals, true);
                         }
                         else

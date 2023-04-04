@@ -354,7 +354,7 @@ cEgAjelaGkn3RJOwXWoJbA==
 
         using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2).AsBucket());
 
-        using var dec = new DecryptBucket(decr) { GetKey = _ => key2 };
+        using var dec = new DecryptBucket(decr) { KeyChain = key2 };
 
 
         var bb = await dec.ReadExactlyAsync(1024);
@@ -415,8 +415,6 @@ cEgAjelaGkn3RJOwXWoJbA==
     [TestMethod]
     public async Task TestOCBTestData()
     {
-        OCBTests.InconclusiveOnMono();
-
         ReadOnlyMemory<byte> r = new byte[]
         {
             // Header
@@ -445,7 +443,7 @@ cEgAjelaGkn3RJOwXWoJbA==
             0xd5, 0x71, 0xbc, 0xd8, 0x3b, 0x20, 0xad, 0xd3, 0xa0, 0x8b, 0x73, 0xaf, 0x15, 0xb9, 0xa0, 0x98
         };
 
-        var b = new DecryptBucket(r.AsBucket()) { GetKey = _ => null, GetPassword = (_) => "password" };
+        var b = new DecryptBucket(r.AsBucket()) { GetPassword = (_) => "password" };
 
         string result = "";
         while (true)
@@ -466,8 +464,6 @@ cEgAjelaGkn3RJOwXWoJbA==
     [TestMethod]
     public async Task TestOCBSplit()
     {
-        OCBTests.InconclusiveOnMono();
-
         byte[] key = new byte[] { 0xeb, 0x9d, 0xa7, 0x8a, 0x9d, 0x5d, 0xf8, 0x0e, 0xc7, 0x02, 0x05, 0x96, 0x39, 0x9b, 0x65, 0x08 };
         byte[] nonce = new byte[] { 0x99, 0xe3, 0x26, 0xe5, 0x40, 0x0a, 0x90, 0x93, 0x6c, 0xef, 0xb4, 0xe8, 0xeb, 0xa0, 0x8c };
         byte[] authenticated = new byte[] { 0xc3, 0x05, 0x07, 0x02 };
@@ -498,7 +494,6 @@ cEgAjelaGkn3RJOwXWoJbA==
     [TestMethod]
     public async Task TestOCB()
     {
-        OCBTests.InconclusiveOnMono();
         var key = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F }.ToArray();
 
         var crypted = new byte[]
@@ -619,35 +614,6 @@ f9nwhs2r0FA7IKmrcLiL2sClVAAl
 
     [TestMethod]
     public async Task AToB()
-    {
-        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
-        Assert.IsTrue(PublicKeySignature.TryParse(rsa_key2, out var key2));
-
-        Assert.IsTrue(key1.HasPrivateKey);
-        Assert.IsTrue(key2.HasPrivateKey);
-
-        var raw_msg = Bucket.Create.FromASCII(msg_from_rsa1_to_rsa2_3);
-
-        using var dc = new DecryptBucket(new Radix64ArmorBucket(raw_msg))
-        {
-            GetKey = (fp) =>
-            {
-                if (key1.MatchesFingerprint(fp.Fingerprint))
-                    return key1;
-                else if (key2.MatchesFingerprint(fp.Fingerprint))
-                    return key2;
-                else
-                    return null;
-            }
-        };
-
-        var bb = await dc.ReadExactlyAsync(1024);
-
-        Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
-    }
-
-    [TestMethod]
-    public async Task AToB_KeyChain()
     {
         Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
         Assert.IsTrue(PublicKeySignature.TryParse(rsa_key2, out var key2));

@@ -84,7 +84,7 @@ namespace AmpScm.Buckets.Git.Objects
 
                 if (eol == BucketEol.None)
                 {
-                    var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Source);
+                    var authorBucket = (bb.Slice("author ".Length).Memory.AsBucket() + Source);
                     (bb, eol) = await authorBucket.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
                 }
 
@@ -143,7 +143,7 @@ namespace AmpScm.Buckets.Git.Objects
                     // Auch. We overread.
                     if (eol == BucketEol.None)
                     {
-                        var authorBucket = (bb.Slice("author ".Length).ToArray().AsBucket() + Source);
+                        var authorBucket = (bb.Slice("author ".Length).Memory.AsBucket() + Source);
                         (bb, eol) = await authorBucket.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
                     }
 
@@ -224,7 +224,7 @@ namespace AmpScm.Buckets.Git.Objects
                     case "mergetag":
                     case "gpgsig":
                     case "gpgsig-sha256":
-                        sub = new GitLineUnindentBucket(bb.Slice(parts[0].Length).ToArray().AsBucket() + Source.NoDispose());
+                        sub = new GitLineUnindentBucket(bb.Slice(parts[0].Length).Memory.AsBucket() + Source.NoDispose());
 
                         if (_handleSubBucket is not null)
                             await _handleSubBucket(GetEvent(parts[0]), sub).ConfigureAwait(false);

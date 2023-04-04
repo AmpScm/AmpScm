@@ -192,7 +192,7 @@ Zt5h6i/BNNX9AiqbRo/ep/RrPpU71Qo=
 -----END PGP SignaturePublicKey-----";
 
     [TestMethod]
-    public async Task VerifyPgpEd25519()
+    public async Task VerifyPgpEcc25519()
     {
         var src = Bucket.Create.FromASCII("test");
 

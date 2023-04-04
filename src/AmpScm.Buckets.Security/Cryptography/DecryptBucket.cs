@@ -26,7 +26,6 @@ public sealed class DecryptBucket : CryptoDataBucket
     {
     }
 
-    public Func<SignatureFetchContext, PublicKeySignature?>? GetKey { get; init; }
     public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
     private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag tag)
@@ -73,7 +72,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     var fingerprint = bb.ToArray();
                     var pca = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                    var key = GetKey?.Invoke(new() { Fingerprint = fingerprint, RequiresPrivateKey = true });
+                    var key = KeyChain?.FindKey(fingerprint, requirePrivateKey: true) as PublicKeySignature;
 
                     if (!(key?.HasPrivateKey ?? false) || key?.MatchFingerprint(fingerprint) is not { } matchedKey)
                     {
@@ -109,6 +108,29 @@ public sealed class DecryptBucket : CryptoDataBucket
                                     _sessionAlgorithm = (OpenPgpSymmetricAlgorithm)data[0];
                                     _sessionKey = data.AsMemory(1, data.Length - 3); // Minus first byte (session alg) and last two bytes (checksum)
                                 }
+                            }
+                            break;
+
+                        case CryptoAlgorithm.Ecdh:
+                            using (var ecdh = ECDiffieHellman.Create())
+                            {
+                                ecdh.ImportParametersFromCryptoInts(keyValues);
+
+                                var bi1 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
+                                var b = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                                var kdf = await bucket.ReadExactlyAsync(b).ConfigureAwait(false);
+
+                                var kb = kdf.Memory.AsBucket();
+
+                                b = await kb.ReadByteAsync().ConfigureAwait(false) ?? 0;
+
+                                //var sd = await kb.ReadExactlyAsync(b).ConfigureAwait(false);
+                                //
+                                //b = await kb.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                                //
+                                //var sd2 = await kb.ReadExactlyAsync(b).ConfigureAwait(false);
+                                //
+                                //byte[] data = null!;// ecdh.dec.Decrypt(bi.Value.ToCryptoValue(), RSAEncryptionPadding.Pkcs1);
                             }
                             break;
 
@@ -152,12 +174,28 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                     // Starting vector (OCB specific)
                     byte[] startingVector = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray();
+                    var sessionKey = _sessionKey.ToArray();
 
                     // Encrypted data
 
-                    bucket = bucket.Leave(16, (_, _) =>
+                    bucket = bucket.Leave(16, async (bb, length) =>
                     {
-                        // TODO: Handle the final chunk!
+                        long n = (length + chunk_size - 1) / chunk_size; // Calculate number of chunks before the final block
+                        length -= n * 16; // Remove the tags of these chunks from the total length
+
+                        byte[] associatedData = new byte[] { 0xC0 | (int)CryptoTag.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
+                                .Concat(NetBitConverter.GetBytes((long)n)).Concat(NetBitConverter.GetBytes((long)length)).ToArray();
+
+                        byte[] sv = startingVector.ToArray();
+                        OcbDecodeBucket.SpanXor(sv.AsSpan(sv.Length - 4), NetBitConverter.GetBytes((int)n));
+
+                        using var ocd = new OcbDecodeBucket(bb.Memory.AsBucket(), sessionKey, 128, sv, associatedData, verifyResult: x =>
+                        {
+                            if (!x)
+                                throw new BucketDecryptionException($"Verification of final chunk in {bucket} bucket failed");
+                        });
+
+                        await ocd.ReadUntilEofAsync().ConfigureAwait(false);
                     });
 
                     bucket = new AeadChunkReader(bucket, (int)chunk_size, 16,
@@ -166,12 +204,10 @@ public sealed class DecryptBucket : CryptoDataBucket
                             byte[] associatedData = new byte[] { 0xC0 | (int)CryptoTag.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
                                 .Concat(NetBitConverter.GetBytes((long)n)).ToArray();
 
-
                             byte[] sv = startingVector.ToArray();
-
                             OcbDecodeBucket.SpanXor(sv.AsSpan(sv.Length - 4), NetBitConverter.GetBytes(n));
 
-                            return new OcbDecodeBucket(data, _sessionKey.ToArray(), 128, sv, associatedData, verifyResult: x =>
+                            return new OcbDecodeBucket(data, sessionKey, 128, sv, associatedData, verifyResult: x =>
                             {
                                 if (!x)
                                     throw new BucketDecryptionException($"Verification of chunk {n + 1} in {data} bucket failed");
@@ -280,7 +316,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 }
                                 break;
                             }
-                        case 4 when (await bucket.ReadRemainingBytesAsync() == 0):
+                        case 4 when (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false) == 0):
                             {
                                 _sessionAlgorithm = cipherAlgorithm;
                                 _sessionKey = key.ToArray();
@@ -317,8 +353,8 @@ public sealed class DecryptBucket : CryptoDataBucket
                     byte[] hashValue = p.Completer!(r.SignBlob)!;
                     //Trace.WriteLine(BucketExtensions.HashToString(hashValue));
 
-                    if (GetKey?.Invoke(new() { Fingerprint = r.SignKeyFingerprint, RequiresPrivateKey = false }) is { } key
-                        && key?.MatchFingerprint(r.SignKeyFingerprint) is { } matchedKey)
+                    if (KeyChain?.FindKey(r.SignKeyFingerprint) is PublicKeySignature key
+                        && key.MatchFingerprint(r.SignKeyFingerprint) is { } matchedKey)
                     {
                         if (!VerifySignature(r, hashValue, matchedKey.GetValues(false)))
                         {

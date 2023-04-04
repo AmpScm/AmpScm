@@ -42,22 +42,26 @@ namespace AmpScm.Buckets.Cryptography
 
         internal static BigInteger ToBigInteger(this byte[] value)
         {
-#if NETCOREAPP
-            return new BigInteger(value, true, true);
-#else
-            if ((value[0] & 0x80) != 0)
-            {
-                byte[] v2 = new byte[value.Length + 1];
-                value.AsSpan().CopyTo(v2.AsSpan(1));
+            return ToBigInteger(value.AsMemory());
+        }
 
-                value = v2;
+        internal static BigInteger ToBigInteger(this ReadOnlyMemory<byte> value)
+        {
+#if NETCOREAPP
+            return new BigInteger(value.Span, true, true);
+#else
+            byte[] v;
+            if ((value.Span[0] & 0x80) != 0)
+            {
+                v = new byte[value.Length + 1];
+                value.Span.CopyTo(v.AsSpan(1));
             }
             else
-                value = value.ToArray();
+                v = value.ToArray();
 
-            Array.Reverse(value);
+            Array.Reverse(v);
 
-            return new BigInteger(value);
+            return new BigInteger(v);
 #endif
         }
 
@@ -171,6 +175,99 @@ namespace AmpScm.Buckets.Cryptography
             }
 
             rsa.ImportParameters(p);
+        }
+
+        internal static void ImportParametersFromCryptoInts(this ECDiffieHellman ecdh, IReadOnlyList<BigInteger> ints)
+        {
+            if (ecdh is null)
+                throw new ArgumentNullException(nameof(ecdh));
+            else if (ints is null)
+                throw new ArgumentNullException(nameof(ints));
+            else if (ints.Count is not 2 and not 4)
+                throw new ArgumentOutOfRangeException(nameof(ints), ints.Count, message: null);
+
+            var v = ints[0].ToCryptoValue();
+            var v2 = ints[1].ToCryptoValue();
+            var v3 = ints[2].ToCryptoValue();
+
+            var curveOid = ParseOid(v);
+            if (v2[0] == 0x04)
+            {
+                int n = (v2.Length - 1) / 2;
+
+                v3 = v2.Skip(n + 1).ToArray();
+                v2 = v2.Skip(1).Take(n).ToArray();
+            }
+
+            var p = new ECParameters()
+            {
+                // The name is stored as integer... Nice :(
+                Curve = ECCurve.CreateFromValue(curveOid),
+
+                Q = new ECPoint
+                {
+                    X = v2.AlignUp(),
+                    Y = v3.AlignUp(),
+                },
+            };
+
+            if (ints.Count == 4)
+                p.D = ints[3].ToCryptoValue().AlignUp();
+
+            if (p.Q.X.Length != p.Q.Y.Length)
+            {
+                int len = Math.Max(p.Q.X.Length, p.Q.Y.Length);
+
+                p.Q = new ECPoint
+                {
+                    X = MakeLength(p.Q.X, len),
+                    Y = MakeLength(p.Q.Y, len),
+                };
+            }
+
+            ecdh.ImportParameters(p);
+        }
+
+        private static string ParseOid(byte[] v)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            int v0 = v[0] / 40;
+            int v1 = v[0] % 40;
+
+            sb.Append(v0);
+            sb.Append('.');
+            sb.Append(v1);
+
+            int i = 1;
+            while (i < v.Length)
+            {
+                sb.Append('.');
+                if (v[i] < 128)
+                {
+                    sb.Append((int)v[i]);
+
+                    i++;
+                }
+                else
+                {
+                    long lv = (v[i] & 0x7F);
+                    i++;
+
+                    while (v[i] > 0x7F)
+                    {
+                        lv = (lv << 7) | (long)(v[i] & 0x7F);
+                        i++;
+                    }
+
+                    lv = (lv << 7) | (long)(v[i] & 0x7F);
+                    i++;
+
+                    sb.Append(lv);
+                }
+            }
+
+            return sb.ToString();
         }
 
         internal static void ImportParametersFromCryptoInts(this DSA dsa, IReadOnlyList<BigInteger> ints)

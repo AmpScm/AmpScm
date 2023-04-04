@@ -190,7 +190,7 @@ namespace AmpScm.Buckets.Cryptography
 
             while (ReadSshStringAsync(b).AsTask().Result is BucketBytes bb && !bb.IsEof)
             {
-                mems.Add(bb.ToArray().ToBigInteger());
+                mems.Add(bb.Memory.ToBigInteger());
             }
 
             return mems.ToArray();
@@ -347,7 +347,7 @@ namespace AmpScm.Buckets.Cryptography
                 if (bb.Length != byteLen)
                     throw new BucketEofException(sourceData);
 
-                return bb.ToArray().ToBigInteger();
+                return bb.Memory.ToBigInteger();
             }
         }
 
@@ -379,12 +379,12 @@ namespace AmpScm.Buckets.Cryptography
                         // This next check matches for DSA.
                         // I'm guessing this is some magic
                         if (bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x81 }) || bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x80 }))
-                            vals.Add(bb.Slice(4).ToArray().ToBigInteger());
+                            vals.Add(bb.Slice(4).Memory.ToBigInteger());
                         else
-                            vals.Add(bb.ToArray().ToBigInteger());
+                            vals.Add(bb.Memory.ToBigInteger());
                     }
                     else
-                        vals.Add(bb.ToArray().ToBigInteger());
+                        vals.Add(bb.Memory.ToBigInteger());
 
                     await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                 }
