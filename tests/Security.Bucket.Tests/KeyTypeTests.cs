@@ -347,8 +347,8 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
         switch(r2.Algorithm)
         {
             case CryptoAlgorithm.Rsa:
-            case CryptoAlgorithm.Dsa:
 #if DEBUG
+            case CryptoAlgorithm.Dsa:
             case CryptoAlgorithm.Ecdsa:
 #endif
                 break; // Should work
