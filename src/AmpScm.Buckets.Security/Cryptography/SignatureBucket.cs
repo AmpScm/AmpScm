@@ -76,10 +76,11 @@ public sealed class SignatureBucket : CryptoDataBucket
                         keyInts = keyList.ToArray();
 
                         if (publicKeyType == OpenPgpPublicKeyType.ECDSA)
-                            keyInts = GetEcdsaValues(keyInts, false);
+                            keyInts = GetEcdsaValues(keyInts);
                     }
 
-                    _keys.Add(new PublicKeySignature(keyFingerprint!, GetKeyAlgo(publicKeyType), keyInts, _mailAddress));
+                    var algId = GetKeyAlgo(publicKeyType);
+                    _keys.Add(new PublicKeySignature(CreateSshFingerprint(algId, keyInts), algId, keyInts, _mailAddress));
 
                     ByteCollector signPrefix = new(512);
                     signPrefix.Append(new byte[] { (byte)'S', (byte)'S', (byte)'H', (byte)'S', (byte)'I', (byte)'G' });
@@ -499,45 +500,6 @@ public sealed class SignatureBucket : CryptoDataBucket
         }
 
         return true;
-    }
-
-    private static ReadOnlyMemory<byte> CreateSshFingerprint(CryptoAlgorithm sba, IReadOnlyList<BigInteger> keyInts)
-    {
-        ByteCollector bb = new(4096);
-
-        var ints = keyInts.Select(x => x.ToCryptoValue()).ToList();
-
-        string alg;
-        switch (sba)
-        {
-            case CryptoAlgorithm.Rsa:
-                alg = "ssh-rsa";
-                (ints[1], ints[0]) = (ints[0], ints[1]);
-                break;
-            case CryptoAlgorithm.Dsa:
-                alg = "ssh-dss";
-                break;
-            case CryptoAlgorithm.Ed25519:
-                alg = "ssh-ed25519";
-                break;
-            case CryptoAlgorithm.Ecdsa:
-                string kv = Encoding.ASCII.GetString(keyInts[0].ToCryptoValue());
-                alg = "ecdsa-sha2-" + kv.ToString();
-                break;
-            default:
-                throw new NotImplementedException();
-        }
-
-        bb.Append(NetBitConverter.GetBytes(alg.Length));
-        bb.Append(Encoding.ASCII.GetBytes(alg));
-
-        for (int i = 0; i < ints.Count; i++)
-        {
-            bb.Append(NetBitConverter.GetBytes(ints[i].Length));
-            bb.Append(ints[i]);
-        }
-
-        return bb.ToArray();
     }
 
     public async ValueTask<PublicKeySignature> ReadKeyAsync()

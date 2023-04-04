@@ -24,9 +24,9 @@ public class SshTests
     [DataRow("ecdsa", "")]
     [DataRow("ecdsa", "-b256")]
     [DataRow("ecdsa", "-b384")]
-//#if DEBUG
-//    [DataRow("ecdsa", "-b521")] // Typically fails on GitHub bots
-//#endif
+    //#if DEBUG
+    //    [DataRow("ecdsa", "-b521")] // Typically fails on GitHub bots
+    //#endif
     [DataRow("ed25519", "")]
     public async Task VerifySshSsh(string type, string ex)
     {
@@ -121,8 +121,8 @@ public class SshTests
         Assert.AreEqual(k.Algorithm, kPem.Algorithm, "Pem algorithm");
         Assert.AreEqual(k.Algorithm, kRfc4716.Algorithm, "4716 alg");
 
-        Assert.AreEqual(k.GetValues().Count, kPem.GetValues().Count, "pem value count");
-        Assert.AreEqual(k.GetValues().Count, kRfc4716.GetValues().Count, "4716 value count");
+        Assert.AreEqual(k.GetValues(true).Count, kPem.GetValues().Count, "pem value count");
+        Assert.AreEqual(k.GetValues(true).Count, kRfc4716.GetValues().Count, "4716 value count");
 
         for (int i = 0; i < k.GetValues().Count; i++)
         {
@@ -130,15 +130,21 @@ public class SshTests
             Assert.AreEqual(k.GetValues()[i], kRfc4716.GetValues()[i], $"Values of 4716[{i}] match");
         }
 
-        Console.WriteLine(k.FingerprintString);
-        Console.WriteLine(kPem.FingerprintString);
-        Console.WriteLine(kRfc4716.FingerprintString);
+        Console.WriteLine($"From SSH:     {k.FingerprintString}");
+        Console.WriteLine($"From PEM:     {kPem.FingerprintString}");
+        Console.WriteLine($"From Rfc4716: {kRfc4716.FingerprintString}");
 
-        //Assert.AreEqual(k.FingerprintString, kPem.FingerprintString, "pem fingerprint");
-        //Assert.AreEqual(k.FingerprintString, kRfc4716.FingerprintString, "4716 fingerprint");
-        //
-        //Assert.IsTrue(k.Fingerprint.SequenceEqual(kPem.Fingerprint), "pem fingerprint");
-        //Assert.IsTrue(k.Fingerprint.SequenceEqual(kRfc4716.Fingerprint), "4716 fingerprint");
+        if (type != "ecdsa")
+            Assert.AreEqual(k.FingerprintString, kPem.FingerprintString, "pem fingerprint");
+        Assert.AreEqual(k.FingerprintString, kRfc4716.FingerprintString, "4716 fingerprint");
+
+        if (type != "ecdsa")
+            Assert.IsTrue(k.Fingerprint.SequenceEqual(kPem.Fingerprint), "pem fingerprint");
+        Assert.IsTrue(k.Fingerprint.SequenceEqual(kRfc4716.Fingerprint), "4716 fingerprint");
+
+#if NET6_0_OR_GREATER
+        Console.WriteLine($"Result: SHA256:{Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(k.Fingerprint.Span)).TrimEnd('=')}");
+#endif
     }
 
     string RunSshKeyGen(params string[] args)

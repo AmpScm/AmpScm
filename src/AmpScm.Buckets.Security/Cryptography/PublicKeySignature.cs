@@ -144,46 +144,53 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
         if (alg.StartsWith("sk-", StringComparison.Ordinal))
             alg = alg.Substring(3);
 
+        (CryptoAlgorithm Alg, BigInteger[] Vals) vv;
+
         switch (alg)
         {
             case "ssh-rsa":
-                value = new PublicKeySignature(data, CryptoAlgorithm.Rsa,
+                vv = (CryptoAlgorithm.Rsa,
                     new[]
                     {
                         vals[2],
                         vals[1],
-                    }
-                );
-                return true;
+                    });
+                break;
             case "ssh-dss":
-                value = new PublicKeySignature(data, CryptoAlgorithm.Dsa,
+                vv = (CryptoAlgorithm.Dsa,
                     new[]
                     {
                         vals[1],
                         vals[2],
                         vals[3],
                         vals[4],
-                    }
-                );
-                return true;
+                    });
+                break;
             case "ssh-ed25519":
-                value = new PublicKeySignature(data, CryptoAlgorithm.Ed25519,
+                vv = (CryptoAlgorithm.Ed25519,
                     new[]
                     {
                         vals[1],
                     });
-                return true;
+                break;
             case "ecdsa-sha2-nistp256":
             case "ecdsa-sha2-nistp384":
             case "ecdsa-sha2-nistp521":
                 {
-                    var values = CryptoDataBucket.GetEcdsaValues(vals.Skip(1).ToArray(), false);
-                    value = new PublicKeySignature(data, CryptoAlgorithm.Ecdsa, values);
-                    return true;
+                    var values = CryptoDataBucket.GetEcdsaValues(vals.Skip(1).ToArray());
+                    vv =(CryptoAlgorithm.Ecdsa, values);
+                    break;
                 }
             default:
                 throw new NotImplementedException($"SSH public key format {items[0]} not implemented yet");
         }
+
+
+        value = new PublicKeySignature(data /*CryptoDataBucket.CreateSshFingerprint(vv.Alg, vv.Vals)*/, vv.Alg, vv.Vals);
+
+        //Debug.Assert(line.StartsWith(value.FingerprintString+" "), $"{value.FingerprintString} == {line}");
+
+        return true;
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

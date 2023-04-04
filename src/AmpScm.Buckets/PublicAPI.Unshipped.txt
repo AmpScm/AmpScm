@@ -141,6 +141,8 @@ override AmpScm.Buckets.Specialized.TlsBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.TlsBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.Specialized.TlsBucket.Position.get -> long?
 override AmpScm.Buckets.Specialized.TlsBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
+override AmpScm.Buckets.WrappingBucket.AcceptDisposing() -> bool
+override AmpScm.Buckets.WrappingBucket.Reset() -> void
 static AmpScm.Buckets.Bucket.Create.get -> AmpScm.Buckets.Specialized.BucketFactory!
 static AmpScm.Buckets.BucketBytes.implicit operator AmpScm.Buckets.BucketBytes(System.Memory<byte> segment) -> AmpScm.Buckets.BucketBytes
 static AmpScm.Buckets.BucketBytes.PartialReturn(ref AmpScm.Buckets.BucketBytes remaining, int requested) -> AmpScm.Buckets.BucketBytes
@@ -162,6 +164,7 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadNetworkUInt16A
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.ReadUntilEofAndCloseAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA384(this AmpScm.Buckets.Bucket! bucket, System.Action<byte[]!>! created) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Trace(this AmpScm.Buckets.Bucket! bucket, string? name = null) -> AmpScm.Buckets.Bucket!
+static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.VerifyEqual(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Bucket! mustBeSame) -> AmpScm.Buckets.Bucket!
 virtual AmpScm.Buckets.Client.BucketWebClient.Dispose(bool disposing) -> void
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.get -> string?
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.set -> void

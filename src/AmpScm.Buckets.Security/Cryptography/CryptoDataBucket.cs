@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net.Mail;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
@@ -62,7 +63,7 @@ namespace AmpScm.Buckets.Cryptography
                     pwd = s2k.Salt.Concat(pwd);
                 }
 
-                var zeroBytes =(zeros > 0) ? Enumerable.Range(0, zeros).Select(_ => (byte)0).ToArray() : null;
+                var zeroBytes = (zeros > 0) ? Enumerable.Range(0, zeros).Select(_ => (byte)0).ToArray() : null;
                 zeros++;
 
                 byte[] toHash = pwd.ToArray();
@@ -121,35 +122,32 @@ namespace AmpScm.Buckets.Cryptography
             return "";
         }
 
-        internal static BigInteger[] GetEcdsaValues(IReadOnlyList<BigInteger> vals, bool pgp = false)
+        internal static BigInteger[] GetEcdsaValues(IReadOnlyList<BigInteger> vals)
         {
             var curveValue = vals[0].ToCryptoValue();
 
-            if (!pgp)
-            {
-                string name = Encoding.ASCII.GetString(curveValue).Replace('p', 'P');
-                
+            string name = Encoding.ASCII.GetString(curveValue).Replace('p', 'P');
 
-                switch(name) 
-                {
-                    case nameof(ECCurve.NamedCurves.nistP256):
-                        curveValue = new byte[] { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07 };
-                        break;
-                    case nameof(ECCurve.NamedCurves.nistP384):
-                        curveValue = new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x22 };
-                        break;
-                    case nameof(ECCurve.NamedCurves.nistP521):
-                        curveValue = new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x23 };
-                        break;
-                    case nameof(ECCurve.NamedCurves.brainpoolP256r1):
-                        curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07 };
-                        break;
-                    case nameof(ECCurve.NamedCurves.brainpoolP512t1):
-                        curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D };
-                        break;
-                    default:
-                        throw new NotImplementedException($"Unknown curve {name}");
-                }
+
+            switch (name)
+            {
+                case nameof(ECCurve.NamedCurves.nistP256):
+                    curveValue = new byte[] { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07 };
+                    break;
+                case nameof(ECCurve.NamedCurves.nistP384):
+                    curveValue = new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x22 };
+                    break;
+                case nameof(ECCurve.NamedCurves.nistP521):
+                    curveValue = new byte[] { 0x2B, 0x81, 0x04, 0x00, 0x23 };
+                    break;
+                case nameof(ECCurve.NamedCurves.brainpoolP256r1):
+                    curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07 };
+                    break;
+                case nameof(ECCurve.NamedCurves.brainpoolP512t1):
+                    curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D };
+                    break;
+                default:
+                    throw new NotImplementedException($"Unknown curve {name}");
             }
 
             return new[] { curveValue.ToBigInteger() }.Concat(vals.Skip(1)).ToArray();
@@ -168,6 +166,8 @@ namespace AmpScm.Buckets.Cryptography
             while (ReadSshStringAsync(b).AsTask().Result is BucketBytes bb && !bb.IsEof)
             {
                 mems.Add(bb.Memory.ToBigInteger());
+
+                //Debug.Assert(bb.Memory.ToBigInteger().ToCryptoValue(false).AsSpan().SequenceEqual(bb.Memory.Span));
             }
 
             return mems.ToArray();
@@ -774,6 +774,50 @@ namespace AmpScm.Buckets.Cryptography
 
             _reader = null;
             _position = 0;
+        }
+
+        internal static ReadOnlyMemory<byte> CreateSshFingerprint(CryptoAlgorithm sba, IReadOnlyList<BigInteger> keyInts)
+        {
+            ByteCollector bb = new(4096);
+
+            var ints = keyInts.Select(x => x.ToCryptoValue(false)).ToList();
+
+            string alg;
+            switch (sba)
+            {
+                case CryptoAlgorithm.Rsa:
+                    alg = "ssh-rsa";
+                    (ints[1], ints[0]) = (ints[0], ints[1]);
+                    break;
+                case CryptoAlgorithm.Dsa:
+                    alg = "ssh-dss";
+                    break;
+                case CryptoAlgorithm.Ed25519:
+                    alg = "ssh-ed25519";
+                    break;
+                case CryptoAlgorithm.Ecdsa:
+                    string kv = CryptoExtensions.GetCurveName(keyInts[0]);
+
+                    if (kv.StartsWith("ECDSA_", StringComparison.OrdinalIgnoreCase))
+#pragma warning disable CA1308 // Normalize strings to uppercase
+                        kv = "nist" + kv.Substring(6).ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
+                    alg = "ecdsa-sha2-" + kv.ToString();
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            bb.Append(NetBitConverter.GetBytes(alg.Length));
+            bb.Append(Encoding.ASCII.GetBytes(alg));
+
+            for (int i = 0; i < ints.Count; i++)
+            {
+                bb.Append(NetBitConverter.GetBytes(ints[i].Length));
+                bb.Append(ints[i]);
+            }
+
+            return bb.ToArray();
         }
 
         public override long? Position => _position;

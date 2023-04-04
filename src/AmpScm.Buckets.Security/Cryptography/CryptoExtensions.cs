@@ -40,6 +40,11 @@ namespace AmpScm.Buckets.Cryptography
             return value.ToByteArray(true, true);
         }
 
+        internal static byte[] ToCryptoValue(this BigInteger value, bool unsigned)
+        {
+            return value.ToByteArray(unsigned, true);
+        }
+
         internal static BigInteger ToBigInteger(this byte[] value)
         {
             return ToBigInteger(value.AsMemory());
@@ -231,9 +236,9 @@ namespace AmpScm.Buckets.Cryptography
             if (v[0] != 0x04)
                 throw new InvalidOperationException();
 
-            int n = (v.Length - 1)/2;
+            int n = (v.Length - 1) / 2;
             var v1 = v.Skip(1).Take(n).ToArray();
-            var v2 = v.Skip(1+n).ToArray();
+            var v2 = v.Skip(1 + n).ToArray();
 
             p.Q = new ECPoint { X = v1.AlignUp(), Y = v2.AlignUp() };
 
