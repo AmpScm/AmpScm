@@ -34,6 +34,8 @@ internal enum CryptoTag
 
 
     DerValue = 10021,
+    SshPublicKey = 10031,
+    SshSignaturePublicKey = 10032
 }
 
 internal enum PgpSignatureType : byte

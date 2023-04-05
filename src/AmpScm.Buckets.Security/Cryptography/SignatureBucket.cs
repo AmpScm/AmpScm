@@ -38,7 +38,7 @@ public sealed class SignatureBucket : CryptoDataBucket
     {
         switch (tag)
         {
-            case CryptoTag.SignaturePublicKey when Source.IsSsh:
+            case CryptoTag.SshSignaturePublicKey:
                 {
                     PgpPublicKeyType publicKeyType;
                     uint sshVersion = await bucket.ReadNetworkUInt32Async().ConfigureAwait(false);
@@ -141,7 +141,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     _signatures.Add(new(SignatureType: default, Signer: default, publicKeyType, hashAlgorithm, 0, SignTime: null, signBlob, bigInts.ToArray(), keyFingerprint));
                     break;
                 }
-            case CryptoTag.PublicKey when Source.IsSsh:
+            case CryptoTag.SshPublicKey:
                 {
                     BucketBytes bb;
                     ByteCollector bc = new();

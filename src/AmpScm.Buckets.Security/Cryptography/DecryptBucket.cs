@@ -337,6 +337,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                             }
                         case 4 when (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false) == 0):
                             {
+                                // Use key directly
                                 _sessionAlgorithm = cipherAlgorithm;
                                 _sessionKey = key.ToArray();
                                 break;

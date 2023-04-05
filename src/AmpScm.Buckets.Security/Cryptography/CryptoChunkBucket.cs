@@ -80,7 +80,7 @@ namespace AmpScm.Buckets.Cryptography
             {
                 if (first)
                 {
-                    return (inner.NoDispose(), sshPublicKey ? CryptoTag.PublicKey : CryptoTag.SignaturePublicKey);
+                    return (inner.NoDispose(), sshPublicKey ? CryptoTag.SshPublicKey : CryptoTag.SshSignaturePublicKey);
                 }
                 else
                 {
