@@ -36,7 +36,7 @@ internal enum CryptoTag
     DerValue = 10021,
 }
 
-internal enum OpenPgpSignatureType : byte
+internal enum PgpSignatureType : byte
 {
     BinaryDocument = 0x00,
     CanonicalTextDocument = 0x01, // EOL -> CRLF
@@ -47,7 +47,7 @@ internal enum OpenPgpSignatureType : byte
     PositiveCertification = 0x13,
 }
 
-internal enum OpenPgpSubPacketType : byte
+internal enum PgpSubPacketType : byte
 {
     /// <summary>Reserved</summary>
     None = 0,
@@ -114,12 +114,12 @@ internal enum PgpPublicKeyType
     AEDH = 23,
     AEDSA = 24,
 
-    // Outside PGP range, used for ssh and openpgp specialized handling
+    // Outside PGP range, used for ssh and pgp specialized handling
     Ed25519 = 0x1001,
     Curve25519 = 0x1002,
 }
 
-internal enum OpenPgpSymmetricAlgorithm
+internal enum PgpSymmetricAlgorithm
 {
     None,
     Idea = 1,
@@ -135,7 +135,7 @@ internal enum OpenPgpSymmetricAlgorithm
     Camellia256 = 13
 }
 
-internal enum OpenPgpCompressionType
+internal enum PgpCompressionType
 {
     None,
     Zip = 1,
@@ -143,7 +143,7 @@ internal enum OpenPgpCompressionType
     Bzip2 = 3,
 }
 
-internal enum OpenPgpAeadAlgorithm
+internal enum PgpAeadAlgorithm
 {
     None,
     Eax = 1,

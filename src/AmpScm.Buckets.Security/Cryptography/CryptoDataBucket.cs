@@ -31,20 +31,20 @@ namespace AmpScm.Buckets.Cryptography
                 PushChunkReader(Source);
         }
 
-        private protected static int GetKeySize(OpenPgpSymmetricAlgorithm cipherAlgorithm)
+        private protected static int GetKeySize(PgpSymmetricAlgorithm cipherAlgorithm)
         {
             return cipherAlgorithm switch
             {
-                OpenPgpSymmetricAlgorithm.Aes => 128,
-                OpenPgpSymmetricAlgorithm.Aes192 => 192,
-                OpenPgpSymmetricAlgorithm.Aes256 => 256,
-                OpenPgpSymmetricAlgorithm.TripleDes => 192,
-                OpenPgpSymmetricAlgorithm.Blowfish128 => 128,
+                PgpSymmetricAlgorithm.Aes => 128,
+                PgpSymmetricAlgorithm.Aes192 => 192,
+                PgpSymmetricAlgorithm.Aes256 => 256,
+                PgpSymmetricAlgorithm.TripleDes => 192,
+                PgpSymmetricAlgorithm.Blowfish128 => 128,
                 _ => throw new NotImplementedException($"Keysize for cipher {cipherAlgorithm} not implemented yet.")
             };
         }
 
-        private protected record struct S2KSpecifier(PgpHashAlgorithm HashAlgorithm, byte[]? Salt, int HashByteCount, OpenPgpSymmetricAlgorithm CipherAlgorithm, byte Type);
+        private protected record struct S2KSpecifier(PgpHashAlgorithm HashAlgorithm, byte[]? Salt, int HashByteCount, PgpSymmetricAlgorithm CipherAlgorithm, byte Type);
 
         private protected static byte[] DeriveS2kKey(S2KSpecifier s2k, string password)
         {
@@ -173,7 +173,7 @@ namespace AmpScm.Buckets.Cryptography
             return mems.ToArray();
         }
 
-        private protected static async ValueTask<S2KSpecifier> ReadPgpS2kSpecifierAsync(Bucket bucket, OpenPgpSymmetricAlgorithm algorithm)
+        private protected static async ValueTask<S2KSpecifier> ReadPgpS2kSpecifierAsync(Bucket bucket, PgpSymmetricAlgorithm algorithm)
         {
             byte type = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
             PgpHashAlgorithm alg;
@@ -369,13 +369,13 @@ namespace AmpScm.Buckets.Cryptography
         }
 
 
-        private protected static Bucket CreateDecryptBucket(Bucket source, OpenPgpSymmetricAlgorithm algorithm, byte[] key, byte[]? iv = null)
+        private protected static Bucket CreateDecryptBucket(Bucket source, PgpSymmetricAlgorithm algorithm, byte[] key, byte[]? iv = null)
         {
             switch (algorithm)
             {
-                case OpenPgpSymmetricAlgorithm.Aes:
-                case OpenPgpSymmetricAlgorithm.Aes192:
-                case OpenPgpSymmetricAlgorithm.Aes256:
+                case PgpSymmetricAlgorithm.Aes:
+                case PgpSymmetricAlgorithm.Aes192:
+                case PgpSymmetricAlgorithm.Aes256:
 
                     var aes = Aes.Create();
 #pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
@@ -394,13 +394,13 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
-        private protected static async ValueTask<Bucket> StartDecryptLoadIV(Bucket bucket, OpenPgpSymmetricAlgorithm algorithm, byte[] sessionKey)
+        private protected static async ValueTask<Bucket> StartDecryptLoadIV(Bucket bucket, PgpSymmetricAlgorithm algorithm, byte[] sessionKey)
         {
             switch (algorithm)
             {
-                case OpenPgpSymmetricAlgorithm.Aes:
-                case OpenPgpSymmetricAlgorithm.Aes192:
-                case OpenPgpSymmetricAlgorithm.Aes256:
+                case PgpSymmetricAlgorithm.Aes:
+                case PgpSymmetricAlgorithm.Aes192:
+                case PgpSymmetricAlgorithm.Aes256:
                     var dcb = CreateDecryptBucket(bucket, algorithm, sessionKey, null);
                     var bb = await dcb.ReadExactlyAsync(GetKeySize(algorithm) / 8 + 2).ConfigureAwait(false);
 
@@ -414,7 +414,7 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
-        private protected sealed record SignatureInfo(OpenPgpSignatureType SignatureType, byte[]? Signer, PgpPublicKeyType PublicKeyType, PgpHashAlgorithm HashAlgorithm, ushort HashStart, DateTimeOffset? SignTime, byte[]? SignBlob, IReadOnlyList<BigInteger> SignatureInts, byte[]? SignKeyFingerprint);
+        private protected sealed record SignatureInfo(PgpSignatureType SignatureType, byte[]? Signer, PgpPublicKeyType PublicKeyType, PgpHashAlgorithm HashAlgorithm, ushort HashStart, DateTimeOffset? SignTime, byte[]? SignBlob, IReadOnlyList<BigInteger> SignatureInts, byte[]? SignKeyFingerprint);
 
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
@@ -496,7 +496,7 @@ namespace AmpScm.Buckets.Cryptography
 
         private protected static async ValueTask<SignatureInfo> ParseSignatureAsync(Bucket bucket)
         {
-            OpenPgpSignatureType signatureType;
+            PgpSignatureType signatureType;
             byte[]? signer = null;
             PgpPublicKeyType publicKeyType;
             PgpHashAlgorithm hashAlgorithm;
@@ -540,7 +540,7 @@ namespace AmpScm.Buckets.Cryptography
                 bc.Append(version);
                 bc.Append(bb);
 
-                signatureType = (OpenPgpSignatureType)bb[0];
+                signatureType = (PgpSignatureType)bb[0];
                 publicKeyType = (PgpPublicKeyType)bb[1];
                 hashAlgorithm = (PgpHashAlgorithm)bb[2];
                 int subLen;
@@ -571,9 +571,9 @@ namespace AmpScm.Buckets.Cryptography
                         byte b = await subRead.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(subRead);
                         len--;
 
-                        switch ((OpenPgpSubPacketType)b)
+                        switch ((PgpSubPacketType)b)
                         {
-                            case OpenPgpSubPacketType.SignatureCreationTime:
+                            case PgpSubPacketType.SignatureCreationTime:
                                 if (len != 4)
                                     throw new InvalidOperationException();
 
@@ -581,27 +581,27 @@ namespace AmpScm.Buckets.Cryptography
 
                                 signTime = DateTimeOffset.FromUnixTimeSeconds(time).DateTime;
                                 break;
-                            case OpenPgpSubPacketType.Issuer:
+                            case PgpSubPacketType.Issuer:
                                 signer = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
                                 break;
-                            case OpenPgpSubPacketType.IssuerFingerprint:
+                            case PgpSubPacketType.IssuerFingerprint:
                                 signKeyFingerprint = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
                                 break;
 
                             // Currently unhandled fields from private keys
-                            case OpenPgpSubPacketType.KeyFlags:
-                            case OpenPgpSubPacketType.KeyExpirationTime:
-                            case OpenPgpSubPacketType.PreferredSymetricAlgorithms:
-                            case OpenPgpSubPacketType.PreferredHashAlgorithms:
-                            case OpenPgpSubPacketType.PreferredCompressionAlgorithms:
-                            case OpenPgpSubPacketType.Features:
-                            case OpenPgpSubPacketType.KeyServerPreferences:
-                            case OpenPgpSubPacketType.PreferredAeadAlgorithms:
+                            case PgpSubPacketType.KeyFlags:
+                            case PgpSubPacketType.KeyExpirationTime:
+                            case PgpSubPacketType.PreferredSymetricAlgorithms:
+                            case PgpSubPacketType.PreferredHashAlgorithms:
+                            case PgpSubPacketType.PreferredCompressionAlgorithms:
+                            case PgpSubPacketType.Features:
+                            case PgpSubPacketType.KeyServerPreferences:
+                            case PgpSubPacketType.PreferredAeadAlgorithms:
                                 if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
                                     throw new BucketEofException(subRead);
                                 break;
 
-                            case OpenPgpSubPacketType.SignersUserID:
+                            case PgpSubPacketType.SignersUserID:
                                 if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
                                     throw new BucketEofException(subRead);
                                 break;
@@ -668,7 +668,7 @@ namespace AmpScm.Buckets.Cryptography
                 var bb = await bucket.ReadExactlyAsync(18).ConfigureAwait(false);
                 if (bb[0] != 5)
                     throw new BucketException($"HashInfoLen must by 5 for v3 in {bucket.Name}");
-                signatureType = (OpenPgpSignatureType)bb[1];
+                signatureType = (PgpSignatureType)bb[1];
                 signTime = DateTimeOffset.FromUnixTimeSeconds(NetBitConverter.ToUInt32(bb, 2)).DateTime;
                 signer = bb.Slice(6, 8).ToArray();
                 publicKeyType = (PgpPublicKeyType)bb[14];

@@ -16,7 +16,7 @@ namespace AmpScm.Buckets.Cryptography;
 
 public sealed class DecryptBucket : CryptoDataBucket
 {
-    private OpenPgpSymmetricAlgorithm _sessionAlgorithm;
+    private PgpSymmetricAlgorithm _sessionAlgorithm;
     private ReadOnlyMemory<byte> _sessionKey; // The symetric key
     private string? _fileName;
     private DateTime? _fileDate;
@@ -42,19 +42,19 @@ public sealed class DecryptBucket : CryptoDataBucket
                     byte? b = await bucket.ReadByteAsync().ConfigureAwait(false);
 
                     Bucket rd;
-                    switch ((OpenPgpCompressionType)b)
+                    switch ((PgpCompressionType)b)
                     {
-                        case OpenPgpCompressionType.None:
+                        case PgpCompressionType.None:
                             rd = bucket;
                             break;
-                        case OpenPgpCompressionType.Zip:
+                        case PgpCompressionType.Zip:
                             rd = new ZLibBucket(bucket, BucketCompressionAlgorithm.Deflate);
                             break;
-                        case OpenPgpCompressionType.Zlib:
+                        case PgpCompressionType.Zlib:
                             rd = new ZLibBucket(bucket, BucketCompressionAlgorithm.ZLib);
                             break;
                         default:
-                            throw new NotImplementedException($"Compression algorithm {(OpenPgpCompressionType)b} not implemented");
+                            throw new NotImplementedException($"Compression algorithm {(PgpCompressionType)b} not implemented");
                     }
 
                     PushChunkReader(new CryptoChunkBucket(rd.NoDispose()));
@@ -101,7 +101,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                                 if (checksum == data.Skip(1).Take(data.Length - 3).Sum(x => (ushort)x))
                                 {
-                                    _sessionAlgorithm = (OpenPgpSymmetricAlgorithm)data[0];
+                                    _sessionAlgorithm = (PgpSymmetricAlgorithm)data[0];
                                     _sessionKey = data.AsMemory(1, data.Length - 3); // Minus first byte (session alg) and last two bytes (checksum)
                                 }
                             }
@@ -164,7 +164,7 @@ public sealed class DecryptBucket : CryptoDataBucket
             case CryptoTag.OnePassSignature:
                 {
                     byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-                    var signatureType = (OpenPgpSignatureType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                    var signatureType = (PgpSignatureType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                     var hashAlgorithm = (PgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                     var pkt = (PgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
@@ -180,7 +180,7 @@ public sealed class DecryptBucket : CryptoDataBucket
             case CryptoTag.OCBEncryptedData:
                 {
                     byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-                    var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                    var cipherAlgorithm = (PgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                     byte aeadAlgorithm = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                     byte chunkVal = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
@@ -288,7 +288,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     }
 
                     byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-                    var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                    var cipherAlgorithm = (PgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                     if (version == 5)
                     {
                         byte ocb = (await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
@@ -420,9 +420,9 @@ public sealed class DecryptBucket : CryptoDataBucket
     {
         switch (_sessionAlgorithm)
         {
-            case OpenPgpSymmetricAlgorithm.Aes:
-            case OpenPgpSymmetricAlgorithm.Aes192:
-            case OpenPgpSymmetricAlgorithm.Aes256:
+            case PgpSymmetricAlgorithm.Aes:
+            case PgpSymmetricAlgorithm.Aes192:
+            case PgpSymmetricAlgorithm.Aes256:
                 {
                     var aes = Aes.Create();
 #pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
@@ -444,7 +444,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                     return _literalSha;
                 }
-            case OpenPgpSymmetricAlgorithm.TripleDes:
+            case PgpSymmetricAlgorithm.TripleDes:
                 {
 #pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
                     var tripleDes = TripleDES.Create();
@@ -491,7 +491,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
     private sealed record PgpSignature
     {
-        public PgpSignature(byte version, OpenPgpSignatureType signatureType, PgpHashAlgorithm hashAlgorithm, PgpPublicKeyType pkt, byte[] signer)
+        public PgpSignature(byte version, PgpSignatureType signatureType, PgpHashAlgorithm hashAlgorithm, PgpPublicKeyType pkt, byte[] signer)
         {
             Version = version;
             SignatureType = signatureType;
@@ -501,7 +501,7 @@ public sealed class DecryptBucket : CryptoDataBucket
         }
 
         public byte Version { get; }
-        public OpenPgpSignatureType SignatureType { get; }
+        public PgpSignatureType SignatureType { get; }
         public PgpHashAlgorithm HashAlgorithm { get; }
         public PgpPublicKeyType Pkt { get; }
         public byte[] Signer { get; }

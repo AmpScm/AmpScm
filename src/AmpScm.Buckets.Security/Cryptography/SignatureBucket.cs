@@ -291,7 +291,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         }
                         else if (sku is 254 or 255 or 253)
                         {
-                            var cipherAlgorithm = (OpenPgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                            var cipherAlgorithm = (PgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
                             var s2k = await ReadPgpS2kSpecifierAsync(bucket, cipherAlgorithm).ConfigureAwait(false);
 
