@@ -40,7 +40,7 @@ public sealed class SignatureBucket : CryptoDataBucket
         {
             case CryptoTag.SignaturePublicKey when Source.IsSsh:
                 {
-                    OpenPgpPublicKeyType publicKeyType;
+                    PgpPublicKeyType publicKeyType;
                     uint sshVersion = await bucket.ReadNetworkUInt32Async().ConfigureAwait(false);
 
                     if (sshVersion != 1)
@@ -60,10 +60,10 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                         publicKeyType = alg switch
                         {
-                            "ssh-rsa" => OpenPgpPublicKeyType.Rsa,
-                            "ssh-dss" => OpenPgpPublicKeyType.Dsa,
-                            "ssh-ed25519" or "ssh-ed25519@openssh.com" => OpenPgpPublicKeyType.Ed25519,
-                            "ecdsa-sha2-nistp256" or "ecdsa-sha2-nistp384" or "ecdsa-sha2-nistp521" => OpenPgpPublicKeyType.ECDSA,
+                            "ssh-rsa" => PgpPublicKeyType.Rsa,
+                            "ssh-dss" => PgpPublicKeyType.Dsa,
+                            "ssh-ed25519" or "ssh-ed25519@openssh.com" => PgpPublicKeyType.Ed25519,
+                            "ecdsa-sha2-nistp256" or "ecdsa-sha2-nistp384" or "ecdsa-sha2-nistp521" => PgpPublicKeyType.ECDSA,
                             _ => throw new NotImplementedException($"Unknown public key type: {alg}"),
                         };
 
@@ -75,7 +75,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                         keyInts = keyList.ToArray();
 
-                        if (publicKeyType == OpenPgpPublicKeyType.ECDSA)
+                        if (publicKeyType == PgpPublicKeyType.ECDSA)
                             keyInts = GetEcdsaValues(keyInts);
                     }
 
@@ -104,8 +104,8 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                     var hashAlgorithm = sigHashAlgo switch
                     {
-                        "sha256" => OpenPgpHashAlgorithm.SHA256,
-                        "sha512" => OpenPgpHashAlgorithm.SHA512,
+                        "sha256" => PgpHashAlgorithm.SHA256,
+                        "sha512" => PgpHashAlgorithm.SHA512,
                         _ => throw new NotImplementedException($"Unexpected hash type: {sigHashAlgo} in SSH SignaturePublicKey from {bucket.Name} Bucket"),
                     };
 
@@ -174,7 +174,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     DateTime keyTime;
                     BigInteger[]? keyInts;
                     byte[]? keyFingerprint = null;
-                    OpenPgpPublicKeyType keyPublicKeyType;
+                    PgpPublicKeyType keyPublicKeyType;
                     bool hasSecretKey = (tag is CryptoTag.SecretKey or CryptoTag.SecretSubkey);
 
                     var csum = bucket.NoDispose().Buffer();
@@ -189,7 +189,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                             throw new BucketEofException(bucket);
 
                         keyTime = DateTimeOffset.FromUnixTimeSeconds(NetBitConverter.ToUInt32(bb, 0)).DateTime;
-                        keyPublicKeyType = (OpenPgpPublicKeyType)bb[4];
+                        keyPublicKeyType = (PgpPublicKeyType)bb[4];
 
                         if (version == 5)
                             await csum.ReadNetworkInt32Async().ConfigureAwait(false); // Length of what follows
@@ -205,17 +205,17 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                     int nrOfInts = keyPublicKeyType switch
                     {
-                        OpenPgpPublicKeyType.Rsa or
-                        OpenPgpPublicKeyType.RsaEncryptOnly or
-                        OpenPgpPublicKeyType.RsaSignOnly => 2,
-                        OpenPgpPublicKeyType.Elgamal => 3,
-                        OpenPgpPublicKeyType.Dsa => 4,
-                        OpenPgpPublicKeyType.ECDH => 3,
-                        OpenPgpPublicKeyType.ECDSA => 2,
-                        OpenPgpPublicKeyType.EdDSA => 2,
+                        PgpPublicKeyType.Rsa or
+                        PgpPublicKeyType.RsaEncryptOnly or
+                        PgpPublicKeyType.RsaSignOnly => 2,
+                        PgpPublicKeyType.Elgamal => 3,
+                        PgpPublicKeyType.Dsa => 4,
+                        PgpPublicKeyType.ECDH => 3,
+                        PgpPublicKeyType.ECDSA => 2,
+                        PgpPublicKeyType.EdDSA => 2,
                         _ => throw new NotImplementedException($"Unexpected public key type {keyPublicKeyType}")
                     };
-                    if (keyPublicKeyType is OpenPgpPublicKeyType.EdDSA or OpenPgpPublicKeyType.ECDSA or OpenPgpPublicKeyType.ECDH)
+                    if (keyPublicKeyType is PgpPublicKeyType.EdDSA or PgpPublicKeyType.ECDSA or PgpPublicKeyType.ECDH)
                     {
                         byte b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
 
@@ -229,7 +229,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         bigInts.Add(bb.Memory.ToBigInteger());
                     }
 
-                    if (keyPublicKeyType is OpenPgpPublicKeyType.ECDH)
+                    if (keyPublicKeyType is PgpPublicKeyType.ECDH)
                     {
                         var bi = await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false);
 
@@ -330,13 +330,13 @@ public sealed class SignatureBucket : CryptoDataBucket
                         {
                             switch (keyPublicKeyType)
                             {
-                                case OpenPgpPublicKeyType.Rsa:
+                                case PgpPublicKeyType.Rsa:
                                     nrOfInts += 4;
                                     break;
-                                case OpenPgpPublicKeyType.Dsa:
+                                case PgpPublicKeyType.Dsa:
                                     nrOfInts += 1;
                                     break;
-                                case OpenPgpPublicKeyType.Elgamal:
+                                case PgpPublicKeyType.Elgamal:
                                     nrOfInts += 1;
                                     break;
                                 default:
@@ -374,16 +374,16 @@ public sealed class SignatureBucket : CryptoDataBucket
                         throw new BucketException($"Unexpected data after {keyPublicKeyType} key");
 
                     keyInts = bigInts.ToArray();
-                    if (keyPublicKeyType == OpenPgpPublicKeyType.EdDSA && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
+                    if (keyPublicKeyType == PgpPublicKeyType.EdDSA && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01 }))
                     {
                         // This algorithm is not implemented by .Net, but for this specific curve we have a workaround
-                        keyPublicKeyType = OpenPgpPublicKeyType.Ed25519;
+                        keyPublicKeyType = PgpPublicKeyType.Ed25519;
                         // Convert `0x40 | value` form to `value`
                         keyInts = new[] { keyInts[1].ToCryptoValue().Skip(1).ToBigInteger() };
                     }
-                    else if (keyPublicKeyType == OpenPgpPublicKeyType.ECDH && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
+                    else if (keyPublicKeyType == PgpPublicKeyType.ECDH && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
                     {
-                        keyPublicKeyType = OpenPgpPublicKeyType.Curve25519;
+                        keyPublicKeyType = PgpPublicKeyType.Curve25519;
                         keyInts = keyInts.Skip(1).ToArray();
                     }
 
@@ -587,27 +587,27 @@ public sealed class SignatureBucket : CryptoDataBucket
         // SSH SignaturePublicKey signs blob that contains original hash and some other data
         var toSign = _signatureInfo.SignBlob!.AsBucket() + NetBitConverter.GetBytes(hashValue.Length).AsBucket() + hashValue.AsBucket();
 
-        OpenPgpHashAlgorithm? overrideAlg = null;
+        PgpHashAlgorithm? overrideAlg = null;
 
-        if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.Dsa)
-            overrideAlg = OpenPgpHashAlgorithm.SHA1;
-        else if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.ECDSA)
+        if (_signatureInfo.PublicKeyType == PgpPublicKeyType.Dsa)
+            overrideAlg = PgpHashAlgorithm.SHA1;
+        else if (_signatureInfo.PublicKeyType == PgpPublicKeyType.ECDSA)
         {
             string curveName = CryptoExtensions.GetCurveName(key?.GetValues(false)[0] ?? keyInts![2]);
 
-            overrideAlg = OpenPgpHashAlgorithm.SHA512;
+            overrideAlg = PgpHashAlgorithm.SHA512;
 
             if (curveName.EndsWith("256", StringComparison.Ordinal) || curveName.EndsWith("256r1", StringComparison.Ordinal))
-                overrideAlg = OpenPgpHashAlgorithm.SHA256;
+                overrideAlg = PgpHashAlgorithm.SHA256;
             else if (curveName.EndsWith("384", StringComparison.Ordinal))
-                overrideAlg = OpenPgpHashAlgorithm.SHA384;
+                overrideAlg = PgpHashAlgorithm.SHA384;
             else if (curveName.EndsWith("521", StringComparison.Ordinal))
-                overrideAlg = OpenPgpHashAlgorithm.SHA512;
+                overrideAlg = PgpHashAlgorithm.SHA512;
         }
-        else if (_signatureInfo.PublicKeyType == OpenPgpPublicKeyType.Rsa && Source.IsSsh)
-            overrideAlg = OpenPgpHashAlgorithm.SHA512;
+        else if (_signatureInfo.PublicKeyType == PgpPublicKeyType.Rsa && Source.IsSsh)
+            overrideAlg = PgpHashAlgorithm.SHA512;
 
-        if (_signatureInfo.PublicKeyType != OpenPgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
+        if (_signatureInfo.PublicKeyType != PgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
             hashValue = await CalculateHash(toSign, overrideAlg ?? _signatureInfo.HashAlgorithm).ConfigureAwait(false);
         else
             hashValue = toSign.ToArray();

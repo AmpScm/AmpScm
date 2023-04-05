@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace SecurityBucketTests;
 
 [TestClass]
-public partial class OpenPgpTests
+public partial class PgpTests
 {
     const string Sig1 =
 @"-----BEGIN PGP SignaturePublicKey-----

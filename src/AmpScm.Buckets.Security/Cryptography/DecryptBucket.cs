@@ -75,7 +75,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     }
 
                     var fingerprint = bb.ToArray();
-                    var pca = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                    var pca = (PgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
                     var key = KeyChain?.FindKey(bb.Memory, requirePrivateKey: true) as PublicKeySignature;
 
@@ -165,8 +165,8 @@ public sealed class DecryptBucket : CryptoDataBucket
                 {
                     byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                     var signatureType = (OpenPgpSignatureType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
-                    var hashAlgorithm = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
-                    var pkt = (OpenPgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                    var hashAlgorithm = (PgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                    var pkt = (PgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
                     byte[] signer = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
 
@@ -491,7 +491,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
     private sealed record PgpSignature
     {
-        public PgpSignature(byte version, OpenPgpSignatureType signatureType, OpenPgpHashAlgorithm hashAlgorithm, OpenPgpPublicKeyType pkt, byte[] signer)
+        public PgpSignature(byte version, OpenPgpSignatureType signatureType, PgpHashAlgorithm hashAlgorithm, PgpPublicKeyType pkt, byte[] signer)
         {
             Version = version;
             SignatureType = signatureType;
@@ -502,8 +502,8 @@ public sealed class DecryptBucket : CryptoDataBucket
 
         public byte Version { get; }
         public OpenPgpSignatureType SignatureType { get; }
-        public OpenPgpHashAlgorithm HashAlgorithm { get; }
-        public OpenPgpPublicKeyType Pkt { get; }
+        public PgpHashAlgorithm HashAlgorithm { get; }
+        public PgpPublicKeyType Pkt { get; }
         public byte[] Signer { get; }
         public Func<byte[]?, byte[]>? Completer { get; internal set; }
     }

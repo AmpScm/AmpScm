@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Specialized
     {
         private readonly int _maxRam;
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly Bucket _readBucket;
+        private readonly AggregateBucket.SimpleAggregate _readBucket;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly /*IBucketWriter*/ MyWriter _writer;
         private long _buffered;
@@ -26,7 +26,7 @@ namespace AmpScm.Buckets.Specialized
                 throw new ArgumentOutOfRangeException(nameof(maxMemory));
 
             _maxRam = maxMemory;
-            _readBucket = new AggregateBucket(true, Array.Empty<Bucket>());
+            _readBucket = new AggregateBucket.SimpleAggregate(true, Array.Empty<Bucket>());
             _writer = new MyWriter(this);
         }
 

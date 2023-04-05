@@ -108,5 +108,15 @@ namespace AmpScm.Buckets.Cryptography
                 base.Dispose(disposing);
             }
         }
+
+        public override async ValueTask<long?> ReadRemainingBytesAsync()
+        {
+            if (_transform?.InputBlockSize == _transform?.OutputBlockSize)
+            {
+                return await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
+            }
+            else
+                return null;
+        }
     }
 }

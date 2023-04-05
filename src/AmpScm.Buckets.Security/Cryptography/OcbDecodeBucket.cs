@@ -75,7 +75,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
 
         byte[] kTop = Encipher(nnonce);
 
-        byte[] stretched = kTop.Concat(ArrayXor(kTop.AsMemory(0, 8).ToArray(), kTop.AsMemory(1, 8))).ToArray();
+        byte[] stretched = kTop.Concat(ArrayXor(kTop.AsMemory(0, 8), kTop.AsMemory(1, 8))).ToArray();
 
         _offset = GetBits(stretched, bottom, 128);
 

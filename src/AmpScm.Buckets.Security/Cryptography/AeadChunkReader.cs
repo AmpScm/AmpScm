@@ -10,10 +10,11 @@ namespace AmpScm.Buckets.Cryptography
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Bucket? _current; // Disposed via inner
+#pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Func<int, Bucket, Bucket> _createAdditional;
         private int _iChunkNumber;
-#pragma warning restore CA2213 // Disposable fields should be disposed
         private bool _done;
+        long _position;
 
         public AeadChunkReader(Bucket source, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional) 
             : base(source)
@@ -55,11 +56,16 @@ namespace AmpScm.Buckets.Cryptography
                     }
                 }
                 else
+                {
+                    _position += bb.Length;
                     return bb;
+                }
             }
 
             return BucketBytes.Eof;
         }
+
+        public override long? Position => _position;
 
         private void NewCurrent()
         {

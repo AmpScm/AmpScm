@@ -131,7 +131,7 @@ namespace AmpScm.Buckets.Cryptography
                     if (r.PartialResult)
                     {
                         _reading = true;
-                        return (new OpenPgpPartialBodyBucket(inner.NoDispose(), r.Length!.Value).AtEof(() => _reading = false), tag);
+                        return (new PgpPartialBodyBucket(inner.NoDispose(), r.Length!.Value).AtEof(() => _reading = false), tag);
                     }
 
                     remaining = r.Length ?? throw new BucketEofException(Source);

@@ -16,7 +16,7 @@ namespace AmpScm.Buckets.Specialized
         private bool _eof;
         private readonly bool _writeCompression;
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly AggregateBucket? _written;
+        private readonly AggregateBucket.SimpleAggregate? _written;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private BucketBytes _remaining;
 

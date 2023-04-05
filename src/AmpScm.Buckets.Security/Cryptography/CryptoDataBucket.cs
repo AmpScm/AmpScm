@@ -44,7 +44,7 @@ namespace AmpScm.Buckets.Cryptography
             };
         }
 
-        private protected record struct S2KSpecifier(OpenPgpHashAlgorithm HashAlgorithm, byte[]? Salt, int HashByteCount, OpenPgpSymmetricAlgorithm CipherAlgorithm, byte Type);
+        private protected record struct S2KSpecifier(PgpHashAlgorithm HashAlgorithm, byte[]? Salt, int HashByteCount, OpenPgpSymmetricAlgorithm CipherAlgorithm, byte Type);
 
         private protected static byte[] DeriveS2kKey(S2KSpecifier s2k, string password)
         {
@@ -176,20 +176,20 @@ namespace AmpScm.Buckets.Cryptography
         private protected static async ValueTask<S2KSpecifier> ReadPgpS2kSpecifierAsync(Bucket bucket, OpenPgpSymmetricAlgorithm algorithm)
         {
             byte type = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
-            OpenPgpHashAlgorithm alg;
+            PgpHashAlgorithm alg;
             byte[] salt;
 
             switch (type)
             {
                 case 0:
                     { // Simple S2K
-                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                        alg = (PgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
                         return new(alg, null, 0, algorithm, type);
                     }
                 case 1:
                     { // Salted S2k
-                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                        alg = (PgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                         salt = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
 
                         return new(alg, salt, 0, algorithm, type);
@@ -197,7 +197,7 @@ namespace AmpScm.Buckets.Cryptography
                 // 2 : reserved
                 case 3:
                     { // Iterated and Salted S2K
-                        alg = (OpenPgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
+                        alg = (PgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                         salt = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
                         int count = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
@@ -212,7 +212,7 @@ namespace AmpScm.Buckets.Cryptography
 
 
 
-        private protected static async ValueTask<byte[]> CalculateHash(Bucket sourceData, OpenPgpHashAlgorithm hashAlgorithm)
+        private protected static async ValueTask<byte[]> CalculateHash(Bucket sourceData, PgpHashAlgorithm hashAlgorithm)
         {
             byte[]? result = null;
             using var sd = sourceData.Hash(CreatePgpHashAlgorithm(hashAlgorithm), x => result = x);
@@ -224,23 +224,23 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning restore CA1508 // Avoid dead conditional code
         }
 
-        private protected static HashAlgorithm CreatePgpHashAlgorithm(OpenPgpHashAlgorithm hashAlgorithm)
+        private protected static HashAlgorithm CreatePgpHashAlgorithm(PgpHashAlgorithm hashAlgorithm)
         {
             return hashAlgorithm switch
             {
-                OpenPgpHashAlgorithm.SHA256 => SHA256.Create(),
-                OpenPgpHashAlgorithm.SHA384 => SHA384.Create(),
-                OpenPgpHashAlgorithm.SHA512 => SHA512.Create(),
+                PgpHashAlgorithm.SHA256 => SHA256.Create(),
+                PgpHashAlgorithm.SHA384 => SHA384.Create(),
+                PgpHashAlgorithm.SHA512 => SHA512.Create(),
 #pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-                OpenPgpHashAlgorithm.SHA1 => SHA1.Create(),
+                PgpHashAlgorithm.SHA1 => SHA1.Create(),
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
 #pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
-                OpenPgpHashAlgorithm.MD5 => MD5.Create(),
+                PgpHashAlgorithm.MD5 => MD5.Create(),
 #pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
 
 #if NETFRAMEWORK
 #pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
-                OpenPgpHashAlgorithm.MD160 => RIPEMD160.Create(),
+                PgpHashAlgorithm.MD160 => RIPEMD160.Create(),
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
 #endif
 
@@ -248,7 +248,7 @@ namespace AmpScm.Buckets.Cryptography
             };
         }
 
-        private protected static Bucket CreateHasher(Bucket? bucket, OpenPgpHashAlgorithm hashAlgorithm, Action<Func<byte[]?, byte[]>> completer)
+        private protected static Bucket CreateHasher(Bucket? bucket, PgpHashAlgorithm hashAlgorithm, Action<Func<byte[]?, byte[]>> completer)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -258,27 +258,27 @@ namespace AmpScm.Buckets.Cryptography
             return bucket.Hash(CreatePgpHashAlgorithm(hashAlgorithm), completer);
         }
 
-        private protected static HashAlgorithmName GetDotNetHashAlgorithmName(OpenPgpHashAlgorithm hashAlgorithm)
+        private protected static HashAlgorithmName GetDotNetHashAlgorithmName(PgpHashAlgorithm hashAlgorithm)
         => hashAlgorithm switch
         {
-            OpenPgpHashAlgorithm.SHA256 => HashAlgorithmName.SHA256,
-            OpenPgpHashAlgorithm.SHA512 => HashAlgorithmName.SHA512,
-            OpenPgpHashAlgorithm.SHA384 => HashAlgorithmName.SHA384,
-            OpenPgpHashAlgorithm.SHA1 => HashAlgorithmName.SHA1,
-            OpenPgpHashAlgorithm.MD5 => HashAlgorithmName.MD5,
-            _ => throw new NotImplementedException($"OpenPGP scheme {hashAlgorithm} not mapped yet.")
+            PgpHashAlgorithm.SHA256 => HashAlgorithmName.SHA256,
+            PgpHashAlgorithm.SHA512 => HashAlgorithmName.SHA512,
+            PgpHashAlgorithm.SHA384 => HashAlgorithmName.SHA384,
+            PgpHashAlgorithm.SHA1 => HashAlgorithmName.SHA1,
+            PgpHashAlgorithm.MD5 => HashAlgorithmName.MD5,
+            _ => throw new NotImplementedException($"PGP scheme {hashAlgorithm} not mapped yet.")
         };
 
-        private protected static CryptoAlgorithm GetKeyAlgo(OpenPgpPublicKeyType keyPublicKeyType)
+        private protected static CryptoAlgorithm GetKeyAlgo(PgpPublicKeyType keyPublicKeyType)
         => keyPublicKeyType switch
         {
-            OpenPgpPublicKeyType.Rsa => CryptoAlgorithm.Rsa,
-            OpenPgpPublicKeyType.Dsa => CryptoAlgorithm.Dsa,
-            OpenPgpPublicKeyType.ECDSA => CryptoAlgorithm.Ecdsa,
-            OpenPgpPublicKeyType.Ed25519 => CryptoAlgorithm.Ed25519,
-            OpenPgpPublicKeyType.ECDH => CryptoAlgorithm.Ecdh,
-            OpenPgpPublicKeyType.Curve25519 => CryptoAlgorithm.Curve25519,
-            OpenPgpPublicKeyType.Elgamal => CryptoAlgorithm.Elgamal,
+            PgpPublicKeyType.Rsa => CryptoAlgorithm.Rsa,
+            PgpPublicKeyType.Dsa => CryptoAlgorithm.Dsa,
+            PgpPublicKeyType.ECDSA => CryptoAlgorithm.Ecdsa,
+            PgpPublicKeyType.Ed25519 => CryptoAlgorithm.Ed25519,
+            PgpPublicKeyType.ECDH => CryptoAlgorithm.Ecdh,
+            PgpPublicKeyType.Curve25519 => CryptoAlgorithm.Curve25519,
+            PgpPublicKeyType.Elgamal => CryptoAlgorithm.Elgamal,
             _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
         };
 
@@ -328,9 +328,9 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
-        private protected static bool SplitSignatureInt(int index, OpenPgpPublicKeyType signaturePublicKeyType)
+        private protected static bool SplitSignatureInt(int index, PgpPublicKeyType signaturePublicKeyType)
         {
-            return signaturePublicKeyType == OpenPgpPublicKeyType.ECDSA && index == 0;
+            return signaturePublicKeyType == PgpPublicKeyType.ECDSA && index == 0;
         }
 
         private protected static async ValueTask SequenceToList(List<BigInteger> vals, DerBucket der2)
@@ -414,7 +414,7 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
-        private protected sealed record SignatureInfo(OpenPgpSignatureType SignatureType, byte[]? Signer, OpenPgpPublicKeyType PublicKeyType, OpenPgpHashAlgorithm HashAlgorithm, ushort HashStart, DateTimeOffset? SignTime, byte[]? SignBlob, IReadOnlyList<BigInteger> SignatureInts, byte[]? SignKeyFingerprint);
+        private protected sealed record SignatureInfo(OpenPgpSignatureType SignatureType, byte[]? Signer, PgpPublicKeyType PublicKeyType, PgpHashAlgorithm HashAlgorithm, ushort HashStart, DateTimeOffset? SignTime, byte[]? SignBlob, IReadOnlyList<BigInteger> SignatureInts, byte[]? SignKeyFingerprint);
 
 
         public override async ValueTask<BucketBytes> ReadAsync(int requested = 2146435071)
@@ -498,8 +498,8 @@ namespace AmpScm.Buckets.Cryptography
         {
             OpenPgpSignatureType signatureType;
             byte[]? signer = null;
-            OpenPgpPublicKeyType publicKeyType;
-            OpenPgpHashAlgorithm hashAlgorithm;
+            PgpPublicKeyType publicKeyType;
+            PgpHashAlgorithm hashAlgorithm;
             ushort hashStart;
             DateTime? signTime = null;
             byte[]? signBlob;
@@ -541,8 +541,8 @@ namespace AmpScm.Buckets.Cryptography
                 bc.Append(bb);
 
                 signatureType = (OpenPgpSignatureType)bb[0];
-                publicKeyType = (OpenPgpPublicKeyType)bb[1];
-                hashAlgorithm = (OpenPgpHashAlgorithm)bb[2];
+                publicKeyType = (PgpPublicKeyType)bb[1];
+                hashAlgorithm = (PgpHashAlgorithm)bb[2];
                 int subLen;
 
                 if (version == 4)
@@ -671,8 +671,8 @@ namespace AmpScm.Buckets.Cryptography
                 signatureType = (OpenPgpSignatureType)bb[1];
                 signTime = DateTimeOffset.FromUnixTimeSeconds(NetBitConverter.ToUInt32(bb, 2)).DateTime;
                 signer = bb.Slice(6, 8).ToArray();
-                publicKeyType = (OpenPgpPublicKeyType)bb[14];
-                hashAlgorithm = (OpenPgpHashAlgorithm)bb[15];
+                publicKeyType = (PgpPublicKeyType)bb[14];
+                hashAlgorithm = (PgpHashAlgorithm)bb[15];
                 hashStart = NetBitConverter.ToUInt16(bb, 16);
 
                 signBlob = bb.Slice(1, 5).ToArray();
@@ -688,12 +688,12 @@ namespace AmpScm.Buckets.Cryptography
 
             signatureInts = bigInts.ToArray();
 
-            if (publicKeyType == OpenPgpPublicKeyType.EdDSA && signatureInts.Length == 2 /* signatureInts.All(x => x.Length == 32)*/)
+            if (publicKeyType == PgpPublicKeyType.EdDSA && signatureInts.Length == 2 /* signatureInts.All(x => x.Length == 32)*/)
             {
-                publicKeyType = OpenPgpPublicKeyType.Ed25519;
+                publicKeyType = PgpPublicKeyType.Ed25519;
                 signatureInts = new[] { signatureInts.SelectMany(x => x.ToCryptoValue()).ToBigInteger() };
             }
-            else if (publicKeyType == OpenPgpPublicKeyType.Dsa)
+            else if (publicKeyType == PgpPublicKeyType.Dsa)
             {
                 signatureInts = new[] { signatureInts.SelectMany(x => x.ToCryptoValue()).ToBigInteger() };
             }
@@ -708,7 +708,7 @@ namespace AmpScm.Buckets.Cryptography
 
             switch (signatureInfo.PublicKeyType)
             {
-                case OpenPgpPublicKeyType.Rsa:
+                case PgpPublicKeyType.Rsa:
 
                     using (var rsa = RSA.Create())
                     {
@@ -718,7 +718,7 @@ namespace AmpScm.Buckets.Cryptography
 
                         return rsa.VerifyHash(hashValue, SignaturePublicKey.ToCryptoValue(), GetDotNetHashAlgorithmName(signatureInfo.HashAlgorithm), RSASignaturePadding.Pkcs1);
                     }
-                case OpenPgpPublicKeyType.Dsa:
+                case PgpPublicKeyType.Dsa:
                     using (var dsa = DSA.Create())
                     {
                         var SignaturePublicKey = signatureInfo.SignatureInts![0];
@@ -727,7 +727,7 @@ namespace AmpScm.Buckets.Cryptography
 
                         return dsa.VerifySignature(hashValue, SignaturePublicKey.ToCryptoValue());
                     }
-                case OpenPgpPublicKeyType.ECDSA:
+                case PgpPublicKeyType.ECDSA:
                     using (var ecdsa = ECDsa.Create())
                     {
                         ecdsa.ImportParametersFromCryptoInts(keyValues);
@@ -750,13 +750,13 @@ namespace AmpScm.Buckets.Cryptography
 
                         return ecdsa.VerifyHash(hashValue, sig);
                     }
-                case OpenPgpPublicKeyType.Ed25519:
+                case PgpPublicKeyType.Ed25519:
                     {
                         byte[] SignaturePublicKey = signatureInfo.SignatureInts![0].ToCryptoValue();
 
                         return Chaos.NaCl.Ed25519.Verify(SignaturePublicKey, hashValue, keyValues[0].ToCryptoValue());
                     }
-                case OpenPgpPublicKeyType.EdDSA:
+                case PgpPublicKeyType.EdDSA:
                 default:
                     throw new NotImplementedException($"Public Key type {signatureInfo.PublicKeyType} not implemented yet");
             }
