@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -136,7 +137,7 @@ namespace AmpScm.Buckets.Cryptography
 
             public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
             {
-                int blockSize = Algorithm.BlockSize / 8;
+                int blockSize = InputBlockSize;
 
                 if (inputCount % blockSize != 0)
                     throw new InvalidOperationException();
@@ -165,44 +166,18 @@ namespace AmpScm.Buckets.Cryptography
 
             public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
             {
-                int blockSize = Algorithm.BlockSize / 8;
-                byte[] outputBuffer = new byte[inputCount + blockSize];
+                int blockSize = InputBlockSize;
 
-                int nWritten = 0;
-                int outputOffset = 0;
+                if (inputCount % blockSize != 0)
+                    throw new InvalidOperationException();
 
-                while (inputCount >= blockSize)
-                {
-                    var r = Encipher(_feedback);
+                byte[] outputBuffer = new byte[inputCount];
 
-                    var src = inputBuffer.AsSpan(inputOffset, blockSize);
-                    var target = outputBuffer.AsSpan(outputOffset, blockSize);
+                int n = TransformBlock(inputBuffer, inputOffset, inputCount, outputBuffer, 0);
 
-                    r.CopyTo(target);
-                    SpanXor(target, src);
-                    src.CopyTo(_feedback);
+                Debug.Assert(n == inputCount);
 
-                    inputCount -= blockSize;
-                    inputOffset += blockSize;
-                    outputOffset += blockSize;
-                    nWritten += blockSize;
-                }
-
-                if (inputCount > 0)
-                {
-                    var r = Encipher(_feedback);
-
-                    var src = inputBuffer.AsSpan(inputOffset, inputCount);
-                    var target = outputBuffer.AsSpan(outputOffset, inputCount);
-
-                    r.AsSpan(0, src.Length).CopyTo(target);
-                    SpanXor(target, _feedback.AsSpan(0, inputCount));
-                    src.CopyTo(_feedback);
-
-                    nWritten += src.Length;
-                }
-
-                return outputBuffer.AsSpan(0, nWritten).ToArray();
+                return outputBuffer;
             }
         }
 
