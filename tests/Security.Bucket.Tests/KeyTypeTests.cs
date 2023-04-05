@@ -277,7 +277,7 @@ yEe9wE2abt21XZ1LN4EpVWs=
 -----END PGP PRIVATE KEY BLOCK-----
 ")
 
-    }.Select(x=> new object[] { x });
+    }.Select(x => new object[] { x });
 
     public static string TestKeyName(MethodInfo mi, object[] args) => $"{mi.Name} ({(args?[0] as TestKey)?.Name})";
 
@@ -344,17 +344,16 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
         Assert.IsTrue(PublicKeySignature.TryParse(key.Key, (_) => key.Password, out var r2));
         Assert.IsTrue(r2.HasPrivateKey);
 
-        switch(r2.Algorithm)
+        switch (r2.Algorithm)
         {
             case CryptoAlgorithm.Rsa:
+            case CryptoAlgorithm.Elgamal:
 #if DEBUG
             case CryptoAlgorithm.Dsa:
             case CryptoAlgorithm.Ecdsa:
 #endif
                 break; // Should work
-            //case CryptoAlgorithm.Elgamal:
-            //    Assert.Inconclusive("Elgamel not implemented yet");
-            //    break;
+
             default:
 #if !DEBUG
                 Assert.Inconclusive($"{r2.Algorithm} not implemented yet");

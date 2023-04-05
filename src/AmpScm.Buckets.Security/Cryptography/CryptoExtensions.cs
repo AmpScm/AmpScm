@@ -116,7 +116,7 @@ namespace AmpScm.Buckets.Cryptography
             }
         }
 
-        static BigInteger ModInverse(BigInteger a, BigInteger n)
+        internal static BigInteger ModInverse(this BigInteger a, BigInteger n)
         {
             BigInteger t = 0;
             BigInteger newt = 1;
@@ -140,7 +140,7 @@ namespace AmpScm.Buckets.Cryptography
                 throw new ArgumentOutOfRangeException(nameof(a), a, "not convertable");
 
             if (t < 0)
-                t = t + n;
+                t += n;
 
             return t;
         }
@@ -175,7 +175,7 @@ namespace AmpScm.Buckets.Cryptography
                 p.D = D.ToCryptoValue().AlignUp();
                 p.P = P.ToCryptoValue().AlignUp();
                 p.Q = Q.ToCryptoValue().AlignUp();
-                p.InverseQ = ModInverse(Q, P).ToCryptoValue().AlignUp();
+                p.InverseQ = Q.ModInverse(P).ToCryptoValue().AlignUp();
                 p.DP = DP.ToCryptoValue().AlignUp();
                 p.DQ = DQ.ToCryptoValue().AlignUp();
             }

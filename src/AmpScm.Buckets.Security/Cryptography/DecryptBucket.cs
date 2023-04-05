@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Cryptography.Algorithms;
 using AmpScm.Buckets.Specialized;
 
 // https://www.rfc-editor.org/rfc/rfc4880
@@ -97,13 +98,8 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 var bi = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
 
                                 byte[] data = rsa.Decrypt(bi.Value.ToCryptoValue(), RSAEncryptionPadding.Pkcs1);
-                                ushort checksum = NetBitConverter.ToUInt16(data, data.Length - 2);
 
-                                if (checksum == data.Skip(1).Take(data.Length - 3).Sum(x => (ushort)x))
-                                {
-                                    _sessionAlgorithm = (PgpSymmetricAlgorithm)data[0];
-                                    _sessionKey = data.AsMemory(1, data.Length - 3); // Minus first byte (session alg) and last two bytes (checksum)
-                                }
+                                SetupSessionFromDecrypted(data);
                             }
                             break;
 
@@ -140,16 +136,20 @@ public sealed class DecryptBucket : CryptoDataBucket
                             break;
 
                         case CryptoAlgorithm.Elgamal:
+                            using (var elgamal = Elgamal.Create())
                             {
-                                BigInteger P = keyValues[0]; // Elgamal prime p
-                                BigInteger G = keyValues[1]; // Elgamal group generator g;
-                                BigInteger Y = keyValues[2]; // Elgamal public key value y (= g**x mod p where x is secret).
-                                BigInteger X = keyValues[3]; // Elgamal secret exponent x.
+                                elgamal.P = keyValues[0]; // Elgamal prime p
+                                elgamal.G = keyValues[1]; // Elgamal group generator g;
+                                elgamal.Y = keyValues[2]; // Elgamal public key value y (= g**x mod p where x is secret).
+                                elgamal.X = keyValues[3]; // Elgamal secret exponent x.
+
                                 var b1 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket); // g**k mod p.
                                 var b2 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket); // y**k mod p
 
-                                //Elgamal.
-                                GC.KeepAlive(P + G + Y + X + b1 + b2);
+
+                                var data = elgamal.Decrypt(b1, b2, ElgaEncryptionPadding.Pkcs1);
+
+                                SetupSessionFromDecrypted(data);
                             }
                             break;
 
@@ -350,7 +350,6 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 var k = await keySrc.ReadExactlyAsync(key.Length + 2).ConfigureAwait(false);
 
                                 if (k.Length == key.Length - 1)
-#pragma warning restore CA1508 // Avoid dead conditional code
                                 {
                                     _sessionAlgorithm = cipherAlgorithm;
                                     _sessionKey = k.Slice(1).ToArray();
@@ -415,6 +414,17 @@ public sealed class DecryptBucket : CryptoDataBucket
         }
         return true;
 
+    }
+
+    private void SetupSessionFromDecrypted(byte[] data)
+    {
+        ushort checksum = NetBitConverter.ToUInt16(data, data.Length - 2);
+
+        if (checksum == data.Skip(1).Take(data.Length - 3).Sum(x => (ushort)x))
+        {
+            _sessionAlgorithm = (PgpSymmetricAlgorithm)data[0];
+            _sessionKey = data.AsMemory(1, data.Length - 3); // Minus first byte (session alg) and last two bytes (checksum)
+        }
     }
 
     private async ValueTask<Bucket> StartDecrypt(Bucket bucket)
