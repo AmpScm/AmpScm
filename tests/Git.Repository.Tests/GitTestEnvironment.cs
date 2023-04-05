@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests
 {
-    class RepoItem
+    sealed record RepoItem
     {
         public string Name { get; set; } = default!;
         public string? Content { get; set; }

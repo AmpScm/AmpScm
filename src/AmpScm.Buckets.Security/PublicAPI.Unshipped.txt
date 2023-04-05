@@ -20,7 +20,6 @@ AmpScm.Buckets.Cryptography.DecryptBucket.GetPassword.init -> void
 AmpScm.Buckets.Cryptography.DecryptBucket.ReadFileInfo() -> System.Threading.Tasks.ValueTask<(string? fileName, System.DateTime? fileTime)>
 AmpScm.Buckets.Cryptography.OcbDecodeBucket
 AmpScm.Buckets.Cryptography.OcbDecodeBucket.OcbDecodeBucket(AmpScm.Buckets.Bucket! source, byte[]! aesKey, int tagLen, System.ReadOnlyMemory<byte> nonce, System.ReadOnlyMemory<byte> associatedData = default(System.ReadOnlyMemory<byte>), System.Action<bool>? verifyResult = null) -> void
-AmpScm.Buckets.Cryptography.OcbDecodeBucket.TagSize.get -> int
 AmpScm.Buckets.Cryptography.Radix64ArmorBucket.PollAsync(int minRequested = 1) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 AmpScm.Buckets.Cryptography.Radix64ArmorBucket.Radix64ArmorBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Cryptography.Radix64ArmorBucket.ReadHeaderAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>

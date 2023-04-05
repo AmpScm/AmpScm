@@ -16,6 +16,7 @@ namespace AmpScm.Buckets.Cryptography
         private byte[]? _buffer;
         private ByteCollector _byteCollector;
         private readonly int _blocksizeBytes;
+        bool _done;
 
         public RawDecryptBucket(Bucket source, SymmetricAlgorithm algorithm, bool decrypt)
             : base(source)
@@ -37,11 +38,23 @@ namespace AmpScm.Buckets.Cryptography
 
             if (final)
             {
+                if (_done)
+                    return BucketBytes.Eof;
+
                 _buffer = null;
+
+                int nUse = _byteCollector.Length;
+                if (_byteCollector.Length < _transform.InputBlockSize)
+                {
+                    _byteCollector.Append(new byte[_transform.InputBlockSize - _byteCollector.Length]);
+                }
                 var bc = _byteCollector.ToArray();
                 _byteCollector.Clear();
 
-                return _transform.TransformFinalBlock(bc, 0, bc.Length);
+                _done = true;
+                bc = _transform.TransformFinalBlock(bc, 0, bc.Length);
+
+                return bc.AsMemory(0, nUse);
             }
             else
             {

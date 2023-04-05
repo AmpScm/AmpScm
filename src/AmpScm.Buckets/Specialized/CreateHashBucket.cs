@@ -7,7 +7,7 @@ using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized
 {
-    internal sealed class CreateHashBucket : WrappingBucket, IBucketPoll
+    internal sealed class CreateHashBucket : WrappingBucket, IBucketPoll, IBucketProduceHash
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private HashAlgorithm? _hasher;
@@ -116,6 +116,24 @@ namespace AmpScm.Buckets.Specialized
             {
                 _hasher = null;
                 base.Dispose(disposing);
+            }
+        }
+
+        void IBucketProduceHash.ProduceHash()
+        {
+            try
+            {
+                if (_hasher != null)
+                {
+                    if (_onResult != null)
+                        FinishHashing();
+
+                    _hasher?.Dispose();
+                }
+            }
+            finally
+            {
+                _hasher = null;
             }
         }
 

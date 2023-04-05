@@ -13,12 +13,10 @@ using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Cryptography;
 
-public class OcbDecodeBucket : ConversionBucket
+public sealed class OcbDecodeBucket : ConversionBucket
 {
     private static readonly byte[] _zero16 = new byte[16];
-#pragma warning disable CA2213 // Disposable fields should be disposed
     private readonly Aes _aes;
-#pragma warning restore CA2213 // Disposable fields should be disposed
     private readonly ReadOnlyMemory<byte> _associatedData;
     private byte[]? _buffer2;
     private int _inChunkBlock;
@@ -34,7 +32,7 @@ public class OcbDecodeBucket : ConversionBucket
     /// <summary>
     /// Length of the tag in bytes
     /// </summary>
-    protected int TagSize { get; }
+    int TagSize { get; }
 
 
     /// <summary>

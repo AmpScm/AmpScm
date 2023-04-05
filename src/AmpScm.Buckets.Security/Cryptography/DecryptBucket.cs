@@ -20,6 +20,10 @@ public sealed class DecryptBucket : CryptoDataBucket
     private ReadOnlyMemory<byte> _sessionKey; // The symetric key
     private string? _fileName;
     private DateTime? _fileDate;
+#pragma warning disable CA2213 // Disposable fields should be disposed
+    private Bucket? _literalSha;
+#pragma warning restore CA2213 // Disposable fields should be disposed
+    private byte[]? _shaResult;
     private readonly Stack<PgpSignature> _sigs = new();
 
     public DecryptBucket(Bucket source)
@@ -383,7 +387,20 @@ public sealed class DecryptBucket : CryptoDataBucket
                 break;
             case CryptoTag.ModificationDetected:
                 {
+                    if (_literalSha is Interfaces.IBucketProduceHash completer)
+                    {
+                        completer.ProduceHash();
+
+                        Debug.Assert(_shaResult != null);
+                    }
+                    _literalSha = null;
+
                     var bb = await bucket.ReadExactlyAsync(20).ConfigureAwait(false);
+
+                    if (_shaResult is { } && !bb.Memory.SequenceEqual(_shaResult))
+                        throw new BucketDecryptionException($"Modification detected in {nameof(CryptoTag.SymetricEncryptedIntegrity)} packet of {bucket} bucket");
+
+                    _shaResult = null;
                 }
                 break;
             default:
@@ -418,12 +435,14 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                     var dcb = new RawDecryptBucket(bucket, aes.ApplyModeShim(), true);
 
-                    var bb = await dcb.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
+                    _literalSha = dcb.SHA1((value) => _shaResult = value);
+
+                    var bb = await _literalSha.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
 
                     if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
                         throw new InvalidOperationException("AES-256 decrypt failed");
 
-                    return dcb;
+                    return _literalSha;
                 }
             case OpenPgpSymmetricAlgorithm.TripleDes:
                 {
@@ -440,12 +459,14 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                     var dcb = new RawDecryptBucket(bucket, tripleDes.ApplyModeShim(), true);
 
-                    var bb = await dcb.ReadExactlyAsync(tripleDes.BlockSize / 8 + 2).ConfigureAwait(false);
+                    _literalSha = dcb.SHA1((value) => _shaResult = value);
+
+                    var bb = await _literalSha.ReadExactlyAsync(tripleDes.BlockSize / 8 + 2).ConfigureAwait(false);
 
                     if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
                         throw new InvalidOperationException("TripleDes decrypt failed");
 
-                    return dcb;
+                    return _literalSha;
                 }
             default:
                 throw new NotImplementedException($"Decrypt for cipher {_sessionAlgorithm} not implemented yet.");

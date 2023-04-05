@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -358,11 +359,16 @@ namespace AmpScm.Buckets.Cryptography
         internal static SymmetricAlgorithm ApplyModeShim(this SymmetricAlgorithm algorithm)
         {
 #pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
-            if (algorithm.Mode == CipherMode.CFB)
+            if (algorithm.Mode == CipherMode.CFB
+#if NET6_0_OR_GREATER
+                && !OperatingSystem.IsWindows()
+#endif
+                )
             {
                 return new CfbMapper(algorithm);
             }
 #pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
+
 
             return algorithm;
         }

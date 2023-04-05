@@ -81,6 +81,8 @@ AmpScm.Buckets.HttpBucketException.HttpBucketException() -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(string! message) -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(string? message, System.Exception? innerException) -> void
 AmpScm.Buckets.HttpBucketException.HttpBucketException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+AmpScm.Buckets.Interfaces.IBucketProduceHash
+AmpScm.Buckets.Interfaces.IBucketProduceHash.ProduceHash() -> void
 AmpScm.Buckets.Specialized.BitwiseAndBucket
 AmpScm.Buckets.Specialized.BitwiseAndBucket.BitwiseAndBucket(AmpScm.Buckets.Bucket! left, AmpScm.Buckets.Bucket! right) -> void
 AmpScm.Buckets.Specialized.BitwiseNotBucket

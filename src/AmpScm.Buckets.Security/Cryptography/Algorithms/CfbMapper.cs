@@ -192,11 +192,11 @@ namespace AmpScm.Buckets.Cryptography
                 {
                     var r = Encipher(_feedback);
 
-                    var src = inputBuffer.AsSpan(inputOffset);
-                    var op = outputBuffer.AsSpan(outputOffset, blockSize);
+                    var src = inputBuffer.AsSpan(inputOffset, inputCount);
+                    var target = outputBuffer.AsSpan(outputOffset, inputCount);
 
-                    r.AsSpan(0, src.Length).CopyTo(op);
-                    SpanXor(op, _feedback);
+                    r.AsSpan(0, src.Length).CopyTo(target);
+                    SpanXor(target, _feedback.AsSpan(0, inputCount));
                     src.CopyTo(_feedback);
 
                     nWritten += src.Length;
