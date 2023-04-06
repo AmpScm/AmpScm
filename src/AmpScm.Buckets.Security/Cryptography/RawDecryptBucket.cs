@@ -15,7 +15,6 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private byte[]? _buffer;
         private ByteCollector _byteCollector;
-        private readonly int _blocksizeBytes;
         bool _done;
 
         public RawDecryptBucket(Bucket source, SymmetricAlgorithm algorithm, bool decrypt)
@@ -28,8 +27,11 @@ namespace AmpScm.Buckets.Cryptography
             else
                 _transform = _algorithm.CreateEncryptor();
 
-            _blocksizeBytes = algorithm.BlockSize / 8;
+            BlockSize = algorithm.BlockSize / 8;
         }
+
+        public int BlockSize { get; }
+
 
         protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
         {
@@ -59,7 +61,7 @@ namespace AmpScm.Buckets.Cryptography
             else
             {
                 byte[] toConvert = _byteCollector.ToArray();
-                int convertSize = _byteCollector.Length - _byteCollector.Length % _blocksizeBytes;
+                int convertSize = _byteCollector.Length - _byteCollector.Length % BlockSize;
 
                 _buffer ??= new byte[1024];
 
@@ -85,7 +87,7 @@ namespace AmpScm.Buckets.Cryptography
 
         protected override int ConvertRequested(int requested)
         {
-            int needForRead = _blocksizeBytes - _byteCollector.Length;
+            int needForRead = BlockSize - _byteCollector.Length;
 
             if (requested < needForRead)
                 return needForRead;

@@ -348,6 +348,7 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
         {
             case CryptoAlgorithm.Rsa:
             case CryptoAlgorithm.Elgamal:
+                break; // Work
 #if DEBUG
             case CryptoAlgorithm.Dsa:
             case CryptoAlgorithm.Ecdsa:

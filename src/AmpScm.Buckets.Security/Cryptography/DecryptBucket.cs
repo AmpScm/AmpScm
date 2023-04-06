@@ -97,9 +97,14 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                                 var bi = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
 
-                                byte[] data = rsa.Decrypt(bi.Value.ToCryptoValue(), RSAEncryptionPadding.Pkcs1);
+                                try
+                                {
+                                    byte[] data = rsa.Decrypt(bi.Value.ToCryptoValue(), RSAEncryptionPadding.Pkcs1);
 
-                                SetupSessionFromDecrypted(data);
+                                    SetupSessionFromDecrypted(data);
+                                }
+                                catch (CryptographicException)
+                                { }
                             }
                             break;
 
@@ -115,6 +120,10 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                                 var b = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 var kdf = await bucket.ReadExactlyAsync(b).ConfigureAwait(false);
+
+                                byte[] data = ecdh.DeriveKeyFromHmac(pk, HashAlgorithmName.SHA512, kdf.ToArray());
+
+                                var alg = (PgpHashAlgorithm)data[data[0]];
 
                                 //var kb = kdf.Memory.AsBucket();
                                 //
@@ -147,7 +156,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 var b2 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket); // y**k mod p
 
 
-                                var data = elgamal.Decrypt(b1, b2, ElgaEncryptionPadding.Pkcs1);
+                                var data = elgamal.Decrypt(b1, b2, ElgamalEncryptionPadding.Pkcs1);
 
                                 SetupSessionFromDecrypted(data);
                             }
@@ -429,6 +438,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
     private async ValueTask<Bucket> StartDecrypt(Bucket bucket)
     {
+        RawDecryptBucket dcb;
         switch (_sessionAlgorithm)
         {
             case PgpSymmetricAlgorithm.Aes:
@@ -444,16 +454,9 @@ public sealed class DecryptBucket : CryptoDataBucket
                     aes.Padding = PaddingMode.None;
                     aes.FeedbackSize = aes.BlockSize;
 
-                    var dcb = new RawDecryptBucket(bucket, aes.ApplyModeShim(), true);
+                    dcb = new RawDecryptBucket(bucket, aes.ApplyModeShim(), true);
 
-                    _literalSha = dcb.SHA1((value) => _shaResult = value);
-
-                    var bb = await _literalSha.ReadExactlyAsync(aes.BlockSize / 8 + 2).ConfigureAwait(false);
-
-                    if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
-                        throw new InvalidOperationException("AES-256 decrypt failed");
-
-                    return _literalSha;
+                    break;
                 }
             case PgpSymmetricAlgorithm.TripleDes:
                 {
@@ -468,20 +471,22 @@ public sealed class DecryptBucket : CryptoDataBucket
                     tripleDes.Padding = PaddingMode.None;
                     tripleDes.FeedbackSize = tripleDes.BlockSize;
 
-                    var dcb = new RawDecryptBucket(bucket, tripleDes.ApplyModeShim(), true);
+                    dcb = new RawDecryptBucket(bucket, tripleDes.ApplyModeShim(), true);
 
-                    _literalSha = dcb.SHA1((value) => _shaResult = value);
-
-                    var bb = await _literalSha.ReadExactlyAsync(tripleDes.BlockSize / 8 + 2).ConfigureAwait(false);
-
-                    if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
-                        throw new InvalidOperationException("TripleDes decrypt failed");
-
-                    return _literalSha;
+                    break;
                 }
             default:
                 throw new NotImplementedException($"Decrypt for cipher {_sessionAlgorithm} not implemented yet.");
         }
+
+        _literalSha = dcb.SHA1((value) => _shaResult = value);
+
+        var bb = await _literalSha.ReadExactlyAsync(dcb.BlockSize / 8 + 2).ConfigureAwait(false);
+
+        if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
+            throw new InvalidOperationException("AES-256 decrypt failed");
+
+        return _literalSha;
     }
 
     public async ValueTask<(string? fileName, DateTime? fileTime)> ReadFileInfo()
