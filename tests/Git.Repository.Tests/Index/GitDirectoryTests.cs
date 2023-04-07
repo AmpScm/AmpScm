@@ -103,7 +103,7 @@ namespace GitRepositoryTests.Index
             }
 
             using var repo = GitRepository.Open(path);
-            Console.WriteLine(path);
+            Trace.WriteLine(path);
 
             using var dc = new GitDirectoryBucket(repo.WorkTreeDirectory);
 
@@ -171,7 +171,7 @@ namespace GitRepositoryTests.Index
                 {
                     string name = p.ProcessName;
                     if (name.Contains("git") || name.Contains('-'))
-                        Console.WriteLine(p.ProcessName);
+                        Trace.WriteLine(p.ProcessName);
                 }
                 catch { }
             }
@@ -278,7 +278,7 @@ namespace GitRepositoryTests.Index
             using var repo = GitRepository.Open(path);
 
             await repo.GetPlumbing().UpdateIndex(new() { SplitIndex = true });
-            Console.WriteLine(path);
+            Trace.WriteLine(path);
 
             try
             {

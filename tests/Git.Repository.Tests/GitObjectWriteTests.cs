@@ -551,8 +551,8 @@ namespace GitRepositoryTests
 
             Assert.AreEqual("Merge v0.2\n", cc.Message);
             Assert.AreEqual(2, cc!.ParentCount);
-            Console.WriteLine($"{cc.Parents[0].Id:x12} - {cc.Parents[0].Summary}");
-            Console.WriteLine($"{cc.Parents[1].Id:x12} - {cc.Parents[1].Summary}");
+            Trace.WriteLine($"{cc.Parents[0].Id:x12} - {cc.Parents[0].Summary}");
+            Trace.WriteLine($"{cc.Parents[1].Id:x12} - {cc.Parents[1].Summary}");
 
             Assert.IsNull(cc.MergeTags[1], "No mergetag created by git");
 
@@ -575,13 +575,13 @@ namespace GitRepositoryTests
             }
 
 
-            Console.WriteLine($"Rewritten: {rewritten}");
+            Trace.WriteLine($"Rewritten: {rewritten}");
 
 
             var (_, outTxt) = await repo.GetPlumbing().RunRawCommand("cat-file", "-p", rewritten.ToString());
-            Console.WriteLine("--");
-            Console.WriteLine(outTxt);
-            Console.WriteLine("--");
+            Trace.WriteLine("--");
+            Trace.WriteLine(outTxt);
+            Trace.WriteLine("--");
 
             fsckOutput = await repo.GetPlumbing().ConsistencyCheck(new GitConsistencyCheckArgs() { Full = true });
             Assert.AreEqual($"", fsckOutput);

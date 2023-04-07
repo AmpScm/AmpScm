@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -51,7 +52,7 @@ namespace GitRepositoryTests
                 (key, var v) = await gbr.ReadCapabilityAsync();
 
                 if (!string.IsNullOrEmpty(key))
-                    Console.WriteLine($"Capability {key}={v}");
+                    Trace.WriteLine($"Capability {key}={v}");
             }
             while (key is { });
 
@@ -61,7 +62,7 @@ namespace GitRepositoryTests
                 (id, var v) = await gbr.ReadPrerequisiteAsync();
 
                 if (id is not null)
-                    Console.WriteLine($"Prereq {id}={v}");
+                    Trace.WriteLine($"Prereq {id}={v}");
             }
             while (id is not null);
 
@@ -70,7 +71,7 @@ namespace GitRepositoryTests
                 (id, var name) = await gbr.ReadReferenceAsync();
 
                 if (id is not null)
-                    Console.WriteLine($"Ref {id} {name}");
+                    Trace.WriteLine($"Ref {id} {name}");
             }
             while (id is not null);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Subversion
@@ -41,7 +42,7 @@ namespace AmpScm.Buckets.Subversion
         {
             while (await ReadKeyAsync().ConfigureAwait(false) is (var key, var value))
             {
-                Console.WriteLine($"{key.ToASCIIString()}: {value.ToASCIIString()}");
+                Debug.WriteLine($"{key.ToASCIIString()}: {value.ToASCIIString()}");
             }
 
             return BucketBytes.Eof;

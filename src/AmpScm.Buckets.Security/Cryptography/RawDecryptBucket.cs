@@ -27,11 +27,13 @@ namespace AmpScm.Buckets.Cryptography
             else
                 _transform = _algorithm.CreateEncryptor();
 
-            BlockSize = algorithm.BlockSize / 8;
+            BlockBytes = algorithm.BlockSize / 8;
         }
 
-        public int BlockSize { get; }
-
+        /// <summary>
+        /// <see cref="SymmetricAlgorithm.BlockSize"/> but in bytes
+        /// </summary>
+        public int BlockBytes { get; }
 
         protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
         {
@@ -61,7 +63,7 @@ namespace AmpScm.Buckets.Cryptography
             else
             {
                 byte[] toConvert = _byteCollector.ToArray();
-                int convertSize = _byteCollector.Length - _byteCollector.Length % BlockSize;
+                int convertSize = _byteCollector.Length - _byteCollector.Length % BlockBytes;
 
                 _buffer ??= new byte[1024];
 
@@ -87,7 +89,7 @@ namespace AmpScm.Buckets.Cryptography
 
         protected override int ConvertRequested(int requested)
         {
-            int needForRead = BlockSize - _byteCollector.Length;
+            int needForRead = BlockBytes - _byteCollector.Length;
 
             if (requested < needForRead)
                 return needForRead;

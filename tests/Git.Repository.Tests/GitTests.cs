@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -126,7 +127,7 @@ namespace GitRepositoryTests
             byte[]? idxChecksum = null;
             using var idxData = indexFile.TakeExactly(lIdx - 20).SHA1(x => idxChecksum = x);
 
-            Console.WriteLine(packFile);
+            Trace.WriteLine(packFile);
             await Assert.That.BucketsEqual(idxData, index);
         }
 

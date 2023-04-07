@@ -481,7 +481,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
         _literalSha = dcb.SHA1((value) => _shaResult = value);
 
-        var bb = await _literalSha.ReadExactlyAsync(dcb.BlockSize / 8 + 2).ConfigureAwait(false);
+        var bb = await _literalSha.ReadExactlyAsync(dcb.BlockBytes + 2).ConfigureAwait(false);
 
         if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
             throw new InvalidOperationException("AES-256 decrypt failed");

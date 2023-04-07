@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
@@ -13,7 +14,21 @@ namespace SecurityBucketTests;
 [TestClass]
 public class KeyTypeTests
 {
-    public record TestKey(string Name, string Password, string Key);
+    public record TestKey
+    {
+        public TestKey(string Name, string Password, string Key)
+        {
+            this.Name = Name;
+            this.Password = Password;
+            this.Key = Key;
+        }
+
+        public string Name { get; }
+        public string Password { get; }
+        public string Key { get; }
+
+        public override string ToString() => Name;
+    }
 
     public static IEnumerable<object[]> TestKeys => new TestKey[]
     {
@@ -279,10 +294,7 @@ yEe9wE2abt21XZ1LN4EpVWs=
 
     }.Select(x => new object[] { x });
 
-    public static string TestKeyName(MethodInfo mi, object[] args) => $"{mi.Name} ({(args?[0] as TestKey)?.Name})";
-
-
-    [DynamicData(nameof(TestKeys), DynamicDataDisplayName = nameof(TestKeyName))]
+    [DynamicData(nameof(TestKeys))]//, DynamicDataDisplayName = nameof(TestKeyName))]
     [TestMethod]
     public void LoadKey(TestKey key)
     {
@@ -293,7 +305,7 @@ yEe9wE2abt21XZ1LN4EpVWs=
         Assert.IsTrue(r2.HasPrivateKey);
     }
 
-    [DynamicData(nameof(TestKeys), DynamicDataDisplayName = nameof(TestKeyName))]
+    [DynamicData(nameof(TestKeys))]
     [TestMethod]
     public async Task TestDecrypt(TestKey key)
     {

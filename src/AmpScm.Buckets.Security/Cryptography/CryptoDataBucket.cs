@@ -552,7 +552,7 @@ namespace AmpScm.Buckets.Cryptography
 
                 if (subLen > 0)
                 {
-                    using var subRead = bucket.NoDispose().TakeExactly(subLen)
+                    var subRead = bucket.TakeExactly(subLen)
                         .AtRead(bb =>
                         {
                             if (!bb.IsEmpty)
@@ -561,59 +561,9 @@ namespace AmpScm.Buckets.Cryptography
                             return new();
                         });
 
-                    while (true)
-                    {
-                        uint? len = await ReadLengthAsync(subRead).ConfigureAwait(false);
-
-                        if (!len.HasValue)
-                            break;
-
-                        byte b = await subRead.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(subRead);
-                        len--;
-
-                        switch ((PgpSubPacketType)b)
-                        {
-                            case PgpSubPacketType.SignatureCreationTime:
-                                if (len != 4)
-                                    throw new InvalidOperationException();
-
-                                int time = await subRead.ReadNetworkInt32Async().ConfigureAwait(false);
-
-                                signTime = DateTimeOffset.FromUnixTimeSeconds(time).DateTime;
-                                break;
-                            case PgpSubPacketType.Issuer:
-                                signer = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
-                                break;
-                            case PgpSubPacketType.IssuerFingerprint:
-                                signKeyFingerprint = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
-                                break;
-
-                            // Currently unhandled fields from private keys
-                            case PgpSubPacketType.KeyFlags:
-                            case PgpSubPacketType.KeyExpirationTime:
-                            case PgpSubPacketType.PreferredSymetricAlgorithms:
-                            case PgpSubPacketType.PreferredHashAlgorithms:
-                            case PgpSubPacketType.PreferredCompressionAlgorithms:
-                            case PgpSubPacketType.Features:
-                            case PgpSubPacketType.KeyServerPreferences:
-                            case PgpSubPacketType.PreferredAeadAlgorithms:
-                                if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
-                                    throw new BucketEofException(subRead);
-                                break;
-
-                            case PgpSubPacketType.SignersUserID:
-                                if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
-                                    throw new BucketEofException(subRead);
-                                break;
-                            default:
-                                if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
-                                    throw new BucketEofException(subRead);
-                                break;
-                        }
-                    }
+                    (signTime, signer, signKeyFingerprint) = await ParseSubPacketsAsync(subRead, true, signTime, signer, signKeyFingerprint).ConfigureAwait(false);
                 }
 
-                // TODO: Fetch Date and Issuer if needed
                 uint unhashedLen;
 
                 if (version == 4)
@@ -623,8 +573,9 @@ namespace AmpScm.Buckets.Cryptography
 
                 if (unhashedLen > 0)
                 {
-                    if (unhashedLen != await bucket.ReadSkipAsync(unhashedLen).ConfigureAwait(false))
-                        throw new BucketEofException(bucket);
+                    var subRead = bucket.TakeExactly(unhashedLen);
+
+                    (signTime, signer, signKeyFingerprint) = await ParseSubPacketsAsync(subRead, false, signTime, signer, signKeyFingerprint).ConfigureAwait(false);
                 }
 
                 // First 2 bytes of hash
@@ -699,6 +650,62 @@ namespace AmpScm.Buckets.Cryptography
             }
 
             return new(signatureType, signer, publicKeyType, hashAlgorithm, hashStart, signTime, signBlob, signatureInts, signKeyFingerprint);
+        }
+
+        private static async ValueTask<(DateTime? signTime, byte[]? signer, byte[]? signKeyFingerprint)> ParseSubPacketsAsync(Bucket subRead, bool hashed, DateTime? signTime, byte[]? signer, byte[]? signKeyFingerprint)
+        {
+            while (true)
+            {
+                uint? len = await ReadLengthAsync(subRead).ConfigureAwait(false);
+
+                if (!len.HasValue)
+                    break;
+
+                byte b = await subRead.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(subRead);
+                len--;
+
+                switch ((PgpSubPacketType)b)
+                {
+                    case PgpSubPacketType.SignatureCreationTime:
+                        if (len != 4)
+                            throw new InvalidOperationException();
+
+                        int time = await subRead.ReadNetworkInt32Async().ConfigureAwait(false);
+
+                        signTime = DateTimeOffset.FromUnixTimeSeconds(time).DateTime;
+                        break;
+                    case PgpSubPacketType.Issuer:
+                        signer = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
+                        break;
+                    case PgpSubPacketType.IssuerFingerprint:
+                        signKeyFingerprint = (await subRead.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToArray();
+                        break;
+
+                    // Currently unhandled fields from private keys
+                    case PgpSubPacketType.KeyFlags:
+                    case PgpSubPacketType.KeyExpirationTime:
+                    case PgpSubPacketType.PreferredSymetricAlgorithms:
+                    case PgpSubPacketType.PreferredHashAlgorithms:
+                    case PgpSubPacketType.PreferredCompressionAlgorithms:
+                    case PgpSubPacketType.Features:
+                    case PgpSubPacketType.KeyServerPreferences:
+                    case PgpSubPacketType.PreferredAeadAlgorithms:
+                        if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
+                            throw new BucketEofException(subRead);
+                        break;
+
+                    case PgpSubPacketType.SignersUserID:
+                        if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
+                            throw new BucketEofException(subRead);
+                        break;
+                    default:
+                        if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
+                            throw new BucketEofException(subRead);
+                        break;
+                }
+            }
+
+            return (signTime, signer, signKeyFingerprint);
         }
 
         private protected static bool VerifySignature(SignatureInfo signatureInfo, byte[] hashValue, IReadOnlyList<BigInteger> keyValues)

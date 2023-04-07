@@ -314,7 +314,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                                 {
                                     // OCB
 
-                                    throw new NotImplementedException();
+                                    throw new NotImplementedException("OCB Encrypted key");
 
                                 }
                             }
@@ -323,7 +323,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         else
                         {
                             //var akg -sju;
-                            throw new InvalidOperationException(); // More specifics based on the algorithm
+                            throw new InvalidOperationException("Unknown S2k sku specifier"); // More specifics based on the algorithm
                         }
 
                         if (hasSecretKey)

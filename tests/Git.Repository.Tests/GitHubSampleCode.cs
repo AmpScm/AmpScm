@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,11 +20,11 @@ namespace GitRepositoryTests
             {
                 await foreach (var r in repo.Head.Revisions)
                 {
-                    Console.WriteLine($"commit {r.Commit.Id}");
-                    Console.WriteLine($"Author: {r.Commit.Author?.Name} <{r.Commit.Author?.Email}>");
-                    Console.WriteLine($"Date:   {r.Commit.Author?.When}");
-                    Console.WriteLine("");
-                    Console.WriteLine(r.Commit.Message?.TrimEnd() + "\n");
+                    Trace.WriteLine($"commit {r.Commit.Id}");
+                    Trace.WriteLine($"Author: {r.Commit.Author?.Name} <{r.Commit.Author?.Email}>");
+                    Trace.WriteLine($"Date:   {r.Commit.Author?.When}");
+                    Trace.WriteLine("");
+                    Trace.WriteLine(r.Commit.Message?.TrimEnd() + "\n");
                 }
             }
         }
@@ -36,11 +37,11 @@ namespace GitRepositoryTests
             {
                 foreach (var r in repo.Head.Revisions)
                 {
-                    Console.WriteLine($"commit {r.Commit.Id}");
-                    Console.WriteLine($"Author: {r.Commit.Author?.Name} <{r.Commit.Author?.Email}>");
-                    Console.WriteLine($"Date:   {r.Commit.Author?.When}");
-                    Console.WriteLine("");
-                    Console.WriteLine(r.Commit.Message?.TrimEnd() + "\n");
+                    Trace.WriteLine($"commit {r.Commit.Id}");
+                    Trace.WriteLine($"Author: {r.Commit.Author?.Name} <{r.Commit.Author?.Email}>");
+                    Trace.WriteLine($"Date:   {r.Commit.Author?.When}");
+                    Trace.WriteLine("");
+                    Trace.WriteLine(r.Commit.Message?.TrimEnd() + "\n");
                 }
             }
         }

@@ -8,6 +8,7 @@ using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AmpScm;
+using System.Diagnostics;
 
 namespace SecurityBucketTests;
 
@@ -24,9 +25,9 @@ public class SshTests
     [DataRow("ecdsa", "")]
     [DataRow("ecdsa", "-b256")]
     [DataRow("ecdsa", "-b384")]
-    //#if DEBUG
-    //    [DataRow("ecdsa", "-b521")] // Typically fails on GitHub bots
-    //#endif
+#if DEBUG
+    [DataRow("ecdsa", "-b521")] // Typically fails on GitHub bots
+#endif
     [DataRow("ed25519", "")]
     public async Task VerifySshSsh(string type, string ex)
     {
@@ -45,7 +46,7 @@ public class SshTests
         string privateKey = File.ReadAllText(keyFile).Trim();
 
         string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
-        Console.WriteLine($"Public key: {publicKey}");
+        Trace.WriteLine($"Public key: {publicKey}");
 
         Assert.IsTrue(PublicKeySignature.TryParse(publicKey, out var k));
 
@@ -72,7 +73,7 @@ public class SshTests
         Assert.IsTrue(fp.Span.SequenceEqual(k.Fingerprint.ToArray()), "Fingerprints match");
 
 #if NET6_0_OR_GREATER
-        Console.WriteLine($"Result: SHA256:{Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(fp.ToArray())).TrimEnd('=')}");
+        Trace.WriteLine($"Result: SHA256:{Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(fp.ToArray())).TrimEnd('=')}");
 #endif
     }
 
@@ -94,8 +95,8 @@ public class SshTests
         if (OperatingSystem.IsMacOS())
             Assert.Inconclusive("GitHub's MacOS install's openssh doesn't like this test");
 #else
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                Assert.Inconclusive("GitHub's MacOS install's openssh doesn't like this test");
+        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            Assert.Inconclusive("GitHub's MacOS install's openssh doesn't like this test");
 #endif
 
         var dir = TestContext.PerTestDirectory(type + ex);
@@ -130,9 +131,9 @@ public class SshTests
             Assert.AreEqual(k.GetValues()[i], kRfc4716.GetValues()[i], $"Values of 4716[{i}] match");
         }
 
-        Console.WriteLine($"From SSH:     {k.FingerprintString}");
-        Console.WriteLine($"From PEM:     {kPem.FingerprintString}");
-        Console.WriteLine($"From Rfc4716: {kRfc4716.FingerprintString}");
+        Trace.WriteLine($"From SSH:     {k.FingerprintString}");
+        Trace.WriteLine($"From PEM:     {kPem.FingerprintString}");
+        Trace.WriteLine($"From Rfc4716: {kRfc4716.FingerprintString}");
 
         if (type != "ecdsa")
             Assert.AreEqual(k.FingerprintString, kPem.FingerprintString, "pem fingerprint");
@@ -143,7 +144,7 @@ public class SshTests
         Assert.IsTrue(k.Fingerprint.SequenceEqual(kRfc4716.Fingerprint), "4716 fingerprint");
 
 #if NET6_0_OR_GREATER
-        Console.WriteLine($"Result: SHA256:{Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(k.Fingerprint.Span)).TrimEnd('=')}");
+        Trace.WriteLine($"Result: SHA256:{Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(k.Fingerprint.Span)).TrimEnd('=')}");
 #endif
     }
 
