@@ -385,4 +385,59 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
 
         Assert.AreEqual("This is it!\r\n", bb.ToUTF8String());
     }
+
+#if DEBUG
+    [TestMethod]
+    public async Task TestP384()
+    {
+        var key = @"
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lNIEZC/60BMFK4EEACIDAwQIVAQmxxyXQuyMurycF9jx2zGTUwyojYcJqW/QzesG
+BhF8pYWJ+b0pM2qrYsqzFaRpRUgFEAeb3griVqIWRnpkhTXfhXwLejmAuEmBVwk5
+7/7NbwpehWtpLn95Mef2P5z+BwMCgjKxq8KMS8DQmNe4cwQwf+ACy/7rguekvzMQ
+SoYFZQvRlJGbpC59+2D0G2hJgNrKvPRIM7lEAGNherJQg0IbNUi9VONZjUF0TgYY
+j+j3MlJP2jCddK6Jh2oJkkMxYbi0HE5pc3QgUDM4NCAoQmxhISkgPG5pc3RAcDM4
+ND6IswQTEwkAOxYhBEechu13uuIpOr7tnMZtJbiWafvcBQJkL/rQAhsDBQsJCAcC
+AiICBhUKCQgLAgQWAgMBAh4HAheAAAoJEMZtJbiWafvcFdMBgPJnRLgIKChmNcZA
+S7L/QAHnsKezA3sogN3hep2IcG45xzXjbU/zC1F62OyJ4W82YwF+OYQWrMH4WYc/
+puPnqrGtn/K7ecU71SOFyqdNepsTmVpdh81ZrfyhYw2yEcdIDsCknNYEZC/60BIF
+K4EEACIDAwQ/NgAx1r8jPDCF0LECpRHSyUEyjuv2a+of5XHLFp1IsZTp3U6SWsJC
++H6OdsqL9CN5VOz1yf1pE9HX7fH7fxuzpb99lr2DEZih5M57Xj/7ZAB5uwjAl6Xe
+vuSCWqxgi6UDAQkJ/gcDArgs8ggSF4SB0GTfdW/jr09EF2K+Xzk/pE/KyYEfBo7z
+wJseiP1wk2oIsrSLQIT8omFO25inZnKk8L585MpxepEPgYBDEUAeAQcDRbeMFxHm
+JpOZcOJnSRHt4DwW1fSGiJgEGBMJACAWIQRHnIbtd7riKTq+7ZzGbSW4lmn73AUC
+ZC/60AIbDAAKCRDGbSW4lmn73BEuAX4pRk0/1LPR9t/HBvyWQ3rbuTZJDWunP+np
+7fA4uKrExEYNlvyMPJ2m2yqf7V4DctMBfjKbWfjWUN1KgOXvhta4w+y/85J6M/1u
+NS+P0JGmSavZ6MW8RCXV6CAmWH5AxVO4Hw==
+=DYGZ
+-----END PGP PRIVATE KEY BLOCK-----";
+
+        Assert.IsTrue(PublicKeySignature.TryParse(key, (_) => "PW6", out var r2));
+        Assert.IsTrue(r2.HasPrivateKey);
+
+        var msg = @"-----BEGIN PGP MESSAGE-----
+
+hJ4DQyP+J9/KAQESAwMEJbveziO47mF70Qv7lWSav5fTLKUQpXCUon3WgULAowds
+LVF7jE4StheYaEZsttxHKSCj7SwN6ai1mq29rrYKrVkiPgVZrmE+j8WRTpZ8leck
+FMt7VaScU8enwpxD6GFvMLYOAfuqx+uVEmzuL1VFsfeDwGSp8k5euY/2tNwFnMqy
+t76XnxXztiacqsZruB8pkNRQAQkCECFLgiPPeCCVbRF+COv9ff9TCK7DOnG9yPAc
+RHFhVMd+cO3XrJ1hM0Vo43iSsORfe2WPsmU0Dsg3fvBocz9Re2/s8rUuDlWhkjvt
+CWo=
+=bW7K
+-----END PGP MESSAGE-----
+";
+
+        var rd = Bucket.Create.FromASCII(msg);
+
+        var ar = new Radix64ArmorBucket(rd);
+
+        var dc = new DecryptBucket(ar) { KeyChain = r2 };
+
+
+        var bb = await dc.ReadExactlyAsync(1024);
+
+        Assert.AreEqual("This is it!\r\n", bb.ToUTF8String());
+    }
+#endif
 }

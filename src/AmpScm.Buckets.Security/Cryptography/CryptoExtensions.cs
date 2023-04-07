@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using AmpScm.Buckets.Cryptography.Algorithms;
 
 namespace AmpScm.Buckets.Cryptography
 {
@@ -204,7 +205,7 @@ namespace AmpScm.Buckets.Cryptography
                 v3 = v2.Skip(n + 1).ToArray();
                 v2 = v2.Skip(1).Take(n).ToArray();
             }
-            else
+            else // 0x40, 0x41 -> Only X
                 throw new NotImplementedException();
 
             var p = new ECParameters()
@@ -225,6 +226,14 @@ namespace AmpScm.Buckets.Cryptography
                 p.D = ints[3].ToCryptoValue().AlignUp();
 
             ecdh.ImportParameters(p);
+        }
+
+        internal static void ImportParametersFromCryptoInts(this Elgamal elgamal, IReadOnlyList<BigInteger> ints)
+        {
+            elgamal.P = ints[0]; // Elgamal prime p
+            elgamal.G = ints[1]; // Elgamal group generator g;
+            elgamal.Y = ints[2]; // Elgamal public key value y (= g**x mod p where x is secret).
+            elgamal.X = ints[3]; // Elgamal secret exponent x.
         }
 
         internal static ECDiffieHellmanPublicKey CreatePublicKey(this ECDiffieHellman ecdh, BigInteger point)

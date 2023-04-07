@@ -8,9 +8,29 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets
 {
+    [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
     [DebuggerTypeProxy(typeof(DebuggerProxy))]
     public partial struct BucketBytes
     {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private string DebuggerDisplay
+        {
+            get
+            {
+                if (IsEof)
+                    return "<EOF>";
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendFormat(CultureInfo.InvariantCulture, "Length={0}, Data=", Length);
+
+                    sb.Append(this.AsDebuggerDisplay());
+                    return sb.ToString();
+                }
+            }
+        }
+
+
         private sealed class DebuggerProxy
         {
             private BucketBytes Bytes { get; }

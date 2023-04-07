@@ -718,10 +718,10 @@ namespace AmpScm.Buckets.Cryptography
                 case PgpPublicKeyType.Rsa:
 
                     using (var rsa = RSA.Create())
-                    {
-                        var SignaturePublicKey = signatureInfo.SignatureInts![0];
-
+                    {                        
                         rsa.ImportParametersFromCryptoInts(keyValues);
+
+                        var SignaturePublicKey = signatureInfo.SignatureInts![0];
 
                         return rsa.VerifyHash(hashValue, SignaturePublicKey.ToCryptoValue(), GetDotNetHashAlgorithmName(signatureInfo.HashAlgorithm), RSASignaturePadding.Pkcs1);
                     }

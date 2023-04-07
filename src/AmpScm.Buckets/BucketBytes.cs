@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets
 {
-    [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
     public readonly partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEof<ReadOnlyMemory<byte>>
     {
         public ReadOnlyMemory<byte> Memory { get; }
@@ -222,40 +221,7 @@ namespace AmpScm.Buckets
             return false;
         }
 
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string DebuggerDisplay
-        {
-            get
-            {
-                if (IsEof)
-                    return "<EOF>";
-                else
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.AppendFormat(CultureInfo.InvariantCulture, "Length={0}, Data=", Length);
-
-                    sb.Append(this.AsDebuggerDisplay());
-                    return sb.ToString();
-                }
-            }
-        }
-
         #region ZLib optimization. Our ZLib doesn't use Span<> and Memory<> yet, but let's reuse byte[] directly instead of copying
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private static Func<ReadOnlyMemory<byte>, (object, int)> ReadOnlyMemoryExpander { get; } = FindReadOnlyMemoryExpander();
-
-        private static Func<ReadOnlyMemory<byte>, (object, int)> FindReadOnlyMemoryExpander()
-        {
-            ParameterExpression p = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "x");
-
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-            var c = Expression.New(typeof((object, int)).GetConstructors().OrderByDescending(x => x.GetParameters().Length).First(),
-                       Expression.Field(p, "_object"),
-                       Expression.Field(p, "_index"));
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-            return Expression.Lambda<Func<ReadOnlyMemory<byte>, (object, int)>>(c, p).Compile();
-        }
 
         internal static (byte[]?, int) ExpandToArray(ReadOnlyMemory<byte> data)
         {

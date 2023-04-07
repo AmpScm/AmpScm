@@ -226,14 +226,14 @@ public sealed class SignatureBucket : CryptoDataBucket
                         if (bb.Length != b)
                             throw new BucketEofException(bucket);
 
-                        bigInts.Add(bb.Memory.ToBigInteger());
+                        bigInts.Add(bb.Memory.ToBigInteger()); // [0] = OID
                     }
 
                     if (keyPublicKeyType is PgpPublicKeyType.ECDH)
                     {
                         var bi = await ReadPgpMultiPrecisionInteger(csum).ConfigureAwait(false);
 
-                        bigInts.Add(bi.Value);
+                        bigInts.Add(bi.Value); // [1] = Q
 
                         byte b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
 
@@ -244,7 +244,9 @@ public sealed class SignatureBucket : CryptoDataBucket
                         if (bb.Length != b)
                             throw new BucketEofException(bucket);
 
-                        bigInts.Add(bb.Memory.ToBigInteger());
+                        bigInts.Add(bb.Memory.ToBigInteger()); // [2] = KDF
+
+                        // [3] = D
                     }
 
 
