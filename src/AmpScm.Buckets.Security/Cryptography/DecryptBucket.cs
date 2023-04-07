@@ -139,10 +139,18 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 byte len = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 if (len > 0)
                                 {
-                                    var encrypted = await bucket.ReadExactlyAsync(len).ConfigureAwait(false);
+                                    using (var rfc3394 = new Rfc3394Algorithm())
+                                    {
+                                        var keySize = GetKeySize(kdfCipher);
 
-                                    // encrypted is encipherd using kdfCipher, using the key produced from data
+                                        var encrypted = await bucket.ReadExactlyAsync(len).ConfigureAwait(false);
 
+                                        // encrypted is encipherd using kdfCipher, using the key produced from data
+                                        //var data = rfc3394.Unwrap(kekInput.Slice(0, keySize / 8).ToArray(), encrypted.Slice(0, keySize / 8).ToArray());
+
+                                        //GC.KeepAlive(data);
+
+                                    }
                                 }
                             }
                             break;
