@@ -57,7 +57,7 @@ namespace AmpScm.Git.Objects
             get
             {
                 if (_fingerprint.Length == 0)
-                    _fingerprint = HashPrint(_key.Fingerprint);
+                    _fingerprint = HashPrint(_key.InternalFingerprint);
 
                 return _fingerprint;
             }

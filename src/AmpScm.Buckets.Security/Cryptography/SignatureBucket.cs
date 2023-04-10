@@ -79,7 +79,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                             keyInts = GetEcdsaValues(keyInts);
                     }
 
-                    var algId = GetKeyAlgo(publicKeyType);
+                    var algId = GetCryptoAlgorithm(publicKeyType);
                     _keys.Add(new PublicKeySignature(CreateSshFingerprint(algId, keyInts), algId, keyInts, _mailAddress));
 
                     ByteCollector signPrefix = new(512);
@@ -389,7 +389,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         keyInts = keyInts.Skip(1).ToArray();
                     }
 
-                    _keys.Add(new PublicKeySignature(keyFingerprint!, GetKeyAlgo(keyPublicKeyType), keyInts, _mailAddress, hasSecretKey));
+                    _keys.Add(new PublicKeySignature(keyFingerprint!, GetCryptoAlgorithm(keyPublicKeyType), keyInts, _mailAddress, hasSecretKey));
                 }
                 break;
             case CryptoTag.DerValue:
@@ -517,7 +517,12 @@ public sealed class SignatureBucket : CryptoDataBucket
     {
         await ReadAsync().ConfigureAwait(false);
 
-        return _signatures.FirstOrDefault()?.SignKeyFingerprint;
+        var b = _signatures.FirstOrDefault()?.SignKeyFingerprint;
+
+        if (b[0] >= 3 && b[0] <= 5)
+            return b.AsMemory(1);
+        else
+            return b;
     }
 
     public async ValueTask<bool> VerifyAsync(Bucket sourceData, PublicKeySignature? key, bool unknownSignerOk = false)

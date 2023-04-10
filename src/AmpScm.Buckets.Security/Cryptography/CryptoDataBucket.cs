@@ -31,24 +31,11 @@ namespace AmpScm.Buckets.Cryptography
                 PushChunkReader(Source);
         }
 
-        private protected static int GetKeySize(PgpSymmetricAlgorithm cipherAlgorithm)
-        {
-            return cipherAlgorithm switch
-            {
-                PgpSymmetricAlgorithm.Aes => 128,
-                PgpSymmetricAlgorithm.Aes192 => 192,
-                PgpSymmetricAlgorithm.Aes256 => 256,
-                PgpSymmetricAlgorithm.TripleDes => 192,
-                PgpSymmetricAlgorithm.Blowfish128 => 128,
-                _ => throw new NotImplementedException($"Keysize for cipher {cipherAlgorithm} not implemented yet.")
-            };
-        }
-
         private protected record struct S2KSpecifier(PgpHashAlgorithm HashAlgorithm, byte[]? Salt, int HashByteCount, PgpSymmetricAlgorithm CipherAlgorithm, byte Type);
 
         private protected static byte[] DeriveS2kKey(S2KSpecifier s2k, string password)
         {
-            int bitsRequired = GetKeySize(s2k.CipherAlgorithm);
+            int bitsRequired = s2k.CipherAlgorithm.GetKeySize();
 
             int bytesRequired = bitsRequired / 8;
             List<byte> result = new();
@@ -258,29 +245,20 @@ namespace AmpScm.Buckets.Cryptography
             return bucket.Hash(CreatePgpHashAlgorithm(hashAlgorithm), completer);
         }
 
-        private protected static HashAlgorithmName GetDotNetHashAlgorithmName(PgpHashAlgorithm hashAlgorithm)
-        => hashAlgorithm switch
+        private protected static CryptoAlgorithm GetCryptoAlgorithm(PgpPublicKeyType keyPublicKeyType)
         {
-            PgpHashAlgorithm.SHA256 => HashAlgorithmName.SHA256,
-            PgpHashAlgorithm.SHA512 => HashAlgorithmName.SHA512,
-            PgpHashAlgorithm.SHA384 => HashAlgorithmName.SHA384,
-            PgpHashAlgorithm.SHA1 => HashAlgorithmName.SHA1,
-            PgpHashAlgorithm.MD5 => HashAlgorithmName.MD5,
-            _ => throw new NotImplementedException($"PGP scheme {hashAlgorithm} not mapped yet.")
-        };
-
-        private protected static CryptoAlgorithm GetKeyAlgo(PgpPublicKeyType keyPublicKeyType)
-        => keyPublicKeyType switch
-        {
-            PgpPublicKeyType.Rsa => CryptoAlgorithm.Rsa,
-            PgpPublicKeyType.Dsa => CryptoAlgorithm.Dsa,
-            PgpPublicKeyType.ECDSA => CryptoAlgorithm.Ecdsa,
-            PgpPublicKeyType.Ed25519 => CryptoAlgorithm.Ed25519,
-            PgpPublicKeyType.ECDH => CryptoAlgorithm.Ecdh,
-            PgpPublicKeyType.Curve25519 => CryptoAlgorithm.Curve25519,
-            PgpPublicKeyType.Elgamal => CryptoAlgorithm.Elgamal,
-            _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
-        };
+            return keyPublicKeyType switch
+            {
+                PgpPublicKeyType.Rsa => CryptoAlgorithm.Rsa,
+                PgpPublicKeyType.Dsa => CryptoAlgorithm.Dsa,
+                PgpPublicKeyType.ECDSA => CryptoAlgorithm.Ecdsa,
+                PgpPublicKeyType.Ed25519 => CryptoAlgorithm.Ed25519,
+                PgpPublicKeyType.ECDH => CryptoAlgorithm.Ecdh,
+                PgpPublicKeyType.Curve25519 => CryptoAlgorithm.Curve25519,
+                PgpPublicKeyType.Elgamal => CryptoAlgorithm.Elgamal,
+                _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
+            };
+        }
 
         private protected static async ValueTask<uint?> ReadLengthAsync(Bucket bucket)
         {
@@ -381,7 +359,7 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
                     aes.Mode = CipherMode.CFB;
 #pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
-                    aes.KeySize = GetKeySize(algorithm);
+                    aes.KeySize = algorithm.GetKeySize();
                     aes.Key = key;
                     aes.IV = iv ?? new byte[aes.BlockSize / 8];
                     aes.Padding = PaddingMode.None;
@@ -391,26 +369,6 @@ namespace AmpScm.Buckets.Cryptography
 
                 default:
                     throw new NotImplementedException($"Not implemented for {algorithm} algorithm yet");
-            }
-        }
-
-        private protected static async ValueTask<Bucket> StartDecryptLoadIV(Bucket bucket, PgpSymmetricAlgorithm algorithm, byte[] sessionKey)
-        {
-            switch (algorithm)
-            {
-                case PgpSymmetricAlgorithm.Aes:
-                case PgpSymmetricAlgorithm.Aes192:
-                case PgpSymmetricAlgorithm.Aes256:
-                    var dcb = CreateDecryptBucket(bucket, algorithm, sessionKey, null);
-                    var bb = await dcb.ReadExactlyAsync(GetKeySize(algorithm) / 8 + 2).ConfigureAwait(false);
-
-                    if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
-                        throw new InvalidOperationException("AES-256 decrypt failed");
-
-                    return dcb;
-
-                default:
-                    throw new NotImplementedException();
             }
         }
 
@@ -723,7 +681,7 @@ namespace AmpScm.Buckets.Cryptography
 
                         var SignaturePublicKey = signatureInfo.SignatureInts![0];
 
-                        return rsa.VerifyHash(hashValue, SignaturePublicKey.ToCryptoValue(), GetDotNetHashAlgorithmName(signatureInfo.HashAlgorithm), RSASignaturePadding.Pkcs1);
+                        return rsa.VerifyHash(hashValue, SignaturePublicKey.ToCryptoValue(), signatureInfo.HashAlgorithm.GetHashAlgorithmName(), RSASignaturePadding.Pkcs1);
                     }
                 case PgpPublicKeyType.Dsa:
                     using (var dsa = DSA.Create())

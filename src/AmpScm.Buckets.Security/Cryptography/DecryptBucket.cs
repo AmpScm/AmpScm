@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
-using System.Numerics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
@@ -132,25 +130,20 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 ecdhParams.Append((byte)kdf.Length);
                                 ecdhParams.Append(kdf);
                                 ecdhParams.Append("Anonymous Sender    "u8.ToArray());
-                                ecdhParams.Append(key.Fingerprint.Slice(1, 20)); // Skip version '4' in first byte of our fingerprints
+                                ecdhParams.Append(key.Fingerprint);
 
-                                BucketBytes kekInput = ecdh.DeriveKeyFromHmac(pk, GetDotNetHashAlgorithmName(kdfHash), ecdhParams.ToArray());
+                                byte[] keyData = ecdh.DeriveKeyFromHmac(pk, kdfHash.GetHashAlgorithmName(),
+                                    hmacKey: null, secretPrepend: new byte[] { 0, 0, 0, 1 }, secretAppend: ecdhParams.ToArray());
 
                                 byte len = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 if (len > 0)
                                 {
-                                    using (var rfc3394 = new Rfc3394Algorithm())
-                                    {
-                                        var keySize = GetKeySize(kdfCipher);
+                                    using var keySrc = CreateDecryptBucket(bucket.NoDispose(), kdfCipher, keyData.ToArray().AsMemory(0, kdfCipher.GetKeySize() / 8).ToArray());
+                                    
 
-                                        var encrypted = await bucket.ReadExactlyAsync(len).ConfigureAwait(false);
+                                    var data = await keySrc.ReadExactlyAsync(1024).ConfigureAwait(false);
 
-                                        // encrypted is encipherd using kdfCipher, using the key produced from data
-                                        //var data = rfc3394.Unwrap(kekInput.Slice(0, keySize / 8).ToArray(), encrypted.Slice(0, keySize / 8).ToArray());
-
-                                        //GC.KeepAlive(data);
-
-                                    }
+                                    // TODO: Find why the data is not ok yet.
                                 }
                             }
                             break;
@@ -328,7 +321,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         return true; // Ignore session key
                     }
 
-                    var symmetricKeyLength = GetKeySize(cipherAlgorithm) / 8;
+                    var symmetricKeyLength = cipherAlgorithm.GetKeySize() / 8;
                     switch (version)
                     {
                         case 5:
@@ -492,8 +485,8 @@ public sealed class DecryptBucket : CryptoDataBucket
 
         var bb = await _literalSha.ReadExactlyAsync(dcb.BlockBytes + 2).ConfigureAwait(false);
 
-        if (bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
-            throw new InvalidOperationException("AES-256 decrypt failed");
+        if (bb.Length != dcb.BlockBytes + 2 || bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
+            throw new InvalidOperationException("Decrypt failed. Wrong session key");
 
         return _literalSha;
     }

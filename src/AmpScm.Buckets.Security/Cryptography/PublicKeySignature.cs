@@ -24,7 +24,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
         : base(algorithm)
     {
         Values = values;
-        Fingerprint = fingerprint;
+        InternalFingerprint = fingerprint;
         MailAddress = mailAddress;
         HasPrivateKey = hasSecret;
         _subKeys = subKeys;
@@ -33,12 +33,24 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
     // Helper for easy constructing
     internal PublicKeySignature WithSubKeys(IEnumerable<PublicKeySignature> enumerable, System.Net.Mail.MailAddress? mailAddress)
     {
-        return new PublicKeySignature(Fingerprint, Algorithm, Values, mailAddress, HasPrivateKey, enumerable);
+        return new PublicKeySignature(InternalFingerprint, Algorithm, Values, mailAddress, HasPrivateKey, enumerable);
     }
 
-    public ReadOnlyMemory<byte> Fingerprint { get; }
+    internal ReadOnlyMemory<byte> InternalFingerprint { get; }
+
+    public ReadOnlyMemory<byte> Fingerprint
+    {
+        get
+        {
+            var r = InternalFingerprint;
+            if (r.Span[0] >= 3 && r.Span[0] <= 5)
+                return InternalFingerprint.Slice(1);
+            else
+                return r;
+        }
+    }
     IReadOnlyList<BigInteger> Values { get; }
-    public string FingerprintString => CryptoDataBucket.FingerprintToString(Fingerprint);
+    public string FingerprintString => CryptoDataBucket.FingerprintToString(InternalFingerprint);
 
     public System.Net.Mail.MailAddress? MailAddress { get; }
 
@@ -64,7 +76,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
     /// <returns></returns>
     internal AsymmetricCryptoKey? MatchFingerprint(ReadOnlyMemory<byte> fingerprint, CryptoAlgorithm algorithm = default, bool requirePrivateKey = false)
     {
-        int len = Math.Min(fingerprint.Length, fingerprint.Length);
+        int len = Math.Min(fingerprint.Length, Fingerprint.Length);
 
         if (fingerprint.Span.Slice(fingerprint.Length - len)
             .SequenceEqual(Fingerprint.Span.Slice(Fingerprint.Length - len))
