@@ -56,7 +56,7 @@ namespace AmpScm.Buckets.Cryptography
                 else if (bb.Span.StartsWith(new byte[] { 0x00, 0x00, 0x00 }))
                 {
                     if (didRead)
-                        inner = bb.Memory.AsBucket() + Source;
+                        inner = bb.AsBucket() + Source;
 
                     _isSsh = true;
                     sshPublicKey = true;
@@ -65,12 +65,12 @@ namespace AmpScm.Buckets.Cryptography
                 {
                     _isDer = true;
                     if (didRead)
-                        inner = bb.Memory.AsBucket() + Source;
+                        inner = bb.AsBucket() + Source;
                 }
                 else
                 {
                     if (didRead)
-                        inner = bb.Memory.AsBucket() + Source;
+                        inner = bb.AsBucket() + Source;
                 }
                 _notFirst = true;
                 first = true;

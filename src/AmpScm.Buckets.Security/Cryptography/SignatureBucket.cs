@@ -123,7 +123,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     {
                         if (SplitSignatureInt(i++, publicKeyType))
                         {
-                            var s = bb.Memory.AsBucket();
+                            var s = bb.AsBucket();
 
                             while (!(bb = await ReadSshStringAsync(s).ConfigureAwait(false)).IsEof)
                             {
@@ -175,7 +175,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     BigInteger[]? keyInts;
                     byte[]? keyFingerprint = null;
                     PgpPublicKeyType keyPublicKeyType;
-                    bool hasSecretKey = (tag is CryptoTag.SecretKey or CryptoTag.SecretSubkey);
+                    bool hasSecretKey = tag is CryptoTag.SecretKey or CryptoTag.SecretSubkey;
 
                     var csum = bucket.NoDispose().Buffer();
                     uint len = (uint)await csum.ReadRemainingBytesAsync().ConfigureAwait(false);

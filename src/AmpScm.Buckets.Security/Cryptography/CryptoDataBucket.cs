@@ -361,7 +361,7 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
                     aes.KeySize = algorithm.GetKeySize();
                     aes.Key = key;
-                    aes.IV = iv ?? new byte[aes.BlockSize / 8];
+                    aes.IV = iv ?? new byte[algorithm.GetBlockBytes()];
                     aes.Padding = PaddingMode.None;
                     aes.FeedbackSize = aes.BlockSize;
 

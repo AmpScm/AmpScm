@@ -74,7 +74,7 @@ namespace AmpScm.Buckets.Cryptography
             }
             else if (0 > bb.IndexOf((byte)':'))
             {
-                _base64Decode = new StopAtLineStartBucket(bb.Memory.AsBucket() + Source.NoDispose(), new byte[] { (byte)'-' }).Base64Decode(true);
+                _base64Decode = new StopAtLineStartBucket(bb.AsBucket() + Source.NoDispose(), new byte[] { (byte)'-' }).Base64Decode(true);
                 _state = SState.Body;
                 return BucketBytes.Eof;
             }

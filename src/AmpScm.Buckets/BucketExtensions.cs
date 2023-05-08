@@ -99,6 +99,54 @@ namespace AmpScm.Buckets
                     return result.AsBytes();
                 else if (bb.Length == requested)
                     return result.AsBytes(bb);
+                else if (bb.IsEmpty)
+                    throw new BucketException($"Bucket {bucket} returns 0-byte read");
+
+                result.Append(bb);
+                requested -= bb.Length;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bucket"></param>
+        /// <param name="requested"></param>
+        /// <param name="throwOnEof"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="BucketEofException"></exception>
+        public static async ValueTask<BucketBytes> ReadExactlyAsync(this Bucket bucket, int requested, bool throwOnEof)
+        {
+            if (bucket is null)
+                throw new ArgumentNullException(nameof(bucket));
+            else if (requested <= 0 || requested > Bucket.MaxRead)
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
+
+            ByteCollector result = new(requested);
+            while (true)
+            {
+                var bb = await bucket.ReadAsync(requested).ConfigureAwait(false);
+
+                if (result.IsEmpty)
+                {
+                    if (bb.Length == requested || (bb.IsEof && !throwOnEof))
+                        return bb;
+                    else if (bb.IsEof)
+                        throw new BucketEofException(bucket);
+                }
+                else if (bb.IsEof)
+                {
+                    if (throwOnEof)
+                        throw new BucketEofException(bucket);
+
+                    return result.AsBytes();
+                }
+                else if (bb.Length == requested)
+                    return result.AsBytes(bb);
+                else if (bb.IsEmpty)
+                    throw new BucketException($"Bucket {bucket} returns 0-byte read");
 
                 result.Append(bb);
                 requested -= bb.Length;
@@ -142,7 +190,7 @@ namespace AmpScm.Buckets
             {
                 bb = await bucket.ReadExactlyAsync(blockSize).ConfigureAwait(false);
 
-                if (bb.Length % blockSize != 0)
+                if (bb.Length % blockSize != 0 && failOnPartial)
                     throw new BucketException();
 
                 return bb;
@@ -377,6 +425,11 @@ namespace AmpScm.Buckets
         public static Bucket AsBucket(this ReadOnlyMemory<byte> memory)
         {
             return new MemoryBucket(memory);
+        }
+
+        public static Bucket AsBucket(this BucketBytes bytes)
+        {
+            return new MemoryBucket(bytes);
         }
 
         public static Bucket AsBucket(this Memory<byte> memory)

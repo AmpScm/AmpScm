@@ -215,8 +215,8 @@ public static partial class CryptoExtensions
 
             Q = new ECPoint
             {
-                X = v2.AlignUp(),
-                Y = v3.AlignUp(),
+                X = v2,
+                Y = v3,
             },
         };
 
@@ -250,11 +250,11 @@ public static partial class CryptoExtensions
         var v1 = v.Skip(1).Take(n).ToArray();
         var v2 = v.Skip(1 + n).ToArray();
 
-        p.Q = new ECPoint { X = v1.AlignUp(), Y = v2.AlignUp() };
+        p.Q = new ECPoint { X = v1, Y = v2 };
 
         ecdh2.ImportParameters(p);
 
-        return ecdh.PublicKey;
+        return ecdh2.PublicKey;
     }
 
     private static string ParseOid(byte[] v)
@@ -362,7 +362,6 @@ public static partial class CryptoExtensions
         };
 
         eCDsa.ImportParameters(p);
-
     }
 
     internal static SymmetricAlgorithm ApplyModeShim(this SymmetricAlgorithm algorithm)
@@ -377,7 +376,6 @@ public static partial class CryptoExtensions
             return new CfbMapper(algorithm);
         }
 #pragma warning restore CA5358 // Review cipher mode usage with cryptography experts
-
 
         return algorithm;
     }
@@ -415,6 +413,20 @@ public static partial class CryptoExtensions
             PgpSymmetricAlgorithm.TripleDes => 192,
             PgpSymmetricAlgorithm.Blowfish128 => 128,
             _ => throw new NotImplementedException($"Keysize for cipher {cipherAlgorithm} not implemented yet.")
+        };
+    }
+
+    internal static int GetKeyBytes(this PgpSymmetricAlgorithm cipherAlgorithm)
+    {
+        return cipherAlgorithm.GetKeySize() / 8;
+    }
+
+    internal static int GetBlockBytes(this PgpSymmetricAlgorithm cipherAlgorithm)
+    {
+        return cipherAlgorithm switch
+        {
+            PgpSymmetricAlgorithm.Aes or PgpSymmetricAlgorithm.Aes192 or PgpSymmetricAlgorithm.Aes256 => 16,
+            _ => throw new NotImplementedException($"Blocksize for cipher {cipherAlgorithm} not implemented yet.")
         };
     }
 }

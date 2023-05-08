@@ -57,7 +57,7 @@ namespace AmpScm.Git.Objects
             get
             {
                 if (_fingerprint.Length == 0)
-                    _fingerprint = HashPrint(_key.InternalFingerprint);
+                    _fingerprint = HashPrint(_key.Fingerprint);
 
                 return _fingerprint;
             }
@@ -69,8 +69,8 @@ namespace AmpScm.Git.Objects
         {
             if (fp.Length == 8) // 8 = PGP fingerprint
                 return fp;
-            else if (fp.Length <= (32 /* SHA256 */ + 1) && (fp.Length & 3) == 1 && fp.Span[0] >= 3 && fp.Span[0] <= 5)
-                return fp.Slice(1);
+            else if (fp.Length <= (32 /* SHA256 */ + 1))
+                return fp;
 
 #if NET6_0_OR_GREATER
             return SHA256.HashData(fp.Span);

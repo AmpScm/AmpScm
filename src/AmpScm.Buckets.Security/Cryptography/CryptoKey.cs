@@ -65,6 +65,8 @@ public abstract record class AsymmetricCryptoKey
     public bool HasPrivateKey { get; protected set; }
 
     public abstract IReadOnlyList<BigInteger> GetValues(bool includePrivate=false);
+
+    public abstract ReadOnlyMemory<byte> Fingerprint { get; }
 }
 
 public class CryptoKeyChain : IEnumerable<AsymmetricCryptoKey>
@@ -134,7 +136,7 @@ public class CryptoKeyChain : IEnumerable<AsymmetricCryptoKey>
                 var r = pks.MatchFingerprint(fingerprint, cryptoAlgorithm, requirePrivateKey);
 
                 if (r is not null)
-                    return r;
+                    return key; // Return parent key, not subkey
             }
             else
                 return key;

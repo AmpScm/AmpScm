@@ -749,7 +749,7 @@ namespace BucketTests
         [TestMethod]
         public async Task FileBucketCleanup()
         {
-            string p = Path.Combine(TestContext.TestResultsDirectory, Guid.NewGuid().ToString());
+            string p = Path.Combine(TestContext.TestResultsDirectory!, Guid.NewGuid().ToString());
 
             File.WriteAllText(p, "blub");
 

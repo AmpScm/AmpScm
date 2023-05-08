@@ -76,9 +76,9 @@ public sealed class DecryptBucket : CryptoDataBucket
                     var fingerprint = bb.ToArray();
                     var pca = (PgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                    var key = KeyChain?.FindKey(bb.Memory, requirePrivateKey: true) as PublicKeySignature;
+                    var key = KeyChain?.FindKey(fingerprint, requirePrivateKey: true) as PublicKeySignature;
 
-                    if (!(key?.HasPrivateKey ?? false) || key?.MatchFingerprint(fingerprint) is not { } matchedKey)
+                    if (!(key?.HasPrivateKey ?? false) || key?.MatchFingerprint(fingerprint, requirePrivateKey: true) is not { } matchedKey)
                     {
                         await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                         break; // Ignore rest of packet
@@ -113,7 +113,8 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                                 var scalar = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket);
 
-                                var pk = ecdh.CreatePublicKey(scalar);
+                                using var pk = ecdh.CreatePublicKey(scalar);
+
 
                                 var oid = keyValues[0].ToCryptoValue();
 
@@ -124,26 +125,30 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                                 var kdf = keyValues[2].ToCryptoValue();
 
+                                // kdf[0] = 1 // Future extensibility
                                 var kdfHash = (PgpHashAlgorithm)kdf[1];
                                 var kdfCipher = (PgpSymmetricAlgorithm)kdf[2];
 
                                 ecdhParams.Append((byte)kdf.Length);
                                 ecdhParams.Append(kdf);
                                 ecdhParams.Append("Anonymous Sender    "u8.ToArray());
-                                ecdhParams.Append(key.Fingerprint);
+                                ecdhParams.Append(matchedKey.Fingerprint.Slice(0, 20)); // Slice for v5 keys
 
-                                byte[] keyData = ecdh.DeriveKeyFromHmac(pk, kdfHash.GetHashAlgorithmName(),
-                                    hmacKey: null, secretPrepend: new byte[] { 0, 0, 0, 1 }, secretAppend: ecdhParams.ToArray());
+                                
+
+                                byte[] kek = ecdh.DeriveKeyFromHash(pk, kdfHash.GetHashAlgorithmName(),
+                                                                        secretPrepend: new byte[] {  0, 0, 0, 1 }, secretAppend: ecdhParams.ToArray())
+                                            .Take(kdfCipher.GetKeyBytes()).ToArray();
+
 
                                 byte len = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 if (len > 0)
                                 {
-                                    using var keySrc = CreateDecryptBucket(bucket.NoDispose(), kdfCipher, keyData.ToArray().AsMemory(0, kdfCipher.GetKeySize() / 8).ToArray());
-                                    
+                                    var srcData = await bucket.ReadExactlyAsync(len, true).ConfigureAwait(false);
 
-                                    var data = await keySrc.ReadExactlyAsync(1024).ConfigureAwait(false);
+                                    var data = new Rfc3394Algorithm(kek).UnwrapKey(srcData.ToArray());
 
-                                    // TODO: Find why the data is not ok yet.
+                                    SetupSessionFromDecrypted(data.ToArray());
                                 }
                             }
                             break;
@@ -429,12 +434,16 @@ public sealed class DecryptBucket : CryptoDataBucket
 
     private void SetupSessionFromDecrypted(byte[] data)
     {
-        ushort checksum = NetBitConverter.ToUInt16(data, data.Length - 2);
+        var alg = (PgpSymmetricAlgorithm)data[0];
 
-        if (checksum == data.Skip(1).Take(data.Length - 3).Sum(x => (ushort)x))
+        var dataLen = alg.GetKeySize() / 8;
+
+        ushort checksum = NetBitConverter.ToUInt16(data, 1 + dataLen);
+
+        if (checksum == data.Skip(1).Take(dataLen).Sum(x => (ushort)x))
         {
-            _sessionAlgorithm = (PgpSymmetricAlgorithm)data[0];
-            _sessionKey = data.AsMemory(1, data.Length - 3); // Minus first byte (session alg) and last two bytes (checksum)
+            _sessionAlgorithm = alg;
+            _sessionKey = data.AsMemory(1, dataLen); // Minus first byte (session alg) and last two bytes (checksum)
         }
     }
 

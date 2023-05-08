@@ -38,7 +38,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
 
     internal ReadOnlyMemory<byte> InternalFingerprint { get; }
 
-    public ReadOnlyMemory<byte> Fingerprint
+    public override ReadOnlyMemory<byte> Fingerprint
     {
         get
         {
@@ -49,6 +49,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
                 return r;
         }
     }
+
     IReadOnlyList<BigInteger> Values { get; }
     public string FingerprintString => CryptoDataBucket.FingerprintToString(InternalFingerprint);
 
@@ -221,7 +222,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
             sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", Algorithm);
 
             var span = Fingerprint.Span;
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < span.Length; i++)
             {
                 if (i < span.Length)
                     sb.Append(span[i].ToString("X2", CultureInfo.InvariantCulture));

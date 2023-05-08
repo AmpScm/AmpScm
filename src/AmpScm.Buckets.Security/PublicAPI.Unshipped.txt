@@ -1,4 +1,5 @@
 ﻿#nullable enable
+abstract AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.Fingerprint.get -> System.ReadOnlyMemory<byte>
 AmpScm.Buckets.Cryptography.CryptoAlgorithm
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.Curve25519 = 6 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm
 AmpScm.Buckets.Cryptography.CryptoAlgorithm.Dsa = 2 -> AmpScm.Buckets.Cryptography.CryptoAlgorithm

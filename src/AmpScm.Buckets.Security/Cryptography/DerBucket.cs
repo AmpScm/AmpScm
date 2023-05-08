@@ -47,7 +47,7 @@ namespace AmpScm.Buckets.Cryptography
                 return false;
             try
             {
-                var d = bb.Memory.AsBucket();
+                var d = bb.AsBucket();
 
                 using var der = new DerBucket(d);
 
