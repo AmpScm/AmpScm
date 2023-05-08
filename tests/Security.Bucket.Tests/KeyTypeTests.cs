@@ -392,6 +392,9 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
 #if !NETCOREAPP
         if (Environment.OSVersion.Platform != PlatformID.Win32NT)
             Assert.Inconclusive("Mono and ECDH are not a good mix");
+#else
+        if (OperatingSystem.IsMacOS())
+            Assert.Inconclusive("GitHub's MacOS install's doesn't like ECDH");
 #endif
 
         var k1Priv = @"-----BEGIN PGP PRIVATE KEY BLOCK-----
