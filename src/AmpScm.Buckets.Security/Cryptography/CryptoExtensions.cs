@@ -206,7 +206,7 @@ public static partial class CryptoExtensions
             v2 = v2.Skip(1).Take(n).ToArray();
         }
         else // 0x40, 0x41 -> Only X
-            throw new NotImplementedException();
+            throw new NotImplementedException($"Unexpected ECDH keyformat with first byte {v2[0]}");
 
         var p = new ECParameters()
         {
@@ -342,7 +342,7 @@ public static partial class CryptoExtensions
             v1 = v1.Skip(1).Take(n).ToArray();
         }
         else
-            throw new NotImplementedException();
+            throw new NotImplementedException($"Unexpected ECDSA keyformat with first byte {v1[0]}");
 
 
         var oidString = ParseOid(curveValue);

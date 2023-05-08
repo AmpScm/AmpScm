@@ -96,7 +96,7 @@ namespace AmpScm.Buckets.Specialized
                 else
                 {
                     // Not needed for aggregate bucket, so leave as todo
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("Unused edge case");
                 }
             }
             else
@@ -111,7 +111,7 @@ namespace AmpScm.Buckets.Specialized
                 else
                 {
                     // Not needed for aggregate bucket, so leave as todo
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("Unused edge case");
                 }
 
                 Count++;
@@ -165,7 +165,7 @@ namespace AmpScm.Buckets.Specialized
                 Count--;
             }
             else
-                throw new NotImplementedException();
+                throw new NotImplementedException("Unused edge case");
 
             if (Count == 0)
                 _start = 0;

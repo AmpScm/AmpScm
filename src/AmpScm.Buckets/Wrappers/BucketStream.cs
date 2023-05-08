@@ -76,7 +76,6 @@ namespace AmpScm.Buckets.Wrappers
 
         public override void Flush()
         {
-            //throw new NotImplementedException();
         }
 
         public override int Read(byte[] buffer, int offset, int count)

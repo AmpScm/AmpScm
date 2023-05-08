@@ -20,7 +20,7 @@ namespace AmpScm.Buckets.Specialized
             : base(new ZLibBucket(source, BucketCompressionAlgorithm.Deflate, mode, level))
         {
             if (mode != CompressionMode.Decompress)
-                throw new NotImplementedException();
+                throw new NotImplementedException("Compression not implemented yet");
 
             _readHeader = true;
         }

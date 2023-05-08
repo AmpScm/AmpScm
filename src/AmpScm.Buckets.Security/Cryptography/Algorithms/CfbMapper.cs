@@ -42,7 +42,7 @@ namespace AmpScm.Buckets.Cryptography
 
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("CFB encryptor not implemented yet");
         }
 
         public override void GenerateIV()

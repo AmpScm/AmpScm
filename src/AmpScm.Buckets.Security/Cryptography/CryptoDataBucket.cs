@@ -193,7 +193,7 @@ namespace AmpScm.Buckets.Cryptography
                         return new(alg, salt, c, algorithm, type);
                     }
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"Unknow S2k specifier {type}");
             }
         }
 
@@ -767,7 +767,7 @@ namespace AmpScm.Buckets.Cryptography
                     alg = "ecdsa-sha2-" + kv.ToString();
                     break;
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"Unknown ssh fingerprint type {sba}");
             }
 
             bb.Append(NetBitConverter.GetBytes(alg.Length));

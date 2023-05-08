@@ -24,7 +24,7 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
     byte[] _kek;
 
     /// <summary>
-    /// Constructs a <b>KeyWrapAlgorithm</b> object with the specified key-encryption key.
+    /// Constructs a <see cref="Rfc3394Algorithm" /> object with the specified key-encryption key.
     /// </summary>
     /// <param name="kek">The key-encryption key to use for subsequent wrapping and unwrapping operations.  This must be a valid AES key.</param>
     /// <exception cref="ArgumentNullException"><c>kek</c> was a null reference.</exception>
@@ -193,7 +193,6 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
 
     public void Dispose()
     {
-        //throw new NotImplementedException();
     }
 
     #endregion
