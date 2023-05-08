@@ -389,6 +389,11 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
     [TestMethod]
     public async Task EcdhPair()
     {
+#if !NETCOREAPP
+        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            Assert.Inconclusive("Mono and ECDH are not a good mix");
+#endif
+
         var k1Priv = @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lKQEZFjYexMFK4EEACIDAwS+BHpXPredmD9JUp7XJot/+sGDGxDQSxRyuSyUKa8e
