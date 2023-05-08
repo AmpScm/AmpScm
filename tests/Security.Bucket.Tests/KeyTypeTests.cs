@@ -360,12 +360,17 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
         {
             case CryptoAlgorithm.Rsa:
             case CryptoAlgorithm.Elgamal:
-                break; // Work
-#if DEBUG
             case CryptoAlgorithm.Dsa:
+                break; // Work
             case CryptoAlgorithm.Ecdsa:
+#if !NETCOREAPP
+                if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                    Assert.Inconclusive("Mono and ECDH are not a good mix");
+#else
+                if (OperatingSystem.IsMacOS())
+                    Assert.Inconclusive("GitHub's MacOS install's doesn't like ECDH");
 #endif
-                break; // Should work
+                break;
 
             default:
 #if !DEBUG
@@ -436,7 +441,7 @@ r9B1gbncNGywq9sUq9sBOmatCAGxAP42AP5To/+3U/N7gEMoRTo2ItuEOTyzC+K1
 
         Assert.IsTrue(PublicKeySignature.TryParse(k1Priv, out var k1));
         Assert.IsTrue(PublicKeySignature.TryParse(k2Priv, out var k2));
-        Assert.IsTrue(k1.HasPrivateKey); 
+        Assert.IsTrue(k1.HasPrivateKey);
         Assert.IsTrue(k2.HasPrivateKey);
 
         var msg = @"-----BEGIN PGP MESSAGE-----
@@ -453,7 +458,7 @@ pRpHxU+Ml3pmAeFqHjYtxw==
 
         var ar = new Radix64ArmorBucket(rd);
 
-        var dc = new DecryptBucket(ar) { KeyChain = k1 + k2};
+        var dc = new DecryptBucket(ar) { KeyChain = k1 + k2 };
 
 
         var bb = await dc.ReadExactlyAsync(1024);
@@ -492,7 +497,7 @@ NS+P0JGmSavZ6MW8RCXV6CAmWH5AxVO4Hw==
         Assert.IsTrue(PublicKeySignature.TryParse(keyData, (_) => "PW6", out var key));
         Assert.IsTrue(key.HasPrivateKey);
 
-        var msg = 
+        var msg =
 @"-----BEGIN PGP MESSAGE-----
 
 hJ4DQyP+J9/KAQESAwME6x5y/fYG4XIPdJhW1vhtwXoRJ0na3p34AEoPyGUw7/xD
