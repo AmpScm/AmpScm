@@ -136,14 +136,14 @@ namespace AmpScm.Buckets.Specialized
             get
             {
                 if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(nameof(index));
+                    throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
                 return _items[index + _start];
             }
 
             set
             {
                 if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(nameof(index));
+                    throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
                 _items[index + _start] = value;
             }
         }
@@ -151,7 +151,7 @@ namespace AmpScm.Buckets.Specialized
         internal void RemoveAt(int index)
         {
             if (Count == 0)
-                throw new ArgumentOutOfRangeException(nameof(index));
+                throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
 
             if (index == 0)
             {

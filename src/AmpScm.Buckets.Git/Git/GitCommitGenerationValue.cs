@@ -20,7 +20,7 @@ namespace AmpScm.Buckets.Git
         public GitCommitGenerationValue(int generation, DateTimeOffset timeStamp, long correctedTimeOffset)
         {
             if (generation < 0)
-                throw new ArgumentOutOfRangeException(nameof(generation));
+                throw new ArgumentOutOfRangeException(nameof(generation), generation, message: null);
             else if (generation >= 0x3FFFFFFF)
                 generation = 0x3FFFFFFF;
 
@@ -30,7 +30,7 @@ namespace AmpScm.Buckets.Git
             var s = timeStamp.ToUnixTimeSeconds();
 
             if (s < 0)
-                throw new ArgumentOutOfRangeException(nameof(timeStamp));
+                throw new ArgumentOutOfRangeException(nameof(timeStamp), timeStamp, message: null);
 
             if (s >= 0x3FFFFFFFF)
                 s = 0x3FFFFFFFF; // Overflow. We should use overflow handling over 34 bit...
@@ -49,7 +49,7 @@ namespace AmpScm.Buckets.Git
         public GitCommitGenerationValue(int generation, long timeValue, long correctedTimeOffset)
         {
             if (generation < 0)
-                throw new ArgumentOutOfRangeException(nameof(generation));
+                throw new ArgumentOutOfRangeException(nameof(generation), generation, message: null);
             else if (generation >= 0x3FFFFFFF)
                 generation = 0x3FFFFFFF;
 
@@ -59,7 +59,7 @@ namespace AmpScm.Buckets.Git
             var s = timeValue;
 
             if (s < 0)
-                throw new ArgumentOutOfRangeException(nameof(timeValue));
+                throw new ArgumentOutOfRangeException(nameof(timeValue), timeValue, message: null);
 
             if (s >= 0x3FFFFFFFF)
                 s = 0x3FFFFFFFF; // Overflow. We should use overflow handling over 34 bit...

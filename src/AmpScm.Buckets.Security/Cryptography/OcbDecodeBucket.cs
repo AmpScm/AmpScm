@@ -51,7 +51,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
         if (tagLen < 8 || tagLen > BlockLength * 8 || tagLen % 8 != 0)
             throw new ArgumentOutOfRangeException(nameof(tagLen), tagLen, message: null);
         else if (nonce.Length > MaxNonceLength)
-            throw new ArgumentOutOfRangeException(nameof(nonce));
+            throw new ArgumentOutOfRangeException(nameof(nonce), nonce, message: null);
 
         leaver.Bucket = this;
 
@@ -140,7 +140,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
     private static byte[] GetBits(byte[] array, int pos, int bits)
     {
         if (pos + bits > array.Length * 8)
-            throw new ArgumentOutOfRangeException(nameof(bits));
+            throw new ArgumentOutOfRangeException(nameof(bits), bits, message: null);
 
         int bytes = bits / 8;
 

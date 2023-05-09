@@ -70,7 +70,7 @@ namespace AmpScm.Git
                     txt = $"tag {length}\0";
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(type));
+                    throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
             }
 
             return Encoding.ASCII.GetBytes(txt).AsBucket();
@@ -87,7 +87,7 @@ namespace AmpScm.Git
                 case GitIdType.Sha256:
                     return bucket.SHA256(x => created(new GitId(type, x)));
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(type));
+                    throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
             }
         }
 

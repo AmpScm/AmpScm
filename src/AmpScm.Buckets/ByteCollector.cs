@@ -28,7 +28,7 @@ namespace AmpScm.Buckets
         public ByteCollector(int expectedSize)
         {
             if (expectedSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(expectedSize));
+                throw new ArgumentOutOfRangeException(nameof(expectedSize), expectedSize, message: null);
 
             Length = 0;
             _expected = (ushort)Math.Min(expectedSize, 32768);

@@ -46,9 +46,9 @@ namespace AmpScm.Git
             if (hash is null)
                 throw new ArgumentNullException(nameof(hash));
             else if (type <= GitIdType.None || type > GitIdType.Sha256)
-                throw new ArgumentOutOfRangeException(nameof(type));
+                throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
             else if (hash.Length != HashLength(type))
-                throw new ArgumentOutOfRangeException(nameof(hash));
+                throw new ArgumentOutOfRangeException(nameof(hash), hash, message: null);
 
             Type = type;
             _bytes = hash;
@@ -80,9 +80,9 @@ namespace AmpScm.Git
                         40 => GitIdType.Sha1,
                         64 => GitIdType.Sha256,
                         0 => throw new ArgumentNullException(nameof(value)),
-                        _ => throw new ArgumentOutOfRangeException(nameof(value))
+                        _ => throw new ArgumentOutOfRangeException(nameof(value), value, message: null)
                     },
-                    GitId.TryParse(value!, out var id) ? id._bytes : throw new ArgumentOutOfRangeException(nameof(value)))
+                    GitId.TryParse(value!, out var id) ? id._bytes : throw new ArgumentOutOfRangeException(nameof(value), value, message: null))
         {
 
         }
@@ -101,7 +101,7 @@ namespace AmpScm.Git
             _offset = offset;
 
             if (offset + HashLength(type) > hash.Length)
-                throw new ArgumentOutOfRangeException(nameof(offset));
+                throw new ArgumentOutOfRangeException(nameof(offset), offset, message: null);
         }
 
         /// <summary>
@@ -289,7 +289,7 @@ namespace AmpScm.Git
             if (TryParse(idString, out var v))
                 return v;
             else
-                throw new ArgumentOutOfRangeException(nameof(idString));
+                throw new ArgumentOutOfRangeException(nameof(idString), idString, message: null);
         }
 
         public static byte[] StringToByteArray(string hex)
@@ -347,7 +347,7 @@ namespace AmpScm.Git
             {
                 GitIdType.Sha1 => 20,
                 GitIdType.Sha256 => 32,
-                _ => throw new ArgumentOutOfRangeException(nameof(type))
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, message: null)
             };
 
         public int CompareTo(GitId? other)
@@ -388,7 +388,7 @@ namespace AmpScm.Git
 #endif
                 return ToString().Substring(0, xlen).ToUpperInvariant();
 
-            throw new ArgumentOutOfRangeException(nameof(format));
+            throw new ArgumentOutOfRangeException(nameof(format), format, message: null);
         }
 
         public static bool operator ==(GitId? one, GitId? other)
@@ -402,7 +402,7 @@ namespace AmpScm.Git
             get
             {
                 if (index < 0 || index > HashLength(Type))
-                    throw new ArgumentOutOfRangeException(nameof(index));
+                    throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
 
                 return _bytes[index + _offset];
             }

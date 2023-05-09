@@ -166,7 +166,7 @@ namespace AmpScm.Buckets.Git
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested <= 0)
-                throw new ArgumentOutOfRangeException(nameof(requested));
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             if (_copySize == 0 && !await AdvanceAsync().ConfigureAwait(false))
                 return BucketBytes.Eof;

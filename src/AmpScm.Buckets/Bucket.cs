@@ -121,7 +121,7 @@ namespace AmpScm.Buckets
         internal async ValueTask<long> SkipByReading(long requested)
         {
             if (requested <= 0)
-                throw new ArgumentOutOfRangeException(nameof(requested));
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             long skipped = 0;
             while (requested > 0)

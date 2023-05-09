@@ -26,9 +26,9 @@ namespace AmpScm.Buckets.Specialized
             : base(source)
         {
             if (0 != (acceptedEols & ~BucketEol.EolMask) || acceptedEols == BucketEol.None)
-                throw new ArgumentOutOfRangeException(nameof(acceptedEols));
+                throw new ArgumentOutOfRangeException(nameof(acceptedEols), acceptedEols, message: null);
             else if (producedEol <= BucketEol.None || producedEol >= BucketEol.EolMask)
-                throw new ArgumentOutOfRangeException(nameof(producedEol));
+                throw new ArgumentOutOfRangeException(nameof(producedEol), producedEol, message: null);
 
             _acceptedEols = acceptedEols;
             _producedEol = producedEol;
@@ -40,7 +40,7 @@ namespace AmpScm.Buckets.Specialized
                 BucketEol.CRLF => new[] { (byte)'\r', (byte)'\n' },
                 BucketEol.CR => new[] { (byte)'\r' },
                 BucketEol.Zero => new[] { (byte)'\0' },
-                _ => throw new ArgumentOutOfRangeException(nameof(producedEol))
+                _ => throw new ArgumentOutOfRangeException(nameof(producedEol), producedEol, message: null)
             };
         }
 

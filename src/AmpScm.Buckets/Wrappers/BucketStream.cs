@@ -204,7 +204,7 @@ namespace AmpScm.Buckets.Wrappers
                 case SeekOrigin.End:
                     return Seek(Length - offset, SeekOrigin.Begin);
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(origin));
+                    throw new ArgumentOutOfRangeException(nameof(origin), origin, message: null);
             }
         }
 

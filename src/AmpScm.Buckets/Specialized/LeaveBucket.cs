@@ -17,7 +17,7 @@ internal sealed class LeaveBucket : WrappingBucket
     public LeaveBucket(Bucket source, int leaveBytes, Func<BucketBytes, long, ValueTask>? leftHandler) : base(source)
     {
         if (leaveBytes < 1)
-            throw new ArgumentOutOfRangeException(nameof(leaveBytes));
+            throw new ArgumentOutOfRangeException(nameof(leaveBytes), leaveBytes, message: null);
 
         _leftHandler = leftHandler;
         LeaveBytes = leaveBytes;

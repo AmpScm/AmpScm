@@ -213,7 +213,7 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
             else if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length));
+                throw new ArgumentOutOfRangeException(nameof(length), length, message: null);
 
             if (!alwaysWrap && bucket is IBucketTake take)
                 return take.Take(length, true);
@@ -238,7 +238,7 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
             else if (limit < 0)
-                throw new ArgumentOutOfRangeException(nameof(limit));
+                throw new ArgumentOutOfRangeException(nameof(limit), limit, message: null);
 
             if (!alwaysWrap && bucket is IBucketTake take)
                 return take.Take(limit, false);
@@ -260,7 +260,7 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
             else if (skipBytes < 0)
-                throw new ArgumentOutOfRangeException(nameof(skipBytes));
+                throw new ArgumentOutOfRangeException(nameof(skipBytes), skipBytes, message: null);
 
             if (!alwaysWrap && bucket is IBucketSkip sb)
                 return sb.Skip(skipBytes, true);
@@ -282,7 +282,7 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
             else if (skipBytes < 0)
-                throw new ArgumentOutOfRangeException(nameof(skipBytes));
+                throw new ArgumentOutOfRangeException(nameof(skipBytes), skipBytes, message: null);
 
             if (!alwaysWrap && bucket is IBucketSkip sb)
                 return sb.Skip(skipBytes, false);
@@ -514,7 +514,7 @@ namespace AmpScm.Buckets
 #endif
                 // Maybe: ZStd via https://www.nuget.org/packages/ZstdSharp.Port
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(algorithm));
+                    throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, message: null);
             }
         }
 
@@ -559,7 +559,7 @@ namespace AmpScm.Buckets
 #endif
                 // Maybe: ZStd via https://www.nuget.org/packages/ZstdSharp.Port
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(algorithm));
+                    throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, message: null);
             }
         }
 

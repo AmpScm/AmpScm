@@ -23,7 +23,7 @@ internal partial class Rfc3394Algorithm
         public Rfc3394Block(ReadOnlyMemory<byte> bytes)
         {
             if (bytes.Length != 8)
-                throw new ArgumentOutOfRangeException(nameof(bytes), bytes.Length, message:null);
+                throw new ArgumentOutOfRangeException(nameof(bytes), bytes.Length, message: null);
 
             Bytes = bytes;
         }
@@ -48,7 +48,7 @@ internal partial class Rfc3394Algorithm
             if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
             if (bytes.Length % 8 != 0)
-                throw new ArgumentOutOfRangeException(nameof(bytes));
+                throw new ArgumentOutOfRangeException(nameof(bytes), bytes, message: null);
 
             Rfc3394Block[] blocks = new Rfc3394Block[bytes.Length / 8];
 

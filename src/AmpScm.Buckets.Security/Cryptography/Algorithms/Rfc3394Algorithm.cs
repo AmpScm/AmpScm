@@ -34,7 +34,7 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         if (kek == null)
             throw new ArgumentNullException(nameof(kek));
         if (kek.Length is not 16 and not 24 and not 32)
-            throw new ArgumentOutOfRangeException(nameof(kek));
+            throw new ArgumentOutOfRangeException(nameof(kek), kek, message: null);
 
         _kek = kek;
     }
@@ -52,7 +52,7 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         if (plaintext == null)
             throw new ArgumentNullException(nameof(plaintext));
         if (plaintext.Length < 16 || plaintext.Length % 8 != 0)
-            throw new ArgumentOutOfRangeException(nameof(plaintext));
+            throw new ArgumentOutOfRangeException(nameof(plaintext), plaintext, message: null);
 
         Rfc3394Block A = new Rfc3394Block(DefaultIV);
         Rfc3394Block[] R = Rfc3394Block.BytesToBlocks(plaintext);
@@ -95,7 +95,7 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         if (ciphertext == null)
             throw new ArgumentNullException(nameof(ciphertext));
         if (ciphertext.Length < 16 || ciphertext.Length % 8 != 0)
-            throw new ArgumentOutOfRangeException(nameof(ciphertext));
+            throw new ArgumentOutOfRangeException(nameof(ciphertext), ciphertext, message: null);
 
         Rfc3394Block[] C = Rfc3394Block.BytesToBlocks(ciphertext);
 
@@ -145,7 +145,7 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         if (plaintext == null)
             throw new ArgumentNullException(nameof(plaintext));
         if (plaintext.Length != aes.BlockSize / 8)
-            throw new ArgumentOutOfRangeException(nameof(plaintext));
+            throw new ArgumentOutOfRangeException(nameof(plaintext), plaintext, message: null);
 
         byte[] ciphertext = new byte[aes.BlockSize / 8];
 
@@ -175,7 +175,7 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         if (ciphertext == null)
             throw new ArgumentNullException(nameof(ciphertext));
         if (ciphertext.Length != aes.BlockSize / 8)
-            throw new ArgumentOutOfRangeException(nameof(ciphertext));
+            throw new ArgumentOutOfRangeException(nameof(ciphertext), ciphertext, message: null);
 
         byte[] plaintext;
 

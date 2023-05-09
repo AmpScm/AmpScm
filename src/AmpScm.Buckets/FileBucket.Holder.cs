@@ -172,7 +172,7 @@ namespace AmpScm.Buckets
                 FileWaitHandler waitHandler;
 
                 if (readLen < 1)
-                    throw new ArgumentOutOfRangeException(nameof(readLen));
+                    throw new ArgumentOutOfRangeException(nameof(readLen), readLen, message: null);
 
                 long fp = offset + readLen;
                 if (fp > _length!.Value)

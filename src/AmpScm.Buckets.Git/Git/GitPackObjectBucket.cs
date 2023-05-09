@@ -79,7 +79,7 @@ namespace AmpScm.Buckets.Git
         public override async ValueTask SeekAsync(long newPosition)
         {
             if (newPosition < 0)
-                throw new ArgumentOutOfRangeException(nameof(newPosition));
+                throw new ArgumentOutOfRangeException(nameof(newPosition), newPosition, message: null);
 
             if (state != frame_state.body)
                 await PrepareState(frame_state.body).ConfigureAwait(false);

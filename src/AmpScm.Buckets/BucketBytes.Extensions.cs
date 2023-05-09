@@ -281,7 +281,7 @@ namespace AmpScm.Buckets
         public static BucketBytes PartialReturn(ref BucketBytes remaining, int requested)
         {
             if (requested <= 0)
-                throw new ArgumentOutOfRangeException(nameof(requested));
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             BucketBytes bb;
             if (remaining.IsEof)

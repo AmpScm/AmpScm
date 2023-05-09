@@ -30,7 +30,7 @@ namespace AmpScm.Buckets.Client
             if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
                 return CreateRequest(uri);
             else
-                throw new ArgumentOutOfRangeException(url);
+                throw new ArgumentOutOfRangeException(nameof(url), url, message: null);
         }
 
         protected virtual void Dispose(bool disposing)

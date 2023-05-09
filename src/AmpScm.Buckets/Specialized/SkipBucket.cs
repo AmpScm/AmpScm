@@ -17,7 +17,7 @@ namespace AmpScm.Buckets.Specialized
         public SkipBucket(Bucket source, long firstPosition, bool ensure) : base(source)
         {
             if (firstPosition <= 0)
-                throw new ArgumentOutOfRangeException(nameof(firstPosition));
+                throw new ArgumentOutOfRangeException(nameof(firstPosition), firstPosition, message: null);
 
             FirstPosition = firstPosition;
             _ensure = ensure;
@@ -26,7 +26,7 @@ namespace AmpScm.Buckets.Specialized
         public Bucket Skip(long firstPosition, bool ensure)
         {
             if (firstPosition < 0)
-                throw new ArgumentOutOfRangeException(nameof(firstPosition));
+                throw new ArgumentOutOfRangeException(nameof(firstPosition), firstPosition, message: null);
 
             if (Position == 0)
             {

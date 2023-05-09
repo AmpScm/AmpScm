@@ -43,7 +43,7 @@ namespace AmpScm.Buckets
         public virtual async ValueTask<BucketLine> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
             if ((acceptableEols & ~BucketEol.EolMask) != 0)
-                throw new ArgumentOutOfRangeException(nameof(acceptableEols));
+                throw new ArgumentOutOfRangeException(nameof(acceptableEols), acceptableEols, message: null);
 
             using var pd = await this.PollReadAsync(1).ConfigureAwait(false);
 

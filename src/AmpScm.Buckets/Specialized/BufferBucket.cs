@@ -23,7 +23,7 @@ namespace AmpScm.Buckets.Specialized
             : base(source)
         {
             if (maxMemory < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxMemory));
+                throw new ArgumentOutOfRangeException(nameof(maxMemory), maxMemory, message: null);
 
             _maxRam = maxMemory;
             _readBucket = new AggregateBucket.SimpleAggregate(true, Array.Empty<Bucket>());

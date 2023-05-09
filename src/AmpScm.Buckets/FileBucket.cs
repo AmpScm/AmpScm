@@ -34,9 +34,9 @@ namespace AmpScm.Buckets
         private FileBucket(FileHolder holder, int bufferSize = 8192, int chunkSize = 4096)
         {
             if (bufferSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), bufferSize, message: null);
             if (chunkSize <= 0)
-                throw new ArgumentOutOfRangeException(nameof(chunkSize));
+                throw new ArgumentOutOfRangeException(nameof(chunkSize), chunkSize, message: null);
 
             _holder = holder ?? throw new ArgumentNullException(nameof(holder));
             _holder.AddRef();
@@ -129,7 +129,7 @@ namespace AmpScm.Buckets
         async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minRequested /*= 1*/)
         {
             if (minRequested <= 0)
-                throw new ArgumentOutOfRangeException(nameof(minRequested));
+                throw new ArgumentOutOfRangeException(nameof(minRequested), minRequested, message: null);
 
             if (_pos < _size)
                 return new BucketBytes(_buffer, _pos, _size - _pos);
@@ -153,7 +153,7 @@ namespace AmpScm.Buckets
         public ValueTask SeekAsync(long newPosition)
         {
             if (newPosition < 0)
-                throw new ArgumentOutOfRangeException(nameof(newPosition));
+                throw new ArgumentOutOfRangeException(nameof(newPosition), newPosition, message: null);
 
             if (newPosition > _bufStart && newPosition < _bufStart + _size)
             {
@@ -260,7 +260,7 @@ namespace AmpScm.Buckets
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested <= 0)
-                throw new ArgumentOutOfRangeException(nameof(requested));
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             if (_pos < _size)
             {
@@ -355,7 +355,7 @@ namespace AmpScm.Buckets
         public override ValueTask<long> ReadSkipAsync(long requested)
         {
             if (requested <= 0)
-                throw new ArgumentOutOfRangeException(nameof(requested));
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             if (_size - _pos > requested)
                 return base.ReadSkipAsync(requested);

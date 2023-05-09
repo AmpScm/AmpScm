@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Specialized
             : base(source)
         {
             if (limit < 0)
-                throw new ArgumentOutOfRangeException(nameof(limit));
+                throw new ArgumentOutOfRangeException(nameof(limit), limit, message: null);
 
             Limit = limit;
             _ensure = ensure;
@@ -23,7 +23,7 @@ namespace AmpScm.Buckets.Specialized
         public Bucket Take(long limit, bool ensure = true)
         {
             if (limit < 0)
-                throw new ArgumentOutOfRangeException(nameof(limit));
+                throw new ArgumentOutOfRangeException(nameof(limit), limit, message: null);
 
             if (ensure)
             {

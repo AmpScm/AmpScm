@@ -40,7 +40,7 @@ namespace AmpScm.Buckets.Specialized
             : base(source)
         {
             if (bufferSize < 0)
-                throw new ArgumentOutOfRangeException(nameof(bufferSize));
+                throw new ArgumentOutOfRangeException(nameof(bufferSize), bufferSize, message: null);
             else if (bufferSize < 64)
                 bufferSize = 64;
 
@@ -55,7 +55,7 @@ namespace AmpScm.Buckets.Specialized
                 case BucketCompressionAlgorithm.ZLib:
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(algorithm));
+                    throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, message: null);
             }
 
             ZSetup();
@@ -241,7 +241,7 @@ namespace AmpScm.Buckets.Specialized
         public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
         {
             if (requested <= 0)
-                throw new ArgumentOutOfRangeException(nameof(requested));
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             if (write_buffer.IsEmpty)
             {
@@ -264,7 +264,7 @@ namespace AmpScm.Buckets.Specialized
         async ValueTask IBucketSeek.SeekAsync(long newPosition)
         {
             if (newPosition < 0)
-                throw new ArgumentOutOfRangeException(nameof(newPosition));
+                throw new ArgumentOutOfRangeException(nameof(newPosition), newPosition, message: null);
 
             if (newPosition < _position)
             {
