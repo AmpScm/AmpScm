@@ -12,6 +12,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AmpScm.Buckets.Cryptography;
 
@@ -92,6 +93,16 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
     /// <exception cref="CryptographicException">The decryption process failed an integrity check.</exception>
     public byte[] UnwrapKey(byte[] ciphertext)
     {
+        if (!TryUnwrapKey(ciphertext, out var result))
+        {
+            throw new CryptographicException();
+        }
+
+        return result;
+    }
+
+    public bool TryUnwrapKey(byte[] ciphertext, [NotNullWhen(true)] out byte[]? result)
+    {
         if (ciphertext == null)
             throw new ArgumentNullException(nameof(ciphertext));
         if (ciphertext.Length < 16 || ciphertext.Length % 8 != 0)
@@ -121,9 +132,13 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         }
 
         if (!DefaultIV.Span.SequenceEqual(A.Bytes.Span))
-            throw new CryptographicException();
+        {
+            result = null;
+            return false;
+        }
 
-        return Rfc3394Block.BlocksToBytes(R);
+        result = Rfc3394Block.BlocksToBytes(R);
+        return true;
     }
 
     #region Helper methods
