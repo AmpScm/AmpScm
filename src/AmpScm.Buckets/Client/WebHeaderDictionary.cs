@@ -26,6 +26,7 @@ namespace AmpScm.Buckets.Client
             Keys = new KeysCollection(this);
         }
 
+        [Obsolete("Just for legacy .Net compatibilty")]
         private WebHeaderDictionary(SerializationInfo serializationInfo, StreamingContext streamingContext)
             : base(serializationInfo, streamingContext)
         {

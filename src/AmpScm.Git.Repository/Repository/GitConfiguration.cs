@@ -155,7 +155,7 @@ namespace AmpScm.Git.Repository
 
                 string dir = ApplyHomeDir(check.Substring(caseInsensitive ? "gitdir/i:".Length : "gitdir:".Length).Trim());
 
-                if (dir.EndsWith("/", StringComparison.Ordinal))
+                if (dir.EndsWith('/'))
                     dir += "**";
 
                 if (!GitGlob.Match(dir, Repository.GitDirectory, GitGlobFlags.ParentPath | (caseInsensitive ? GitGlobFlags.CaseInsensitive : GitGlobFlags.None)))
@@ -182,7 +182,7 @@ namespace AmpScm.Git.Repository
 
         static string ApplyHomeDir(string path)
         {
-            if (path != null && path.StartsWith("~", StringComparison.Ordinal)
+            if (path != null && path.StartsWith('~')
                 && UserHomeDirectory is var homeDir && !string.IsNullOrWhiteSpace(homeDir))
             {
 #pragma warning disable CA1845 // Use span-based 'string.Concat'
@@ -541,7 +541,7 @@ namespace AmpScm.Git.Repository
                 ps.BeginOutputReadLine();
                 if (ps.WaitForExit(100) && ps.ExitCode == 0)
                 {
-                    string git = outputText.Split(new[] { '\n' }, 2)[0].Trim();
+                    string git = outputText.Split('\n', 2)[0].Trim();
 
                     if (File.Exists(git)
                         && File.Exists(git = Path.GetFullPath(git)))
@@ -632,13 +632,13 @@ namespace AmpScm.Git.Repository
 
                 if (!string.IsNullOrEmpty(extraHeader) && extraHeader!.StartsWith("Authorization: Basic ", StringComparison.OrdinalIgnoreCase))
                 {
-                    var p = extraHeader.Split(new char[] { ' ' }, 3)[2];
+                    var p = extraHeader.Split(' ', 3)[2];
 
                     try
                     {
                         var userPass = Encoding.UTF8.GetString(Convert.FromBase64String(p));
 
-                        string[] parts = userPass.Split(new char[] { ':' }, 2);
+                        string[] parts = userPass.Split( ':', 2);
 
                         e.Username = parts[0];
                         e.Password = parts[1];
@@ -675,7 +675,7 @@ namespace AmpScm.Git.Repository
 
             foreach (var l in output.Split('\n'))
             {
-                var kv = l.Split(new[] { '=' }, 2);
+                var kv = l.Split('=', 2);
 
                 if ("username".Equals(kv[0], StringComparison.OrdinalIgnoreCase))
                 {
@@ -770,8 +770,8 @@ namespace AmpScm.Git.Repository
                 && !string.IsNullOrWhiteSpace(homeDrive) && !string.IsNullOrWhiteSpace(homePath))
             {
                 homeDrive += "\\";
-                if (homePath!.StartsWith("\\", StringComparison.Ordinal)
-                    || homePath.StartsWith("/", StringComparison.Ordinal))
+                if (homePath!.StartsWith('\\')
+                    || homePath.StartsWith('/'))
                 {
                     homePath = homeDrive + homePath;
                 }

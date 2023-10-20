@@ -25,6 +25,7 @@ namespace AmpScm.Git
         {
         }
 
+        [Obsolete("Just for legacy .Net compatibilty")]
         protected GitException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }

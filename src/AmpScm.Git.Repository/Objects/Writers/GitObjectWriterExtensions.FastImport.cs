@@ -233,7 +233,7 @@ namespace AmpScm.Git.Objects
                 }
                 else if (bb.StartsWithASCII("M "))
                 {
-                    var items = bb.Slice(2).ToUTF8String().Split(new[] { ' ' }, 3);
+                    var items = bb.Slice(2).ToUTF8String().Split(' ', 3);
 
                     GitTreeElementType? fileType = (GitTreeElementType)Convert.ToInt32(items[0], 8);
                     string mark = items[1];

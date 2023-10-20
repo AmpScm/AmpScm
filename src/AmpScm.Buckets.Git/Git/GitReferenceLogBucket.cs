@@ -88,7 +88,7 @@ namespace AmpScm.Buckets.Git
 
         private static DateTimeOffset ParseWhen(string value)
         {
-            string[] time = value.Split(new[] { ' ' }, 2);
+            string[] time = value.Split(' ', 2);
             if (int.TryParse(time[0], out var unixtime) && int.TryParse(time[1], out var offset))
             {
                 return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));

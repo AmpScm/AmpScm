@@ -25,6 +25,7 @@ namespace AmpScm.Buckets
         {
         }
 
+        [Obsolete("Just for legacy .Net compatibilty")]
         protected HttpBucketException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }

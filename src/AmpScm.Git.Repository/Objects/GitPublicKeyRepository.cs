@@ -70,7 +70,7 @@ namespace AmpScm.Git.Objects
                     if (line[0] == ';' || line[0] == '#')
                         continue;
 
-                    var p = line.Split(new char[] { ' ' }, 2);
+                    var p = line.Split(' ', 2);
 
                     if (p.Length != 2)
                         continue;

@@ -103,7 +103,7 @@ namespace AmpScm.Buckets.Git
 
                 string line = bb.ToUTF8String();
 
-                while (line.EndsWith("\\", StringComparison.Ordinal))
+                while (line.EndsWith('\\'))
                 {
                     line = line.Substring(0, line.Length - 1);
 

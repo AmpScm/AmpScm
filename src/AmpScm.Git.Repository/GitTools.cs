@@ -53,7 +53,7 @@ namespace AmpScm.Git
             if (message is null)
                 return "";
 
-            return message.Split(new char[] { '\n' }, 2)[0].Trim();
+            return message.Split('\n', 2)[0].Trim();
         }
 
         internal static string CreateSummary(string message)
@@ -64,7 +64,7 @@ namespace AmpScm.Git
             if (message.Contains('\r', StringComparison.Ordinal))
                 message = message.Replace("\r", "", StringComparison.Ordinal);
 
-            var lines = message.Split(new char[] { '\n' }, 5);
+            var lines = message.Split('\n', 5);
 
             int st;
             for (st = 0; st < Math.Min(4, lines.Length); st++)

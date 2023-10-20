@@ -85,7 +85,7 @@ namespace AmpScm.Buckets.Client.Buckets
             // Transfer-Encoding, aka Hop by hop encoding. Typically 'chunked'
             if (headers[HttpResponseHeader.TransferEncoding] is string te)
             {
-                foreach (string tEnc in te.Split(new[] { ',' }))
+                foreach (string tEnc in te.Split(','))
                 {
                     if (string.Equals(tEnc, "chunked", StringComparison.OrdinalIgnoreCase))
                     {
@@ -108,7 +108,7 @@ namespace AmpScm.Buckets.Client.Buckets
             if (headers[HttpResponseHeader.ContentEncoding] is string ce)
             {
                 _readUntilEof ??= new Stack<Bucket>();
-                foreach (string cEnc in ce.Split(new[] { ',' }))
+                foreach (string cEnc in ce.Split(','))
                 {
                     if (string.Equals(cEnc, "gzip", StringComparison.OrdinalIgnoreCase))
                     {
@@ -314,7 +314,7 @@ namespace AmpScm.Buckets.Client.Buckets
 
             if (headers[HttpResponseHeader.WwwAuthenticate] is string wwwAuthenticate)
             {
-                string[] tk = wwwAuthenticate.Split(new[] { ' ' }, 2);
+                string[] tk = wwwAuthenticate.Split(' ', 2);
                 string type = tk[0];
 
                 switch (type.ToUpperInvariant())

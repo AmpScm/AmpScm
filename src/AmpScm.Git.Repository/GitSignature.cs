@@ -20,12 +20,14 @@ namespace AmpScm.Git
             _when = signature.When;
         }
 
+        static readonly char[] _ltgt = new[] { '<', '>' };
+
         public GitSignature(string name, string email, DateTimeOffset now)
         {
             _name = name ?? throw new ArgumentNullException(nameof(name));
             _email = email ?? throw new ArgumentNullException(nameof(email));
             _when = now;
-            if (email.IndexOfAny(new[] { '<', '>' }) >= 0)
+            if (email.IndexOfAny(_ltgt) >= 0)
                 throw new ArgumentOutOfRangeException(email);
         }
 

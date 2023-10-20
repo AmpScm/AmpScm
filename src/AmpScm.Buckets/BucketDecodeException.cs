@@ -22,6 +22,7 @@ public class BucketDecodeException : BucketException
     {
     }
 
+    [Obsolete("Just for legacy .Net compatibilty")]
     protected BucketDecodeException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
