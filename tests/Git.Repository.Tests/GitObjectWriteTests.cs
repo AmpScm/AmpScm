@@ -287,11 +287,11 @@ namespace GitRepositoryTests
         [DataRow(false)]
         public async Task CreateCommitChain(bool bare)
         {
-            var dir = TestContext.PerTestDirectory($"{bare}");
+            var dir = TestContext.PerTestDirectory($"q-{bare}");
 
             GitCommit A0, A1, A2, A3, B1;
             {
-                using var rp = GitRepository.Init(dir, new GitRepositoryInitArgs { Bare = true, InitialBranchName = "daisy" });
+                using var rp = GitRepository.Init(dir, new GitRepositoryInitArgs { Bare = bare, InitialBranchName = "daisy" });
 
                 GitCommitWriter gcw = GitCommitWriter.Create();
                 gcw.Message = "Initial Commit";
@@ -328,7 +328,7 @@ namespace GitRepositoryTests
                 await rp.GetPorcelain().GC();
 
                 Assert.IsTrue(File.Exists(commitGraphPath), $"{commitGraphPath} does exist");
-                Assert.AreEqual(rp.IsBare ? 3 : 2, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Length, "Files on objects/pack");
+                Assert.AreEqual(rp.IsBare ? 4 : 3, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Length, "Files on objects/pack");
 
                 // Doesn't use commit chain yet, as it wasn't detected before
                 Assert.IsNotNull(rp.Head.Revisions.ToList());
@@ -361,7 +361,7 @@ namespace GitRepositoryTests
                 Assert.IsNotNull(rp.Head.Revisions.ToList());
 
                 await rp.GetPlumbing().Repack();
-                Assert.AreEqual(rp.IsBare ? 5 : 4, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Length, "Files on objects/pack");
+                Assert.AreEqual(rp.IsBare ? 7 : 6, Directory.GetFileSystemEntries(Path.Combine(rp.GitDirectory, "objects", "pack"), "*").Length, "Files on objects/pack");
 
                 await rp.GetPlumbing().CommitGraph(new() { Split = GitCommitGraphSplit.Split });
 

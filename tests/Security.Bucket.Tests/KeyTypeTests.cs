@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
+using AmpScm.Buckets.Cryptography.Algorithms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SecurityBucketTests;
@@ -494,7 +495,7 @@ yg==
 
             ar = new Radix64ArmorBucket(rd);
 
-            dc = new DecryptBucket(ar) { KeyChain = k1 + k2 };
+            dc = new DecryptBucket(ar) { KeyChain = k1 + k2, VerifySignature=true };
 
 
             bb = await dc.ReadExactlyAsync(1024);
@@ -503,7 +504,6 @@ yg==
         }
     }
 
-#if DEBUG
     [TestMethod]
     public async Task TestP384()
     {
@@ -607,5 +607,77 @@ BFuZ
 
         Assert.AreEqual("Without-PW\r\n", bb.ToUTF8String());
     }
-#endif
+
+    [TestMethod]
+    public async Task Test25519()
+    {
+        var keyData = @"-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lIYEZCrIUhYJKwYBBAHaRw8BAQdAteqQ9A1JEijADu07VyK0l0MdBUhVhm1YJNzS
+CIGpIFz+BwMCZRNHAYpxgDfTpkJgORukQvMCLUOqMrP31vQYxpm8iFMl4jqLekWU
+LdtE5JJVImhXrprmPoLsuz+J9ONP7f4Dz4XHmh5Dn78xAI/839REYLQaRUNDIDI1
+NTE5IChDMykgPDI1NTE5QGVjYz6IkwQTFgoAOxYhBPeUrs/Q6MJPM+RziOaGQ9Te
+1sO8BQJkKshSAhsDBQsJCAcCAiICBhUKCQgLAgQWAgMBAh4HAheAAAoJEOaGQ9Te
+1sO8H4MBAMQQiPop4vnE00JQFxLsTu1+q1XlKAlFg3QGKFvpYZlyAQCVFx2Jxnjb
+bPD1rtNDE6OZxUdQL4CgWxkCDehMMYVuBZyLBGQqyFISCisGAQQBl1UBBQEBB0Cr
+rM6p2pugptSx15yGwMEypsHvu1n1RHhnyOWX/aheSwMBCAf+BwMCDdl06ffLR1TT
+17y8XkzI4IlH49ACOqbW9DYPR2PbPtSo3FzOZCkV801ENssFzpS8NkEsg6IyQ1SA
+PW1N54rL9/lkaclEi3KNybM2w+JdJoh4BBgWCgAgFiEE95Suz9Dowk8z5HOI5oZD
+1N7Ww7wFAmQqyFICGwwACgkQ5oZD1N7Ww7x+LwEAwWGttUHMxTikYYCHa9LiAUPL
+noTh+1EB2RqNLx5jF4kA/05QwJPJ+3V6R8x6EC6zVSIpRSpFTnFqSWWMDROH1/QA
+=UG+I
+-----END PGP PRIVATE KEY BLOCK-----";
+
+        var msg = @"-----BEGIN PGP MESSAGE-----
+
+hF4DSeOxMr5fDIcSAQdA7Z/19a24jrO+2W1eRXN8I5iaTxzh9RATbTO4pi0fsAYw
+bv+LjLMogTCQlrJoGgN9Hc0gllsIhpT67/iAXcDtxEO6xsMW97/Xr4mAWejuvC5+
+1EsBCQIQz14Ah3EbYqCuRHNuYoY69vlEl2+WtHZh+h0lNDmCfVkumpMGjM4xh2tI
+6wiRTxlAIKq6hu3M6oaj1LbESOw7ezYLCCo2250=
+=rVPw
+-----END PGP MESSAGE-----";
+
+        Assert.IsTrue(PublicKeySignature.TryParse(keyData, (_) => "k3", out var key));
+        Assert.IsTrue(key.HasPrivateKey);
+
+        var rd = Bucket.Create.FromASCII(msg);
+
+        var ar = new Radix64ArmorBucket(rd);
+
+        var dc = new DecryptBucket(ar) { KeyChain = key };
+
+
+        var bb = await dc.ReadExactlyAsync(1024);
+
+        Assert.AreEqual("Without-PW\r\n", bb.ToUTF8String());
+    }
+
+    public void TestECDH()
+    {
+        //using var c = Curve25519.Create();
+
+        //  Alice's private key, a:
+        var alicePriv = ParseKey("77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a");
+        // Alice's public key, X25519(a, 9):
+        var alicePub = ParseKey("8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a");
+        // Bob's private key, b:
+        var bobPriv = ParseKey("5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb");
+        // Bob's public key, X25519(b, 9):
+        var bobPub = ParseKey("de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f");
+        //Their shared secret, K:
+        var expectedShared = ParseKey("4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742");
+
+
+        var ap = Curve25519.GetPublicKey(alicePriv);
+    }
+
+    static byte[] ParseKey(string strKey)
+    {
+        byte[] result = new byte[strKey.Length/2];
+
+        for(int i = 0; i < strKey.Length/2; i++)
+            result[i] = Convert.ToByte(strKey.Substring(i*2, 2), 16);
+
+        return result;
+    }
 }

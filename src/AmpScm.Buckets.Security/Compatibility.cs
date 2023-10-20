@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly: CLSCompliant(true)]
+using System.ComponentModel;
 
 #if !NET5_0_OR_GREATER
 namespace System.Runtime.CompilerServices
@@ -31,14 +30,57 @@ namespace System.Diagnostics.CodeAnalysis
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
     internal sealed class NotNullIfNotNullAttribute : Attribute
     {
-        /// <summary>Initializes the attribute with the associated parameter name.</summary>
-        /// <param name="parameterName">
-        /// The associated parameter name.  The output will be non-null if the argument to the parameter specified is non-null.
-        /// </param>
-        public NotNullIfNotNullAttribute(string parameterName) => ParameterName = parameterName;
-
-        /// <summary>Gets the associated parameter name.</summary>
         public string ParameterName { get; }
+        public NotNullIfNotNullAttribute(string parameterName)
+        {
+            ParameterName = parameterName;
+        }
     }
 }
 #endif
+
+
+#if NETFRAMEWORK
+namespace System
+{
+    internal static class CompatHelpers
+    {
+        public static string[] Split(this string value, char key)
+        {
+            return value.Split(new[] { key });
+        }
+
+        public static string[] Split(this string value, char key, int count)
+        {
+            return value.Split(new[] { key }, count);
+        }
+
+        public static bool EndsWith(this string value, char key)
+        {
+            if (value.Length == 0)
+                return false;
+
+            char last = value[value.Length - 1];
+
+            if (last == key)
+                return true;
+            else
+                return false;
+        }
+
+        public static bool StartsWith(this string value, char key)
+        {
+            if (value.Length == 0)
+                return false;
+
+            char last = value[0];
+
+            if (last == key)
+                return true;
+            else
+                return false;
+        }
+    }
+}
+#endif
+
