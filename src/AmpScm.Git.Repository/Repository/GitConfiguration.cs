@@ -312,8 +312,8 @@ namespace AmpScm.Git.Repository
 
                 vResult = vResult.TrimEnd();
 
-                if ((vResult.EndsWith("k", StringComparison.OrdinalIgnoreCase) || vResult.EndsWith("m", StringComparison.OrdinalIgnoreCase) || vResult.EndsWith("g", StringComparison.OrdinalIgnoreCase))
-#if !NETFRAMEWORK
+                if ((vResult.EndsWith('k') || vResult.EndsWith('K') || vResult.EndsWith('m') || vResult.EndsWith('M') || vResult.EndsWith('g') || vResult.EndsWith('G'))
+#if NETCOREAPP
                     && int.TryParse(vResult.AsSpan(0, vResult.Length - 1), out r))
 #else
                     && int.TryParse(vResult.Substring(0, vResult.Length-1), out r))

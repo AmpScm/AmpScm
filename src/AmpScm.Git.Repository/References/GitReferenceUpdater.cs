@@ -124,7 +124,9 @@ namespace AmpScm.Git.References
 
                     if (hookData is not null)
                     {
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
                         var r = await Repository.RunHookErrAsync("reference-transaction", new[] { "prepared" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
 
                         if (r.ExitCode != 0)
                         {
@@ -199,14 +201,18 @@ namespace AmpScm.Git.References
                         var hd = hookData;
                         hookData = null;
                         // Ignore errors
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
                         await Repository.RunHookErrAsync("run", new[] { "committed" }, stdinText: hd, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
                     }
                 }
             }
             catch when (hookData is not null)
             {
                 // Ignore errors
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
                 await Repository.RunHookErrAsync("run", new[] { "abort" }, stdinText: hookData, expectedResults: Array.Empty<int>()).ConfigureAwait(false);
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
                 throw;
             }
             finally

@@ -17,7 +17,6 @@ AmpScm.Buckets.Cryptography.CryptoExtensions
 AmpScm.Buckets.Cryptography.DecryptBucket
 AmpScm.Buckets.Cryptography.DecryptBucket.DecryptBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Cryptography.PublicKeySignature
-AmpScm.Buckets.Cryptography.PublicKeySignature.Fingerprint.get -> System.ReadOnlyMemory<byte>
 AmpScm.Buckets.Cryptography.PublicKeySignature.FingerprintString.get -> string!
 AmpScm.Buckets.Cryptography.PublicKeySignature.MailAddress.get -> System.Net.Mail.MailAddress?
 AmpScm.Buckets.Cryptography.Radix64ArmorBucket
@@ -33,6 +32,7 @@ override AmpScm.Buckets.Cryptography.CryptoDataBucket.ReadAsync(int requested = 
 override AmpScm.Buckets.Cryptography.CryptoDataBucket.Reset() -> void
 override AmpScm.Buckets.Cryptography.DecryptBucket.CanReset.get -> bool
 override AmpScm.Buckets.Cryptography.DecryptBucket.Reset() -> void
+override AmpScm.Buckets.Cryptography.PublicKeySignature.Fingerprint.get -> System.ReadOnlyMemory<byte>
 override AmpScm.Buckets.Cryptography.PublicKeySignature.GetValues(bool includePrivate = false) -> System.Collections.Generic.IReadOnlyList<System.Numerics.BigInteger>!
 override AmpScm.Buckets.Cryptography.PublicKeySignature.MatchesFingerprint(System.ReadOnlyMemory<byte> fingerprint, AmpScm.Buckets.Cryptography.CryptoAlgorithm algorithm = AmpScm.Buckets.Cryptography.CryptoAlgorithm.None, bool requirePrivateKey = false) -> bool
 override AmpScm.Buckets.Cryptography.PublicKeySignature.SubKeys.get -> System.Collections.Generic.IEnumerable<AmpScm.Buckets.Cryptography.AsymmetricCryptoKey!>!

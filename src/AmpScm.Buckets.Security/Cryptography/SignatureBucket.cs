@@ -610,7 +610,7 @@ public sealed class SignatureBucket : CryptoDataBucket
         if (_signatureInfo.PublicKeyType != PgpPublicKeyType.Ed25519) // Ed25519 doesn't use a second hash
             hashValue = await CalculateHash(toSign, overrideAlg ?? _signatureInfo.HashAlgorithm).ConfigureAwait(false);
         else
-            hashValue = toSign.ToArray();
+            hashValue = await toSign.ToArrayAsync().ConfigureAwait(false);
 
         if (key is null && keyInts is null)
             return false; // Can't verify SSH SignaturePublicKey without key (yet)

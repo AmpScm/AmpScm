@@ -26,7 +26,7 @@ namespace Svn.Bucket.Tests
                 if (RepositoryUrl is not null)
                     return;
 
-                string root = TestContext.TestRunDirectory;
+                string root = TestContext.TestRunDirectory!;
                 var dir = Path.Combine(root, "repo");
                 var tmp = Path.Combine(root, "tmp");
                 Directory.CreateDirectory(dir);
