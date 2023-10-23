@@ -18,7 +18,7 @@ namespace AmpScm.Buckets.Cryptography.Algorithms;
  */
 
 
-internal sealed class Curve25519 : IDisposable
+public sealed class Curve25519 : IDisposable
 {
     /* key size */
     public const int KeySize = 32;

@@ -32,6 +32,9 @@ public sealed class DecryptBucket : CryptoDataBucket
 
     public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
+    public bool VerifySignature { get; init; }
+
+
     private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag tag)
     {
         switch (tag)
@@ -391,7 +394,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     if (KeyChain?.FindKey(r.SignKeyFingerprint) is PublicKeySignature key
                         && key.MatchFingerprint(r.SignKeyFingerprint) is { } matchedKey)
                     {
-                        if (!VerifySignature(r, hashValue, matchedKey.GetValues(false)))
+                        if (!QVerifySignature(r, hashValue, matchedKey.GetValues(false)))
                         {
                             throw new BucketDecryptionException("SignaturePublicKey not verifiable");
                         }

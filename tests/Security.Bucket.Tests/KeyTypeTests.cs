@@ -495,7 +495,7 @@ yg==
 
             ar = new Radix64ArmorBucket(rd);
 
-            dc = new DecryptBucket(ar) { KeyChain = k1 + k2, VerifySignature=true };
+            dc = new DecryptBucket(ar) { KeyChain = k1 + k2, VerifySignature = true };
 
 
             bb = await dc.ReadExactlyAsync(1024);
@@ -673,10 +673,10 @@ bv+LjLMogTCQlrJoGgN9Hc0gllsIhpT67/iAXcDtxEO6xsMW97/Xr4mAWejuvC5+
 
     static byte[] ParseKey(string strKey)
     {
-        byte[] result = new byte[strKey.Length/2];
+        byte[] result = new byte[strKey.Length / 2];
 
-        for(int i = 0; i < strKey.Length/2; i++)
-            result[i] = Convert.ToByte(strKey.Substring(i*2, 2), 16);
+        for (int i = 0; i < strKey.Length / 2; i++)
+            result[i] = Convert.ToByte(strKey.Substring(i * 2, 2), 16);
 
         return result;
     }

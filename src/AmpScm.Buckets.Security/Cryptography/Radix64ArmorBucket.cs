@@ -188,6 +188,7 @@ namespace AmpScm.Buckets.Cryptography
         {
             private readonly byte[] _stopAt;
             private bool _eof;
+            BucketBytes _line;
 
             public StopAtLineStartBucket(Bucket source, params byte[] stopAt) : base(source)
             {
@@ -196,6 +197,13 @@ namespace AmpScm.Buckets.Cryptography
 
             public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
             {
+                if (!_line.IsEmpty)
+                {
+                    var r = _line.Slice(0, requested);
+                    _line = _line.Slice(r.Length);
+                    return r;
+                }
+
                 if (_eof)
                     return BucketBytes.Eof;
 
@@ -207,25 +215,17 @@ namespace AmpScm.Buckets.Cryptography
                     return BucketBytes.Eof;
                 }
 
-                (bb, _) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, requested: requested).ConfigureAwait(false);
+                (_line, _) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
+
+                bb = _line.Slice(0, Math.Min(requested, _line.Length));
+                _line = _line.Slice(bb.Length);
+
                 return bb;
             }
 
             public override BucketBytes Peek()
             {
-                var bb = Source.Peek();
-
-                if (bb.Length > 0 && _stopAt.Contains(bb[0]))
-                {
-                    return BucketBytes.Eof;
-                }
-
-                int n = bb.IndexOf((byte)'\n');
-
-                if (n > 0)
-                    return bb.Slice(0, n + 1);
-                else
-                    return bb;
+                return _line;
             }
         }
 

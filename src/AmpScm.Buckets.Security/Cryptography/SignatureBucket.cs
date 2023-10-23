@@ -561,7 +561,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                 if (key is { })
                 {
-                    if (VerifySignature(info, hashValue, v ?? throw new InvalidOperationException()))
+                    if (QVerifySignature(info, hashValue, v ?? throw new InvalidOperationException()))
                     {
                         needResults -= 1;
                     }
@@ -624,7 +624,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
         var v = key?.GetValues() ?? keyInts ?? throw new InvalidOperationException("No key to verify with");
 
-        return VerifySignature(_signatureInfo, hashValue, v);
+        return QVerifySignature(_signatureInfo, hashValue, v);
     }
 }
 
