@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
+using AmpScm.Buckets.Cryptography.Algorithms;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Cryptography
@@ -24,6 +25,8 @@ namespace AmpScm.Buckets.Cryptography
         private protected new CryptoChunkBucket Source => (CryptoChunkBucket)base.Source;
 
         public CryptoKeyChain KeyChain { get; init; } = new CryptoKeyChain();
+
+        public Func<SignaturePromptContext, string>? GetPassword { get; init; }
 
         private protected CryptoDataBucket(CryptoChunkBucket source) : base(source)
         {
@@ -113,7 +116,9 @@ namespace AmpScm.Buckets.Cryptography
         {
             var curveValue = vals[0].ToCryptoValue();
 
-            string name = Encoding.ASCII.GetString(curveValue).Replace('p', 'P');
+#pragma warning disable CA1307 // Specify StringComparison for clarity
+            string name = Encoding.ASCII.GetString(curveValue).Replace('p', 'P').Replace("Pool", "pool");
+#pragma warning restore CA1307 // Specify StringComparison for clarity
 
 
             switch (name)
@@ -130,9 +135,16 @@ namespace AmpScm.Buckets.Cryptography
                 case nameof(ECCurve.NamedCurves.brainpoolP256r1):
                     curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07 };
                     break;
+                case nameof(ECCurve.NamedCurves.brainpoolP384r1):
+                    curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x08 };
+                    break;
                 case nameof(ECCurve.NamedCurves.brainpoolP512t1):
                     curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D };
                     break;
+                    // Ed24419
+                    // Curve25519
+                    // Ed448
+                    // X448
                 default:
                     throw new NotImplementedException($"Unknown curve {name}");
             }
@@ -647,7 +659,7 @@ namespace AmpScm.Buckets.Cryptography
                     case PgpSubPacketType.PreferredCompressionAlgorithms:
                     case PgpSubPacketType.Features:
                     case PgpSubPacketType.KeyServerPreferences:
-                    case PgpSubPacketType.PreferredAeadAlgorithms:
+                    case PgpSubPacketType.PreferredEncryptionModes:
                         if (len != await subRead.ReadSkipAsync(len.Value).ConfigureAwait(false))
                             throw new BucketEofException(subRead);
                         break;

@@ -32,8 +32,6 @@ public sealed class SignatureBucket : CryptoDataBucket
         _outer = source;
     }
 
-    public Func<SignaturePromptContext, string>? GetPassPhrase { get; init; }
-
     private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag tag)
     {
         switch (tag)
@@ -297,7 +295,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                             var s2k = await ReadPgpS2kSpecifierAsync(bucket, cipherAlgorithm).ConfigureAwait(false);
 
-                            if (GetPassPhrase?.Invoke(SignaturePromptContext.Empty) is not { } password)
+                            if (GetPassword?.Invoke(SignaturePromptContext.Empty) is not { } password)
                             {
                                 hasSecretKey = false;
                                 await bucket.ReadUntilEofAsync().ConfigureAwait(false);
@@ -385,8 +383,8 @@ public sealed class SignatureBucket : CryptoDataBucket
                     }
                     else if (keyPublicKeyType == PgpPublicKeyType.ECDH && keyInts[0].ToCryptoValue().SequenceEqual(new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 }))
                     {
+                        // This algorithm is not implemented by .Net, but for this specific curve we have a workaround
                         keyPublicKeyType = PgpPublicKeyType.Curve25519;
-                        keyInts = keyInts.Skip(1).ToArray();
                     }
 
                     _keys.Add(new PublicKeySignature(keyFingerprint!, GetCryptoAlgorithm(keyPublicKeyType), keyInts, _mailAddress, hasSecretKey));
@@ -519,7 +517,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
         var b = _signatures.FirstOrDefault()?.SignKeyFingerprint;
 
-        if (b[0] >= 3 && b[0] <= 5)
+        if (b?[0] >= 3 && b?[0] <= 5)
             return b.AsMemory(1);
         else
             return b;

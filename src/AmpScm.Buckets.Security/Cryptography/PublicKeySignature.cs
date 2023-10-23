@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -7,7 +6,6 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets;
 
 namespace AmpScm.Buckets.Cryptography;
@@ -113,7 +111,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
         var b = Bucket.Create.FromASCII(line);
 
         var r = new Radix64ArmorBucket(b);
-        using var sig = new SignatureBucket(r) { GetPassPhrase = getPassPhrase };
+        using var sig = new SignatureBucket(r) { GetPassword = getPassPhrase };
 
         try
         {

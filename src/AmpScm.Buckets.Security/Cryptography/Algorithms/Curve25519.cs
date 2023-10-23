@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 // From: https://github.com/hanswolff/curve25519/ - Apache 2 Licensed
@@ -17,13 +18,12 @@ namespace AmpScm.Buckets.Cryptography.Algorithms;
  * Based on work by Daniel J Bernstein, http://cr.yp.to/ecdh.html
  */
 
+// Warning! This implementation is susceptible to timing attacks!
 
 public sealed class Curve25519 : IDisposable
 {
     /* key size */
     public const int KeySize = 32;
-
-    public static readonly ReadOnlyMemory<byte> Oid = new byte[] { 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01 };
 
     private Curve25519() { }
 
@@ -48,15 +48,8 @@ public sealed class Curve25519 : IDisposable
     /// <param name="key">[out] 32 random bytes</param>
     public static void ClampPrivateKeyInline(byte[] key)
     {
-        if (key == null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        if (key.Length != 32)
-        {
-            throw new ArgumentException($"key must be 32 bytes long (but was {key.Length} bytes long)");
-        }
+        if (key?.Length != 32)
+            throw new ArgumentException($"key must be 32 bytes long (but was {key?.Length ?? 0} bytes long)");
 
         key[31] &= 0x7F;
         key[31] |= 0x40;
@@ -69,15 +62,8 @@ public sealed class Curve25519 : IDisposable
     /// <param name="rawKey">[out] 32 random bytes</param>
     public static byte[] ClampPrivateKey(byte[] rawKey)
     {
-        if (rawKey == null)
-        {
-            throw new ArgumentNullException(nameof(rawKey));
-        }
-
-        if (rawKey.Length != 32)
-        {
-            throw new ArgumentException($"rawKey must be 32 bytes long (but was {rawKey.Length} bytes long)", nameof(rawKey));
-        }
+        if (rawKey?.Length != 32)
+            throw new ArgumentException($"rawKey must be 32 bytes long (but was {rawKey?.Length ?? 0} bytes long)", nameof(rawKey));
 
         var res = new byte[32];
         Array.Copy(rawKey, res, 32);
@@ -117,7 +103,7 @@ public sealed class Curve25519 : IDisposable
             throw new ArgumentException($"publicKey must be 32 bytes long (but was {publicKey?.Length ?? 0} bytes long)", nameof(publicKey));
         else if (signingKey?.Length != 32)
             throw new ArgumentException($"signingKey must be 32 bytes long (but was {signingKey?.Length ?? 0} bytes long)", nameof(signingKey));
-        if (privateKey?.Length != 32)
+        else if (privateKey?.Length != 32)
             throw new ArgumentException($"privateKey must be 32 bytes long (but was {privateKey?.Length ?? 0} bytes long)", nameof(privateKey));
 
         using var rng = RandomNumberGenerator.Create();
@@ -171,40 +157,43 @@ public sealed class Curve25519 : IDisposable
     /* sahn0:
      * Using this class instead of long[10] to avoid bounds checks. */
 
-    private struct Long10
+    private sealed class Long10
     {
-        readonly Memory<long> l10;
         public Long10()
         {
-            l10 = new long[10];
         }
 
         public Long10(
             long n0, long n1, long n2, long n3, long n4,
             long n5, long n6, long n7, long n8, long n9)
         {
-            l10 = new(new long[] { n0, n1, n2, n3, n4, n5, n6, n7, n8, n9 });
+            N0 = n0;
+            N1 = n1;
+            N2 = n2;
+            N3 = n3;
+            N4 = n4;
+            N5 = n5;
+            N6 = n6;
+            N7 = n7;
+            N8 = n8;
+            N9 = n9;
         }
 
-        public long this[int index]
-        {
-            get => l10.Span[index];
-            set => l10.Span[index] = value;
-        }
+        public long N0, N1, N2, N3, N4, N5, N6, N7, N8, N9;
     }
 
     /********************* radix 2^8 math *********************/
 
-    private static void Copy32(byte[] source, byte[] destination)
+    private static void Copy32(ReadOnlySpan<byte> source, Span<byte> destination)
     {
-        Array.Copy(source, 0, destination, 0, 32);
+        source.CopyTo(destination);
     }
 
     /* p[m..n+m-1] = q[m..n+m-1] + z * x */
     /* n is the size of x */
     /* n+m is the size of p and q */
 
-    private static int MultiplyArraySmall(byte[] p, byte[] q, int m, byte[] x, int n, int z)
+    private static int MultiplyArraySmall(byte[] p, byte[] q, int m, ReadOnlySpan<byte> x, int n, int z)
     {
         int v = 0;
         for (int i = 0; i < n; ++i)
@@ -271,9 +260,7 @@ public sealed class Curve25519 : IDisposable
         for (int i = maxSize; i >= 0; i++)
         {
             if (num[i] == 0)
-            {
                 return i + 1;
-            }
         }
         return 0;
     }
@@ -291,17 +278,11 @@ public sealed class Curve25519 : IDisposable
         int bn = 32;
         int i;
         for (i = 0; i < 32; i++)
-        {
             x[i] = y[i] = 0;
-        }
-
         x[0] = 1;
         int an = GetNumSize(a, 32);
         if (an == 0)
-        {
             return y; /* division by zero */
-        }
-
         var temp = new byte[32];
         while (true)
         {
@@ -309,20 +290,14 @@ public sealed class Curve25519 : IDisposable
             DivMod(temp, b, bn, a, an);
             bn = GetNumSize(b, bn);
             if (bn == 0)
-            {
                 return x;
-            }
-
             MultiplyArray32(y, x, temp, qn, -1);
 
             qn = an - bn + 1;
             DivMod(temp, a, an, b, bn);
             an = GetNumSize(a, an);
             if (an == 0)
-            {
                 return y;
-            }
-
             MultiplyArray32(x, y, temp, qn, -1);
         }
     }
@@ -336,25 +311,25 @@ public sealed class Curve25519 : IDisposable
 
     private static void Unpack(Long10 x, byte[] m)
     {
-        x[0] = (m[0] & 0xFF) | (m[1] & 0xFF) << 8 |
+        x.N0 = (m[0] & 0xFF) | (m[1] & 0xFF) << 8 |
                (m[2] & 0xFF) << 16 | (m[3] & 0xFF & 3) << 24;
-        x[1] = (m[3] & 0xFF & ~3) >> 2 | (m[4] & 0xFF) << 6 |
+        x.N1 = (m[3] & 0xFF & ~3) >> 2 | (m[4] & 0xFF) << 6 |
                (m[5] & 0xFF) << 14 | (m[6] & 0xFF & 7) << 22;
-        x[2] = (m[6] & 0xFF & ~7) >> 3 | (m[7] & 0xFF) << 5 |
+        x.N2 = (m[6] & 0xFF & ~7) >> 3 | (m[7] & 0xFF) << 5 |
                (m[8] & 0xFF) << 13 | (m[9] & 0xFF & 31) << 21;
-        x[3] = (m[9] & 0xFF & ~31) >> 5 | (m[10] & 0xFF) << 3 |
+        x.N3 = (m[9] & 0xFF & ~31) >> 5 | (m[10] & 0xFF) << 3 |
                (m[11] & 0xFF) << 11 | (m[12] & 0xFF & 63) << 19;
-        x[4] = (m[12] & 0xFF & ~63) >> 6 | (m[13] & 0xFF) << 2 |
+        x.N4 = (m[12] & 0xFF & ~63) >> 6 | (m[13] & 0xFF) << 2 |
                (m[14] & 0xFF) << 10 | (m[15] & 0xFF) << 18;
-        x[5] = (m[16] & 0xFF) | (m[17] & 0xFF) << 8 |
+        x.N5 = (m[16] & 0xFF) | (m[17] & 0xFF) << 8 |
                (m[18] & 0xFF) << 16 | (m[19] & 0xFF & 1) << 24;
-        x[6] = (m[19] & 0xFF & ~1) >> 1 | (m[20] & 0xFF) << 7 |
+        x.N6 = (m[19] & 0xFF & ~1) >> 1 | (m[20] & 0xFF) << 7 |
                (m[21] & 0xFF) << 15 | (m[22] & 0xFF & 7) << 23;
-        x[7] = (m[22] & 0xFF & ~7) >> 3 | (m[23] & 0xFF) << 5 |
+        x.N7 = (m[22] & 0xFF & ~7) >> 3 | (m[23] & 0xFF) << 5 |
                (m[24] & 0xFF) << 13 | (m[25] & 0xFF & 15) << 21;
-        x[8] = (m[25] & 0xFF & ~15) >> 4 | (m[26] & 0xFF) << 4 |
+        x.N8 = (m[25] & 0xFF & ~15) >> 4 | (m[26] & 0xFF) << 4 |
                (m[27] & 0xFF) << 12 | (m[28] & 0xFF & 63) << 20;
-        x[9] = (m[28] & 0xFF & ~63) >> 6 | (m[29] & 0xFF) << 2 |
+        x.N9 = (m[28] & 0xFF & ~63) >> 6 | (m[29] & 0xFF) << 2 |
                (m[30] & 0xFF) << 10 | (m[31] & 0xFF) << 18;
     }
 
@@ -364,10 +339,10 @@ public sealed class Curve25519 : IDisposable
     private static bool IsOverflow(Long10 x)
     {
         return (
-            (x[0] > P26 - 19) &
-            ((x[1] & x[3] & x[5] & x[7] & x[9]) == P25) &
-            ((x[2] & x[4] & x[6] & x[8]) == P26)
-            ) || (x[9] > P25);
+            (x.N0 > P26 - 19) &
+            ((x.N1 & x.N3 & x.N5 & x.N7 & x.N9) == P25) &
+            ((x.N2 & x.N4 & x.N6 & x.N8) == P26)
+            ) || (x.N9 > P25);
     }
 
     /* Convert from internal format to little-endian byte format.  The 
@@ -378,45 +353,45 @@ public sealed class Curve25519 : IDisposable
 
     private static void Pack(Long10 x, byte[] m)
     {
-        int ld = (IsOverflow(x) ? 1 : 0) - ((x[9] < 0) ? 1 : 0);
+        int ld = (IsOverflow(x) ? 1 : 0) - ((x.N9 < 0) ? 1 : 0);
         int ud = ld * -(P25 + 1);
         ld *= 19;
-        long t = ld + x[0] + (x[1] << 26);
+        long t = ld + x.N0 + (x.N1 << 26);
         m[0] = (byte)t;
         m[1] = (byte)(t >> 8);
         m[2] = (byte)(t >> 16);
         m[3] = (byte)(t >> 24);
-        t = (t >> 32) + (x[2] << 19);
+        t = (t >> 32) + (x.N2 << 19);
         m[4] = (byte)t;
         m[5] = (byte)(t >> 8);
         m[6] = (byte)(t >> 16);
         m[7] = (byte)(t >> 24);
-        t = (t >> 32) + (x[3] << 13);
+        t = (t >> 32) + (x.N3 << 13);
         m[8] = (byte)t;
         m[9] = (byte)(t >> 8);
         m[10] = (byte)(t >> 16);
         m[11] = (byte)(t >> 24);
-        t = (t >> 32) + (x[4] << 6);
+        t = (t >> 32) + (x.N4 << 6);
         m[12] = (byte)t;
         m[13] = (byte)(t >> 8);
         m[14] = (byte)(t >> 16);
         m[15] = (byte)(t >> 24);
-        t = (t >> 32) + x[5] + (x[6] << 25);
+        t = (t >> 32) + x.N5 + (x.N6 << 25);
         m[16] = (byte)t;
         m[17] = (byte)(t >> 8);
         m[18] = (byte)(t >> 16);
         m[19] = (byte)(t >> 24);
-        t = (t >> 32) + (x[7] << 19);
+        t = (t >> 32) + (x.N7 << 19);
         m[20] = (byte)t;
         m[21] = (byte)(t >> 8);
         m[22] = (byte)(t >> 16);
         m[23] = (byte)(t >> 24);
-        t = (t >> 32) + (x[8] << 12);
+        t = (t >> 32) + (x.N8 << 12);
         m[24] = (byte)t;
         m[25] = (byte)(t >> 8);
         m[26] = (byte)(t >> 16);
         m[27] = (byte)(t >> 24);
-        t = (t >> 32) + ((x[9] + ud) << 6);
+        t = (t >> 32) + ((x.N9 + ud) << 6);
         m[28] = (byte)t;
         m[29] = (byte)(t >> 8);
         m[30] = (byte)(t >> 16);
@@ -428,16 +403,16 @@ public sealed class Curve25519 : IDisposable
     /// </summary>
     private static void Copy(Long10 numOut, Long10 numIn)
     {
-        numOut[0] = numIn[0];
-        numOut[1] = numIn[1];
-        numOut[2] = numIn[2];
-        numOut[3] = numIn[3];
-        numOut[4] = numIn[4];
-        numOut[5] = numIn[5];
-        numOut[6] = numIn[6];
-        numOut[7] = numIn[7];
-        numOut[8] = numIn[8];
-        numOut[9] = numIn[9];
+        numOut.N0 = numIn.N0;
+        numOut.N1 = numIn.N1;
+        numOut.N2 = numIn.N2;
+        numOut.N3 = numIn.N3;
+        numOut.N4 = numIn.N4;
+        numOut.N5 = numIn.N5;
+        numOut.N6 = numIn.N6;
+        numOut.N7 = numIn.N7;
+        numOut.N8 = numIn.N8;
+        numOut.N9 = numIn.N9;
     }
 
     /// <summary>
@@ -445,16 +420,16 @@ public sealed class Curve25519 : IDisposable
     /// </summary>
     private static void Set(Long10 numOut, int numIn)
     {
-        numOut[0] = numIn;
-        numOut[1] = 0;
-        numOut[2] = 0;
-        numOut[3] = 0;
-        numOut[4] = 0;
-        numOut[5] = 0;
-        numOut[6] = 0;
-        numOut[7] = 0;
-        numOut[8] = 0;
-        numOut[9] = 0;
+        numOut.N0 = numIn;
+        numOut.N1 = 0;
+        numOut.N2 = 0;
+        numOut.N3 = 0;
+        numOut.N4 = 0;
+        numOut.N5 = 0;
+        numOut.N6 = 0;
+        numOut.N7 = 0;
+        numOut.N8 = 0;
+        numOut.N9 = 0;
     }
 
     /* Add/subtract two numbers.  The inputs must be in reduced form, and the 
@@ -462,30 +437,30 @@ public sealed class Curve25519 : IDisposable
      * first multiply it by one to reduce it. */
     private static void Add(Long10 xy, Long10 x, Long10 y)
     {
-        xy[0] = x[0] + y[0];
-        xy[1] = x[1] + y[1];
-        xy[2] = x[2] + y[2];
-        xy[3] = x[3] + y[3];
-        xy[4] = x[4] + y[4];
-        xy[5] = x[5] + y[5];
-        xy[6] = x[6] + y[6];
-        xy[7] = x[7] + y[7];
-        xy[8] = x[8] + y[8];
-        xy[9] = x[9] + y[9];
+        xy.N0 = x.N0 + y.N0;
+        xy.N1 = x.N1 + y.N1;
+        xy.N2 = x.N2 + y.N2;
+        xy.N3 = x.N3 + y.N3;
+        xy.N4 = x.N4 + y.N4;
+        xy.N5 = x.N5 + y.N5;
+        xy.N6 = x.N6 + y.N6;
+        xy.N7 = x.N7 + y.N7;
+        xy.N8 = x.N8 + y.N8;
+        xy.N9 = x.N9 + y.N9;
     }
 
     private static void Sub(Long10 xy, Long10 x, Long10 y)
     {
-        xy[0] = x[0] - y[0];
-        xy[1] = x[1] - y[1];
-        xy[2] = x[2] - y[2];
-        xy[3] = x[3] - y[3];
-        xy[4] = x[4] - y[4];
-        xy[5] = x[5] - y[5];
-        xy[6] = x[6] - y[6];
-        xy[7] = x[7] - y[7];
-        xy[8] = x[8] - y[8];
-        xy[9] = x[9] - y[9];
+        xy.N0 = x.N0 - y.N0;
+        xy.N1 = x.N1 - y.N1;
+        xy.N2 = x.N2 - y.N2;
+        xy.N3 = x.N3 - y.N3;
+        xy.N4 = x.N4 - y.N4;
+        xy.N5 = x.N5 - y.N5;
+        xy.N6 = x.N6 - y.N6;
+        xy.N7 = x.N7 - y.N7;
+        xy.N8 = x.N8 - y.N8;
+        xy.N9 = x.N9 - y.N9;
     }
 
     /// <summary>
@@ -495,29 +470,29 @@ public sealed class Curve25519 : IDisposable
     /// </summary>
     private static void MulSmall(Long10 xy, Long10 x, long y)
     {
-        long temp = x[8] * y;
-        xy[8] = temp & ((1 << 26) - 1);
-        temp = (temp >> 26) + (x[9] * y);
-        xy[9] = temp & ((1 << 25) - 1);
-        temp = 19 * (temp >> 25) + (x[0] * y);
-        xy[0] = temp & ((1 << 26) - 1);
-        temp = (temp >> 26) + (x[1] * y);
-        xy[1] = temp & ((1 << 25) - 1);
-        temp = (temp >> 25) + (x[2] * y);
-        xy[2] = temp & ((1 << 26) - 1);
-        temp = (temp >> 26) + (x[3] * y);
-        xy[3] = temp & ((1 << 25) - 1);
-        temp = (temp >> 25) + (x[4] * y);
-        xy[4] = temp & ((1 << 26) - 1);
-        temp = (temp >> 26) + (x[5] * y);
-        xy[5] = temp & ((1 << 25) - 1);
-        temp = (temp >> 25) + (x[6] * y);
-        xy[6] = temp & ((1 << 26) - 1);
-        temp = (temp >> 26) + (x[7] * y);
-        xy[7] = temp & ((1 << 25) - 1);
-        temp = (temp >> 25) + xy[8];
-        xy[8] = temp & ((1 << 26) - 1);
-        xy[9] += temp >> 26;
+        long temp = x.N8 * y;
+        xy.N8 = temp & ((1 << 26) - 1);
+        temp = (temp >> 26) + (x.N9 * y);
+        xy.N9 = temp & ((1 << 25) - 1);
+        temp = 19 * (temp >> 25) + (x.N0 * y);
+        xy.N0 = temp & ((1 << 26) - 1);
+        temp = (temp >> 26) + (x.N1 * y);
+        xy.N1 = temp & ((1 << 25) - 1);
+        temp = (temp >> 25) + (x.N2 * y);
+        xy.N2 = temp & ((1 << 26) - 1);
+        temp = (temp >> 26) + (x.N3 * y);
+        xy.N3 = temp & ((1 << 25) - 1);
+        temp = (temp >> 25) + (x.N4 * y);
+        xy.N4 = temp & ((1 << 26) - 1);
+        temp = (temp >> 26) + (x.N5 * y);
+        xy.N5 = temp & ((1 << 25) - 1);
+        temp = (temp >> 25) + (x.N6 * y);
+        xy.N6 = temp & ((1 << 26) - 1);
+        temp = (temp >> 26) + (x.N7 * y);
+        xy.N7 = temp & ((1 << 25) - 1);
+        temp = (temp >> 25) + xy.N8;
+        xy.N8 = temp & ((1 << 26) - 1);
+        xy.N9 += temp >> 26;
     }
 
     /// <summary>
@@ -530,81 +505,81 @@ public sealed class Curve25519 : IDisposable
          * This seem to improve performance a bit...
          */
         long
-            x0 = x[0],
-            x1 = x[1],
-            x2 = x[2],
-            x3 = x[3],
-            x4 = x[4],
-            x5 = x[5],
-            x6 = x[6],
-            x7 = x[7],
-            x8 = x[8],
-            x9 = x[9];
+            x0 = x.N0,
+            x1 = x.N1,
+            x2 = x.N2,
+            x3 = x.N3,
+            x4 = x.N4,
+            x5 = x.N5,
+            x6 = x.N6,
+            x7 = x.N7,
+            x8 = x.N8,
+            x9 = x.N9;
         long
-            y0 = y[0],
-            y1 = y[1],
-            y2 = y[2],
-            y3 = y[3],
-            y4 = y[4],
-            y5 = y[5],
-            y6 = y[6],
-            y7 = y[7],
-            y8 = y[8],
-            y9 = y[9];
+            y0 = y.N0,
+            y1 = y.N1,
+            y2 = y.N2,
+            y3 = y.N3,
+            y4 = y.N4,
+            y5 = y.N5,
+            y6 = y.N6,
+            y7 = y.N7,
+            y8 = y.N8,
+            y9 = y.N9;
         long
             t = (x0 * y8) + (x2 * y6) + (x4 * y4) + (x6 * y2) +
                 (x8 * y0) + 2 * ((x1 * y7) + (x3 * y5) +
                              (x5 * y3) + (x7 * y1)) + 38 *
                 (x9 * y9);
-        xy[8] = t & ((1 << 26) - 1);
+        xy.N8 = t & ((1 << 26) - 1);
         t = (t >> 26) + (x0 * y9) + (x1 * y8) + (x2 * y7) +
             (x3 * y6) + (x4 * y5) + (x5 * y4) +
             (x6 * y3) + (x7 * y2) + (x8 * y1) +
             (x9 * y0);
-        xy[9] = t & ((1 << 25) - 1);
+        xy.N9 = t & ((1 << 25) - 1);
         t = (x0 * y0) + 19 * ((t >> 25) + (x2 * y8) + (x4 * y6)
                             + (x6 * y4) + (x8 * y2)) + 38 *
             ((x1 * y9) + (x3 * y7) + (x5 * y5) +
              (x7 * y3) + (x9 * y1));
-        xy[0] = t & ((1 << 26) - 1);
+        xy.N0 = t & ((1 << 26) - 1);
         t = (t >> 26) + (x0 * y1) + (x1 * y0) + 19 * ((x2 * y9)
                                                     + (x3 * y8) + (x4 * y7) + (x5 * y6) +
                                                     (x6 * y5) + (x7 * y4) + (x8 * y3) +
                                                     (x9 * y2));
-        xy[1] = t & ((1 << 25) - 1);
+        xy.N1 = t & ((1 << 25) - 1);
         t = (t >> 25) + (x0 * y2) + (x2 * y0) + 19 * ((x4 * y8)
                                                     + (x6 * y6) + (x8 * y4)) + 2 * (x1 * y1)
             + 38 * ((x3 * y9) + (x5 * y7) +
                   (x7 * y5) + (x9 * y3));
-        xy[2] = t & ((1 << 26) - 1);
+        xy.N2 = t & ((1 << 26) - 1);
         t = (t >> 26) + (x0 * y3) + (x1 * y2) + (x2 * y1) +
             (x3 * y0) + 19 * ((x4 * y9) + (x5 * y8) +
                             (x6 * y7) + (x7 * y6) +
                             (x8 * y5) + (x9 * y4));
-        xy[3] = t & ((1 << 25) - 1);
+        xy.N3 = t & ((1 << 25) - 1);
         t = (t >> 25) + (x0 * y4) + (x2 * y2) + (x4 * y0) + 19 *
             ((x6 * y8) + (x8 * y6)) + 2 * ((x1 * y3) +
                                          (x3 * y1)) + 38 *
             ((x5 * y9) + (x7 * y7) + (x9 * y5));
-        xy[4] = t & ((1 << 26) - 1);
+        xy.N4 = t & ((1 << 26) - 1);
         t = (t >> 26) + (x0 * y5) + (x1 * y4) + (x2 * y3) +
             (x3 * y2) + (x4 * y1) + (x5 * y0) + 19 *
             ((x6 * y9) + (x7 * y8) + (x8 * y7) +
              (x9 * y6));
-        xy[5] = t & ((1 << 25) - 1);
+        xy.N5 = t & ((1 << 25) - 1);
         t = (t >> 25) + (x0 * y6) + (x2 * y4) + (x4 * y2) +
             (x6 * y0) + 19 * (x8 * y8) + 2 * ((x1 * y5) +
                                           (x3 * y3) + (x5 * y1)) + 38 *
             ((x7 * y9) + (x9 * y7));
-        xy[6] = t & ((1 << 26) - 1);
+        xy.N6 = t & ((1 << 26) - 1);
         t = (t >> 26) + (x0 * y7) + (x1 * y6) + (x2 * y5) +
             (x3 * y4) + (x4 * y3) + (x5 * y2) +
             (x6 * y1) + (x7 * y0) + 19 * ((x8 * y9) +
                                         (x9 * y8));
-        xy[7] = t & ((1 << 25) - 1);
-        t = (t >> 25) + xy[8];
-        xy[8] = t & ((1 << 26) - 1);
-        xy[9] += t >> 26;
+        xy.N7 = t & ((1 << 25) - 1);
+        t = (t >> 25) + xy.N8;
+        xy.N8 = t & ((1 << 26) - 1);
+        xy.N9 += t >> 26;
     }
 
     /// <summary>
@@ -613,55 +588,55 @@ public sealed class Curve25519 : IDisposable
     private static void Square(Long10 xsqr, Long10 x)
     {
         long
-            x0 = x[0],
-            x1 = x[1],
-            x2 = x[2],
-            x3 = x[3],
-            x4 = x[4],
-            x5 = x[5],
-            x6 = x[6],
-            x7 = x[7],
-            x8 = x[8],
-            x9 = x[9];
+            x0 = x.N0,
+            x1 = x.N1,
+            x2 = x.N2,
+            x3 = x.N3,
+            x4 = x.N4,
+            x5 = x.N5,
+            x6 = x.N6,
+            x7 = x.N7,
+            x8 = x.N8,
+            x9 = x.N9;
 
         long t = (x4 * x4) + 2 * ((x0 * x8) + (x2 * x6)) + 38 *
                  (x9 * x9) + 4 * ((x1 * x7) + (x3 * x5));
 
-        xsqr[8] = t & ((1 << 26) - 1);
+        xsqr.N8 = t & ((1 << 26) - 1);
         t = (t >> 26) + 2 * ((x0 * x9) + (x1 * x8) + (x2 * x7) +
                            (x3 * x6) + (x4 * x5));
-        xsqr[9] = t & ((1 << 25) - 1);
+        xsqr.N9 = t & ((1 << 25) - 1);
         t = 19 * (t >> 25) + (x0 * x0) + 38 * ((x2 * x8) +
                                            (x4 * x6) + (x5 * x5)) + 76 * ((x1 * x9)
                                                                         + (x3 * x7));
-        xsqr[0] = t & ((1 << 26) - 1);
+        xsqr.N0 = t & ((1 << 26) - 1);
         t = (t >> 26) + 2 * (x0 * x1) + 38 * ((x2 * x9) +
                                           (x3 * x8) + (x4 * x7) + (x5 * x6));
-        xsqr[1] = t & ((1 << 25) - 1);
+        xsqr.N1 = t & ((1 << 25) - 1);
         t = (t >> 25) + 19 * (x6 * x6) + 2 * ((x0 * x2) +
                                           (x1 * x1)) + 38 * (x4 * x8) + 76 *
             ((x3 * x9) + (x5 * x7));
-        xsqr[2] = t & ((1 << 26) - 1);
+        xsqr.N2 = t & ((1 << 26) - 1);
         t = (t >> 26) + 2 * ((x0 * x3) + (x1 * x2)) + 38 *
             ((x4 * x9) + (x5 * x8) + (x6 * x7));
-        xsqr[3] = t & ((1 << 25) - 1);
+        xsqr.N3 = t & ((1 << 25) - 1);
         t = (t >> 25) + (x2 * x2) + 2 * (x0 * x4) + 38 *
             ((x6 * x8) + (x7 * x7)) + 4 * (x1 * x3) + 76 *
             (x5 * x9);
-        xsqr[4] = t & ((1 << 26) - 1);
+        xsqr.N4 = t & ((1 << 26) - 1);
         t = (t >> 26) + 2 * ((x0 * x5) + (x1 * x4) + (x2 * x3))
             + 38 * ((x6 * x9) + (x7 * x8));
-        xsqr[5] = t & ((1 << 25) - 1);
+        xsqr.N5 = t & ((1 << 25) - 1);
         t = (t >> 25) + 19 * (x8 * x8) + 2 * ((x0 * x6) +
                                           (x2 * x4) + (x3 * x3)) + 4 * (x1 * x5) +
             76 * (x7 * x9);
-        xsqr[6] = t & ((1 << 26) - 1);
+        xsqr.N6 = t & ((1 << 26) - 1);
         t = (t >> 26) + 2 * ((x0 * x7) + (x1 * x6) + (x2 * x5) +
                            (x3 * x4)) + 38 * (x8 * x9);
-        xsqr[7] = t & ((1 << 25) - 1);
-        t = (t >> 25) + xsqr[8];
-        xsqr[8] = t & ((1 << 26) - 1);
-        xsqr[9] += t >> 26;
+        xsqr.N7 = t & ((1 << 25) - 1);
+        t = (t >> 25) + xsqr.N8;
+        xsqr.N8 = t & ((1 << 26) - 1);
+        xsqr.N9 += t >> 26;
     }
 
     /// <summary>
@@ -758,7 +733,7 @@ public sealed class Curve25519 : IDisposable
     /// <param name="x">must be reduced input</param>
     private static int IsNegative(Long10 x)
     {
-        return (int)(((IsOverflow(x) | (x[9] < 0)) ? 1 : 0) ^ (x[0] & 1));
+        return (int)(((IsOverflow(x) | (x.N9 < 0)) ? 1 : 0) ^ (x.N0 & 1));
     }
 
     /********************* Elliptic curve *********************/
@@ -819,23 +794,23 @@ public sealed class Curve25519 : IDisposable
         Square(temp, x);
         MulSmall(y2, x, 486662);
         Add(temp, temp, y2);
-        temp[0]++;
+        temp.N0++;
         Multiply(y2, temp, x);
     }
 
     /// <summary>
     /// P = kG   and  s = sign(P)/k
     /// </summary>
-    private static void Core(byte[] publicKey, byte[]? signingKey, byte[] privateKey, byte[]? peerPublicKey)
+    private static void Core(byte[] publicKey, byte[]? signingKey, ReadOnlySpan<byte> privateKey, byte[]? peerPublicKey)
     {
         if (publicKey?.Length != 32)
             throw new ArgumentException($"publicKey must be 32 bytes long (but was {publicKey?.Length ?? 0} bytes long)", nameof(publicKey));
         else if (signingKey != null && signingKey.Length != 32)
             throw new ArgumentException($"signingKey must be null or 32 bytes long (but was {signingKey.Length} bytes long)", nameof(signingKey));
-        else if (privateKey?.Length != 32)
-            throw new ArgumentException($"privateKey must be 32 bytes long (but was {privateKey?.Length ?? 0} bytes long)", nameof(privateKey));
-        else if (peerPublicKey?.Length != 32)
-            throw new ArgumentException($"peerPublicKey must be null or 32 bytes long (but was {peerPublicKey?.Length ?? 0} bytes long)", nameof(peerPublicKey));
+        else if (privateKey.Length != 32)
+            throw new ArgumentException($"privateKey must be 32 bytes long (but was {privateKey.Length} bytes long)", nameof(privateKey));
+        else if (peerPublicKey != null && peerPublicKey.Length != 32)
+            throw new ArgumentException($"peerPublicKey must be null or 32 bytes long (but was {peerPublicKey.Length} bytes long)", nameof(peerPublicKey));
 
         Long10
             dx = new Long10(),
@@ -849,13 +824,9 @@ public sealed class Curve25519 : IDisposable
 
         /* unpack the base */
         if (peerPublicKey != null)
-        {
             Unpack(dx, peerPublicKey);
-        }
         else
-        {
             Set(dx, 9);
-        }
 
         /* 0G = point-at-infinity */
         Set(x[0], 1);
@@ -897,21 +868,17 @@ public sealed class Curve25519 : IDisposable
             Reciprocal(t3, z[1], false); /* where Q=P+G ... */
             Multiply(t2, x[1], t3); /* t2 = Qx  */
             Add(t2, t2, dx); /* t2 = Qx + Px  */
-            t2[0] += 9 + 486662; /* t2 = Qx + Px + Gx + 486662  */
-            dx[0] -= 9; /* dx = Px - Gx  */
+            t2.N0 += 9 + 486662; /* t2 = Qx + Px + Gx + 486662  */
+            dx.N0 -= 9; /* dx = Px - Gx  */
             Square(t3, dx); /* t3 = (Px - Gx)^2  */
             Multiply(dx, t2, t3); /* dx = t2 (Px - Gx)^2  */
             Sub(dx, dx, t1); /* dx = t2 (Px - Gx)^2 - Py^2  */
-            dx[0] -= 39420360; /* dx = t2 (Px - Gx)^2 - Py^2 - Gy^2  */
+            dx.N0 -= 39420360; /* dx = t2 (Px - Gx)^2 - Py^2 - Gy^2  */
             Multiply(t1, dx, BaseR2Y); /* t1 = -Py  */
             if (IsNegative(t1) != 0) /* sign is 1, so just copy  */
-            {
                 Copy32(privateKey, signingKey);
-            }
             else /* sign is -1, so negate  */
-            {
                 MultiplyArraySmall(signingKey, OrderTimes8, 0, privateKey, 32, -1);
-            }
 
             /* reduce s mod q
              * (is this needed?  do it just in case, it's fast anyway) */
@@ -924,19 +891,8 @@ public sealed class Curve25519 : IDisposable
             Copy32(Order, temp1);
             Copy32(Egcd32(temp2, temp3, signingKey, temp1), signingKey);
             if ((signingKey[31] & 0x80) != 0)
-            {
                 MultiplyArraySmall(signingKey, signingKey, 0, Order, 32, 1);
-            }
         }
-    }
-
-    public static Curve25519 Create()
-    {
-        return new();
-    }
-
-    public void Dispose()
-    {
     }
 
     /// <summary>
@@ -962,8 +918,15 @@ public sealed class Curve25519 : IDisposable
         12541209, 49101323, 30047407, 40071253, 6226132
         );
 
-    public byte[]? X { get; set; }
-    public byte[]? Y { get; set; }
-    public byte[]? D { get; set; }
-    public byte[] PrivateKey { get; internal set; }
+    public static Curve25519 Create()
+    {
+        return new();
+    }
+
+    public void Dispose()
+    {
+    }
+
+    public byte[]? PrivateKey { get; set; }
+    public byte[]? PublicKey { get; set; }
 }

@@ -193,20 +193,20 @@ public static partial class CryptoExtensions
         else if (ints.Count is not 2 and not 4)
             throw new ArgumentOutOfRangeException(nameof(ints), ints.Count, message: null);
 
-        var v = ints[0].ToCryptoValue();
-        var v2 = ints[1].ToCryptoValue();
-        byte[] v3;
+        var oidValue = ints[0].ToCryptoValue();
+        var x = ints[1].ToCryptoValue();
+        byte[] y;
 
-        var curveOid = ParseOid(v);
-        if (v2[0] == 0x04)
+        var curveOid = ParseOid(oidValue);
+        if (x[0] == 0x04)
         {
-            int n = (v2.Length - 1) / 2;
+            int n = (x.Length - 1) / 2;
 
-            v3 = v2.Skip(n + 1).ToArray();
-            v2 = v2.Skip(1).Take(n).ToArray();
+            y = x.Skip(n + 1).ToArray();
+            x = x.Skip(1).Take(n).ToArray();
         }
-        else // 0x40, 0x41 -> Only X
-            throw new NotImplementedException($"Unexpected ECDH keyformat with first byte {v2[0]}");
+        else // 0x40 -> native format, 0x41 -> Only X, 0x42 -> Only Y
+            throw new NotImplementedException($"Unexpected ECDH keyformat with first byte {x[0]}");
 
         var p = new ECParameters()
         {
@@ -215,8 +215,8 @@ public static partial class CryptoExtensions
 
             Q = new ECPoint
             {
-                X = v2,
-                Y = v3,
+                X = x,
+                Y = y,
             },
         };
 
@@ -234,6 +234,37 @@ public static partial class CryptoExtensions
         elgamal.G = ints[1]; // Elgamal group generator g;
         elgamal.Y = ints[2]; // Elgamal public key value y (= g**x mod p where x is secret).
         elgamal.X = ints[3]; // Elgamal secret exponent x.
+    }
+
+    internal static void ImportParametersFromCryptoInts(this Curve25519 curve25519, IReadOnlyList<BigInteger> ints)
+    {
+        if (curve25519 is null)
+            throw new ArgumentNullException(nameof(curve25519));
+        else if (ints is null)
+            throw new ArgumentNullException(nameof(ints));
+        else if (ints.Count is not 2 and not 4)
+            throw new ArgumentOutOfRangeException(nameof(ints), ints.Count, message: null);
+
+        // ints[0] is oid
+        var v = ints[1].ToCryptoValue();
+
+        if (v[0] == 0x40)
+        {
+            curve25519.PublicKey = v.Skip(1).ToArray();
+        }
+        else
+            throw new NotImplementedException($"Unexpected Curve25519 keyformat with first byte {v[0]}");
+
+        // ints[2] is kdf
+        if (ints.Count == 4)
+        {
+            curve25519.PrivateKey = ints[3].ToCryptoValue().AlignUp();
+
+
+            //var pk = Curve25519.GetPublicKey(curve25519.PrivateKey);
+            //
+            //Debug.Assert(pk.AsSpan().SequenceEqual(curve25519.PublicKey));
+        }
     }
 
     internal static ECDiffieHellmanPublicKey CreatePublicKey(this ECDiffieHellman ecdh, BigInteger point)
@@ -255,6 +286,40 @@ public static partial class CryptoExtensions
         ecdh2.ImportParameters(p);
 
         return ecdh2.PublicKey;
+    }
+
+    internal static byte[] CreatePublicKey(this Curve25519 curve25591, BigInteger value)
+    {
+        var v = value.ToCryptoValue();
+
+        if (v[0] == 0x40)
+        {
+            return v.Skip(1).ToArray();
+        }
+
+        throw new NotImplementedException($"Unexpected Curve25519 keyformat with first byte {v[0]}");
+    }
+
+    internal static byte[] DeriveKeyFromHash(this Curve25519 curve25519, byte[] publicKey, HashAlgorithm hashAlgorithm, byte[]? secretPrepend = null, byte[]? secretAppend = null)
+    {
+        var pk = curve25519.PrivateKey!;
+
+        //Curve25519.al
+
+        var sharedSecret = Curve25519.GetSharedSecret(pk, publicKey);
+
+        if (secretPrepend != null)
+            hashAlgorithm.TransformBlock(secretPrepend, 0, secretPrepend.Length, null, 0);
+
+        hashAlgorithm.TransformBlock(sharedSecret, 0, sharedSecret.Length, null, 0);
+
+        if (secretAppend != null)
+            hashAlgorithm.TransformBlock(secretAppend, 0, secretAppend.Length, null, 0);
+
+
+        hashAlgorithm.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+        return hashAlgorithm.Hash!;
     }
 
     private static string ParseOid(byte[] v)

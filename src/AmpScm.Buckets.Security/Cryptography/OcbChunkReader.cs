@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Cryptography
 {
-    internal sealed class AeadChunkReader : WrappingBucket
+    internal sealed class OcbChunkReader : WrappingBucket
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Bucket? _current; // Disposed via inner
@@ -16,7 +16,7 @@ namespace AmpScm.Buckets.Cryptography
         private bool _done;
         long _position;
 
-        public AeadChunkReader(Bucket source, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional) 
+        public OcbChunkReader(Bucket source, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional) 
             : base(source)
         {
             if (maxChunkSize < 16)

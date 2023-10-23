@@ -79,10 +79,16 @@ internal enum PgpSubPacketType : byte
 
     // GPG specific?
     IssuerFingerprint = 33,
-    PreferredAeadAlgorithms = 34,
+    PreferredEncryptionModes = 34,
+    IntendedRecipientFingerprint = 35,
+    // 36
     AttestedCertifications = 37,
-    EntireKeyUsed = 38,
+    KeyBlock = 38,
+    // 39 = Reserved
+    LiteralDataMetaHash = 40,
+    TrustAlias = 41,
 
+    // 100 - 110 = Private or experimental
     FlagCritical = 128
 }
 
@@ -145,7 +151,7 @@ internal enum PgpCompressionType
     Bzip2 = 3,
 }
 
-internal enum PgpAeadAlgorithm
+internal enum PgpOcbEncryptionAlgorithm
 {
     None,
     Eax = 1,

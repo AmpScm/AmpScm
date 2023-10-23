@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
@@ -24,17 +25,14 @@ public sealed class DecryptBucket : CryptoDataBucket
 #pragma warning restore CA2213 // Disposable fields should be disposed
     private byte[]? _shaResult;
     private readonly Stack<PgpSignature> _sigs = new();
+    int _verifies;
 
     public DecryptBucket(Bucket source)
         : base(new CryptoChunkBucket(source))
     {
     }
 
-    public Func<SignaturePromptContext, string>? GetPassword { get; init; }
-
-    public bool VerifySignature { get; init; }
-
-
+    public new bool VerifySignature { get; init; }
     private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag tag)
     {
         switch (tag)
@@ -120,27 +118,10 @@ public sealed class DecryptBucket : CryptoDataBucket
 
 
                                 var oid = keyValues[0].ToCryptoValue();
-
-                                var ecdhParams = new ByteCollector();
-                                ecdhParams.Append((byte)oid.Length);
-                                ecdhParams.Append(oid); // The OID
-                                ecdhParams.Append((byte)PgpPublicKeyType.ECDH);
-
-                                var kdf = keyValues[2].ToCryptoValue();
-
-                                // kdf[0] = 1 // Future extensibility
-                                var kdfHash = (PgpHashAlgorithm)kdf[1];
-                                var kdfCipher = (PgpSymmetricAlgorithm)kdf[2];
-
-                                ecdhParams.Append((byte)kdf.Length);
-                                ecdhParams.Append(kdf);
-                                ecdhParams.Append("Anonymous Sender    "u8.ToArray());
-                                ecdhParams.Append(matchedKey.Fingerprint.Slice(0, 20)); // Slice for v5 keys
-
-                                
+                                var (kdfHash, kdfCipher, ecdhParams) = CreateEcdhParams(matchedKey, keyValues[2], oid);
 
                                 byte[] kek = ecdh.DeriveKeyFromHash(pk, kdfHash.GetHashAlgorithmName(),
-                                                                        secretPrepend: new byte[] {  0, 0, 0, 1 }, secretAppend: ecdhParams.ToArray())
+                                                                        secretPrepend: new byte[] { 0, 0, 0, 1 }, secretAppend: ecdhParams)
                                             .Take(kdfCipher.GetKeyBytes()).ToArray();
 
 
@@ -149,9 +130,10 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 {
                                     var srcData = await bucket.ReadExactlyAsync(len, true).ConfigureAwait(false);
 
-                                    var data = new Rfc3394Algorithm(kek).UnwrapKey(srcData.ToArray());
-
-                                    SetupSessionFromDecrypted(data.ToArray());
+                                    if (new Rfc3394Algorithm(kek).TryUnwrapKey(srcData.ToArray(), out var data))
+                                    {
+                                        SetupSessionFromDecrypted(data);
+                                    }
                                 }
                             }
                             break;
@@ -173,7 +155,33 @@ public sealed class DecryptBucket : CryptoDataBucket
                             break;
 
                         case CryptoAlgorithm.Curve25519:
+                            using (var curve25519 = Curve25519.Create())
+                            {
+                                curve25519.ImportParametersFromCryptoInts(keyValues);
 
+                                var scalar = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket);
+
+                                var pk = curve25519.CreatePublicKey(scalar);
+
+                                var oid = keyValues[0].ToCryptoValue();
+                                var (kdfHash, kdfCipher, ecdhParams) = CreateEcdhParams(matchedKey, keyValues[2], oid);
+
+                                using var ha = CreatePgpHashAlgorithm(kdfHash);
+                                byte[] kek = curve25519.DeriveKeyFromHash(pk, ha, secretPrepend: new byte[] { 0, 0, 0, 1 }, secretAppend: ecdhParams)
+                                            .Take(kdfCipher.GetKeyBytes()).ToArray();
+
+                                byte len = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                                if (len > 0)
+                                {
+                                    var srcData = await bucket.ReadExactlyAsync(len, true).ConfigureAwait(false);
+
+                                    if (new Rfc3394Algorithm(kek).TryUnwrapKey(srcData.ToArray(), out var data))
+                                    {
+                                        SetupSessionFromDecrypted(data);
+                                    }
+                                }
+                            }
+                            break;
 
                         default:
                             throw new NotImplementedException($"Algorithm {matchedKey.Algorithm} not implemented yet");
@@ -200,7 +208,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                 {
                     byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                     var cipherAlgorithm = (PgpSymmetricAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
-                    byte aeadAlgorithm = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
+                    byte ocbEncryptionAlgorithm = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                     byte chunkVal = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
                     long chunk_size = 1L << (chunkVal + 6); // Usually 4MB
@@ -221,7 +229,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         long n = (length + chunk_size - 1) / chunk_size; // Calculate number of chunks before the final block
                         length -= n * 16; // Remove the tags of these chunks from the total length
 
-                        byte[] associatedData = new byte[] { 0xC0 | (int)CryptoTag.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
+                        byte[] associatedData = new byte[] { 0xC0 | (int)CryptoTag.OCBEncryptedData, version, (byte)cipherAlgorithm, ocbEncryptionAlgorithm, chunkVal }
                                 .Concat(NetBitConverter.GetBytes((long)n)).Concat(NetBitConverter.GetBytes((long)length)).ToArray();
 
                         byte[] sv = startingVector.ToArray();
@@ -236,10 +244,10 @@ public sealed class DecryptBucket : CryptoDataBucket
                         await ocd.ReadUntilEofAsync().ConfigureAwait(false);
                     });
 
-                    bucket = new AeadChunkReader(bucket, (int)chunk_size, 16,
+                    bucket = new OcbChunkReader(bucket, (int)chunk_size, 16,
                         (n, data) =>
                         {
-                            byte[] associatedData = new byte[] { 0xC0 | (int)CryptoTag.OCBEncryptedData, version, (byte)cipherAlgorithm, aeadAlgorithm, chunkVal }
+                            byte[] associatedData = new byte[] { 0xC0 | (int)CryptoTag.OCBEncryptedData, version, (byte)cipherAlgorithm, ocbEncryptionAlgorithm, chunkVal }
                                 .Concat(NetBitConverter.GetBytes((long)n)).ToArray();
 
                             byte[] sv = startingVector.ToArray();
@@ -398,6 +406,8 @@ public sealed class DecryptBucket : CryptoDataBucket
                         {
                             throw new BucketDecryptionException("SignaturePublicKey not verifiable");
                         }
+
+                        _verifies++;
                     }
 
                     if (NetBitConverter.ToUInt16(hashValue, 0) != r.HashStart)
@@ -420,6 +430,9 @@ public sealed class DecryptBucket : CryptoDataBucket
                         throw new BucketDecryptionException($"Modification detected in {nameof(CryptoTag.SymetricEncryptedIntegrity)} packet of {bucket} bucket");
 
                     _shaResult = null;
+
+                    if (VerifySignature && _verifies == 0)
+                        throw new BucketDecryptionException("Document signature was not verified");
                 }
                 break;
             default:
@@ -433,6 +446,30 @@ public sealed class DecryptBucket : CryptoDataBucket
         }
         return true;
 
+    }
+
+    private static (PgpHashAlgorithm hashAlgorithm, PgpSymmetricAlgorithm cipher, byte[] result) CreateEcdhParams(AsymmetricCryptoKey matchedKey, BigInteger kdf, ReadOnlyMemory<byte> oid)
+    {
+        ByteCollector ecdhParams;
+        PgpHashAlgorithm kdfHash;
+        PgpSymmetricAlgorithm kdfCipher;
+
+        ecdhParams = new ByteCollector();
+        ecdhParams.Append((byte)oid.Length);
+        ecdhParams.Append(oid); // The OID
+        ecdhParams.Append((byte)PgpPublicKeyType.ECDH);
+
+        var kdfBytes = kdf.ToCryptoValue();
+
+        // kdf[0] = 1 // Future extensibility
+        kdfHash = (PgpHashAlgorithm)kdfBytes[1];
+        kdfCipher = (PgpSymmetricAlgorithm)kdfBytes[2];
+        ecdhParams.Append((byte)kdfBytes.Length);
+        ecdhParams.Append(kdfBytes);
+        ecdhParams.Append("Anonymous Sender    "u8.ToArray());
+        ecdhParams.Append(matchedKey.Fingerprint.Slice(0, 20)); // Slice for v5 keys
+
+        return (kdfHash, kdfCipher, ecdhParams.ToArray());
     }
 
     private void SetupSessionFromDecrypted(byte[] data)
@@ -517,6 +554,7 @@ public sealed class DecryptBucket : CryptoDataBucket
     {
         base.Reset();
         _sigs.Clear();
+        _verifies = 0;
     }
 
     private sealed record PgpSignature
