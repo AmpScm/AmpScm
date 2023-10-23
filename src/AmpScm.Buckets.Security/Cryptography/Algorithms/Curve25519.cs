@@ -20,10 +20,10 @@ namespace AmpScm.Buckets.Cryptography.Algorithms;
 
 // Warning! This implementation is susceptible to timing attacks!
 
-public sealed class Curve25519 : IDisposable
+internal sealed class Curve25519 : IDisposable
 {
     /* key size */
-    internal const int KeySize = 32;
+    public const int KeySize = 32;
 
     private Curve25519() { }
 
@@ -46,10 +46,10 @@ public sealed class Curve25519 : IDisposable
     /// Private key clamping (inline, for performance)
     /// </summary>
     /// <param name="key">[out] 32 random bytes</param>
-    internal static void ClampPrivateKeyInline(byte[] key)
+    public static void ClampPrivateKeyInline(Span<byte> key)
     {
-        if (key?.Length != 32)
-            throw new ArgumentException($"key must be 32 bytes long (but was {key?.Length ?? 0} bytes long)");
+        if (key.Length != 32)
+            throw new ArgumentException($"key must be 32 bytes long (but was {key.Length} bytes long)");
 
         key[31] &= 0x7F;
         key[31] |= 0x40;
@@ -60,13 +60,13 @@ public sealed class Curve25519 : IDisposable
     /// Private key clamping
     /// </summary>
     /// <param name="rawKey">[out] 32 random bytes</param>
-    internal static byte[] ClampPrivateKey(byte[] rawKey)
+    public static byte[] ClampPrivateKey(Span<byte> rawKey)
     {
-        if (rawKey?.Length != 32)
-            throw new ArgumentException($"rawKey must be 32 bytes long (but was {rawKey?.Length ?? 0} bytes long)", nameof(rawKey));
+        if (rawKey.Length != 32)
+            throw new ArgumentException($"rawKey must be 32 bytes long (but was {rawKey.Length} bytes long)", nameof(rawKey));
 
         var res = new byte[32];
-        Array.Copy(rawKey, res, 32);
+        rawKey.CopyTo(res);
 
         res[31] &= 0x7F;
         res[31] |= 0x40;
@@ -79,7 +79,7 @@ public sealed class Curve25519 : IDisposable
     /// Creates a random private key
     /// </summary>
     /// <returns>32 random bytes that are clamped to a suitable private key</returns>
-    internal static byte[] CreateRandomPrivateKey()
+    public static byte[] CreateRandomPrivateKey()
     {
         var privateKey = new byte[32];
 
@@ -93,11 +93,11 @@ public sealed class Curve25519 : IDisposable
     /// <summary>
     /// Key-pair generation (inline, for performance)
     /// </summary>
-    /// <param name="publicKey">[out] internal key</param>
+    /// <param name="publicKey">[out] public key</param>
     /// <param name="signingKey">[out] signing key (ignored if NULL)</param>
     /// <param name="privateKey">[out] private key</param>
     /// <remarks>WARNING: if signingKey is not NULL, this function has data-dependent timing</remarks>
-    internal static void KeyGenInline(byte[] publicKey, byte[] signingKey, byte[] privateKey)
+    public static void KeyGenInline(byte[] publicKey, byte[] signingKey, byte[] privateKey)
     {
         if (publicKey?.Length != 32)
             throw new ArgumentException($"publicKey must be 32 bytes long (but was {publicKey?.Length ?? 0} bytes long)", nameof(publicKey));
@@ -114,10 +114,10 @@ public sealed class Curve25519 : IDisposable
     }
 
     /// <summary>
-    /// Generates the internal key out of the clamped private key
+    /// Generates the public key out of the clamped private key
     /// </summary>
     /// <param name="privateKey">private key (must use ClampPrivateKey first!)</param>
-    public static byte[] GetPublicKey(byte[] privateKey)
+    public static byte[] GetPublicKey(ReadOnlySpan<byte> privateKey)
     {
         var publicKey = new byte[32];
 
@@ -129,7 +129,7 @@ public sealed class Curve25519 : IDisposable
     /// Generates signing key out of the clamped private key
     /// </summary>
     /// <param name="privateKey">private key (must use ClampPrivateKey first!)</param>
-    internal static byte[] GetSigningKey(byte[] privateKey)
+    public static byte[] GetSigningKey(ReadOnlySpan<byte> privateKey)
     {
         var signingKey = new byte[32];
         var publicKey = new byte[32];
@@ -142,9 +142,9 @@ public sealed class Curve25519 : IDisposable
     /// Key agreement
     /// </summary>
     /// <param name="privateKey">[in] your private key for key agreement</param>
-    /// <param name="peerPublicKey">[in] peer's internal key</param>
+    /// <param name="peerPublicKey">[in] peer's public key</param>
     /// <returns>shared secret (needs hashing before use)</returns>
-    internal static byte[] GetSharedSecret(byte[] privateKey, byte[] peerPublicKey)
+    public static byte[] GetSharedSecret(ReadOnlySpan<byte> privateKey, ReadOnlyMemory<byte> peerPublicKey)
     {
         var sharedSecret = new byte[32];
 
@@ -179,7 +179,27 @@ public sealed class Curve25519 : IDisposable
             N9 = n9;
         }
 
-        internal long N0, N1, N2, N3, N4, N5, N6, N7, N8, N9;
+        public long N0, N1, N2, N3, N4, N5, N6, N7, N8, N9;
+
+        /// <summary>
+        /// Check if reduced-form input >= 2^255-19
+        /// </summary>
+        public bool IsOverflow
+        {
+            get => (
+                (N0 > P26 - 19) &
+                ((N1 & N3 & N5 & N7 & N9) == P25) &
+                ((N2 & N4 & N6 & N8) == P26)
+                ) || (N9 > P25);
+        }
+
+        /// <summary>
+        /// Checks if x is "negative", requires reduced input
+        /// </summary>
+        public int IsNegative
+        {
+            get => (int)(((IsOverflow | (N9 < 0)) ? 1 : 0) ^ (N0 & 1));
+        }
     }
 
     /********************* radix 2^8 math *********************/
@@ -307,7 +327,7 @@ public sealed class Curve25519 : IDisposable
     private const int P25 = 33554431; /* (1 << 25) - 1 */
     private const int P26 = 67108863; /* (1 << 26) - 1 */
 
-    /* Convert to internal format from little-endian byte format */
+    /* Convert to public format from little-endian byte format */
 
     private static void Unpack(Long10 x, ReadOnlySpan<byte> m)
     {
@@ -333,19 +353,7 @@ public sealed class Curve25519 : IDisposable
                (m[30] & 0xFF) << 10 | (m[31] & 0xFF) << 18;
     }
 
-    /// <summary>
-    /// Check if reduced-form input >= 2^255-19
-    /// </summary>
-    private static bool IsOverflow(Long10 x)
-    {
-        return (
-            (x.N0 > P26 - 19) &
-            ((x.N1 & x.N3 & x.N5 & x.N7 & x.N9) == P25) &
-            ((x.N2 & x.N4 & x.N6 & x.N8) == P26)
-            ) || (x.N9 > P25);
-    }
-
-    /* Convert from internal format to little-endian byte format.  The 
+    /* Convert to little-endian byte format.  The
      * number must be in a reduced form which is output by the following ops:
      *     unpack, mul, sqr
      *     set --  if input in range 0 .. P25
@@ -353,7 +361,7 @@ public sealed class Curve25519 : IDisposable
 
     private static void Pack(Long10 x, Span<byte> m)
     {
-        int ld = (IsOverflow(x) ? 1 : 0) - ((x.N9 < 0) ? 1 : 0);
+        int ld = (x.IsOverflow ? 1 : 0) - ((x.N9 < 0) ? 1 : 0);
         int ud = ld * -(P25 + 1);
         ld *= 19;
         long t = ld + x.N0 + (x.N1 << 26);
@@ -727,15 +735,6 @@ public sealed class Curve25519 : IDisposable
         }
     }
 
-    /// <summary>
-    /// Checks if x is "negative", requires reduced input
-    /// </summary>
-    /// <param name="x">must be reduced input</param>
-    private static int IsNegative(Long10 x)
-    {
-        return (int)(((IsOverflow(x) | (x.N9 < 0)) ? 1 : 0) ^ (x.N0 & 1));
-    }
-
     /********************* Elliptic curve *********************/
 
     /* y^2 = x^3 + 486662 x^2 + x  over GF(2^255-19) */
@@ -801,7 +800,7 @@ public sealed class Curve25519 : IDisposable
     /// <summary>
     /// P = kG   and  s = sign(P)/k
     /// </summary>
-    private static void Core(byte[] publicKey, byte[]? signingKey, ReadOnlySpan<byte> privateKey, byte[]? peerPublicKey)
+    private static void Core(byte[] publicKey, byte[]? signingKey, ReadOnlySpan<byte> privateKey, ReadOnlyMemory<byte>? peerPublicKey)
     {
         if (publicKey?.Length != 32)
             throw new ArgumentException($"publicKey must be 32 bytes long (but was {publicKey?.Length ?? 0} bytes long)", nameof(publicKey));
@@ -809,8 +808,8 @@ public sealed class Curve25519 : IDisposable
             throw new ArgumentException($"signingKey must be null or 32 bytes long (but was {signingKey.Length} bytes long)", nameof(signingKey));
         else if (privateKey.Length != 32)
             throw new ArgumentException($"privateKey must be 32 bytes long (but was {privateKey.Length} bytes long)", nameof(privateKey));
-        else if (peerPublicKey != null && peerPublicKey.Length != 32)
-            throw new ArgumentException($"peerPublicKey must be null or 32 bytes long (but was {peerPublicKey.Length} bytes long)", nameof(peerPublicKey));
+        else if (peerPublicKey is { } ppk2 && ppk2.Length != 32)
+            throw new ArgumentException($"peerPublicKey must be null or 32 bytes long (but was {ppk2.Length} bytes long)", nameof(peerPublicKey));
 
         Long10
             dx = new Long10(),
@@ -823,8 +822,8 @@ public sealed class Curve25519 : IDisposable
             z = { new Long10(), new Long10() };
 
         /* unpack the base */
-        if (peerPublicKey != null)
-            Unpack(dx, peerPublicKey);
+        if (peerPublicKey is { } ppk)
+            Unpack(dx, ppk.Span);
         else
             Set(dx, 9);
 
@@ -875,7 +874,7 @@ public sealed class Curve25519 : IDisposable
             Sub(dx, dx, t1); /* dx = t2 (Px - Gx)^2 - Py^2  */
             dx.N0 -= 39420360; /* dx = t2 (Px - Gx)^2 - Py^2 - Gy^2  */
             Multiply(t1, dx, BaseR2Y); /* t1 = -Py  */
-            if (IsNegative(t1) != 0) /* sign is 1, so just copy  */
+            if (t1.IsNegative != 0) /* sign is 1, so just copy  */
                 Copy32(privateKey, signingKey);
             else /* sign is -1, so negate  */
                 MultiplyArraySmall(signingKey, OrderTimes8, 0, privateKey, 32, -1);
@@ -918,7 +917,7 @@ public sealed class Curve25519 : IDisposable
         12541209, 49101323, 30047407, 40071253, 6226132
         );
 
-    internal static Curve25519 Create()
+    public static Curve25519 Create()
     {
         return new();
     }
@@ -927,6 +926,6 @@ public sealed class Curve25519 : IDisposable
     {
     }
 
-    internal byte[]? PrivateKey { get; set; }
-    internal byte[]? PublicKey { get; set; }
+    public byte[]? PrivateKey { get; set; }
+    public byte[]? PublicKey { get; set; }
 }
