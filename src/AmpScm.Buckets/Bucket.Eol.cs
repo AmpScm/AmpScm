@@ -14,11 +14,10 @@ namespace AmpScm.Buckets
 #pragma warning restore CA2217 // Do not mark enums with FlagsAttribute
     {
         None = 0x00,
-        LF = 0x01,
-        CR = 0x02,
-        CRLF = 0x04,
-        Zero = 0x08,
-
+        Zero = 0x01,
+        LF = 0x02,
+        CR = 0x04,
+        CRLF = 0x08,
 
         AnyEol = LF | CR | CRLF,
 
@@ -42,49 +41,66 @@ namespace AmpScm.Buckets
 #endif
         public virtual async ValueTask<BucketLine> ReadUntilEolAsync(BucketEol acceptableEols, int requested = MaxRead)
         {
+            if (requested <= 0)
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
             if ((acceptableEols & ~BucketEol.EolMask) != 0)
                 throw new ArgumentOutOfRangeException(nameof(acceptableEols), acceptableEols, message: null);
 
             using var pd = await this.PollReadAsync(1).ConfigureAwait(false);
 
             if (pd.IsEof)
-                return new (BucketBytes.Eof, BucketEol.None);
+                return new(BucketBytes.Eof, BucketEol.None);
 
             var (rq, singleCrRequested) = CalculateEolReadLength(acceptableEols, requested, pd.Data.Span);
 
             var read = await pd.ReadAsync(rq).ConfigureAwait(false);
             var found = GetEolResult(acceptableEols, rq, singleCrRequested, read.Span);
 
-            return new (read, found);
+            return new(read, found);
         }
+
+        static readonly ReadOnlyMemory<byte>[] Eols =
+{
+            Array.Empty<byte>(),
+            new byte[] { 0 },
+            new byte[] { (byte)'\n'},
+            new byte[] { 0, (byte)'\n'},
+            new byte[] { (byte)'\r'},
+            new byte[] { 0, (byte)'\r' },
+            new byte[] { (byte)'\n', (byte)'\r'},
+            new byte[] { 0, (byte)'\n', (byte)'\r'},
+        };
+
 
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
 #endif
         private static (int Requested, bool SingleCrRequested) CalculateEolReadLength(BucketEol acceptableEols, int requested, ReadOnlySpan<byte> buffer)
         {
-            if ((acceptableEols & ~(BucketEol.LF | BucketEol.CR | BucketEol.Zero)) == 0)
-            {
-                int n;
-                switch (acceptableEols)
-                {
-                    case BucketEol.LF:
-                        n = buffer.IndexOf((byte)'\n');
-                        return (1 + (n >= 0 ? n : buffer.Length), false);
-                    case BucketEol.Zero:
-                        n = buffer.IndexOf((byte)'\0');
-                        return (1 + (n >= 0 ? n : buffer.Length), false);
-                    case BucketEol.CR:
-                        n = buffer.IndexOf((byte)'\r');
-                        return (1 + (n >= 0 ? n : buffer.Length), false);
-                }
-            }
-            int cr = (0 != (acceptableEols & (BucketEol.CR | BucketEol.CRLF))) ? buffer.IndexOf((byte)'\r') : -1;
-            int lf = (0 != (acceptableEols & BucketEol.LF)) ? buffer.IndexOf((byte)'\n') : -1;
-            int zr = (0 != (acceptableEols & BucketEol.Zero)) ? buffer.IndexOf((byte)'\0') : -1;
+            int wantEols = (int)(acceptableEols & (BucketEol.LF | BucketEol.CR | BucketEol.Zero)) | ((int)(acceptableEols & BucketEol.CRLF) >> 1);
 
-            // Fold zero in lf
-            lf = (lf >= 0 && zr >= 0) ? Math.Min(lf, zr) : (lf >= 0 ? lf : zr);
+            int nl = buffer.IndexOfAny(Eols[wantEols].Span);
+
+            if (nl < 0)
+                return (Math.Min(buffer.Length + 1, requested), false);
+            else if ((acceptableEols & ~(BucketEol.LF | BucketEol.CR | BucketEol.Zero)) == 0 || buffer[nl] != '\r')
+                return (Math.Min(1 + nl, requested), false);
+
+            return CalculateEolReadLengthForCR(acceptableEols, requested, buffer, nl);
+        }
+
+        private static (int Requested, bool SingleCrRequested) CalculateEolReadLengthForCR(BucketEol acceptableEols, int requested, ReadOnlySpan<byte> buffer, int cr)
+        {
+            if (buffer.Length > cr + 1 && buffer[cr + 1] == '\n')
+            {
+                return (Math.Min(cr + 2, requested), false); // CR+LF
+            }
+
+            int wantEols = (int)(acceptableEols & (BucketEol.LF | BucketEol.Zero));
+            int lf = wantEols > 0 ? buffer.Slice(cr + 1).IndexOfAny(Eols[wantEols].Span) : -1;
+
+            if (lf > 0)
+                lf += cr + 1;
 
             if (cr >= 0 && (acceptableEols & (BucketEol.CR | BucketEol.CRLF)) == BucketEol.CRLF)
             {
@@ -102,42 +118,29 @@ namespace AmpScm.Buckets
                 }
             }
 
-            // fold lf (and zero) in cr
-            cr = (cr >= 0 && lf >= 0) ? Math.Min(cr, lf) : (cr >= 0 ? cr : lf);
+            if (lf > 0 && (lf < cr || cr < 0))
+                return (Math.Min(lf + 1, requested), false);
+            else if (cr < 0)
+                return (Math.Min(buffer.Length + 1, requested), false);
 
-            int linelen = cr;
             bool singleCrRequested = false;
 
             int rq;
 
-            if (cr >= 0
-                && buffer[cr] == '\r'
-                && (acceptableEols & BucketEol.CRLF) != 0
-                && linelen + 1 < buffer.Length)
+            if (cr + 1 < buffer.Length)
             {
                 if (buffer[cr + 1] == '\n')
-                {
-                    rq = linelen + 2; // cr+lf
-                }
-                else if ((acceptableEols & BucketEol.CRLF) != 0)
-                {
-                    rq = linelen + 1; // cr without lf
-                    singleCrRequested = true;
-                }
+                    rq = cr + 2; // cr+lf
                 else
                 {
-                    // easy out. Just include the single character after the cr
-                    rq = linelen + 2; // cr+lf
+                    rq = cr + 1; // cr without lf
+                    singleCrRequested = (acceptableEols & BucketEol.CR) != 0;
                 }
             }
-            else if (cr >= 0)
-            {
-                rq = linelen + 1;
-            }
             else if (acceptableEols == BucketEol.CRLF)
-                rq = buffer.Length + 2; // No newline in rq_len, and we need 2 chars for eol
+                rq = buffer.Length + 2; // Need at least two more chars to have a "\r\n"
             else
-                rq = buffer.Length + 1; // No newline in rq_len, and we need 1 char for eol
+                rq = buffer.Length + 1; // Need at least one additional character to find some EOL
 
             return (Math.Min(rq, requested), singleCrRequested);
         }

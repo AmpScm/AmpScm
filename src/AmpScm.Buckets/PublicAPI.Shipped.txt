@@ -67,13 +67,13 @@ AmpScm.Buckets.BucketEofException.BucketEofException(string? message, System.Exc
 AmpScm.Buckets.BucketEofException.BucketEofException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 AmpScm.Buckets.BucketEol
 AmpScm.Buckets.BucketEol.AnyEol = AmpScm.Buckets.BucketEol.LF | AmpScm.Buckets.BucketEol.CR | AmpScm.Buckets.BucketEol.CRLF -> AmpScm.Buckets.BucketEol
-AmpScm.Buckets.BucketEol.CR = 2 -> AmpScm.Buckets.BucketEol
-AmpScm.Buckets.BucketEol.CRLF = 4 -> AmpScm.Buckets.BucketEol
+AmpScm.Buckets.BucketEol.CR = 4 -> AmpScm.Buckets.BucketEol
+AmpScm.Buckets.BucketEol.CRLF = 8 -> AmpScm.Buckets.BucketEol
 AmpScm.Buckets.BucketEol.CRSplit = 1048576 -> AmpScm.Buckets.BucketEol
 AmpScm.Buckets.BucketEol.EolMask = 255 -> AmpScm.Buckets.BucketEol
-AmpScm.Buckets.BucketEol.LF = 1 -> AmpScm.Buckets.BucketEol
+AmpScm.Buckets.BucketEol.LF = 2 -> AmpScm.Buckets.BucketEol
 AmpScm.Buckets.BucketEol.None = 0 -> AmpScm.Buckets.BucketEol
-AmpScm.Buckets.BucketEol.Zero = 8 -> AmpScm.Buckets.BucketEol
+AmpScm.Buckets.BucketEol.Zero = 1 -> AmpScm.Buckets.BucketEol
 AmpScm.Buckets.BucketEolState
 AmpScm.Buckets.BucketEolState.BucketEolState() -> void
 AmpScm.Buckets.BucketEolState.IsEmpty.get -> bool

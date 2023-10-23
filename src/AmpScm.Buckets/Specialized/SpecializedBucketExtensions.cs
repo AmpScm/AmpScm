@@ -180,7 +180,7 @@ namespace AmpScm.Buckets.Specialized
         /// <param name="lineMode"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static Bucket Base64Decode(this Bucket bucket, bool lineMode=false)
+        public static Bucket Base64Decode(this Bucket bucket, bool lineMode = false)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
@@ -210,7 +210,7 @@ namespace AmpScm.Buckets.Specialized
         /// <param name="name"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static Bucket Trace(this Bucket bucket, string? name =null)
+        public static Bucket Trace(this Bucket bucket, string? name = null)
         {
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));

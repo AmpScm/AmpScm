@@ -88,15 +88,16 @@ namespace AmpScm.Buckets.Specialized
                         continue; // Newlines and Whitespace are skipped
                     else if (sb == -4) // '='
                     {
-                        if (_lineMode && sourceData.Slice(i + 1).All(x => char.IsWhiteSpace((char)x) || x == '='))
-                            _eof = true;
-                        else if (_lineMode && i == 0)
+                        if (_lineMode && sourceData.Slice(i + 1).IndexOf((byte)'\n') < 0)
+                        {
+                            continue; // No EOL yet. Need to continue reading more data
+                        }
+                        else
                         {
                             _eof = true;
-                            sourceData = BucketBytes.Empty;
-                            return BucketBytes.Eof;
+                            final = true;
+                            continue;
                         }
-                        continue;
                     }
                     else
                         throw new BucketException($"Unexpected base64 character 0x{b:x} '{(char)b}' in {Name} bucket");
