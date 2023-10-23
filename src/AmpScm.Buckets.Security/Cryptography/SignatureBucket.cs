@@ -395,17 +395,12 @@ public sealed class SignatureBucket : CryptoDataBucket
                     var db = (DerBucket)bucket;
                     var (derRoot, t) = await db.ReadValueAsync().ConfigureAwait(false);
 
-                    var pkt = (_outer as Radix64ArmorBucket)?.PublicKeyType;
-
-                    if (t != DerType.Sequence || pkt is null)
+                    if (t != DerType.Sequence || (_outer as Radix64ArmorBucket)?.PublicKeyType is not { } publicKeyType)
                         throw new BucketException("Unexpected DER value");
 
                     using var der = new DerBucket(derRoot!);
 
-
-                    BucketBytes bb = new(pkt.Value);
-
-                    if (bb.StartsWithASCII("RSA"))
+                    if (publicKeyType.StartsWith("RSA", StringComparison.OrdinalIgnoreCase))
                     {
                         List<BigInteger> vals = new();
 
@@ -413,7 +408,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         {
                             var (b, bt) = rd;
 
-                            bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
+                            var bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
                             vals.Add(bb.Memory.ToBigInteger());
                         }
 
@@ -421,7 +416,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                         _keys.Add(new PublicKeySignature(CreateSshFingerprint(CryptoAlgorithm.Rsa, keyInts), CryptoAlgorithm.Rsa, keyInts));
                     }
-                    else if (bb.IsEmpty)
+                    else if (publicKeyType is { })
                     {
                         var (ob, obt) = await der.ReadValueAsync().ConfigureAwait(false);
 
@@ -435,7 +430,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                         (ob, obt) = await der2.ReadValueAsync().ConfigureAwait(false);
 
-                        bb = await ob!.ReadExactlyAsync(32).ConfigureAwait(false);
+                        var bb = await ob!.ReadExactlyAsync(32).ConfigureAwait(false);
 
                         CryptoAlgorithm cryptoAlg;
 

@@ -17,7 +17,7 @@ namespace AmpScm.Buckets.Cryptography
         private int? _crc24Result;
         private bool _sshBegin;
 
-        internal ReadOnlyMemory<byte>? PublicKeyType { get; private set; }
+        internal string PublicKeyType { get; private set; }
 
         private enum SState
         {
@@ -60,7 +60,7 @@ namespace AmpScm.Buckets.Cryptography
                 }
                 else if (bb.EndsWithASCII(" PUBLIC KEY-----"))
                 {
-                    PublicKeyType = bb.Slice(sl, bb.Length - sl - 16);
+                    PublicKeyType = bb.Slice(sl, bb.Length - sl - 15).Trim().ToUTF8String();
                 }
                 else if (bb.EndsWithASCII(" SignaturePublicKey-----"))
                 {
