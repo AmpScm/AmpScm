@@ -41,6 +41,8 @@ namespace AmpScm.Buckets.Cryptography
 
             if (_state == SState.Init)
             {
+                bb = bb.TrimStart().TrimEnd(eol);
+
                 if (!bb.StartsWithASCII("-----BEGIN "))
                 {
                     if (!bb.StartsWithASCII("---- BEGIN "))
@@ -56,9 +58,13 @@ namespace AmpScm.Buckets.Cryptography
                     _state = SState.Body;
                     return BucketBytes.Eof;
                 }
-                else if (bb.Slice(eol).EndsWithASCII(" PUBLIC KEY-----"))
+                else if (bb.EndsWithASCII(" PUBLIC KEY-----"))
                 {
-                    PublicKeyType = bb.Slice(sl, bb.Length - sl - 15 - eol.CharCount()).ToArray();
+                    PublicKeyType = bb.Slice(sl, bb.Length - sl - 16);
+                }
+                else if (bb.EndsWithASCII(" SignaturePublicKey-----"))
+                {
+                    // PGP key
                 }
 
                 _state = SState.Headers;
@@ -208,6 +214,19 @@ namespace AmpScm.Buckets.Cryptography
                     return BucketBytes.Eof;
 
                 var bb = Source.Peek();
+
+                for(int i = 0; i < bb.Length;i++)
+                {
+                    if (_stopAt.Contains(bb[i]))
+                    {
+                        _eof = true;
+                        return BucketBytes.Eof;
+                    }
+                    else if (bb[i] == ' ' || bb[i] == '\t')
+                        continue;
+                    else
+                        break;
+                }
 
                 if (bb.Length > 0 && _stopAt.Contains(bb[0]))
                 {

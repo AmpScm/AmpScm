@@ -678,7 +678,7 @@ namespace AmpScm.Buckets.Cryptography
             return (signTime, signer, signKeyFingerprint);
         }
 
-        private protected static bool QVerifySignature(SignatureInfo signatureInfo, byte[] hashValue, IReadOnlyList<BigInteger> keyValues)
+        private protected static bool VerifySignature(SignatureInfo signatureInfo, byte[] hashValue, IReadOnlyList<BigInteger> keyValues)
         {
             if (signatureInfo.SignatureInts == null)
                 throw new InvalidOperationException("No SignaturePublicKey value found to verify against");
