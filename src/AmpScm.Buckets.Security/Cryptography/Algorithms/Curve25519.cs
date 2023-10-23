@@ -159,11 +159,11 @@ public sealed class Curve25519 : IDisposable
 
     private sealed class Long10
     {
-        internal Long10()
+        public Long10()
         {
-        }
 
-        internal Long10(
+        }
+        public Long10(
             long n0, long n1, long n2, long n3, long n4,
             long n5, long n6, long n7, long n8, long n9)
         {
@@ -193,7 +193,7 @@ public sealed class Curve25519 : IDisposable
     /* n is the size of x */
     /* n+m is the size of p and q */
 
-    private static int MultiplyArraySmall(byte[] p, byte[] q, int m, ReadOnlySpan<byte> x, int n, int z)
+    private static int MultiplyArraySmall(Span<byte> p, ReadOnlySpan<byte> q, int m, ReadOnlySpan<byte> x, int n, int z)
     {
         int v = 0;
         for (int i = 0; i < n; ++i)
@@ -209,7 +209,7 @@ public sealed class Curve25519 : IDisposable
      * x is size 32, y is size t, p is size 32+t
      * y is allowed to overlap with p+32 if you don't care about the upper half  */
 
-    private static void MultiplyArray32(byte[] p, byte[] x, byte[] y, int t, int z)
+    private static void MultiplyArray32(Span<byte> p, ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, int t, int z)
     {
         const int n = 31;
         int w = 0;
@@ -230,7 +230,7 @@ public sealed class Curve25519 : IDisposable
      * requires t > 0 && d[t-1] != 0
      * requires that r[-1] and d[-1] are valid memory locations
      * q may overlap with r+t */
-    private static void DivMod(byte[] q, byte[] r, int n, byte[] d, int t)
+    private static void DivMod(Span<byte> q, Span<byte> r, int n, ReadOnlySpan<byte> d, int t)
     {
         int rn = 0;
         int dt = (d[t - 1] & 0xFF) << 8;
@@ -255,7 +255,7 @@ public sealed class Curve25519 : IDisposable
         r[t - 1] = (byte)rn;
     }
 
-    private static int GetNumSize(byte[] num, int maxSize)
+    private static int GetNumSize(ReadOnlySpan<byte> num, int maxSize)
     {
         for (int i = maxSize; i >= 0; i++)
         {
@@ -273,7 +273,7 @@ public sealed class Curve25519 : IDisposable
     /// <param name="a">requires that a[-1] and b[-1] are valid memory locations</param>
     /// <param name="b">requires that a[-1] and b[-1] are valid memory locations</param>
     /// <returns>Also, the returned buffer contains the inverse of a mod b as 32-byte signed.</returns>
-    private static byte[] Egcd32(byte[] x, byte[] y, byte[] a, byte[] b)
+    private static ReadOnlySpan<byte> Egcd32(Span<byte> x, Span<byte> y, Span<byte> a, Span<byte> b)
     {
         int bn = 32;
         int i;
@@ -309,7 +309,7 @@ public sealed class Curve25519 : IDisposable
 
     /* Convert to internal format from little-endian byte format */
 
-    private static void Unpack(Long10 x, byte[] m)
+    private static void Unpack(Long10 x, ReadOnlySpan<byte> m)
     {
         x.N0 = (m[0] & 0xFF) | (m[1] & 0xFF) << 8 |
                (m[2] & 0xFF) << 16 | (m[3] & 0xFF & 3) << 24;
@@ -351,7 +351,7 @@ public sealed class Curve25519 : IDisposable
      *     set --  if input in range 0 .. P25
      * If you're unsure if the number is reduced, first multiply it by 1.  */
 
-    private static void Pack(Long10 x, byte[] m)
+    private static void Pack(Long10 x, Span<byte> m)
     {
         int ld = (IsOverflow(x) ? 1 : 0) - ((x.N9 < 0) ? 1 : 0);
         int ud = ld * -(P25 + 1);
