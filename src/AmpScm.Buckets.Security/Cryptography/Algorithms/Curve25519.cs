@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Cryptography.Algorithms;
 
 /* Generic 64-bit integer implementation of Curve25519 ECDH
  * Written by Matthijs van Duin, 200608242056
- * Public domain.
+ * internal domain.
  *
  * Based on work by Daniel J Bernstein, http://cr.yp.to/ecdh.html
  */
@@ -23,7 +23,7 @@ namespace AmpScm.Buckets.Cryptography.Algorithms;
 public sealed class Curve25519 : IDisposable
 {
     /* key size */
-    public const int KeySize = 32;
+    internal const int KeySize = 32;
 
     private Curve25519() { }
 
@@ -46,7 +46,7 @@ public sealed class Curve25519 : IDisposable
     /// Private key clamping (inline, for performance)
     /// </summary>
     /// <param name="key">[out] 32 random bytes</param>
-    public static void ClampPrivateKeyInline(byte[] key)
+    internal static void ClampPrivateKeyInline(byte[] key)
     {
         if (key?.Length != 32)
             throw new ArgumentException($"key must be 32 bytes long (but was {key?.Length ?? 0} bytes long)");
@@ -60,7 +60,7 @@ public sealed class Curve25519 : IDisposable
     /// Private key clamping
     /// </summary>
     /// <param name="rawKey">[out] 32 random bytes</param>
-    public static byte[] ClampPrivateKey(byte[] rawKey)
+    internal static byte[] ClampPrivateKey(byte[] rawKey)
     {
         if (rawKey?.Length != 32)
             throw new ArgumentException($"rawKey must be 32 bytes long (but was {rawKey?.Length ?? 0} bytes long)", nameof(rawKey));
@@ -79,7 +79,7 @@ public sealed class Curve25519 : IDisposable
     /// Creates a random private key
     /// </summary>
     /// <returns>32 random bytes that are clamped to a suitable private key</returns>
-    public static byte[] CreateRandomPrivateKey()
+    internal static byte[] CreateRandomPrivateKey()
     {
         var privateKey = new byte[32];
 
@@ -93,11 +93,11 @@ public sealed class Curve25519 : IDisposable
     /// <summary>
     /// Key-pair generation (inline, for performance)
     /// </summary>
-    /// <param name="publicKey">[out] public key</param>
+    /// <param name="publicKey">[out] internal key</param>
     /// <param name="signingKey">[out] signing key (ignored if NULL)</param>
     /// <param name="privateKey">[out] private key</param>
     /// <remarks>WARNING: if signingKey is not NULL, this function has data-dependent timing</remarks>
-    public static void KeyGenInline(byte[] publicKey, byte[] signingKey, byte[] privateKey)
+    internal static void KeyGenInline(byte[] publicKey, byte[] signingKey, byte[] privateKey)
     {
         if (publicKey?.Length != 32)
             throw new ArgumentException($"publicKey must be 32 bytes long (but was {publicKey?.Length ?? 0} bytes long)", nameof(publicKey));
@@ -114,7 +114,7 @@ public sealed class Curve25519 : IDisposable
     }
 
     /// <summary>
-    /// Generates the public key out of the clamped private key
+    /// Generates the internal key out of the clamped private key
     /// </summary>
     /// <param name="privateKey">private key (must use ClampPrivateKey first!)</param>
     public static byte[] GetPublicKey(byte[] privateKey)
@@ -129,7 +129,7 @@ public sealed class Curve25519 : IDisposable
     /// Generates signing key out of the clamped private key
     /// </summary>
     /// <param name="privateKey">private key (must use ClampPrivateKey first!)</param>
-    public static byte[] GetSigningKey(byte[] privateKey)
+    internal static byte[] GetSigningKey(byte[] privateKey)
     {
         var signingKey = new byte[32];
         var publicKey = new byte[32];
@@ -142,9 +142,9 @@ public sealed class Curve25519 : IDisposable
     /// Key agreement
     /// </summary>
     /// <param name="privateKey">[in] your private key for key agreement</param>
-    /// <param name="peerPublicKey">[in] peer's public key</param>
+    /// <param name="peerPublicKey">[in] peer's internal key</param>
     /// <returns>shared secret (needs hashing before use)</returns>
-    public static byte[] GetSharedSecret(byte[] privateKey, byte[] peerPublicKey)
+    internal static byte[] GetSharedSecret(byte[] privateKey, byte[] peerPublicKey)
     {
         var sharedSecret = new byte[32];
 
@@ -159,11 +159,11 @@ public sealed class Curve25519 : IDisposable
 
     private sealed class Long10
     {
-        public Long10()
+        internal Long10()
         {
         }
 
-        public Long10(
+        internal Long10(
             long n0, long n1, long n2, long n3, long n4,
             long n5, long n6, long n7, long n8, long n9)
         {
@@ -179,7 +179,7 @@ public sealed class Curve25519 : IDisposable
             N9 = n9;
         }
 
-        public long N0, N1, N2, N3, N4, N5, N6, N7, N8, N9;
+        internal long N0, N1, N2, N3, N4, N5, N6, N7, N8, N9;
     }
 
     /********************* radix 2^8 math *********************/
@@ -918,7 +918,7 @@ public sealed class Curve25519 : IDisposable
         12541209, 49101323, 30047407, 40071253, 6226132
         );
 
-    public static Curve25519 Create()
+    internal static Curve25519 Create()
     {
         return new();
     }
@@ -927,6 +927,6 @@ public sealed class Curve25519 : IDisposable
     {
     }
 
-    public byte[]? PrivateKey { get; set; }
-    public byte[]? PublicKey { get; set; }
+    internal byte[]? PrivateKey { get; set; }
+    internal byte[]? PublicKey { get; set; }
 }

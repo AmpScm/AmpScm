@@ -129,7 +129,7 @@ namespace AmpScm.Git.Objects
             if (_chunks == null || ChunkReader == null)
                 return new (0);
             else if (length <= 0)
-                throw new ArgumentOutOfRangeException(nameof(length));
+                throw new ArgumentOutOfRangeException(nameof(length), length, message: null);
 
             Chunk? ch = null;
             foreach (var c in _chunks)

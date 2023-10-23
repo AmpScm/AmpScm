@@ -17,7 +17,7 @@ namespace AmpScm.Buckets.Cryptography
         private int? _crc24Result;
         private bool _sshBegin;
 
-        internal string PublicKeyType { get; private set; }
+        internal string? PublicKeyType { get; private set; }
 
         private enum SState
         {

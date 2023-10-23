@@ -26,6 +26,7 @@ namespace AmpScm.Buckets.Git
         {
         }
 
+        [Obsolete("Just for legacy .Net compatibilty")]
         protected GitBucketException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
