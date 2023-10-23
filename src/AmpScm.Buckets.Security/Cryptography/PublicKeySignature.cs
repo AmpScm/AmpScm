@@ -137,7 +137,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
 
         line = line.Trim();
 
-        string[] items = line.Split(new char[] { ' ' }, 3);
+        string[] items = line.Split(' ', 3);
         byte[] data = Convert.FromBase64String(items[1]);
 
         var vals = CryptoDataBucket.ParseSshStrings(data);

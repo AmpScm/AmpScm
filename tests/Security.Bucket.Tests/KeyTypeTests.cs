@@ -507,6 +507,11 @@ yg==
     [TestMethod]
     public async Task TestP384()
     {
+#if !NETCOREAPP
+        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            Assert.Inconclusive("Mono and ECDH are not a good mix");
+
+#endif
         // echo This is it!| gpg --home f:\gpg-home -r 479C86ED77BAE2293ABEED9CC66D25B89669FBDC -vvvvvv -a --debug-all -e 2>&1 |clip
         var keyData = @"
 -----BEGIN PGP PRIVATE KEY BLOCK-----
@@ -559,8 +564,13 @@ Pts=
     }
 
     [TestMethod]
-    public async Task testP384_NoPW()
+    public async Task TestP384_NoPW()
     {
+#if !NETCOREAPP
+        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            Assert.Inconclusive("Mono and ECDH are not a good mix");
+
+#endif
         var keyData =
             @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 

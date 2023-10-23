@@ -34,6 +34,7 @@ AmpScm.Buckets.Cryptography.SignatureFetchContext.Fingerprint.get -> System.Read
 AmpScm.Buckets.Cryptography.SignatureFetchContext.RequiresPrivateKey.get -> bool
 AmpScm.Buckets.Cryptography.SignaturePromptContext
 override AmpScm.Buckets.Cryptography.PublicKeySignature.Fingerprint.get -> System.ReadOnlyMemory<byte>
+static AmpScm.Buckets.Cryptography.Algorithms.Curve25519.GetPublicKey(byte[]! privateKey) -> byte[]!
 static AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.implicit operator AmpScm.Buckets.Cryptography.CryptoKeyChain?(AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key) -> AmpScm.Buckets.Cryptography.CryptoKeyChain?
 static AmpScm.Buckets.Cryptography.AsymmetricCryptoKey.operator +(AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key1, AmpScm.Buckets.Cryptography.AsymmetricCryptoKey? key2) -> AmpScm.Buckets.Cryptography.CryptoKeyChain?
 static AmpScm.Buckets.Cryptography.CryptoKeyChain.operator +(AmpScm.Buckets.Cryptography.CryptoKeyChain? key1, AmpScm.Buckets.Cryptography.CryptoKeyChain? key2) -> AmpScm.Buckets.Cryptography.CryptoKeyChain?
