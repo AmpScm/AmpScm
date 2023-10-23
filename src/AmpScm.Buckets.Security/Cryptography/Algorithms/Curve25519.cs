@@ -13,7 +13,7 @@ namespace AmpScm.Buckets.Cryptography.Algorithms;
 
 /* Generic 64-bit integer implementation of Curve25519 ECDH
  * Written by Matthijs van Duin, 200608242056
- * internal domain.
+ * Public domain.
  *
  * Based on work by Daniel J Bernstein, http://cr.yp.to/ecdh.html
  */

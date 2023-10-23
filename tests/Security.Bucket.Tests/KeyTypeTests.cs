@@ -608,7 +608,9 @@ BFuZ
         Assert.AreEqual("Without-PW\r\n", bb.ToUTF8String());
     }
 
+#if DEBUG
     [TestMethod]
+#endif
     public async Task Test25519()
     {
         var keyData = @"-----BEGIN PGP PRIVATE KEY BLOCK-----

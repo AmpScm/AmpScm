@@ -79,7 +79,9 @@ namespace AmpScm.Buckets
         {
             int wantEols = (int)(acceptableEols & (BucketEol.LF | BucketEol.CR | BucketEol.Zero)) | ((int)(acceptableEols & BucketEol.CRLF) >> 1);
 
-            int nl = buffer.IndexOfAny(Eols[wantEols].Span);
+            // IndexofAny implements optimizations for 2 and 3 needles, but not for just 1.
+            var any = Eols[wantEols].Span;
+            int nl = any.Length != 1 ? buffer.IndexOfAny(Eols[wantEols].Span) : buffer.IndexOf(any[0]);
 
             if (nl < 0)
                 return (Math.Min(buffer.Length + 1, requested), false);
