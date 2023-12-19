@@ -665,6 +665,7 @@ namespace AmpScm.Git.Repository
 
             // BUG: Somehow the first line gets corrupted, so we write an ignored first line to make sure the required fields get through correctly
 
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
             var r = Repository.RunGitCommandOutAsync("credential", new[] { "fill" }, stdinText: $"url={e.Uri}").AsTask();
 
             var (exitCode, output) = r.GetAwaiter().GetResult();
@@ -700,6 +701,7 @@ namespace AmpScm.Git.Repository
                 e.Succeeded += async (_, _) => await Repository.RunGitCommandAsync("credential", new[] { "approve" }, stdinText: $"url={e.Uri}\nusername={username}\npassword={password}\n").ConfigureAwait(false);
                 e.Failed += async (_, _) => await Repository.RunGitCommandAsync("credential", new[] { "reject" }, stdinText: $"url={e.Uri}\nusername={username}\npassword={password}\n").ConfigureAwait(false);
             }
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
         }
 
         public static IEnumerable<string> GetGitConfigurationFilePaths(bool includeSystem = true)

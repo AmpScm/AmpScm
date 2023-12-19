@@ -37,7 +37,10 @@ namespace AmpScm.Buckets
 
             if (n == 0)
                 return true;
-#if DEBUG
+#if DEBUG && NET7_0_OR_GREATER
+            else
+                ObjectDisposedException.ThrowIf(n < 0, this);
+#elif DEBUG
             else if (n < 0)
                 throw new ObjectDisposedException(SafeName);
 #endif

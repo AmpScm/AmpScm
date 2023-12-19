@@ -60,7 +60,12 @@ namespace AmpScm.Git.Objects
                 && File.Exists(cfg))
             {
                 DateTime now = DateTime.Now;
-                foreach (var l in File.ReadLines(cfg))
+#if NET7_0_OR_GREATER
+                await foreach (var l in File.ReadLinesAsync(cfg)
+#else
+                foreach (var l in File.ReadLines(cfg)
+#endif
+                    )
                 {
                     if (string.IsNullOrWhiteSpace(l))
                         continue;
