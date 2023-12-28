@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace AmpScm.Diff
 {
@@ -7,6 +8,7 @@ namespace AmpScm.Diff
     /// Represents the range [Start..End)  (Including Start, but not including End)
     /// </summary>
     [DebuggerDisplay($"{{{nameof(ToString)}(),nq}}")]
+    [StructLayout(LayoutKind.Auto)]
     public readonly record struct DiffRange
     {
         public int Start { get; }

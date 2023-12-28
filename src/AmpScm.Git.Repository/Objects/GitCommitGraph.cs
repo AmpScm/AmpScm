@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
@@ -171,7 +167,7 @@ namespace AmpScm.Git.Objects
                     parents = new[] { GetOidAsync((int)parent0).AsTask() }.Concat(
                         Enumerable.Range(0, len)
                             .Select(i => NetBitConverter.ToUInt32(extraParents, i * sizeof(uint)))
-                            .TakeWhile((v, i) => { if (i > stopAfter) return false; else if ((v & 0x80000000) != 0) { stopAfter = i; }; return true; })
+                            .TakeWhile((v, i) => { if (i > stopAfter) return false; else if ((v & 0x80000000) != 0) { stopAfter = i; } return true; })
                             .Select(v => GetOidAsync((int)(v & 0x7FFFFFFF)).AsTask())).ToArray();
                 }
                 else

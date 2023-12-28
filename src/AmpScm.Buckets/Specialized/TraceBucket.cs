@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,14 +19,14 @@ namespace AmpScm.Buckets.Specialized
         private string? _indent;
         private readonly string _name;
 
-        public TraceBucket(Bucket source, string? name=null)
+        public TraceBucket(Bucket source, string? name = null)
         {
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Id = Interlocked.Increment(ref _idNext);
 
-            _name = name ?? Source.Name; ;
+            _name = name ?? Source.Name;
             Trace.WriteLine($"{Ident}0x{Id:x2} tracing read from");
-            
+
         }
 
         public override string Name => "Trace>" + Source.Name;
@@ -39,7 +38,7 @@ namespace AmpScm.Buckets.Specialized
             try
             {
                 if (_nDispose-- == 0)
-{
+                {
                     Trace.WriteLine($"{Ident} disposing");
                     Source.Dispose();
                 }

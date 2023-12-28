@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Net.Mail;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
-using AmpScm.Buckets.Cryptography;
-using AmpScm.Buckets.Cryptography.Algorithms;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Cryptography
@@ -141,10 +137,10 @@ namespace AmpScm.Buckets.Cryptography
                 case nameof(ECCurve.NamedCurves.brainpoolP512t1):
                     curveValue = new byte[] { 0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D };
                     break;
-                    // Ed24419
-                    // Curve25519
-                    // Ed448
-                    // X448
+                // Ed24419
+                // Curve25519
+                // Ed448
+                // X448
                 default:
                     throw new NotImplementedException($"Unknown curve {name}");
             }
@@ -205,7 +201,7 @@ namespace AmpScm.Buckets.Cryptography
                         return new(alg, salt, c, algorithm, type);
                     }
                 default:
-                    throw new NotImplementedException($"Unknow S2k specifier {type}");
+                    throw new NotSupportedException($"Unknow S2k specifier {type}");
             }
         }
 
@@ -688,7 +684,7 @@ namespace AmpScm.Buckets.Cryptography
                 case PgpPublicKeyType.Rsa:
 
                     using (var rsa = RSA.Create())
-                    {                        
+                    {
                         rsa.ImportParametersFromCryptoInts(keyValues);
 
                         var SignaturePublicKey = signatureInfo.SignatureInts![0];

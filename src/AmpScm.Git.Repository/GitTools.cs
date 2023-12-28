@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AmpScm.Git
 {
@@ -40,7 +37,6 @@ namespace AmpScm.Git
 #endif
                 }
             }
-            while (dir != (dir = Path.GetDirectoryName(dir))) ;
 
             if (path.Length > 2 && path[1] == ':' && char.IsLower(path, 0))
                 path = char.ToUpperInvariant(path[0]) + path.Substring(1);

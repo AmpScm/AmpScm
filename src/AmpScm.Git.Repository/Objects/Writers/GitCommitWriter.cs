@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Git.Objects
 {
@@ -127,7 +126,7 @@ namespace AmpScm.Git.Objects
 
                 sb.Append((string)$"tree {id}\n");
 
-                HashSet<GitId> parentIds = new(); ;
+                HashSet<GitId> parentIds = new();
                 foreach (var p in Parents)
                 {
                     id = await p.WriteToAsync(repository).ConfigureAwait(false);
@@ -144,7 +143,7 @@ namespace AmpScm.Git.Objects
 
                 result = Bucket.Create.FromUTF8(sb.ToString());
 
-                foreach(var mt in MergeTags)
+                foreach (var mt in MergeTags)
                 {
                     IGitLazy<GitTagObject> tag = mt;
                     GitId tagId;

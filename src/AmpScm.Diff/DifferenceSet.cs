@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 [assembly: CLSCompliant(true)]
 
 namespace AmpScm.Diff
 {
+#pragma warning disable MA0048 // File name must match type name
     public enum DifferenceType
     {
         None,
         Modified,
-        Conflict,        
+        Conflict,
     }
 
     public sealed partial class DifferenceSet : IReadOnlyCollection<DiffChunk>
@@ -25,7 +23,7 @@ namespace AmpScm.Diff
         }
 
         public bool HasConflicts => Ranges.Any(x => x.Type == DifferenceType.Conflict);
-        public bool HasChanges => Ranges.Any(x=>x.Type != DifferenceType.None);
+        public bool HasChanges => Ranges.Any(x => x.Type != DifferenceType.None);
 
         public float Similarity
         {
