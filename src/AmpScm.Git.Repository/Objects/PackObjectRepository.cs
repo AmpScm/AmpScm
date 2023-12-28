@@ -515,7 +515,7 @@ namespace AmpScm.Git.Objects
 
             GitObjectType gitObjectType = GetGitObjectType(typeof(TGitObject));
 
-            await foreach (int index in ewahBitmap.SetIndexes)
+            await foreach (int index in ewahBitmap.SetIndexes.ConfigureAwait(false))
             {
                 var v = await GetOneViaPackIndex<TGitObject>(index, gitObjectType, alreadyReturned.Contains).ConfigureAwait(false);
 

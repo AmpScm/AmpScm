@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AmpScm.Diff
 {
@@ -116,7 +113,9 @@ namespace AmpScm.Diff
             }
         }
 
+#pragma warning disable MA0051 // Method is too long
         public static DifferenceSet Calculate<TTokenizer, TToken>(TTokenizer tokenizer, IEnumerable<TToken> original, IEnumerable<TToken> modified, IEnumerable<TToken> latest)
+#pragma warning restore MA0051 // Method is too long
             where TTokenizer : notnull, IEqualityComparer<TToken>
             where TToken : notnull, IComparable<TToken>
         {
@@ -301,7 +300,9 @@ namespace AmpScm.Diff
         /// <param name="downVector">a vector for the (0,0) to (x,y) search. Passed as a parameter for speed reasons.</param>
         /// <param name="upVector">a vector for the (u,v) to (N,M) search. Passed as a parameter for speed reasons.</param>
         /// <returns>a MiddleSnakeData record containing x,y and u,v</returns>
+#pragma warning disable MA0051 // Method is too long
         private static (int x, int y) SMS<TToken>(IEqualityComparer<TToken> cmp, TToken[] dataA, int lowerA, int upperA, TToken[] dataB, int lowerB, int upperB, int[] downVector, int[] upVector)
+#pragma warning restore MA0051 // Method is too long
         {
             int MAX = dataA.Length + dataB.Length + 1;
 

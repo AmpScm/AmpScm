@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets;
-using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
@@ -79,7 +75,7 @@ namespace AmpScm.Buckets.Git
             }
             record = new GitSignatureRecord
             {
-                Name = bucketBytes.ToUTF8String(0, n-1),
+                Name = bucketBytes.ToUTF8String(0, n - 1),
                 Email = bucketBytes.ToUTF8String(n + 1, n2 - n - 1),
                 When = ParseWhen(bucketBytes.ToUTF8String(n2 + 2))
             };
@@ -89,7 +85,7 @@ namespace AmpScm.Buckets.Git
         private static DateTimeOffset ParseWhen(string value)
         {
             string[] time = value.Split(' ', 2);
-            if (int.TryParse(time[0], out var unixtime) && int.TryParse(time[1], out var offset))
+            if (int.TryParse(time[0], NumberStyles.None, CultureInfo.InvariantCulture, out var unixtime) && int.TryParse(time[1], NumberStyles.None, CultureInfo.InvariantCulture, out var offset))
             {
                 return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
             }

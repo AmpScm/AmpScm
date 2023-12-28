@@ -44,7 +44,7 @@ namespace AmpScm.Buckets.Subversion
                 throw new BucketException();
             }
 
-            if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out var len))
+            if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.None, CultureInfo.InvariantCulture, out var len))
                 throw new BucketException();
 
             bb = await Source.ReadExactlyAsync(len).ConfigureAwait(false);
@@ -61,7 +61,7 @@ namespace AmpScm.Buckets.Subversion
             if (!bb.StartsWithASCII("V "))
                 throw new BucketException();
 
-            if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out len))
+            if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.None, CultureInfo.InvariantCulture, out len))
                 throw new BucketException();
 
             bb = await Source.ReadExactlyAsync(len).ConfigureAwait(false);

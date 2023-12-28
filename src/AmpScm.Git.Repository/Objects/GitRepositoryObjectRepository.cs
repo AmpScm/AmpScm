@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Git;
 
@@ -63,9 +62,9 @@ namespace AmpScm.Git.Objects
             var hs = new HashSet<GitObjectRepository>(previous);
             GitObjectRepository? r;
 
-            foreach(var v in GetRepositories())
+            foreach (var v in GetRepositories())
             {
-                switch(v)
+                switch (v)
                 {
                     case PackObjectRepository p:
                         r = hs.FirstOrDefault(x => x is PackObjectRepository xp && xp.PackFile == p.PackFile) ?? p;
@@ -99,7 +98,7 @@ namespace AmpScm.Git.Objects
                 }
             }
 
-            foreach(var v in hs)
+            foreach (var v in hs)
             {
                 v.Dispose();
             }
@@ -215,7 +214,7 @@ namespace AmpScm.Git.Objects
                 // Let's walk references of type tag first, as there should
                 // be a reference pointing towards them anyway
 
-                await foreach (var v in Repository.References.Where(x => x.IsTag))
+                await foreach (var v in Repository.References.Where(x => x.IsTag).ConfigureAwait(false))
                 {
                     if (v.GitObject is GitTagObject tag && !alreadyReturned.Contains(tag.Id))
                     {
@@ -227,7 +226,7 @@ namespace AmpScm.Git.Objects
 
             foreach (var p in Sources)
             {
-                await foreach (var v in p.GetAll<TGitObject>(alreadyReturned))
+                await foreach (var v in p.GetAll<TGitObject>(alreadyReturned).ConfigureAwait(false))
                 {
                     yield return v;
                     alreadyReturned.Add(v.Id);

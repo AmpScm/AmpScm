@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
-using AmpScm.Git.Repository.Implementation;
 
 namespace AmpScm.Git.References
 {
@@ -46,11 +44,11 @@ namespace AmpScm.Git.References
         {
             List<GitReference>? refs = null;
 
-            await foreach (var v in GetAll(new()))
+            await foreach (var v in GetAll(new(StringComparer.Ordinal)).ConfigureAwait(false))
             {
                 if (v.Id == id)
                 {
-                    refs ??= new ();
+                    refs ??= new();
                     refs.Add(v);
                 }
                 else if (v.IsTag)
@@ -79,7 +77,7 @@ namespace AmpScm.Git.References
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             bool symbolic = !name.Contains('/', StringComparison.Ordinal);
-            string dir = symbolic? WorkTreeDir : GitDir;
+            string dir = symbolic ? WorkTreeDir : GitDir;
             string fileName = Path.Combine(dir, name);
 
             if (!File.Exists(fileName))

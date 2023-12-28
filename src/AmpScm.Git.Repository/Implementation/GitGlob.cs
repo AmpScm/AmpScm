@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AmpScm.Git.Repository.Implementation
 {
@@ -16,7 +13,9 @@ namespace AmpScm.Git.Repository.Implementation
     }
     internal class GitGlob
     {
+#pragma warning disable MA0051 // Method is too long
         internal static bool Match(string pattern, string path, GitGlobFlags flags)
+#pragma warning restore MA0051 // Method is too long
         {
             RegexOptions ro = RegexOptions.CultureInvariant;
 
@@ -30,9 +29,9 @@ namespace AmpScm.Git.Repository.Implementation
                 switch (pattern[i])
                 {
                     case '*' when (i + 1 < pattern.Length && pattern[i + 1] == '*'):
-                        if (i > 0 && i + 2 == pattern.Length && pattern[i-1] == '/')
+                        if (i > 0 && i + 2 == pattern.Length && pattern[i - 1] == '/')
                         {
-                            sb.Insert(sb.Length - "[/\\\\]".Length, "(");
+                            sb.Insert(sb.Length - "[/\\\\]".Length, '(');
                             sb.Append(".*)?");
                         }
                         else
@@ -82,7 +81,9 @@ namespace AmpScm.Git.Repository.Implementation
                 sb.Append('$');
             }
 
+#pragma warning disable MA0009 // Add regex evaluation timeout
             return Regex.IsMatch(path.Replace(Path.DirectorySeparatorChar, '/'), sb.ToString(), ro);
+#pragma warning restore MA0009 // Add regex evaluation timeout
         }
     }
 }

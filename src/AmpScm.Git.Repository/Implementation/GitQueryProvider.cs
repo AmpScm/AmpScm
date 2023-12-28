@@ -54,7 +54,7 @@ namespace AmpScm.Git.Implementation
         internal IAsyncEnumerable<T> GetNamedAsyncEnumerable<T>(CancellationToken cancellationToken = default)
         {
             if (typeof(T) == typeof(GitReference))
-                return (IAsyncEnumerable<T>)Repository.ReferenceRepository.GetAll(new());
+                return (IAsyncEnumerable<T>)Repository.ReferenceRepository.GetAll(new(StringComparer.Ordinal));
             else if (typeof(T) == typeof(GitRemote))
                 return (IAsyncEnumerable<T>)Repository.Configuration.GetAllRemotes();
             else if (typeof(T) == typeof(GitBranch))

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Client
@@ -38,17 +34,13 @@ namespace AmpScm.Buckets.Client
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects)
                     Reader.Dispose();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 disposedValue = true;
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
         // ~BucketChannel()
         // {
         //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

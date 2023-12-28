@@ -83,6 +83,7 @@ dotnet_code_quality.CA2000.excluded_type_names_with_derived_types = AmpScm.Bucke
 dotnet_style_allow_multiple_blank_lines_experimental = false:suggestion
 dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
 dotnet_code_quality_unused_parameters = all:suggestion
+dotnet_style_prefer_collection_expression = true:suggestion
 
 [*.cs]
 ###############################
@@ -170,6 +171,14 @@ csharp_style_prefer_switch_expression = true:suggestion
 csharp_style_prefer_pattern_matching = true:suggestion
 csharp_style_prefer_not_pattern = true:suggestion
 csharp_style_prefer_extended_property_pattern = true:suggestion
+csharp_style_prefer_primary_constructors = true:suggestion
+dotnet_diagnostic.MA0048.severity = suggestion
+dotnet_diagnostic.MA0026.severity = suggestion
+
+# MA0006: Use String.Equals instead of equality operator
+dotnet_diagnostic.MA0006.severity = suggestion
+dotnet_diagnostic.MA0099.severity = suggestion
+dotnet_diagnostic.MA0051.severity = suggestion
 
 [*.vb]
 ###############################

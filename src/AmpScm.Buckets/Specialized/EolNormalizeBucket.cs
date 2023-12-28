@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Specialized
@@ -27,7 +24,7 @@ namespace AmpScm.Buckets.Specialized
         {
             if (0 != (acceptedEols & ~BucketEol.EolMask) || acceptedEols == BucketEol.None)
                 throw new ArgumentOutOfRangeException(nameof(acceptedEols), acceptedEols, message: null);
-            else if (producedEol <= BucketEol.None || producedEol >= BucketEol.EolMask)
+            else if (producedEol <= BucketEol.None || producedEol > BucketEol.EolMask)
                 throw new ArgumentOutOfRangeException(nameof(producedEol), producedEol, message: null);
 
             _acceptedEols = acceptedEols;

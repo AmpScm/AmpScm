@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,18 +22,18 @@ namespace AmpScm.Linq
             if (expression is null)
                 throw new ArgumentNullException(nameof(expression));
 
-            var tp = expression.Type.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.Name == nameof(IEnumerable<int>) && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            var tp = expression.Type.GetInterfaces().FirstOrDefault(x => x.IsGenericType && string.Equals(x.Name, nameof(IEnumerable<int>), StringComparison.Ordinal) && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 
             if (tp is not null)
             {
                 // 99.9% case
-                _createQuery ??= typeof(QueryAndAsyncQueryProvider).GetMethods().First(x => x.Name == nameof(CreateQuery) && x.IsGenericMethod);
+                _createQuery ??= typeof(QueryAndAsyncQueryProvider).GetMethods().First(x => string.Equals(x.Name, nameof(CreateQuery), StringComparison.Ordinal) && x.IsGenericMethod);
 
                 return (IQueryableAndAsyncQueryable)_createQuery.MakeGenericMethod(tp.GetGenericArguments()[0]).Invoke(this, new[] { expression })!;
             }
             else
             {
-                throw new NotImplementedException("Expression doesn't return enumerable");
+                throw new InvalidOperationException("Expression doesn't return enumerable");
             }
         }
 
@@ -51,7 +50,7 @@ namespace AmpScm.Linq
 
         public virtual ValueTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken token)
         {
-            return new (Execute<TResult>(expression));
+            return new(Execute<TResult>(expression));
         }
     }
 }

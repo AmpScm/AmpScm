@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Cryptography;
 
 namespace AmpScm.Git.Objects
 {
@@ -26,16 +24,12 @@ namespace AmpScm.Git.Objects
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects)
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 disposedValue = true;
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
         // ~GitPublicKeyRepository()
         // {
         //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
@@ -61,7 +55,7 @@ namespace AmpScm.Git.Objects
             {
                 DateTime now = DateTime.Now;
 #if NET7_0_OR_GREATER
-                await foreach (var l in File.ReadLinesAsync(cfg)
+                await foreach (var l in File.ReadLinesAsync(cfg).ConfigureAwait(false)
 #else
                 foreach (var l in File.ReadLines(cfg)
 #endif

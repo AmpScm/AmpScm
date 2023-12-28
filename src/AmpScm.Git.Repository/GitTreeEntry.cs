@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Git;
-using AmpScm.Buckets.Git.Objects;
 using AmpScm.Git.Sets;
 
 namespace AmpScm.Git
@@ -10,7 +8,7 @@ namespace AmpScm.Git
     [DebuggerDisplay("{EntryName} - {Id}")]
     public abstract class GitTreeEntry : IEquatable<GitTreeEntry>, IGitObject, IComparable<GitTreeEntry>
     {
-        internal GitTreeEntry(GitTree tree, string name, GitId id)
+        private protected GitTreeEntry(GitTree tree, string name, GitId id)
         {
             InTree = tree ?? throw new ArgumentNullException(nameof(tree));
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -85,7 +83,7 @@ namespace AmpScm.Git
         TObject? _object;
 
 
-        internal GitTreeEntry(GitTree tree, string name, GitId item) : base(tree, name, item)
+        private protected GitTreeEntry(GitTree tree, string name, GitId item) : base(tree, name, item)
         {
         }
 

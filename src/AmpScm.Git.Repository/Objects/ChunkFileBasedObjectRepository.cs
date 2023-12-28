@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
@@ -17,7 +14,7 @@ namespace AmpScm.Git.Objects
         protected GitIdType IdType { get; private set; }
         protected FileBucket? ChunkReader { get; private set; }
 
-        public ChunkFileBasedObjectRepository(GitRepository repository, string mainFile, string key) : base(repository, key)
+        private protected ChunkFileBasedObjectRepository(GitRepository repository, string mainFile, string key) : base(repository, key)
         {
             _fileName = mainFile ?? throw new ArgumentNullException(nameof(mainFile));
         }
@@ -127,7 +124,7 @@ namespace AmpScm.Git.Objects
         protected ValueTask<int> ReadFromChunkAsync(string chunkType, long position, byte[] buffer, int length)
         {
             if (_chunks == null || ChunkReader == null)
-                return new (0);
+                return new(0);
             else if (length <= 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, message: null);
 
@@ -141,12 +138,12 @@ namespace AmpScm.Git.Objects
                 }
             }
             if (ch == null)
-                return new (0);
+                return new(0);
 
             int requested = (int)Math.Min(length, ch.Value.Length - position);
 
             if (requested <= 0)
-                return new (0);
+                return new(0);
 
             return ChunkReader.ReadAtAsync(ch.Value.Position + position, buffer, requested);
         }

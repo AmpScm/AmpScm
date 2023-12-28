@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Git.Objects
 {
@@ -28,8 +27,8 @@ namespace AmpScm.Git.Objects
 
             using (source)
             {
-                var marks = new Dictionary<string, GitId>();
-                var refs = new Dictionary<string, GitId>();
+                var marks = new Dictionary<string, GitId>(StringComparer.Ordinal);
+                var refs = new Dictionary<string, GitId>(StringComparer.Ordinal);
 
                 while (true)
                 {

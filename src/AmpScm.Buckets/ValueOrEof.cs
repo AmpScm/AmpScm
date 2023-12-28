@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace AmpScm.Buckets
 {
@@ -41,6 +41,7 @@ namespace AmpScm.Buckets
     }
 
     [DebuggerDisplay("Value={Value}, Eof={IsEof}")]
+    [StructLayout(LayoutKind.Auto)]
     public readonly struct ValueOrEof<T> : IValueOrEof<T>, IEquatable<ValueOrEof<T>>
         where T : struct
     {

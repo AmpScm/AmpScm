@@ -47,7 +47,7 @@ namespace AmpScm.Git.References
             bool? logRefUpdates = null;
             try
             {
-                foreach (var v in Updates.Select(x => x.Name).Distinct())
+                foreach (var v in Updates.Select(x => x.Name).Distinct(StringComparer.Ordinal))
                 {
                     var name = v;
                     if (GitReference.AllUpper(name))
@@ -245,7 +245,7 @@ namespace AmpScm.Git.References
         {
             StringBuilder sb = new StringBuilder();
 
-            var names = Updates.Select(x => x.Name).Distinct().ToArray();
+            var names = Updates.Select(x => x.Name).Distinct(StringComparer.Ordinal).ToArray();
 
             if (names.Length == 0)
                 return;

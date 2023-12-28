@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using AmpScm.Buckets;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
@@ -133,7 +132,9 @@ namespace AmpScm.Buckets.Git
             return (_deltaCount != 0);
         }
 
+#pragma warning disable MA0051 // Method is too long
         async ValueTask PrepareState(frame_state want_state)
+#pragma warning restore MA0051 // Method is too long
         {
             if (state >= frame_state.body)
                 return;

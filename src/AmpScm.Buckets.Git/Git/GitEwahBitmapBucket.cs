@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
@@ -92,7 +91,9 @@ namespace AmpScm.Buckets.Git
             return _compressedSize * sizeof(ulong) + (/* HEADER: */ 4 + 4) + (/* Trailer: */ 4);
         }
 
+#pragma warning disable MA0051 // Method is too long
         private async ValueTask<bool> RefillAsync(bool allowWait)
+#pragma warning restore MA0051 // Method is too long
         {
             if (_state <= ewah_state.start && !allowWait && Source.Peek().IsEmpty)
                 return false;

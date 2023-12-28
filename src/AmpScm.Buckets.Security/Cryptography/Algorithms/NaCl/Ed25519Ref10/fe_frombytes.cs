@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Chaos.NaCl.Internal.Ed25519Ref10
+﻿namespace Chaos.NaCl.Internal.Ed25519Ref10
 {
     internal static partial class FieldOperations
     {
@@ -24,7 +22,9 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
         }
 
         //	Ignores top bit of h.
+#pragma warning disable MA0051 // Method is too long
         internal static void fe_frombytes(out FieldElement h, byte[] data, int offset)
+#pragma warning restore MA0051 // Method is too long
         {
             long h0 = load_4(data, offset);
             long h1 = load_3(data, offset + 4) << 6;

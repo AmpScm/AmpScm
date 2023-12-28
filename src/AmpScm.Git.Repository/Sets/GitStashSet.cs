@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Git.Implementation;
@@ -18,7 +17,7 @@ namespace AmpScm.Git.Sets
             Expression = (rootExpression?.Body as MemberExpression) ?? throw new ArgumentNullException(nameof(rootExpression));
         }
 
-        public GitStash this[int index]=> StashChanges.Skip(index >= 0 ? index : throw new ArgumentOutOfRangeException(nameof(index)))
+        public GitStash this[int index] => StashChanges.Skip(index >= 0 ? index : throw new ArgumentOutOfRangeException(nameof(index)))
             .FirstOrDefault() is { } c ? new GitStash(c) : throw new ArgumentOutOfRangeException(nameof(index));
 
         IQueryableAndAsyncQueryable<GitReferenceChange> StashChanges => Repository.References["refs/stash"]?.ReferenceChanges ?? AmpAsyncQueryable.Empty<GitReferenceChange>();
@@ -27,7 +26,7 @@ namespace AmpScm.Git.Sets
 
         public async IAsyncEnumerator<GitStash> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
-            await foreach(var change in StashChanges)
+            await foreach (var change in StashChanges.ConfigureAwait(false))
             {
                 yield return new GitStash(change);
             }

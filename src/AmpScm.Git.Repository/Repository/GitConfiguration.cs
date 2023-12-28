@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
@@ -72,7 +73,7 @@ namespace AmpScm.Git.Repository
 
                 var v = Environment.GetEnvironmentVariable("GIT_CONFIG_COUNT");
 
-                if (!string.IsNullOrEmpty(v) && int.TryParse(v, out var nVars) && nVars > 0)
+                if (!string.IsNullOrEmpty(v) && int.TryParse(v, NumberStyles.None, CultureInfo.InvariantCulture, out var nVars) && nVars > 0)
                 {
                     for (int i = 0; i < nVars; i++)
                     {
@@ -199,7 +200,7 @@ namespace AmpScm.Git.Repository
         {
             if (item.Key == "repositoryformatversion" && item.Group == "core")
             {
-                if (int.TryParse(item.Value, out var version))
+                if (int.TryParse(item.Value, NumberStyles.None, CultureInfo.InvariantCulture, out var version))
                     _repositoryFormatVersion = version;
             }
             else if (item.Key == "worktreeconfig" && item.Group == "extensions")
@@ -235,7 +236,7 @@ namespace AmpScm.Git.Repository
 #pragma warning disable CA1308 // Normalize strings to uppercase
             group = group.ToLowerInvariant();
 #pragma warning restore CA1308 // Normalize strings to uppercase
-            HashSet<string> subGroups = new HashSet<string>();
+            HashSet<string> subGroups = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var v in _config)
             {
@@ -305,7 +306,7 @@ namespace AmpScm.Git.Repository
 
             if (_config.TryGetValue((group, subGroup, key), out var vResult))
             {
-                if (int.TryParse(vResult, out var r))
+                if (int.TryParse(vResult, NumberStyles.None, CultureInfo.InvariantCulture, out var r))
                 {
                     return r;
                 }
@@ -314,9 +315,9 @@ namespace AmpScm.Git.Repository
 
                 if ((vResult.EndsWith('k') || vResult.EndsWith('K') || vResult.EndsWith('m') || vResult.EndsWith('M') || vResult.EndsWith('g') || vResult.EndsWith('G'))
 #if NETCOREAPP
-                    && int.TryParse(vResult.AsSpan(0, vResult.Length - 1), out r))
+                    && int.TryParse(vResult.AsSpan(0, vResult.Length - 1), NumberStyles.None, CultureInfo.InvariantCulture, out r))
 #else
-                    && int.TryParse(vResult.Substring(0, vResult.Length-1), out r))
+                    && int.TryParse(vResult.Substring(0, vResult.Length-1), NumberStyles.None, CultureInfo.InvariantCulture, out r))
 #endif
                 {
                     return r * SuffixFactor(vResult[vResult.Length - 1]);
@@ -638,7 +639,7 @@ namespace AmpScm.Git.Repository
                     {
                         var userPass = Encoding.UTF8.GetString(Convert.FromBase64String(p));
 
-                        string[] parts = userPass.Split( ':', 2);
+                        string[] parts = userPass.Split(':', 2);
 
                         e.Username = parts[0];
                         e.Password = parts[1];

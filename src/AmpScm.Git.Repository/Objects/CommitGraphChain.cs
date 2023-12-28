@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Git.Objects
@@ -71,7 +68,7 @@ namespace AmpScm.Git.Objects
 
             foreach (var v in Chains)
             {
-                await foreach (var ob in v.GetAll<TGitObject>(alreadyReturned))
+                await foreach (var ob in v.GetAll<TGitObject>(alreadyReturned).ConfigureAwait(false))
                 {
                     yield return ob;
                 }
@@ -94,7 +91,7 @@ namespace AmpScm.Git.Objects
 
         internal GitCommitGraph GetCommitGraph(GitId parentId)
         {
-            foreach(var v in Graphs!)
+            foreach (var v in Graphs!)
             {
                 if (v.GraphId == parentId)
                     return v;

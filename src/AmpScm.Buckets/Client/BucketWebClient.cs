@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Client.Protocols;
 
 namespace AmpScm.Buckets.Client
@@ -39,21 +38,18 @@ namespace AmpScm.Buckets.Client
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects)
-                    foreach(var c in _channels.Values)
+                    foreach (var c in _channels.Values)
                     {
                         c.Dispose();
                     }
                     _channels.Clear();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 disposedValue = true;
             }
         }
 
-        private readonly Dictionary<string, BucketClientChannel> _channels = new Dictionary<string, BucketClientChannel>();
+        private readonly Dictionary<string, BucketClientChannel> _channels = new(StringComparer.Ordinal);
 
         internal void Release(BucketClientChannel bucketChannel)
         {
@@ -77,7 +73,6 @@ namespace AmpScm.Buckets.Client
             return false;
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
         // ~BucketWebClient()
         // {
         //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

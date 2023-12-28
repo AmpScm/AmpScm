@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
@@ -21,7 +19,7 @@ namespace AmpScm.Buckets
 
         AnyEol = LF | CR | CRLF,
 
-        EolMask = 0xFF,
+        EolMask = Zero | AnyEol,
         CRSplit = 0x100000
     }
 
@@ -32,6 +30,7 @@ namespace AmpScm.Buckets
         public bool IsEmpty => !_kept.HasValue;
     }
 
+    [StructLayout(LayoutKind.Auto)]
     public readonly record struct BucketLine(BucketBytes Bytes, BucketEol Eol);
 
     public partial class Bucket

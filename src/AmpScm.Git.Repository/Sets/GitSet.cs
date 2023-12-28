@@ -5,11 +5,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Git;
-using AmpScm.Git.Implementation;
 using AmpScm.Linq;
 
 namespace AmpScm.Git.Sets
@@ -55,11 +50,11 @@ namespace AmpScm.Git.Sets
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         protected Expression Expression { get; set; } = default!;
-        internal GitSet(GitRepository repository) : base(repository)
+        private protected GitSet(GitRepository repository) : base(repository)
         {
         }
 
-        internal GitSet(GitRepository repository, Expression<Func<GitSet<T>>> rootExpression)
+        private protected GitSet(GitRepository repository, Expression<Func<GitSet<T>>> rootExpression)
             : this(repository)
         {
             Expression = (rootExpression?.Body as MemberExpression) ?? throw new ArgumentNullException(nameof(rootExpression));

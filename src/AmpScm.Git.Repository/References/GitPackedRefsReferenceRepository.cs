@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 
@@ -32,7 +30,7 @@ namespace AmpScm.Git.References
             if (_peelRefs != null)
                 return;
 
-            _peelRefs = new Dictionary<string, GitRefPeel>();
+            _peelRefs = new Dictionary<string, GitRefPeel>(StringComparer.Ordinal);
 
             await ReadRefs().ConfigureAwait(false);
         }
@@ -51,7 +49,7 @@ namespace AmpScm.Git.References
                 var idLength = GitId.HashLength(Repository.InternalConfig.IdType) * 2;
 
                 GitRefPeel? last = null;
-                while(true)
+                while (true)
                 {
                     var (bb, eol) = await sr.ReadExactlyUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
@@ -139,7 +137,7 @@ namespace AmpScm.Git.References
                     if (GitReference.ValidName(name, false))
                         _peelRefs![name] = last = new GitRefPeel { Name = name, Id = oid };
                     else if (name.EndsWith("^{}", StringComparison.OrdinalIgnoreCase)
-                        && last != null && name.Substring(0, name.Length-3) == last.Name)
+                        && last != null && name.Substring(0, name.Length - 3) == last.Name)
                     {
                         last.Peeled = oid;
                     }

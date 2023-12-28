@@ -142,7 +142,7 @@ namespace AmpScm.Buckets.Cryptography
                 // Ed448
                 // X448
                 default:
-                    throw new NotImplementedException($"Unknown curve {name}");
+                    throw new NotSupportedException($"Unknown curve {name}");
             }
 
             return new[] { curveValue.ToBigInteger() }.Concat(vals.Skip(1)).ToArray();
@@ -239,7 +239,7 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
 #endif
 
-                _ => throw new NotImplementedException($"Hash algorithm {hashAlgorithm} is not supported.")
+                _ => throw new NotSupportedException($"Hash algorithm {hashAlgorithm} is not supported.")
             };
         }
 
@@ -376,7 +376,7 @@ namespace AmpScm.Buckets.Cryptography
                     return new RawDecryptBucket(source, aes.ApplyModeShim(), true);
 
                 default:
-                    throw new NotImplementedException($"Not implemented for {algorithm} algorithm yet");
+                    throw new NotSupportedException($"Not implemented for {algorithm} algorithm yet");
             }
         }
 
@@ -460,7 +460,9 @@ namespace AmpScm.Buckets.Cryptography
 
         private protected abstract ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag type);
 
+#pragma warning disable MA0051 // Method is too long
         private protected static async ValueTask<SignatureInfo> ParseSignatureAsync(Bucket bucket)
+#pragma warning restore MA0051 // Method is too long
         {
             PgpSignatureType signatureType;
             byte[]? signer = null;
@@ -595,7 +597,7 @@ namespace AmpScm.Buckets.Cryptography
                 signBlob = bb.Slice(1, 5).ToArray();
             }
             else
-                throw new NotImplementedException("Only OpenPGP SignaturePublicKey versions 3, 4 and 5 are supported");
+                throw new NotSupportedException("Only OpenPGP SignaturePublicKey versions 3, 4 and 5 are supported");
 
             List<BigInteger> bigInts = new();
             while (await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) is { } bi)
@@ -731,7 +733,7 @@ namespace AmpScm.Buckets.Cryptography
                     }
                 case PgpPublicKeyType.EdDSA:
                 default:
-                    throw new NotImplementedException($"Public Key type {signatureInfo.PublicKeyType} not implemented yet");
+                    throw new NotSupportedException($"Public Key type {signatureInfo.PublicKeyType} not implemented yet");
             }
         }
 
@@ -775,7 +777,7 @@ namespace AmpScm.Buckets.Cryptography
                     alg = "ecdsa-sha2-" + kv.ToString();
                     break;
                 default:
-                    throw new NotImplementedException($"Unknown ssh fingerprint type {sba}");
+                    throw new NotSupportedException($"Unknown ssh fingerprint type {sba}");
             }
 
             bb.Append(NetBitConverter.GetBytes(alg.Length));

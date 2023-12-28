@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Git.Client.Plumbing
@@ -88,7 +87,7 @@ namespace AmpScm.Git.Client.Plumbing
             }
 
             await c.Repository.RunGitCommandAsync("update-ref", args,
-                stdinText: string.Join("", updates.Select(x => x.ZeroString()).ToArray()));
+                stdinText: string.Join("", updates.Select(x => x.ZeroString()).ToArray())).ConfigureAwait(false);
         }
 
         [GitCommand("update-ref")]

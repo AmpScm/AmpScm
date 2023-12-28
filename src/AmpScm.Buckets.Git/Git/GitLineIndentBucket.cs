@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Git
@@ -45,9 +42,9 @@ namespace AmpScm.Buckets.Git
                     if (!_lastWasEol)
                     {
                         if ((_acceptableEols & BucketEol.LF) != 0)
-                            bb = new byte[] { (byte) '\n' };
+                            bb = new byte[] { (byte)'\n' };
                         else
-                            throw new NotImplementedException();
+                            throw new InvalidOperationException();
                         _lastWasEol = true;
                         return bb;
                     }

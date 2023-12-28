@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
-using System.Globalization;
-using AmpScm.Buckets;
-using System.Net.Mail;
 using System.Diagnostics;
+using System.Linq;
+using System.Net.Mail;
 using System.Numerics;
+using System.Threading.Tasks;
+using AmpScm.Buckets;
+using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Cryptography;
-
 
 /// <summary>
 /// Reads an OpenPGP or OpenSSH SignaturePublicKey
@@ -24,7 +20,7 @@ public sealed class SignatureBucket : CryptoDataBucket
     private readonly List<SignatureInfo> _signatures = new();
     private readonly Bucket _outer;
 
-    
+
 
     public SignatureBucket(Bucket source)
         : base(new CryptoChunkBucket(source))
@@ -32,7 +28,9 @@ public sealed class SignatureBucket : CryptoDataBucket
         _outer = source;
     }
 
+#pragma warning disable MA0051 // Method is too long
     private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag tag)
+#pragma warning restore MA0051 // Method is too long
     {
         switch (tag)
         {
@@ -62,7 +60,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                             "ssh-dss" => PgpPublicKeyType.Dsa,
                             "ssh-ed25519" or "ssh-ed25519@openssh.com" => PgpPublicKeyType.Ed25519,
                             "ecdsa-sha2-nistp256" or "ecdsa-sha2-nistp384" or "ecdsa-sha2-nistp521" => PgpPublicKeyType.ECDSA,
-                            _ => throw new NotImplementedException($"Unknown public key type: {alg}"),
+                            _ => throw new NotSupportedException($"Unknown public key type: {alg}"),
                         };
 
                         List<BigInteger> keyList = new();
@@ -194,10 +192,10 @@ public sealed class SignatureBucket : CryptoDataBucket
                     }
                     else if (version == 3)
                     {
-                        throw new NotImplementedException("Version 3 SignaturePublicKey not implemented yet");
+                        throw new NotSupportedException("Version 3 SignaturePublicKey not implemented yet");
                     }
                     else
-                        throw new NotImplementedException("Only OpenPGP public key versions 3, 4 and 5 are supported");
+                        throw new NotSupportedException("Only OpenPGP public key versions 3, 4 and 5 are supported");
 
                     List<BigInteger> bigInts = new();
 
@@ -211,14 +209,14 @@ public sealed class SignatureBucket : CryptoDataBucket
                         PgpPublicKeyType.ECDH => 3,
                         PgpPublicKeyType.ECDSA => 2,
                         PgpPublicKeyType.EdDSA => 2,
-                        _ => throw new NotImplementedException($"Unexpected public key type {keyPublicKeyType}")
+                        _ => throw new NotSupportedException($"Unexpected public key type {keyPublicKeyType}")
                     };
                     if (keyPublicKeyType is PgpPublicKeyType.EdDSA or PgpPublicKeyType.ECDSA or PgpPublicKeyType.ECDH)
                     {
                         byte b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
 
                         if (b == 0 || b == 0xFF)
-                            throw new NotImplementedException("Reserved value");
+                            throw new NotSupportedException("Reserved value");
 
                         var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
                         if (bb.Length != b)
@@ -236,7 +234,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         byte b = await csum.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(csum);
 
                         if (b == 0 || b == 0xFF)
-                            throw new NotImplementedException("Reserved value");
+                            throw new NotSupportedException("Reserved value");
 
                         var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
                         if (bb.Length != b)
@@ -314,7 +312,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                                 {
                                     // OCB
 
-                                    throw new NotImplementedException("OCB Encrypted key");
+                                    throw new NotSupportedException("OCB Encrypted key");
 
                                 }
                             }

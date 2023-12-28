@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
@@ -177,7 +176,7 @@ namespace AmpScm.Git.Objects
 
             if (typeof(TGitObject) != typeof(GitObject) && HasBitmap.Value)
             {
-                await foreach (var x in GetAllViaBitmap<TGitObject>(alreadyReturned))
+                await foreach (var x in GetAllViaBitmap<TGitObject>(alreadyReturned).ConfigureAwait(false))
                 {
                     yield return x;
                 }
@@ -187,7 +186,7 @@ namespace AmpScm.Git.Objects
                 // Prefer locality of packs, over the multipack order when not using bitmaps
                 foreach (var p in _packs)
                 {
-                    await foreach (var x in p.GetAll<TGitObject>(alreadyReturned))
+                    await foreach (var x in p.GetAll<TGitObject>(alreadyReturned).ConfigureAwait(false))
                     {
                         yield return x;
                     }
@@ -239,7 +238,7 @@ namespace AmpScm.Git.Objects
 
             GitObjectType gitObjectType = GetGitObjectType(typeof(TGitObject));
 
-            await foreach (int index in ewahBitmap.SetIndexes)
+            await foreach (int index in ewahBitmap.SetIndexes.ConfigureAwait(false))
             {
                 yield return await GetOneViaMultiPackOffset<TGitObject>(index, gitObjectType).ConfigureAwait(false);
             }

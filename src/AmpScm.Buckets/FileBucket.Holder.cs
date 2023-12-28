@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
@@ -79,7 +77,9 @@ namespace AmpScm.Buckets
 #endif
             }
 
+#pragma warning disable MA0055 // Do not use finalizer
             ~FileHolder()
+#pragma warning restore MA0055 // Do not use finalizer
             {
                 var d = _disposers;
                 _disposers = null!;
@@ -135,7 +135,7 @@ namespace AmpScm.Buckets
                 if (requested <= 0)
                     throw new ArgumentOutOfRangeException(nameof(requested), requested, "Requested bytes must be at least 1");
                 else if (fileOffset > 0 && fileOffset >= Length)
-                    return new (0);
+                    return new(0);
 
                 if (_asyncWin)
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -158,7 +158,7 @@ namespace AmpScm.Buckets
                         int r = p.Read(buffer, 0, requested);
 #pragma warning restore CA1849 // Call async methods when in an async method
 
-                        return new (r);
+                        return new(r);
                     }
                 }
 #endif
@@ -180,7 +180,7 @@ namespace AmpScm.Buckets
                     long rl = (_length.Value - offset);
 
                     if (rl < 1)
-                        return new (0);
+                        return new(0);
                     readLen = (int)rl;
                 }
 
@@ -218,7 +218,7 @@ namespace AmpScm.Buckets
                     {
                         // Unlikely direct succes case. No result queued
                         waitHandler.ReleaseOne();
-                        return new ((int)read); // Done reading
+                        return new((int)read); // Done reading
                     }
                     else
                     {
@@ -229,10 +229,10 @@ namespace AmpScm.Buckets
                             if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, false))
                             {
                                 // Typical all-data cached in filecache case on Windows 10/11 2022-04
-                                return new ((int)bytes); // Return succes. Task will release lpOverlapped
+                                return new((int)bytes); // Return succes. Task will release lpOverlapped
                             }
                             else
-                                return new (tcs.Task); // Wait for task
+                                return new(tcs.Task); // Wait for task
                         }
                         else
                         {

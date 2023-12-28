@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Git.References
@@ -35,13 +34,13 @@ namespace AmpScm.Git.References
         {
             foreach (var v in Sources)
             {
-                await foreach (var r in v.GetAll(alreadyReturned))
+                await foreach (var r in v.GetAll(alreadyReturned).ConfigureAwait(false))
                 {
                     if (!alreadyReturned.Contains(r.Name))
                     {
                         alreadyReturned.Add(r.Name);
 
-                        switch(r.Name)
+                        switch (r.Name)
                         {
                             case "refs/stash":
                                 continue;

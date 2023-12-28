@@ -34,7 +34,9 @@ public sealed class DecryptBucket : CryptoDataBucket
 
     public new bool VerifySignature { get; init; }
 
+#pragma warning disable MA0051 // Method is too long
     private protected override async ValueTask<bool> HandleChunk(Bucket bucket, CryptoTag tag)
+#pragma warning restore MA0051 // Method is too long
     {
         switch (tag)
         {
@@ -55,7 +57,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                             rd = new ZLibBucket(bucket, BucketCompressionAlgorithm.ZLib);
                             break;
                         default:
-                            throw new NotImplementedException($"Compression algorithm {(PgpCompressionType)b} not implemented");
+                            throw new NotSupportedException($"Compression algorithm {(PgpCompressionType)b} not implemented");
                     }
 
                     PushChunkReader(new CryptoChunkBucket(rd.NoDispose()));
@@ -185,7 +187,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                             break;
 
                         default:
-                            throw new NotImplementedException($"Algorithm {matchedKey.Algorithm} not implemented yet");
+                            throw new NotSupportedException($"Algorithm {matchedKey.Algorithm} not implemented yet");
                     }
                 }
                 break;
@@ -528,7 +530,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     break;
                 }
             default:
-                throw new NotImplementedException($"Decrypt for cipher {_sessionAlgorithm} not implemented yet.");
+                throw new NotSupportedException($"Decrypt for cipher {_sessionAlgorithm} not implemented yet.");
         }
 
         _literalSha = dcb.SHA1((value) => _shaResult = value);

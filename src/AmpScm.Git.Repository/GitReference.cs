@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git.References;
 using AmpScm.Git.Sets;
@@ -84,7 +82,7 @@ namespace AmpScm.Git
                     await gr.ReadAsync().ConfigureAwait(false);
                     _object = gr._object;
                 }
-            }            
+            }
 
             if (_object is GitId oid)
             {
@@ -257,11 +255,7 @@ namespace AmpScm.Git
 
         public override int GetHashCode()
         {
-#if !NETFRAMEWORK
             return Name.GetHashCode(StringComparison.Ordinal);
-#else
-            return Name.GetHashCode();
-#endif
         }
 
         public GitReference Resolved

@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,24 +31,24 @@ namespace AmpScm.Linq
 
         public IQueryProvider Provider => _provider;
 
-        IAsyncQueryProvider IAsyncQueryable.Provider => throw new NotImplementedException();
+        IAsyncQueryProvider IAsyncQueryable.Provider => throw new NotSupportedException();
 
         public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
         {
             return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
-                ?? throw new NotImplementedException();
+                ?? throw new NotSupportedException();
         }
 
         public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
         {
             return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
-                ?? throw new NotImplementedException();
+                ?? throw new NotSupportedException();
         }
 
         public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
         {
             return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
-                ?? throw new NotImplementedException();
+                ?? throw new NotSupportedException();
         }
 
         public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
