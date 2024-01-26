@@ -10,8 +10,8 @@ namespace AmpScm.Linq
 {
     internal sealed class AsyncQueryableWrapper<T> : IQueryableAndAsyncQueryable<T>, IOrderedQueryableAndAsyncQueryable<T>
     {
-        AsyncQueryableProviderWrapper AsyncProvider { get; }
-        IQueryable<T> InnerQueryable { get; }
+        private AsyncQueryableProviderWrapper AsyncProvider { get; }
+        private IQueryable<T> InnerQueryable { get; }
 
         public AsyncQueryableWrapper(IQueryable<T> inner, AsyncQueryableProviderWrapper p)
         {
@@ -70,7 +70,7 @@ namespace AmpScm.Linq
 
     internal sealed class AsyncQueryableProviderWrapper : QueryAndAsyncQueryProvider
     {
-        IQueryProvider QueryProvider { get; }
+        private IQueryProvider QueryProvider { get; }
 
         public AsyncQueryableProviderWrapper(IQueryProvider provider)
         {

@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("grep")]
         public static async ValueTask Grep(this GitPorcelainClient c, GitGrepArgs? options = null)

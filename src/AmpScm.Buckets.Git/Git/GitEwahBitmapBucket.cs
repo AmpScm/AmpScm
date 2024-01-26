@@ -7,7 +7,7 @@ namespace AmpScm.Buckets.Git
 {
     public sealed class GitEwahBitmapBucket : GitBucket
     {
-        enum ewah_state
+        private enum ewah_state
         {
             init = 0,
             start,
@@ -16,17 +16,18 @@ namespace AmpScm.Buckets.Git
             footer,
             done
         }
-        BucketBytes _readable;
-        ewah_state _state;
-        uint _repCount;
-        int _rawCount;
-        int _compressedSize;
-        uint? _lengthBits;
-        int _left;
-        byte[] _buffer;
-        int _wpos;
-        bool _repBit;
-        int _position;
+
+        private BucketBytes _readable;
+        private ewah_state _state;
+        private uint _repCount;
+        private int _rawCount;
+        private int _compressedSize;
+        private uint? _lengthBits;
+        private int _left;
+        private byte[] _buffer;
+        private int _wpos;
+        private bool _repBit;
+        private int _position;
 
         public GitEwahBitmapBucket(Bucket source)
             : base(source)
@@ -56,7 +57,7 @@ namespace AmpScm.Buckets.Git
                     return bb;
                 }
 
-                if (!await RefillAsync(true).ConfigureAwait(false))
+                if (!await RefillAsync(allowWait: true).ConfigureAwait(false))
                     return BucketBytes.Eof;
             }
         }
@@ -66,7 +67,7 @@ namespace AmpScm.Buckets.Git
             if (_readable.IsEmpty)
                 return _readable;
 
-            RefillAsync(false).AsTask().Wait();
+            RefillAsync(allowWait: false).AsTask().Wait();
 
             return _readable;
         }
@@ -75,7 +76,7 @@ namespace AmpScm.Buckets.Git
         {
             if (_lengthBits is null)
             {
-                await RefillAsync(true).ConfigureAwait(false);
+                await RefillAsync(allowWait: true).ConfigureAwait(false);
             }
 
             return (int)_lengthBits!.Value;
@@ -85,7 +86,7 @@ namespace AmpScm.Buckets.Git
         {
             if (_lengthBits is null)
             {
-                await RefillAsync(true).ConfigureAwait(false);
+                await RefillAsync(allowWait: true).ConfigureAwait(false);
             }
 
             return _compressedSize * sizeof(ulong) + (/* HEADER: */ 4 + 4) + (/* Trailer: */ 4);
@@ -205,7 +206,7 @@ namespace AmpScm.Buckets.Git
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
             if (_lengthBits is null)
-                await RefillAsync(true).ConfigureAwait(false);
+                await RefillAsync(allowWait: true).ConfigureAwait(false);
 
             return ((_lengthBits + 8 * sizeof(ulong) - 1) / (8 * sizeof(ulong))) * 8 - _position;
         }
@@ -217,8 +218,7 @@ namespace AmpScm.Buckets.Git
 
         public IAsyncEnumerable<int> SetIndexes => new EwahWalker(this);
 
-
-        sealed class EwahWalker : IAsyncEnumerable<bool>, IAsyncEnumerable<int>
+        private sealed class EwahWalker : IAsyncEnumerable<bool>, IAsyncEnumerable<int>
         {
             private GitEwahBitmapBucket _bucket;
 

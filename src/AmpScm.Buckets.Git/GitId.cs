@@ -20,8 +20,8 @@ namespace AmpScm.Git
     [DebuggerDisplay("{ToString(),nq} ({Type})")]
     public sealed class GitId : IEquatable<GitId>, IComparable<GitId>, IFormattable
     {
-        readonly byte[] _bytes;
-        readonly int _offset;
+        private readonly byte[] _bytes;
+        private readonly int _offset;
         public GitIdType Type { get; }
 
         public ReadOnlyMemory<byte> Hash
@@ -54,7 +54,7 @@ namespace AmpScm.Git
             _bytes = hash;
         }
 
-        static readonly GitId[] _zeros = new GitId[((int)GitIdType.Sha256) + 1];
+        private static readonly GitId[] _zeros = new GitId[((int)GitIdType.Sha256) + 1];
         /// <summary>
         /// 
         /// </summary>
@@ -94,7 +94,7 @@ namespace AmpScm.Git
         /// <param name="hash"></param>
         /// <param name="offset"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        GitId(GitIdType type, byte[] hash, int offset)
+        private GitId(GitIdType type, byte[] hash, int offset)
         {
             Type = type;
             _bytes = hash;
@@ -163,7 +163,7 @@ namespace AmpScm.Git
             }
         }
 
-        static bool TryGetHex(ushort c1, ushort c2, out byte b)
+        private static bool TryGetHex(ushort c1, ushort c2, out byte b)
         {
             if (c1 >= '0' && c1 <= '9')
                 b = (byte)(c1 - '0');
@@ -315,7 +315,7 @@ namespace AmpScm.Git
             return BitConverter.ToInt32(_bytes, _offset) ^ BitConverter.ToInt32(_bytes, _offset + 16);
         }
 
-        const string hexChars = "0123456789abcdef";
+        private const string hexChars = "0123456789abcdef";
         public override string ToString()
         {
             int byteCount = HashLength(Type);

@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("symbolic-ref")]
         public static async ValueTask SymbolicReference(this GitPlumbingClient c, GitSymbolicReferenceArgs options)

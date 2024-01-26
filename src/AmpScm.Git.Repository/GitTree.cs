@@ -12,7 +12,7 @@ namespace AmpScm.Git
 {
     public sealed class GitTree : GitObject, IEnumerable<GitTreeEntry>, IAsyncEnumerable<GitTreeEntry>, IGitLazy<GitTree>
     {
-        readonly List<GitTreeEntry> _entries = new();
+        private readonly List<GitTreeEntry> _entries = new();
         private GitBucket? _rdr;
 
         internal GitTree(GitRepository repository, GitId id)
@@ -110,10 +110,10 @@ namespace AmpScm.Git
                 return new(Id);
         }
 
-        GitTreeItemCollection? _allFiles;
-        GitTreeItemCollection? _allItems;
-        public GitTreeItemCollection AllFiles => _allFiles ??= new GitTreeItemCollection(this, true);
+        private GitTreeItemCollection? _allFiles;
+        private GitTreeItemCollection? _allItems;
+        public GitTreeItemCollection AllFiles => _allFiles ??= new GitTreeItemCollection(this, justFiles: true);
 
-        public GitTreeItemCollection AllItems => _allItems ??= new GitTreeItemCollection(this, false);
+        public GitTreeItemCollection AllItems => _allItems ??= new GitTreeItemCollection(this, justFiles: false);
     }
 }

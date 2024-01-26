@@ -7,8 +7,8 @@ namespace AmpScm.Buckets.Git
     [StructLayout(LayoutKind.Auto)]
     public struct GitCommitGenerationValue : IEquatable<GitCommitGenerationValue>
     {
-        ulong generationV1Value;
-        long timeCorrection;
+        private ulong generationV1Value;
+        private long timeCorrection;
 
         public GitCommitGenerationValue(int generation, DateTimeOffset timeStamp)
             : this(generation, timeStamp, long.MinValue)

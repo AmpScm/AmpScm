@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("mktree")]
         public static async ValueTask MakeTree(this GitPlumbingClient c, GitMakeTreeArgs options)

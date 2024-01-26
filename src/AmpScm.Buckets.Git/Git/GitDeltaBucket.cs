@@ -9,27 +9,27 @@ using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git
 {
-    sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
+    internal sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
     {
         internal GitObjectBucket BaseBucket { get; }
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _length;
+        private long _length;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _position;
+        private long _position;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        uint _copyOffset;
+        private uint _copyOffset;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _copySize;
+        private int _copySize;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _origCopySize;
+        private int _origCopySize;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        delta_state state;
+        private delta_state state;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        long _baseLen;
+        private long _baseLen;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _openedBase;
+        private bool _openedBase;
 
-        enum delta_state
+        private enum delta_state
         {
             start,
             init,
@@ -59,7 +59,7 @@ namespace AmpScm.Buckets.Git
 
         public override long? Position => _position;
 
-        static int PopCount(uint value)
+        private static int PopCount(uint value)
         {
 #if NETFRAMEWORK
             value -= ((value >> 1) & 0x55555555);
@@ -70,7 +70,7 @@ namespace AmpScm.Buckets.Git
 #endif
         }
 
-        static int NeedBytes(byte data)
+        private static int NeedBytes(byte data)
         {
             if (0 == (data & 0x80))
                 return 1;
@@ -78,7 +78,7 @@ namespace AmpScm.Buckets.Git
                 return PopCount(data);
         }
 
-        async ValueTask<bool> AdvanceAsync()
+        private async ValueTask<bool> AdvanceAsync()
         {
             if (state == delta_state.start)
             {

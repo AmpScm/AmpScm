@@ -12,12 +12,13 @@ namespace AmpScm.Buckets.Git
 {
     public class GitBundleBucket : GitBucket
     {
-        int? _version;
-        BState _state;
-        byte? _prefetched;
-        GitIdType _idType;
-        bool _ret;
-        enum BState
+        private int? _version;
+        private BState _state;
+        private byte? _prefetched;
+        private GitIdType _idType;
+        private bool _ret;
+
+        private enum BState
         {
             Capabilities,
             Prerequisites,

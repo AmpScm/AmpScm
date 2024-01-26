@@ -11,7 +11,7 @@ namespace AmpScm.Buckets.Client.Protocols
     internal sealed class HttpsBucketWebRequest : HttpBucketWebRequest
     {
         public HttpsBucketWebRequest(Client.BucketWebClient client, Uri uri)
-            : base(client, uri, true)
+            : base(client, uri, forHttps: true)
         {
         }
 

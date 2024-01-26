@@ -19,7 +19,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("commit")]
         public static async ValueTask Commit(this GitPorcelainClient c, GitCommitArgs? options)

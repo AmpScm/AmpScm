@@ -12,7 +12,7 @@ namespace AmpScm.Git.Objects
 {
     internal sealed class FileObjectRepository : GitObjectRepository
     {
-        readonly string _objectsDir;
+        private readonly string _objectsDir;
 
         public FileObjectRepository(GitRepository repository, string objectsDir)
             : base(repository, "Blobs:" + objectsDir)
@@ -30,7 +30,7 @@ namespace AmpScm.Git.Objects
             if (!File.Exists(path))
                 return null;
 
-            var fileReader = FileBucket.OpenRead(path, false);
+            var fileReader = FileBucket.OpenRead(path, forAsync: false);
             try
             {
                 var rdr = new GitFileObjectBucket(fileReader);
@@ -69,7 +69,7 @@ namespace AmpScm.Git.Objects
             if (!File.Exists(path))
                 return default;
 
-            var fileReader = FileBucket.OpenRead(path, false);
+            var fileReader = FileBucket.OpenRead(path, forAsync: false);
             return new (new GitFileObjectBucket(fileReader));
         }
 
@@ -86,7 +86,7 @@ namespace AmpScm.Git.Objects
                     if (!GitId.TryParse(idString, out var id) || alreadyReturned.Contains(id))
                         continue;
 
-                    var fileReader = FileBucket.OpenRead(file, false);
+                    var fileReader = FileBucket.OpenRead(file, forAsync: false);
 
                     var rdr = new GitFileObjectBucket(fileReader);
 

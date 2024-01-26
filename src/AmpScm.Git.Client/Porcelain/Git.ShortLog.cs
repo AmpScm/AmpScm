@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("shortlog")]
         public static async ValueTask ShortLog(this GitPorcelainClient c, GitShortLogArgs? options = null)

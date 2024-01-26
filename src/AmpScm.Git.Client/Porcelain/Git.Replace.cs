@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("replace")]
         public static async ValueTask Replace(this GitPorcelainClient c, GitReplaceArgs? options = null)

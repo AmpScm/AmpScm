@@ -51,7 +51,7 @@ namespace AmpScm.Git.Client.Porcelain
 
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("status")]
         public static ValueTask<IAsyncEnumerable<GitStatusEntry>> Status(this GitPorcelainClient c, IEnumerable<string>? paths, GitStatusArgs? options = null)
@@ -82,7 +82,7 @@ namespace AmpScm.Git.Client.Porcelain
         [GitCommand("status")]
         public static async ValueTask<IAsyncEnumerable<GitStatusEntry>> Status(this GitPorcelainClient c, GitStatusArgs? options = null)
         {
-            return await Status(c, null, options);
+            return await Status(c, paths: null, options);
         }
 
         private static async IAsyncEnumerable<GitStatusEntry> WalkStatusResults(GitRepository r, IAsyncEnumerable<string> results)

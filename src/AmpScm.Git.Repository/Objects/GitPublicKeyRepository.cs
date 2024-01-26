@@ -10,8 +10,9 @@ namespace AmpScm.Git.Objects
     {
         private bool disposedValue;
         public GitRepository Repository { get; }
-        readonly Dictionary<ReadOnlyMemory<byte>, GitPublicKey> _keys = new(new SigComparer());
-        DateTime? _keysRead;
+
+        private readonly Dictionary<ReadOnlyMemory<byte>, GitPublicKey> _keys = new(new SigComparer());
+        private DateTime? _keysRead;
 
         internal GitPublicKeyRepository(GitRepository repository)
         {
@@ -88,7 +89,7 @@ namespace AmpScm.Git.Objects
             return default;
         }
 
-        sealed class SigComparer : IEqualityComparer<ReadOnlyMemory<byte>>
+        private sealed class SigComparer : IEqualityComparer<ReadOnlyMemory<byte>>
         {
             public bool Equals(ReadOnlyMemory<byte> x, ReadOnlyMemory<byte> y)
             {

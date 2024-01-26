@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("cherry-pick")]
         public static async ValueTask CherryPick(this GitPorcelainClient c, GitCherryPickArgs? options = null)

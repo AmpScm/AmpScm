@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
 }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("log")]
         public static async ValueTask Log(this GitPorcelainClient c, GitLogArgs? options = null)

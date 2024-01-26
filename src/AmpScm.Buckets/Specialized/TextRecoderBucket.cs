@@ -95,11 +95,11 @@ namespace AmpScm.Buckets.Specialized
                 }
 
 #if !NETFRAMEWORK
-                _decoder.Convert(bb.Span, new Span<char>(_charBuffer, _toEncode, _charBuffer.Length - _toEncode), false, out int bytesUsed, out int charsDecoded, out bool completed);
+                _decoder.Convert(bb.Span, new Span<char>(_charBuffer, _toEncode, _charBuffer.Length - _toEncode), flush: false, out int bytesUsed, out int charsDecoded, out bool completed);
 
 #else
                 var (arr, offs) = bb.ExpandToArray();
-                _decoder.Convert(arr, offs, bb.Length, _charBuffer, _toEncode, _charBuffer.Length - _toEncode, false, out var bytesUsed, out var charsDecoded, out var completed);
+                _decoder.Convert(arr, offs, bb.Length, _charBuffer, _toEncode, _charBuffer.Length - _toEncode, flush: false, out var bytesUsed, out var charsDecoded, out var completed);
 #endif
                 charsDecoded += _toEncode;
                 _toEncode = 0;
@@ -107,7 +107,7 @@ namespace AmpScm.Buckets.Specialized
                 if (bytesUsed < bb.Length)
                     _toConvert = bb.Slice(bytesUsed).ToArray();
 
-                _encoder.Convert(_charBuffer, 0, charsDecoded, _utfBuffer, 0, _utfBuffer.Length, false, out int charsEncoded, out int utfBytesUsed, out bool utfCompleted);
+                _encoder.Convert(_charBuffer, 0, charsDecoded, _utfBuffer, 0, _utfBuffer.Length, flush: false, out int charsEncoded, out int utfBytesUsed, out bool utfCompleted);
 
                 if (charsEncoded < charsDecoded)
                 {

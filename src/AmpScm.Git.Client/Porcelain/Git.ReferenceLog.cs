@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("reflog")]
         public static async ValueTask ReferenceLog(this GitPorcelainClient c, GitReferenceLogArgs? options = null)

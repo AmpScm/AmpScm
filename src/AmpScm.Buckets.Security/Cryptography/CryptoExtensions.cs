@@ -39,12 +39,12 @@ public static partial class CryptoExtensions
 
     internal static byte[] ToCryptoValue(this BigInteger value)
     {
-        return value.ToByteArray(true, true);
+        return value.ToByteArray(isUnsigned: true, isBigEndian: true);
     }
 
     internal static byte[] ToCryptoValue(this BigInteger value, bool unsigned)
     {
-        return value.ToByteArray(unsigned, true);
+        return value.ToByteArray(unsigned, isBigEndian: true);
     }
 
     internal static BigInteger ToBigInteger(this byte[] value)
@@ -55,7 +55,7 @@ public static partial class CryptoExtensions
     internal static BigInteger ToBigInteger(this ReadOnlyMemory<byte> value)
     {
 #if NETCOREAPP
-        return new BigInteger(value.Span, true, true);
+        return new BigInteger(value.Span, isUnsigned: true, isBigEndian: true);
 #else
         byte[] v;
         if ((value.Span[0] & 0x80) != 0)
@@ -271,7 +271,7 @@ public static partial class CryptoExtensions
     {
         using ECDiffieHellman ecdh2 = ECDiffieHellman.Create();
 
-        var p = ecdh.ExportParameters(false);
+        var p = ecdh.ExportParameters(includePrivateParameters: false);
 
         var v = point.ToCryptoValue();
         if (v[0] != 0x04)
@@ -309,12 +309,12 @@ public static partial class CryptoExtensions
         var sharedSecret = Curve25519.GetSharedSecret(pk, publicKey);
 
         if (secretPrepend != null)
-            hashAlgorithm.TransformBlock(secretPrepend, 0, secretPrepend.Length, null, 0);
+            hashAlgorithm.TransformBlock(secretPrepend, 0, secretPrepend.Length, outputBuffer: null, 0);
 
-        hashAlgorithm.TransformBlock(sharedSecret, 0, sharedSecret.Length, null, 0);
+        hashAlgorithm.TransformBlock(sharedSecret, 0, sharedSecret.Length, outputBuffer: null, 0);
 
         if (secretAppend != null)
-            hashAlgorithm.TransformBlock(secretAppend, 0, secretAppend.Length, null, 0);
+            hashAlgorithm.TransformBlock(secretAppend, 0, secretAppend.Length, outputBuffer: null, 0);
 
 
         hashAlgorithm.TransformFinalBlock(Array.Empty<byte>(), 0, 0);

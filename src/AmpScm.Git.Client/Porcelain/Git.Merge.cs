@@ -25,7 +25,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("merge")]
         public static async ValueTask Merge(this GitPorcelainClient c, string source, GitMergeArgs? options = null)

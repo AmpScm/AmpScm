@@ -23,9 +23,9 @@ namespace AmpScm.Git.References
             public GitId? Peeled { get; set; }
         }
 
-        Dictionary<string, GitRefPeel>? _peelRefs;
+        private Dictionary<string, GitRefPeel>? _peelRefs;
 
-        async ValueTask Read()
+        private async ValueTask Read()
         {
             if (_peelRefs != null)
                 return;
@@ -44,7 +44,7 @@ namespace AmpScm.Git.References
 
             try
             {
-                using var sr = FileBucket.OpenRead(fileName, false);
+                using var sr = FileBucket.OpenRead(fileName, forAsync: false);
 
                 var idLength = GitId.HashLength(Repository.InternalConfig.IdType) * 2;
 
@@ -104,7 +104,7 @@ namespace AmpScm.Git.References
                 {
                     string name = line.Slice(idLength + 1).Trim().ToUTF8String();
 
-                    if (GitReference.ValidName(name, false))
+                    if (GitReference.ValidName(name, allowSpecialSymbols: false))
                         _peelRefs![name] = last = new GitRefPeel { Name = name, Id = oid };
                     else if (name.EndsWith("^{}", StringComparison.OrdinalIgnoreCase)
                         && last != null && name.Substring(0, name.Length - 3) == last.Name)
@@ -134,7 +134,7 @@ namespace AmpScm.Git.References
                 {
                     string name = line.Substring(idLength + 1).Trim();
 
-                    if (GitReference.ValidName(name, false))
+                    if (GitReference.ValidName(name, allowSpecialSymbols: false))
                         _peelRefs![name] = last = new GitRefPeel { Name = name, Id = oid };
                     else if (name.EndsWith("^{}", StringComparison.OrdinalIgnoreCase)
                         && last != null && name.Substring(0, name.Length - 3) == last.Name)

@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("rev-parse")]
         public static async ValueTask RevisionParse(this GitPlumbingClient c, GitRevisionParseArgs options)

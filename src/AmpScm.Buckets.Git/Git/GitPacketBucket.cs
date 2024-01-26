@@ -9,7 +9,7 @@ namespace AmpScm.Buckets.Git
 {
     public class GitPacketBucket : GitBucket
     {
-        int _packetLength;
+        private int _packetLength;
 
         public GitPacketBucket(Bucket source) : base(source)
         {

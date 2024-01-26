@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("get-tar-commit-id")]
         public static async ValueTask GetTarCommitId(this GitPlumbingClient c, GitGetTarCommitIdArgs options)

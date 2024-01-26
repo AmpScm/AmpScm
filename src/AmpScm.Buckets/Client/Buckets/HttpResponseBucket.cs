@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Client.Protocols;
 using AmpScm.Buckets.Specialized;
 using BasicHandler = System.EventHandler<AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs>;
 
@@ -90,7 +88,7 @@ namespace AmpScm.Buckets.Client.Buckets
                     if (string.Equals(tEnc, "chunked", StringComparison.OrdinalIgnoreCase))
                     {
                         allowNext = chunked = true;
-                        rdr = new HttpDechunkBucket(rdr, true).NoDispose();
+                        rdr = new HttpDechunkBucket(rdr, leaveFinalEol: true).NoDispose();
                     }
                 }
             }

@@ -9,8 +9,9 @@ namespace AmpScm.Git
 {
     public sealed class GitRemote : IGitNamedObject
     {
-        GitRepository Repository { get; }
-        object? _rawUrl;
+        private GitRepository Repository { get; }
+
+        private object? _rawUrl;
 
         internal GitRemote(GitRepository repository, string name, string? rawUrl)
         {

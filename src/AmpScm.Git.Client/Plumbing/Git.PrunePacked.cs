@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("prune-packed")]
         public static async ValueTask PrunePacked(this GitPlumbingClient c, GitPrunePackedArgs options)

@@ -13,20 +13,20 @@ namespace AmpScm.Buckets.Git.Objects
     public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitId? _treeId;
+        private GitId? _treeId;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        IReadOnlyCollection<GitId>? _parents;
+        private IReadOnlyCollection<GitId>? _parents;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitSignatureRecord? _author;
+        private GitSignatureRecord? _author;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitSignatureRecord? _committer;
+        private GitSignatureRecord? _committer;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _readHeaders;
+        private bool _readHeaders;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly Func<GitSubBucketType, Bucket, ValueTask>? _handleSubBucket;
+        private readonly Func<GitSubBucketType, Bucket, ValueTask>? _handleSubBucket;
 
         public GitCommitObjectBucket(Bucket source)
-            : this(source, null)
+            : this(source, handleSubBucket: null)
         {
         }
 
@@ -36,15 +36,15 @@ namespace AmpScm.Buckets.Git.Objects
             _handleSubBucket = handleSubBucket;
         }
 
-        const BucketEol AcceptedEols = BucketEol.LF;
-        const int MaxHeader = 1024;
+        private const BucketEol AcceptedEols = BucketEol.LF;
+        private const int MaxHeader = 1024;
 
         public async ValueTask<GitId> ReadTreeIdAsync()
         {
             if (_treeId is not null)
                 return _treeId;
 
-            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, null).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, eolState: null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tree "))
                 throw new GitBucketException($"Expected 'tree' record at start of commit in '{Source.Name}'");
@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Git.Objects
             return _treeId;
         }
 
-        static readonly int ParentLineReadLength = "parent ".Length + GitId.MaxHashLength * 2 + 2 /* ALL EOL */;
+        private static readonly int ParentLineReadLength = "parent ".Length + GitId.MaxHashLength * 2 + 2 /* ALL EOL */;
 
         public async ValueTask<GitId?> ReadFirstParentIdAsync()
         {
@@ -201,7 +201,7 @@ namespace AmpScm.Buckets.Git.Objects
             return _committer = cm;
         }
 
-        async ValueTask ReadOtherHeadersAsync()
+        private async ValueTask ReadOtherHeadersAsync()
         {
             if (_readHeaders)
                 return;
@@ -247,7 +247,7 @@ namespace AmpScm.Buckets.Git.Objects
             return Create.From(WalkSignature(src));
         }
 
-        static async IAsyncEnumerable<BucketBytes> WalkSignature(Bucket src)
+        private static async IAsyncEnumerable<BucketBytes> WalkSignature(Bucket src)
         {
             using (src)
             {
@@ -293,7 +293,7 @@ namespace AmpScm.Buckets.Git.Objects
             }
         }
 
-        static GitSubBucketType GetEvent(string key) =>
+        private static GitSubBucketType GetEvent(string key) =>
             key switch
             {
                 "mergetag" => GitSubBucketType.MergeTag,

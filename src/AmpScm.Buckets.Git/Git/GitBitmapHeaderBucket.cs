@@ -13,13 +13,13 @@ namespace AmpScm.Buckets.Git
     [DebuggerDisplay("{BitmapType}, Version={Version}, Flags={Flags}, ObjectCount={ObjectCount}")]
     public class GitBitmapHeaderBucket : GitBucket
     {
-        GitIdType _idType;
-        bool _readHeader;
-        string? _type;
-        short _version;
-        short _flags;
-        int _objCount;
-        GitId? _checksum;
+        private GitIdType _idType;
+        private bool _readHeader;
+        private string? _type;
+        private short _version;
+        private short _flags;
+        private int _objCount;
+        private GitId? _checksum;
 
         public GitBitmapHeaderBucket(Bucket source, GitIdType idType) : base(source)
         {

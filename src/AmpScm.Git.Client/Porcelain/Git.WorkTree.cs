@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("worktree")]
         public static async ValueTask WorkTree(this GitPorcelainClient c, GitWorkTreeArgs? options = null)

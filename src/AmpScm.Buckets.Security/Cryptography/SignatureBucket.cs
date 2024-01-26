@@ -535,7 +535,7 @@ public sealed class SignatureBucket : CryptoDataBucket
         {
             var info = _signatures.First();
 
-            var keyInts = _keys.FirstOrDefault()?.GetValues(false);
+            var keyInts = _keys.FirstOrDefault()?.GetValues(includePrivate: false);
 
             var hashAlgorithm = CreatePgpHashAlgorithm(info.HashAlgorithm);
 
@@ -579,7 +579,7 @@ public sealed class SignatureBucket : CryptoDataBucket
         var _signatureInfo = _signatures.First();
         byte[] hashValue;
 
-        var keyInts = _keys.FirstOrDefault()?.GetValues(false);
+        var keyInts = _keys.FirstOrDefault()?.GetValues(includePrivate: false);
         hashValue = await CalculateHash(sourceData, _signatureInfo.HashAlgorithm).ConfigureAwait(false);
 
         // SSH SignaturePublicKey signs blob that contains original hash and some other data
@@ -591,7 +591,7 @@ public sealed class SignatureBucket : CryptoDataBucket
             overrideAlg = PgpHashAlgorithm.SHA1;
         else if (_signatureInfo.PublicKeyType == PgpPublicKeyType.ECDSA)
         {
-            string curveName = CryptoExtensions.GetCurveName(key?.GetValues(false)[0] ?? keyInts![2]);
+            string curveName = CryptoExtensions.GetCurveName(key?.GetValues(includePrivate: false)[0] ?? keyInts![2]);
 
             overrideAlg = PgpHashAlgorithm.SHA512;
 

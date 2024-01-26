@@ -80,7 +80,7 @@ namespace AmpScm.Buckets.Cryptography
             }
             else if (0 > bb.IndexOf((byte)':'))
             {
-                _base64Decode = new StopAtLineStartBucket(bb.AsBucket() + Source.NoDispose(), new byte[] { (byte)'-' }).Base64Decode(true);
+                _base64Decode = new StopAtLineStartBucket(bb.AsBucket() + Source.NoDispose(), new byte[] { (byte)'-' }).Base64Decode(lineMode: true);
                 _state = SState.Body;
                 return BucketBytes.Eof;
             }
@@ -171,7 +171,7 @@ namespace AmpScm.Buckets.Cryptography
 
         private Bucket SetupDecode()
         {
-            return new StopAtLineStartBucket(Source.NoDispose(), new byte[] { (byte)'=', (byte)'-' }).Base64Decode(true).Crc24(x => _crc24Result = x);
+            return new StopAtLineStartBucket(Source.NoDispose(), new byte[] { (byte)'=', (byte)'-' }).Base64Decode(lineMode: true).Crc24(x => _crc24Result = x);
         }
 
         public static bool IsHeader(BucketBytes bb, BucketEol eol)
@@ -194,7 +194,7 @@ namespace AmpScm.Buckets.Cryptography
         {
             private readonly byte[] _stopAt;
             private bool _eof;
-            BucketBytes _line;
+            private BucketBytes _line;
 
             public StopAtLineStartBucket(Bucket source, params byte[] stopAt) : base(source)
             {

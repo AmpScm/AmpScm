@@ -83,7 +83,7 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
             else if (requested <= 0 || requested > Bucket.MaxRead)
-                throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             ByteCollector result = new(requested);
             while (true)
@@ -122,7 +122,7 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
             else if (requested <= 0 || requested > Bucket.MaxRead)
-                throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             ByteCollector result = new(requested);
             while (true)
@@ -168,9 +168,9 @@ namespace AmpScm.Buckets
             if (bucket is null)
                 throw new ArgumentNullException(nameof(bucket));
             else if (blockSize < 2)
-                throw new ArgumentOutOfRangeException(nameof(blockSize), blockSize, null);
+                throw new ArgumentOutOfRangeException(nameof(blockSize), blockSize, message: null);
             else if (requested < blockSize || requested > Bucket.MaxRead)
-                throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
+                throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
             var bb = bucket.Peek();
 
@@ -216,9 +216,9 @@ namespace AmpScm.Buckets
                 throw new ArgumentOutOfRangeException(nameof(length), length, message: null);
 
             if (!alwaysWrap && bucket is IBucketTake take)
-                return take.Take(length, true);
+                return take.Take(length, ensure: true);
             else
-                return new TakeBucket(bucket, length, true);
+                return new TakeBucket(bucket, length, ensure: true);
         }
 
         /// <summary>
@@ -241,9 +241,9 @@ namespace AmpScm.Buckets
                 throw new ArgumentOutOfRangeException(nameof(limit), limit, message: null);
 
             if (!alwaysWrap && bucket is IBucketTake take)
-                return take.Take(limit, false);
+                return take.Take(limit, ensure: false);
             else
-                return new TakeBucket(bucket, limit, false);
+                return new TakeBucket(bucket, limit, ensure: false);
         }
 
         /// <summary>
@@ -263,9 +263,9 @@ namespace AmpScm.Buckets
                 throw new ArgumentOutOfRangeException(nameof(skipBytes), skipBytes, message: null);
 
             if (!alwaysWrap && bucket is IBucketSkip sb)
-                return sb.Skip(skipBytes, true);
+                return sb.Skip(skipBytes, ensure: true);
             else
-                return new SkipBucket(bucket, skipBytes, true);
+                return new SkipBucket(bucket, skipBytes, ensure: true);
         }
 
         /// <summary>
@@ -285,9 +285,9 @@ namespace AmpScm.Buckets
                 throw new ArgumentOutOfRangeException(nameof(skipBytes), skipBytes, message: null);
 
             if (!alwaysWrap && bucket is IBucketSkip sb)
-                return sb.Skip(skipBytes, false);
+                return sb.Skip(skipBytes, ensure: false);
             else
-                return new SkipBucket(bucket, skipBytes, false);
+                return new SkipBucket(bucket, skipBytes, ensure: false);
         }
 
         /// <summary>

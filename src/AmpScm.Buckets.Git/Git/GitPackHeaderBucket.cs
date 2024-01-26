@@ -9,7 +9,7 @@ namespace AmpScm.Buckets.Git
     [DebuggerDisplay("{GitType}, Version={Version}, ObjectCount={ObjectCount}")]
     public class GitPackHeaderBucket : GitBucket
     {
-        GitPackHeader? _header;
+        private GitPackHeader? _header;
 
         public GitPackHeaderBucket(Bucket source) : base(source)
         {
@@ -41,7 +41,7 @@ namespace AmpScm.Buckets.Git
         public int? Version => _header.HasValue ? _header.Value.Version : null;
         public long? ObjectCount => _header.HasValue ? _header.Value.ObjectCount : null;
 
-        struct GitPackHeader
+        private struct GitPackHeader
         {
             public string GitType;
             public int Version;

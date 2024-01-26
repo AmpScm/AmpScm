@@ -26,7 +26,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("archive")]
         public static async ValueTask Archive(this GitPorcelainClient c, string? file, string treeIsh, GitArchiveArgs? options = null)

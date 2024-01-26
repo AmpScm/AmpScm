@@ -17,7 +17,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("pack-refs")]
         public static async ValueTask PackReferences(this GitPlumbingClient c, GitPackReferencesArgs options)

@@ -20,7 +20,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("help")]
         public static async ValueTask<string> Help(this GitPlumbingClient c, GitHelpArgs options)

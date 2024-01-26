@@ -18,21 +18,21 @@ namespace AmpScm.Git
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitTagObjectBucket? _rb;
+        private GitTagObjectBucket? _rb;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        object? _obj;
+        private object? _obj;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string? _message;
+        private string? _message;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string? _summary;
+        private string? _summary;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitSignature? _tagger;
+        private GitSignature? _tagger;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitObjectType? _objType;
+        private GitObjectType? _objType;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string? _name;
+        private string? _name;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _signed;
+        private bool _signed;
 
         internal GitTagObject(GitRepository repository, Bucket rdr, GitId id)
             : base(repository, id)

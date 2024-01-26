@@ -64,7 +64,7 @@ namespace System.Linq
                 return new NonAsyncQueryableWrapper<T>(queryable);
         }
 
-        static MethodInfo _asAsyncQueryable = GetMethod<IQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
+        private static MethodInfo _asAsyncQueryable = GetMethod<IQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
         /// <summary>
         /// Wraps an <see cref="IQueryable"/> as an <see cref="IQueryableAndAsyncQueryable"/>
         /// </summary>
@@ -82,7 +82,7 @@ namespace System.Linq
             }
         }
 
-        static MethodInfo _asAsyncQueryable2 = GetMethod<IAsyncQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
+        private static MethodInfo _asAsyncQueryable2 = GetMethod<IAsyncQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
         /// <summary>
         /// Wraps an <see cref="IQueryable"/> as an <see cref="IQueryableAndAsyncQueryable"/>
         /// </summary>

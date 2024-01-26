@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("diagnose")]
         public static async ValueTask Diagnose(this GitPorcelainClient c, GitDiagnoseArgs? options = null)

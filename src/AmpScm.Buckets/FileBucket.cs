@@ -55,7 +55,7 @@ namespace AmpScm.Buckets
         /// <param name="chunkSize">The chunksize to perform file IO with.</param>
         [EditorBrowsable(EditorBrowsableState.Advanced)] // Users should use FileBucket.Open(...)
         public FileBucket(string path, int bufferSize = 8192, int chunkSize = 4096)
-            : this(OpenHolder(path, true), bufferSize, chunkSize)
+            : this(OpenHolder(path, forAsync: true), bufferSize, chunkSize)
         {
         }
 
@@ -429,7 +429,7 @@ namespace AmpScm.Buckets
         /// <returns></returns>
         public static FileBucket OpenRead(string path)
         {
-            return OpenRead(path, true);
+            return OpenRead(path, forAsync: true);
         }
 
         //public static FileBucket OpenRead(FileStream from)

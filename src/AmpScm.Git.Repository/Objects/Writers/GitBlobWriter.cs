@@ -11,8 +11,8 @@ namespace AmpScm.Git.Objects
 {
     public sealed class GitBlobWriter : GitObjectWriter<GitBlob>
     {
-        Bucket? _bucket;
-        Func<ValueTask<Bucket>>? _fetchBlob;
+        private Bucket? _bucket;
+        private Func<ValueTask<Bucket>>? _fetchBlob;
 
         private GitBlobWriter(Bucket bucket)
         {

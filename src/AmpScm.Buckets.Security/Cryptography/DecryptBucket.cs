@@ -25,7 +25,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 #pragma warning restore CA2213 // Disposable fields should be disposed
     private byte[]? _shaResult;
     private readonly Stack<PgpSignature> _sigs = new();
-    int _verifies;
+    private int _verifies;
 
     public DecryptBucket(Bucket source)
         : base(new CryptoChunkBucket(source))
@@ -88,7 +88,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         break; // Ignore rest of packet
                     }
 
-                    var keyValues = matchedKey.GetValues(true);
+                    var keyValues = matchedKey.GetValues(includePrivate: true);
 
                     switch (matchedKey.Algorithm)
                     {
@@ -131,7 +131,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 byte len = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 if (len > 0)
                                 {
-                                    var srcData = await bucket.ReadExactlyAsync(len, true).ConfigureAwait(false);
+                                    var srcData = await bucket.ReadExactlyAsync(len, throwOnEof: true).ConfigureAwait(false);
 
                                     if (new Rfc3394Algorithm(kek).TryUnwrapKey(srcData.ToArray(), out var data))
                                     {
@@ -176,7 +176,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 byte len = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 if (len > 0)
                                 {
-                                    var srcData = await bucket.ReadExactlyAsync(len, true).ConfigureAwait(false);
+                                    var srcData = await bucket.ReadExactlyAsync(len, throwOnEof: true).ConfigureAwait(false);
 
                                     if (new Rfc3394Algorithm(kek).TryUnwrapKey(srcData.ToArray(), out var data))
                                     {
@@ -405,7 +405,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     if (KeyChain?.FindKey(r.SignKeyFingerprint) is PublicKeySignature key
                         && key.MatchFingerprint(r.SignKeyFingerprint) is { } matchedKey)
                     {
-                        if (!VerifySignature(r, hashValue, matchedKey.GetValues(false)))
+                        if (!VerifySignature(r, hashValue, matchedKey.GetValues(includePrivate: false)))
                         {
                             throw new BucketDecryptionException("SignaturePublicKey not verifiable");
                         }
@@ -508,7 +508,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     aes.Padding = PaddingMode.None;
                     aes.FeedbackSize = aes.BlockSize;
 
-                    dcb = new RawDecryptBucket(bucket, aes.ApplyModeShim(), true);
+                    dcb = new RawDecryptBucket(bucket, aes.ApplyModeShim(), decrypt: true);
 
                     break;
                 }
@@ -525,7 +525,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     tripleDes.Padding = PaddingMode.None;
                     tripleDes.FeedbackSize = tripleDes.BlockSize;
 
-                    dcb = new RawDecryptBucket(bucket, tripleDes.ApplyModeShim(), true);
+                    dcb = new RawDecryptBucket(bucket, tripleDes.ApplyModeShim(), decrypt: true);
 
                     break;
                 }

@@ -9,7 +9,7 @@ namespace AmpScm.Git.References
 {
     public sealed class GitSymbolicReference : GitReference
     {
-        object? _reference;
+        private object? _reference;
 
         internal GitSymbolicReference(GitReferenceRepository repository, string name)
             : base(repository, name)

@@ -12,7 +12,7 @@ namespace SecurityBucketTests;
 [TestClass]
 public class PgpKeyTypeTests
 {
-    const string BrainPoolPublicKey =
+    private const string BrainPoolPublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mFMEYrQs3hMJKyQDAwIIAQEHAgMEqcci+ScthIqfKrkAazlNMJvTLsciXE/VHYE8
@@ -27,8 +27,7 @@ xxVD+keyCdBILAD9GmdKohE5vaPZvTUtSy8jywNBUeRz8TG92b4Ff+0OjnQA/3yD
 qkbEJetaOwZOhuUqhD6TheF+osYF/dVGpvInWmVA
 =SDS7
 -----END PGP PUBLIC KEY BLOCK-----";
-
-    const string BrainPoolSignature =
+    private const string BrainPoolSignature =
 @"-----BEGIN PGP SignaturePublicKey-----
 
 iHUEABMIAB0WIQRC0Td226tfsTM+VH3HFUP6R7IJ0AUCYrQvrQAKCRDHFUP6R7IJ
@@ -68,7 +67,7 @@ R74grCkxsuX711oRA0zFfP30qi/UzDM=
         Assert.IsTrue(ok, "BrainPool");
     }
 
-    const string DsaAlgamelPublicKey =
+    private const string DsaAlgamelPublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQSuBGK1eOURDACwV2vrYbajFLkkQciLH9/TkvctoLCpX6BEpoqx4hmX1TXVgdjk
@@ -121,8 +120,7 @@ bh8Py0e9QqxLXckAKG/5iAG61kxIDzpnqstNW3s8K8MA/3V67BDb2quxmDpH5MwS
 68JESaa1uXk8ZZRBvp0uS3TS
 =yjoG
 -----END PGP PUBLIC KEY BLOCK-----";
-
-    const string DsaAlgamelSignature =
+    private const string DsaAlgamelSignature =
 @"-----BEGIN PGP SignaturePublicKey-----
 
 iHUEABEIAB0WIQSQD/u2BUfUhLOko9t+kcTtGH3EMgUCYrV53wAKCRB+kcTtGH3E
@@ -166,7 +164,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
         Assert.IsTrue(ok, "Dha-Algamel");
     }
 
-    const string Ecc25519PublicKey =
+    private const string Ecc25519PublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mDMEYrLREBYJKwYBBAHaRw8BAQdAVr1b5ohYyw/5zQJoJe9qKQKYidrej30SlobO
@@ -181,8 +179,7 @@ GwwACgkQiDnZxsPvR/Fs4AEAh388vGcQ0RV3266eaGd6xzqSXGbOKH7q+/A5dXrh
 =0TNE
 -----END PGP PUBLIC KEY BLOCK-----
 ";
-
-    const string Ecc25519Signature =
+    private const string Ecc25519Signature =
 @"-----BEGIN PGP SignaturePublicKey-----
 
 iHUEABYKAB0WIQQaPoMZbPR0oKyzHviIOdnGw+9H8QUCYrLSJAAKCRCIOdnGw+9H
@@ -212,7 +209,7 @@ Zt5h6i/BNNX9AiqbRo/ep/RrPpU71Qo=
         Assert.IsTrue(ok, "Ed25519");
     }
 
-    const string EccNistPublicKey =
+    private const string EccNistPublicKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mG8EYrLYWxMFK4EEACIDAwQ3dqzKcuXivDHQy8P8e382xyQyP/tpPBIwh9ZmMJkv
@@ -231,8 +228,7 @@ rkyJCMgja4VUwipJDfpHhQ==
 =zkVy
 -----END PGP PUBLIC KEY BLOCK-----
 ";
-
-    const string EccNistSignature =
+    private const string EccNistSignature =
 @"-----BEGIN PGP SignaturePublicKey-----
 
 iJUEABMJAB0WIQRIlieeQxYXxe+WLf6BYxKn4GoeHgUCYrLYwwAKCRCBYxKn4Goe
@@ -270,8 +266,7 @@ izD0ZbH6Qw==
         Assert.IsTrue(ok, "EccNist");
     }
 
-
-    const string SshSig =
+    private const string SshSig =
 @"-----BEGIN SSH SignaturePublicKey-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAP5ogvLJzK+1q2cwJ7K5y6
 tIKRc9y4wv9uAk4cULCN4UDwIBcGU4QiAxuWPsgjxKko/qaQMQWBdBcAUXqLTRQC7z80ER

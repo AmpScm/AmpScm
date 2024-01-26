@@ -155,8 +155,7 @@ namespace AmpScm.Git.Implementation
 #pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
         }
 
-
-        static IEnumerable<T> WrapEnumerable<T>(IEnumerable<T> r)
+        private static IEnumerable<T> WrapEnumerable<T>(IEnumerable<T> r)
         {
             foreach (var v in r)
                 yield return v;

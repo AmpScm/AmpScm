@@ -12,7 +12,7 @@ namespace Svn.Bucket.Tests
     [TestClass]
     public class SvnRepoTest
     {
-        static readonly object _setup = new();
+        private static readonly object _setup = new();
         public TestContext TestContext { get; set; } = default!;
 
         public static Uri RepositoryUrl { get; private set; } = default!;
@@ -90,18 +90,17 @@ namespace Svn.Bucket.Tests
             await rr.ReadUntilEofAsync();
         }
 
-
-        string RunSvn(params string[] args)
+        private string RunSvn(params string[] args)
         {
             return TestContext.RunApp("svn", args);
         }
 
-        string RunSvnAdmin(params string[] args)
+        private string RunSvnAdmin(params string[] args)
         {
             return TestContext.RunApp("svnadmin", args);
         }
 
-        string RunSvnMucc(params string[] args)
+        private string RunSvnMucc(params string[] args)
         {
             return TestContext.RunApp("svnmucc", args);
         }

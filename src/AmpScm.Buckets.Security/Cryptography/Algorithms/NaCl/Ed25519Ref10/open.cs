@@ -62,8 +62,8 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 
             using (var hasher = System.Security.Cryptography.SHA512.Create())
             {
-                hasher.TransformBlock(sig, 0, 32, null, 0);
-                hasher.TransformBlock(pk, 0, 32, null, 0);
+                hasher.TransformBlock(sig, 0, 32, outputBuffer: null, 0);
+                hasher.TransformBlock(pk, 0, 32, outputBuffer: null, 0);
                 hasher.TransformFinalBlock(m, 0, m.Length);
                 h = hasher.Hash!;
             }

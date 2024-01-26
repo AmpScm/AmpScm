@@ -19,7 +19,7 @@ namespace AmpScm.Git
     public partial class GitRepository : IDisposable, IGitQueryRoot, IServiceProvider
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly ServiceContainer _container;
+        private readonly ServiceContainer _container;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private bool disposedValue;
 
@@ -33,7 +33,7 @@ namespace AmpScm.Git
 
         public bool IsShallow => Configuration.Lazy.RepositoryIsShallow;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitConfiguration? _gitConfigurationLazy;
+        private GitConfiguration? _gitConfigurationLazy;
 
         /// <summary>
         /// The directory containing the git repository metadata (typically &lt;<see cref="FullPath"/>&gt;/.git)
@@ -109,7 +109,7 @@ namespace AmpScm.Git
                     {
                         string wt;
                         if (TryReadRefFile(Path.Combine(FullPath, ".git"), "gitdir: ", out var wtDir)
-                            && TryReadRefFile(Path.Combine(wt = GitTools.GetNormalizedFullPath(wtDir), "commondir"), null, out var commonDir)
+                            && TryReadRefFile(Path.Combine(wt = GitTools.GetNormalizedFullPath(wtDir), "commondir"), prefix: null, out var commonDir)
                             && Directory.Exists(GitDirectory = Path.Combine(wt, commonDir))
                             && File.Exists(Path.Combine(GitDirectory, "config")))
                         {

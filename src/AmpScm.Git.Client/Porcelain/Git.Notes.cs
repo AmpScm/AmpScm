@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("notes")]
         public static async ValueTask Notes(this GitPorcelainClient c, GitNotesArgs? options = null)

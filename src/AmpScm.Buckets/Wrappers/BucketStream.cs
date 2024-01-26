@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Wrappers
@@ -82,7 +77,6 @@ namespace AmpScm.Buckets.Wrappers
         {
             return ReadAsync(buffer, offset, count).Result;
         }
-
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {

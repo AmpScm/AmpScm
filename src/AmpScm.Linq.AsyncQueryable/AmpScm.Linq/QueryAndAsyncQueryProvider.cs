@@ -15,7 +15,7 @@ namespace AmpScm.Linq
 
         }
 
-        static MethodInfo? _createQuery;
+        private static MethodInfo? _createQuery;
 
         public virtual IQueryableAndAsyncQueryable CreateQuery(Expression expression)
         {

@@ -110,7 +110,7 @@ internal sealed class Curve25519 : IDisposable
         rng.GetBytes(privateKey);
         ClampPrivateKeyInline(privateKey);
 
-        Core(publicKey, signingKey, privateKey, null);
+        Core(publicKey, signingKey, privateKey, peerPublicKey: null);
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ internal sealed class Curve25519 : IDisposable
     {
         var publicKey = new byte[32];
 
-        Core(publicKey, null, privateKey, null);
+        Core(publicKey, signingKey: null, privateKey, peerPublicKey: null);
         return publicKey;
     }
 
@@ -134,7 +134,7 @@ internal sealed class Curve25519 : IDisposable
         var signingKey = new byte[32];
         var publicKey = new byte[32];
 
-        Core(publicKey, signingKey, privateKey, null);
+        Core(publicKey, signingKey, privateKey, peerPublicKey: null);
         return signingKey;
     }
 
@@ -148,7 +148,7 @@ internal sealed class Curve25519 : IDisposable
     {
         var sharedSecret = new byte[32];
 
-        Core(sharedSecret, null, privateKey, peerPublicKey);
+        Core(sharedSecret, signingKey: null, privateKey, peerPublicKey);
         return sharedSecret;
     }
 
@@ -856,7 +856,7 @@ internal sealed class Curve25519 : IDisposable
             }
         }
 
-        Reciprocal(t1, z[0], false);
+        Reciprocal(t1, z[0], sqrtAssist: false);
         Multiply(dx, x[0], t1);
         Pack(dx, publicKey);
 
@@ -864,7 +864,7 @@ internal sealed class Curve25519 : IDisposable
         if (signingKey != null)
         {
             CurveEquationInline(t1, dx, t2); /* t1 = Py^2  */
-            Reciprocal(t3, z[1], false); /* where Q=P+G ... */
+            Reciprocal(t3, z[1], sqrtAssist: false); /* where Q=P+G ... */
             Multiply(t2, x[1], t3); /* t2 = Qx  */
             Add(t2, t2, dx); /* t2 = Qx + Px  */
             t2.N0 += 9 + 486662; /* t2 = Qx + Px + Gx + 486662  */

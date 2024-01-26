@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("ls-tree")]
         public static async ValueTask ListTree(this GitPlumbingClient c, GitListTreeArgs options)

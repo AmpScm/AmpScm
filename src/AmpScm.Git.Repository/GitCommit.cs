@@ -22,23 +22,23 @@ namespace AmpScm.Git
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitCommitObjectBucket? _rb;
+        private GitCommitObjectBucket? _rb;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        object? _tree;
+        private object? _tree;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        object[]? _parent;
+        private object[]? _parent;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string? _message;
+        private string? _message;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string? _summary;
+        private string? _summary;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitSignature? _author;
+        private GitSignature? _author;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitSignature? _committer;
+        private GitSignature? _committer;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitTagObject[]? _mergeTags;
+        private GitTagObject[]? _mergeTags;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _hasSignature;
+        private bool _hasSignature;
 
         internal GitCommit(GitRepository repository, GitObjectBucket objectReader, GitId id)
             : base(repository, id)
@@ -125,15 +125,15 @@ namespace AmpScm.Git
             }
         }
 
-        public GitCommit? Parent => GetParent(0, false);
+        public GitCommit? Parent => GetParent(0, viaIndex: false);
 
-        public GitId? ParentId => GetParentId(0, false);
+        public GitId? ParentId => GetParentId(0, viaIndex: false);
 
         public int ParentCount
         {
             get
             {
-                Read(false);
+                Read(all: false);
 
                 return _parent!.Length;
             }
@@ -141,7 +141,7 @@ namespace AmpScm.Git
 
         private GitCommit? GetParent(int index, bool viaIndex = true)
         {
-            Read(false);
+            Read(all: false);
 
             if (index < 0 || index >= (_parent?.Length ?? 0))
             {
@@ -165,7 +165,7 @@ namespace AmpScm.Git
         }
         private GitId? GetParentId(int index, bool viaIndex = true)
         {
-            Read(false);
+            Read(all: false);
 
             if (index < 0 || index >= (_parent?.Length ?? 0))
             {
@@ -197,7 +197,7 @@ namespace AmpScm.Git
             get
             {
                 if (_rb is not null)
-                    Read(true);
+                    Read(all: true);
 
                 return _hasSignature;
             }
@@ -209,7 +209,7 @@ namespace AmpScm.Git
             get
             {
                 if (_message is null)
-                    Read(true);
+                    Read(all: true);
 
                 return _message!;
             }
@@ -228,7 +228,7 @@ namespace AmpScm.Git
             get
             {
                 if (_author is null)
-                    Read(false);
+                    Read(all: false);
 
                 return _author!;
             }
@@ -239,7 +239,7 @@ namespace AmpScm.Git
             get
             {
                 if (_committer is null)
-                    Read(false);
+                    Read(all: false);
 
                 return _committer!;
             }
@@ -254,10 +254,10 @@ namespace AmpScm.Git
 
         public override ValueTask ReadAsync()
         {
-            return ReadAsync(true);
+            return ReadAsync(all: true);
         }
 
-        async ValueTask ReadAsync(bool all)
+        private async ValueTask ReadAsync(bool all)
         {
             if (_rb is null)
                 return;
@@ -410,12 +410,12 @@ namespace AmpScm.Git
         private sealed class IdList : IReadOnlyList<GitId>
         {
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            GitCommit Commit { get; }
+            private GitCommit Commit { get; }
 
             public IdList(GitCommit commit)
             {
                 Commit = commit;
-                Commit.Read(false);
+                Commit.Read(all: false);
             }
 
             public GitId this[int index] => Commit.GetParentId(index)!;
@@ -455,12 +455,12 @@ namespace AmpScm.Git
         private sealed class ParentList : IReadOnlyList<GitCommit>
         {
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            GitCommit Commit { get; }
+            private GitCommit Commit { get; }
 
             public ParentList(GitCommit commit)
             {
                 Commit = commit;
-                Commit.Read(false);
+                Commit.Read(all: false);
             }
 
             public GitCommit this[int index] => Commit.GetParent(index) ?? throw new InvalidOperationException();
@@ -498,12 +498,12 @@ namespace AmpScm.Git
         private sealed class MergeTagList : IReadOnlyList<GitTagObject?>
         {
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            GitCommit Commit { get; }
+            private GitCommit Commit { get; }
 
             public MergeTagList(GitCommit commit)
             {
                 Commit = commit;
-                Commit.Read(false);
+                Commit.Read(all: false);
             }
 
             public GitTagObject? this[int index] => FindMergeTag(Commit.ParentIds[index]);

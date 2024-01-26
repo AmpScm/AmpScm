@@ -417,7 +417,7 @@ namespace BucketTests
                         }
         }
 
-        string Escape(string v)
+        private string Escape(string v)
         {
             StringBuilder sb = new StringBuilder(v.Length);
 
@@ -666,7 +666,7 @@ namespace BucketTests
             return new AggregateBucket(args.Select(x => Encoding.ASCII.GetBytes(x).AsBucket()).ToArray());
         }
 
-        static Encoding ANSI => (Encoding.Default is UTF8Encoding)
+        private static Encoding ANSI => (Encoding.Default is UTF8Encoding)
 #if NET5_0_OR_GREATER
             ? Encoding.Latin1
 #else

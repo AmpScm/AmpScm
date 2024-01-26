@@ -36,7 +36,7 @@ namespace AmpScm.Buckets.Specialized
             while (!_readLeft.IsEmpty)
             {
                 int origLeft = _readLeft.Length;
-                _remaining = ConvertData(ref _readLeft, false);
+                _remaining = ConvertData(ref _readLeft, final: false);
 
                 if (!_remaining.IsEmpty || _readLeft.Length == origLeft)
                     return _remaining;
@@ -51,7 +51,7 @@ namespace AmpScm.Buckets.Specialized
                 return bb;
 
             int len = bb.Length;
-            _remaining = ConvertData(ref bb, false);
+            _remaining = ConvertData(ref bb, final: false);
 
             _skipFirst += (len - bb.Length);
 

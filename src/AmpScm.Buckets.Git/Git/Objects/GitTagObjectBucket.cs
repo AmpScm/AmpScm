@@ -14,22 +14,22 @@ namespace AmpScm.Buckets.Git.Objects
     public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitId? _objectId;
+        private GitId? _objectId;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitObjectType _type;
+        private GitObjectType _type;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string? _tagName;
+        private string? _tagName;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        GitSignatureRecord? _author;
+        private GitSignatureRecord? _author;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _readHeaders;
+        private bool _readHeaders;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        byte[]? _signature;
+        private byte[]? _signature;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly Func<GitSubBucketType, Bucket, ValueTask>? _handleSubBucket;
+        private readonly Func<GitSubBucketType, Bucket, ValueTask>? _handleSubBucket;
 
         public GitTagObjectBucket(Bucket source)
-            : this(source, null)
+            : this(source, handleSubBucket: null)
         {
         }
 
@@ -39,15 +39,15 @@ namespace AmpScm.Buckets.Git.Objects
             _handleSubBucket = handleSubBucket;
         }
 
-        const BucketEol AcceptedEols = BucketEol.LF;
-        const int MaxHeader = 1024;
+        private const BucketEol AcceptedEols = BucketEol.LF;
+        private const int MaxHeader = 1024;
 
         public async ValueTask<(GitId, GitObjectType)> ReadObjectIdAsync()
         {
             if (_objectId is not null)
                 return (_objectId, _type);
 
-            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 7 /* "object " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, null).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 7 /* "object " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, eolState: null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("object "))
                 throw new GitBucketException($"Expected 'object' record at start of tag in '{Source.Name}'");
@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Git.Objects
             else
                 throw new GitBucketException($"Expected valid 'object' record at start of tag in '{Source.Name}'");
 
-            (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "type " */ + 6 /* "commit" */ + 2 /* ALL EOL */, null).ConfigureAwait(false);
+            (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "type " */ + 6 /* "commit" */ + 2 /* ALL EOL */, eolState: null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("type "))
             {
@@ -89,7 +89,7 @@ namespace AmpScm.Buckets.Git.Objects
             if (_objectId is null)
                 await ReadObjectIdAsync().ConfigureAwait(false);
 
-            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, MaxHeader, null).ConfigureAwait(false);
+            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, MaxHeader, eolState: null).ConfigureAwait(false);
 
             if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tag "))
                 throw new GitBucketException($"Expected 'tag' record in '{Source.Name}'");
@@ -124,8 +124,7 @@ namespace AmpScm.Buckets.Git.Objects
             return _author;
         }
 
-
-        async ValueTask ReadOtherHeadersAsync()
+        private async ValueTask ReadOtherHeadersAsync()
         {
             if (_readHeaders)
                 return;
@@ -222,7 +221,7 @@ namespace AmpScm.Buckets.Git.Objects
             return Create.From(WalkSignature(src));
         }
 
-        static async IAsyncEnumerable<BucketBytes> WalkSignature(Bucket src)
+        private static async IAsyncEnumerable<BucketBytes> WalkSignature(Bucket src)
         {
             using (src)
             {

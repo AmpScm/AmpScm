@@ -137,7 +137,7 @@ namespace GitBucketTests
             }
         }
 
-        static string? FindResource(string pattern)
+        private static string? FindResource(string pattern)
         {
             string dir = Path.GetDirectoryName(typeof(GitBitmapTests).Assembly.Location)!;
 

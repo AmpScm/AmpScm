@@ -14,7 +14,7 @@ namespace AmpScm.Git.References
             _repositories = new Lazy<GitReferenceRepository[]>(() => GetRepositories().ToArray());
         }
 
-        readonly Lazy<GitReferenceRepository[]> _repositories;
+        private readonly Lazy<GitReferenceRepository[]> _repositories;
 
         private IEnumerable<GitReferenceRepository> GetRepositories()
         {

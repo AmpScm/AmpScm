@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("show-index")]
         public static async ValueTask ShowIndex(this GitPlumbingClient c, GitShowIndexArgs options)

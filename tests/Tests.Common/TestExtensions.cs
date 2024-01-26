@@ -151,7 +151,7 @@ public static class TestExtensions
         return s;
     }
 
-    static void FixConsoleEncoding()
+    private static void FixConsoleEncoding()
     {
         var ci = Console.InputEncoding;
         if (ci == Encoding.UTF8 && ci.GetPreamble().Length > 0)
@@ -162,7 +162,7 @@ public static class TestExtensions
         }
     }
 
-    static string EscapeGitCommandlineArgument(string argument)
+    private static string EscapeGitCommandlineArgument(string argument)
     {
         if (string.IsNullOrEmpty(argument))
             return "\"\"";

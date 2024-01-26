@@ -13,7 +13,7 @@ namespace AmpScm.Git
     public sealed class GitBlob : GitObject, IGitLazy<GitBlob>
     {
         private GitBucket? _rdr;
-        long? _length;
+        private long? _length;
 
         public sealed override GitObjectType Type => GitObjectType.Blob;
 

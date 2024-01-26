@@ -16,12 +16,12 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("checkout")]
         public static ValueTask CheckOut(this GitPorcelainClient c, string branchOrCommit, GitCheckOutArgs? options = null)
         {
-            return CheckOut(c, branchOrCommit, null, options);
+            return CheckOut(c, branchOrCommit, targets: null, options);
         }
 
         [GitCommand("checkout")]

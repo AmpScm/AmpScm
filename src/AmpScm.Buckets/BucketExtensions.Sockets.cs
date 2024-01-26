@@ -27,7 +27,7 @@ namespace AmpScm.Buckets
 
                     return socket.BeginReceive(arr!, offset, buffer.Length, socketFlags, cb, state);
                 },
-                socket.EndReceive, null);
+                socket.EndReceive, state: null);
         }
 
 
@@ -43,7 +43,7 @@ namespace AmpScm.Buckets
 
                     return socket.BeginSend(arr!, offset, buffer.Length, socketFlags, cb, state);
                 },
-                socket.EndSend, null);
+                socket.EndSend, state: null);
         }
 
         internal static Task ConnectAsync(this Socket socket, string host, int port)
@@ -53,7 +53,7 @@ namespace AmpScm.Buckets
 
             return Task.Factory.FromAsync(
                 (AsyncCallback cb, object? state) => socket.BeginConnect(host, port, cb, state),
-                socket.EndConnect, null);
+                socket.EndConnect, state: null);
         }
 #endif
 

@@ -20,7 +20,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("init")]
         public static async ValueTask Init(this GitPorcelainClient c, string path, GitInitArgs? options = null)

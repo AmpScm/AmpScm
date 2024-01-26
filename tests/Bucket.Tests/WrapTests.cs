@@ -40,7 +40,7 @@ namespace BucketTests
             return $"{method.Name}({args[0]})";
         }
 
-        static Bucket MakeBucket(string name, Bucket over)
+        private static Bucket MakeBucket(string name, Bucket over)
         {
             Type tp = typeof(Bucket).Assembly.GetType(name)!;
 

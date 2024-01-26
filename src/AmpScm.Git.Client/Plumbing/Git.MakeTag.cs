@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("mktag")]
         public static async ValueTask MakeTag(this GitPlumbingClient c, GitMakeTagArgs options)

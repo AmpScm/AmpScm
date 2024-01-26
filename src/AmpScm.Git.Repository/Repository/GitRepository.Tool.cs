@@ -14,22 +14,22 @@ using AmpScm.Git.Repository;
 
 namespace AmpScm.Git
 {
-    partial class GitRepository
+    public partial class GitRepository
     {
 #if NETFRAMEWORK
-        static void FixConsoleUTF8BOMEncoding()
+        private static void FixConsoleUTF8BOMEncoding()
         {
             var ci = Console.InputEncoding;
             if (ci == Encoding.UTF8 && ci.GetPreamble().Length > 0)
             {
                 // Workaround CHCP 65001 / UTF8 bug, where the process will always write a BOM to each started process
                 // with Stdin redirected, which breaks processes which explicitly expect some strings as binary data
-                Console.InputEncoding = new UTF8Encoding(false, true);
+                Console.InputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
             }
         }
 #endif
 
-        static Version? _gitCliVersion;
+        private static Version? _gitCliVersion;
         internal static Version GitCliVersion
         {
             get
@@ -150,7 +150,7 @@ namespace AmpScm.Git
             return (p.ExitCode, rcv.StdOut);
         }
 
-        static (int ExitCode, string OutputText) RunGitCommandWait(string command, IEnumerable<string>? args = null)
+        private static (int ExitCode, string OutputText) RunGitCommandWait(string command, IEnumerable<string>? args = null)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo(GitConfiguration.GitProgramPath)
             {
@@ -226,7 +226,7 @@ namespace AmpScm.Git
             return (p.ExitCode, rcv.StdOut, rcv.StdErr);
         }
 
-        static string[] CreateArgs(string command)
+        private static string[] CreateArgs(string command)
         {
             return new string[] { "-c", "gc.auto=0", "--no-pager", command };
         }
@@ -314,15 +314,15 @@ namespace AmpScm.Git
             return new StdOutputLineWalker(p, stdinText, expectedResults);
         }
 
-        sealed class StdOutputLineWalker : IAsyncEnumerable<string>, IAsyncEnumerator<string>
+        private sealed class StdOutputLineWalker : IAsyncEnumerable<string>, IAsyncEnumerator<string>
         {
-            readonly Process _p;
-            readonly StreamReader _reader;
-            string? _stdinText;
-            bool _eof;
-            string? _current;
-            readonly int[]? _expectedResults;
-            readonly ErrorReceiver _rcv;
+            private readonly Process _p;
+            private readonly StreamReader _reader;
+            private string? _stdinText;
+            private bool _eof;
+            private string? _current;
+            private readonly int[]? _expectedResults;
+            private readonly ErrorReceiver _rcv;
 
             public StdOutputLineWalker(Process p, string? stdinText, int[]? expectedResults)
             {
@@ -380,12 +380,13 @@ namespace AmpScm.Git
             }
         }
 
-        class ErrorReceiver
+        private class ErrorReceiver
         {
-            TaskCompletionSource<bool> Tcs { get; } = new();
+            private TaskCompletionSource<bool> Tcs { get; } = new();
             protected int N;
             public Task DoneTask { get; }
-            readonly StringBuilder _stdErr = new();
+
+            private readonly StringBuilder _stdErr = new();
 
             public ErrorReceiver(Process p)
             {
@@ -424,10 +425,9 @@ namespace AmpScm.Git
             }
         }
 
-
-        sealed class OutputReceiver : ErrorReceiver
+        private sealed class OutputReceiver : ErrorReceiver
         {
-            readonly StringBuilder _stdOut = new();
+            private readonly StringBuilder _stdOut = new();
 
             public OutputReceiver(Process p)
                 : base(p)
@@ -452,7 +452,7 @@ namespace AmpScm.Git
         }
 
 #if NETFRAMEWORK
-        static string EscapeGitCommandlineArgument(string argument)
+        private static string EscapeGitCommandlineArgument(string argument)
         {
             if (string.IsNullOrEmpty(argument))
                 return "\"\"";

@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("am")]
         public static async ValueTask ApplyMailbox(this GitPorcelainClient c, GitApplyMailboxArgs? options = null)

@@ -97,7 +97,7 @@ namespace AmpScm.Git.References
             if (!File.Exists(fileName))
                 return null;
 
-            if (GitRepository.TryReadRefFile(fileName, null, out var body))
+            if (GitRepository.TryReadRefFile(fileName, prefix: null, out var body))
             {
                 if (body.StartsWith("ref: ", StringComparison.OrdinalIgnoreCase))
                 {
@@ -114,12 +114,12 @@ namespace AmpScm.Git.References
             return gitReference; // Not symbolic, and exists. Or error and exists
         }
 
-        async ValueTask<GitId?> LoadIdFromFile(string fileName)
+        private async ValueTask<GitId?> LoadIdFromFile(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
                 throw new ArgumentNullException(nameof(fileName));
 
-            if (!GitRepository.TryReadRefFile(fileName, null, out var body))
+            if (!GitRepository.TryReadRefFile(fileName, prefix: null, out var body))
                 return null;
 
             if (body.StartsWith("ref:", StringComparison.Ordinal))
@@ -145,7 +145,7 @@ namespace AmpScm.Git.References
             return null;
         }
 
-        async IAsyncEnumerable<GitReferenceChange>? GetChangesFromRefLogFile(string fileName)
+        private async IAsyncEnumerable<GitReferenceChange>? GetChangesFromRefLogFile(string fileName)
         {
             var fb = FileBucket.OpenRead(fileName);
             using var gr = new GitReferenceLogBucket(fb);

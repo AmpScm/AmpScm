@@ -76,9 +76,9 @@ namespace AmpScm.Buckets.Git
     }
     public class GitConfigurationBucket : GitBucket
     {
-        string? _group;
-        string? _subGroup;
-        readonly BucketEolState _state = new();
+        private string? _group;
+        private string? _subGroup;
+        private readonly BucketEolState _state = new();
 
         public GitConfigurationBucket(Bucket source) : base(source)
         {
@@ -216,7 +216,8 @@ namespace AmpScm.Buckets.Git
                 }
             }
         }
-        static string? Unescape(string? value)
+
+        private static string? Unescape(string? value)
         {
             if (value is null)
                 return null;

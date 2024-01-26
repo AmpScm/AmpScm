@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("revert")]
         public static async ValueTask Revert(this GitPorcelainClient c, GitRevertArgs? options = null)

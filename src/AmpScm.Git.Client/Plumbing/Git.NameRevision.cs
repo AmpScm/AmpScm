@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("name-rev")]
         public static async ValueTask NameRevision(this GitPlumbingClient c, GitNameRevisionArgs options)

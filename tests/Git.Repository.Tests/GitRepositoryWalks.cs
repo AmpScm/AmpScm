@@ -21,9 +21,9 @@ namespace GitRepositoryTests
     {
         public TestContext TestContext { get; set; } = null!;
 
-        static List<string> TestRepositories { get; } = GetTestRepositories().Concat(GitTestEnvironment.TestDirectories.Select(x => $">{x}")).ToList();
+        private static List<string> TestRepositories { get; } = GetTestRepositories().Concat(GitTestEnvironment.TestDirectories.Select(x => $">{x}")).ToList();
 
-        static IEnumerable<string> GetTestRepositories()
+        private static IEnumerable<string> GetTestRepositories()
         {
             string p = Path.GetDirectoryName(typeof(GitRepositoryWalks).Assembly.Location)!;
 

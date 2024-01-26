@@ -25,7 +25,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("commit-graph")]
         public static async ValueTask CommitGraph(this GitPlumbingClient c, GitCommitGraphArgs options)

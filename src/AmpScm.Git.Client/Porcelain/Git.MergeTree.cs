@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("merge-tree")]
         public static async ValueTask MergeTree(this GitPorcelainClient c, GitMergeTreeArgs? options = null)

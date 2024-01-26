@@ -29,9 +29,9 @@ namespace AmpScm.Buckets.Git.Objects
     public sealed class GitTreeObjectBucket : GitBucket
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly GitIdType _idType;
+        private readonly GitIdType _idType;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _checkedType;
+        private bool _checkedType;
 
         public GitTreeObjectBucket(Bucket source, GitIdType idType) : base(source)
         {

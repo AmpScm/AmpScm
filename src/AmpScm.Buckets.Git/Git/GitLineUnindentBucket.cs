@@ -9,9 +9,9 @@ namespace AmpScm.Buckets.Git
 {
     public sealed class GitLineUnindentBucket : WrappingBucket
     {
-        readonly BucketEol _acceptableEols;
-        bool _cont;
-        bool _eof;
+        private readonly BucketEol _acceptableEols;
+        private bool _cont;
+        private bool _eof;
 
         public GitLineUnindentBucket(Bucket source, BucketEol acceptableEols = BucketEol.LF) : base(source)
         {

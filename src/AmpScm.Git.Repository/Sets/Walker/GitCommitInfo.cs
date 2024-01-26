@@ -12,12 +12,13 @@ namespace AmpScm.Git.Sets.Walker
 {
     internal class GitCommitInfo : IEquatable<GitCommitInfo>
     {
-        object _commit;
-        GitCommitGenerationValue _graphValue;
-        Lazy<IEnumerable<GitId>> _parents;
+        private object _commit;
+        private GitCommitGenerationValue _graphValue;
+        private Lazy<IEnumerable<GitId>> _parents;
         public GitId Id { get; }
         public IEnumerable<GitId> ParentIds => _parents.Value;
-        long commitTime;
+
+        private long commitTime;
 
         public GitCommitInfo(GitCommit from)
         {
@@ -85,7 +86,7 @@ namespace AmpScm.Git.Sets.Walker
             return commitTime;
         }
 
-        async ValueTask ReadCommitInfoByIdAsync()
+        private async ValueTask ReadCommitInfoByIdAsync()
         {
             GitRepository repo = (GitRepository)_commit;
 

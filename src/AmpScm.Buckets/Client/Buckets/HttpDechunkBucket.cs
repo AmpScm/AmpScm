@@ -44,7 +44,7 @@ namespace AmpScm.Buckets.Client.Buckets
                 case DechunkState.Eof:
                     return BucketBytes.Eof;
                 default:
-                    Advance(false).AsTask().Wait(); // Never waits!
+                    Advance(wait: false).AsTask().Wait(); // Never waits!
 
                     if (_state == DechunkState.Chunk)
                         goto case DechunkState.Chunk;
@@ -71,7 +71,7 @@ namespace AmpScm.Buckets.Client.Buckets
                 case DechunkState.Eof:
                     return BucketBytes.Eof;
                 default:
-                    await Advance(true).ConfigureAwait(false);
+                    await Advance(wait: true).ConfigureAwait(false);
 
                     if (_state == DechunkState.Chunk)
                         goto case DechunkState.Chunk;

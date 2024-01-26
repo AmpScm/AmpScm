@@ -10,18 +10,18 @@ namespace AmpScm.Buckets.Git
     public sealed class GitPackObjectBucket : GitObjectBucket, IBucketPoll, IBucketSeek
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed // Bad diagnostic
-        Bucket? _reader;
+        private Bucket? _reader;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        frame_state state;
-        long delta_position;
-        readonly GitIdType _idType;
-        Func<GitId, ValueTask<GitObjectBucket?>>? _fetchBucketById;
-        Func<long, ValueTask<GitObjectBucket>>? _fetchBucketByOffset;
-        GitId? _deltaId;
-        int? _deltaCount;
-        GitObjectType _type;
+        private frame_state state;
+        private long delta_position;
+        private readonly GitIdType _idType;
+        private Func<GitId, ValueTask<GitObjectBucket?>>? _fetchBucketById;
+        private Func<long, ValueTask<GitObjectBucket>>? _fetchBucketByOffset;
+        private GitId? _deltaId;
+        private int? _deltaCount;
+        private GitObjectType _type;
 
-        enum frame_state
+        private enum frame_state
         {
             start,
             size_done,
@@ -40,8 +40,8 @@ namespace AmpScm.Buckets.Git
         public override string Name => (_reader != null) ? $"GitPackFrame[{_reader.Name}]>{Source.Name}" : base.Name;
 
         // These types are in pack files, but not real objects
-        const GitObjectType GitObjectType_DeltaOffset = (GitObjectType)6;
-        const GitObjectType GitObjectType_DeltaReference = (GitObjectType)7;
+        private const GitObjectType GitObjectType_DeltaOffset = (GitObjectType)6;
+        private const GitObjectType GitObjectType_DeltaReference = (GitObjectType)7;
 
         public GitPackObjectBucket(Bucket source, GitIdType idType, Func<GitId, ValueTask<GitObjectBucket?>>? fetchBucketById = null, Func<long, ValueTask<GitObjectBucket>>? fetchBucketByOffset = null)
             : base(source.WithPosition())
@@ -133,7 +133,7 @@ namespace AmpScm.Buckets.Git
         }
 
 #pragma warning disable MA0051 // Method is too long
-        async ValueTask PrepareState(frame_state want_state)
+        private async ValueTask PrepareState(frame_state want_state)
 #pragma warning restore MA0051 // Method is too long
         {
             if (state >= frame_state.body)

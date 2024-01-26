@@ -75,7 +75,7 @@ namespace AmpScm.Buckets.Cryptography
             set => Algorithm.KeySize = value;
         }
 
-        int _feedbackSize;
+        private int _feedbackSize;
         public override int FeedbackSize
         {
             get => _feedbackSize;
@@ -94,7 +94,7 @@ namespace AmpScm.Buckets.Cryptography
 
         private sealed class Decryptor : ICryptoTransform
         {
-            readonly byte[] _feedback;
+            private readonly byte[] _feedback;
 
             public Decryptor(CfbMapper mapper, int feedbackSize, byte[]? rgbIV)
             {

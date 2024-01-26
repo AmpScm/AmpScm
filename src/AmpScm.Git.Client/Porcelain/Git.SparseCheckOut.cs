@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("sparse-checkout")]
         public static async ValueTask SparseCheckOut(this GitPorcelainClient c, GitSparseCheckOutArgs? options = null)

@@ -15,8 +15,8 @@ namespace AmpScm.Buckets.Cryptography
     public abstract class CryptoDataBucket : WrappingBucket
     {
         readonly private Stack<CryptoChunkBucket> _stack = new();
-        Bucket? _reader;
-        long _position;
+        private Bucket? _reader;
+        private long _position;
 
         private protected new CryptoChunkBucket Source => (CryptoChunkBucket)base.Source;
 
@@ -63,13 +63,13 @@ namespace AmpScm.Buckets.Cryptography
                 }
 
                 if (zeroBytes is { })
-                    ha.TransformBlock(zeroBytes, 0, zeroBytes.Length, null, 0);
+                    ha.TransformBlock(zeroBytes, 0, zeroBytes.Length, outputBuffer: null, 0);
 
                 int nHashBytes = s2k.HashByteCount;
                 do
                 {
                     int n = Math.Min(nHashBytes, toHash.Length);
-                    ha.TransformBlock(toHash, 0, n, null, 0);
+                    ha.TransformBlock(toHash, 0, n, outputBuffer: null, 0);
 
                     nHashBytes -= n;
                 }
@@ -180,7 +180,7 @@ namespace AmpScm.Buckets.Cryptography
                     { // Simple S2K
                         alg = (PgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                        return new(alg, null, 0, algorithm, type);
+                        return new(alg, Salt: null, 0, algorithm, type);
                     }
                 case 1:
                     { // Salted S2k
@@ -264,7 +264,7 @@ namespace AmpScm.Buckets.Cryptography
                 PgpPublicKeyType.ECDH => CryptoAlgorithm.Ecdh,
                 PgpPublicKeyType.Curve25519 => CryptoAlgorithm.Curve25519,
                 PgpPublicKeyType.Elgamal => CryptoAlgorithm.Elgamal,
-                _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(keyPublicKeyType), keyPublicKeyType, message: null)
             };
         }
 
@@ -373,7 +373,7 @@ namespace AmpScm.Buckets.Cryptography
                     aes.Padding = PaddingMode.None;
                     aes.FeedbackSize = aes.BlockSize;
 
-                    return new RawDecryptBucket(source, aes.ApplyModeShim(), true);
+                    return new RawDecryptBucket(source, aes.ApplyModeShim(), decrypt: true);
 
                 default:
                     throw new NotSupportedException($"Not implemented for {algorithm} algorithm yet");
@@ -529,7 +529,7 @@ namespace AmpScm.Buckets.Cryptography
                             return new();
                         });
 
-                    (signTime, signer, signKeyFingerprint) = await ParseSubPacketsAsync(subRead, true, signTime, signer, signKeyFingerprint).ConfigureAwait(false);
+                    (signTime, signer, signKeyFingerprint) = await ParseSubPacketsAsync(subRead, hashed: true, signTime, signer, signKeyFingerprint).ConfigureAwait(false);
                 }
 
                 uint unhashedLen;
@@ -543,7 +543,7 @@ namespace AmpScm.Buckets.Cryptography
                 {
                     var subRead = bucket.TakeExactly(unhashedLen);
 
-                    (signTime, signer, signKeyFingerprint) = await ParseSubPacketsAsync(subRead, false, signTime, signer, signKeyFingerprint).ConfigureAwait(false);
+                    (signTime, signer, signKeyFingerprint) = await ParseSubPacketsAsync(subRead, hashed: false, signTime, signer, signKeyFingerprint).ConfigureAwait(false);
                 }
 
                 // First 2 bytes of hash
@@ -752,7 +752,7 @@ namespace AmpScm.Buckets.Cryptography
         {
             ByteCollector bb = new(4096);
 
-            var ints = keyInts.Select(x => x.ToCryptoValue(false)).ToList();
+            var ints = keyInts.Select(x => x.ToCryptoValue(unsigned: false)).ToList();
 
             string alg;
             switch (sba)

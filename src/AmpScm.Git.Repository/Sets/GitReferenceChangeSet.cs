@@ -15,7 +15,7 @@ namespace AmpScm.Git.Sets
 {
     public class GitReferenceChangeSet : GitSet<GitReferenceChange>, IQueryableAndAsyncQueryable<GitReferenceChange>, IListSource
     {
-        readonly GitReference _reference;
+        private readonly GitReference _reference;
 
         internal GitReferenceChangeSet(GitRepository repository, GitReference reference)
             : base(repository)

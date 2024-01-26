@@ -7,7 +7,7 @@ namespace AmpScm.Buckets.Subversion
     internal sealed class SvnHashBucket : SvnBucket
     {
         private Action? _atEof;
-        bool _readEol;
+        private bool _readEol;
 
         public SvnHashBucket(Bucket source, Action? atEof = null)
             : base(source)

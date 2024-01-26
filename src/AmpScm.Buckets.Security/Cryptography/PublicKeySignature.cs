@@ -48,7 +48,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
         }
     }
 
-    IReadOnlyList<BigInteger> Values { get; }
+    private IReadOnlyList<BigInteger> Values { get; }
     public string FingerprintString => CryptoDataBucket.FingerprintToString(InternalFingerprint);
 
     public System.Net.Mail.MailAddress? MailAddress { get; }
@@ -89,7 +89,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
 
     public static bool TryParse(string keyText, [NotNullWhen(true)] out PublicKeySignature? value)
     {
-        return TryParse(keyText, null, out value);
+        return TryParse(keyText, getPassPhrase: null, out value);
     }
 
     public static bool TryParse(string keyText, Func<SignaturePromptContext, string>? getPassPhrase, [NotNullWhen(true)] out PublicKeySignature? value)

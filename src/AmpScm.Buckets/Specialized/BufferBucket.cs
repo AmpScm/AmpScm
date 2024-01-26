@@ -26,7 +26,7 @@ namespace AmpScm.Buckets.Specialized
                 throw new ArgumentOutOfRangeException(nameof(maxMemory), maxMemory, message: null);
 
             _maxRam = maxMemory;
-            _readBucket = new AggregateBucket.SimpleAggregate(true, Array.Empty<Bucket>());
+            _readBucket = new AggregateBucket.SimpleAggregate(keepOpen: true, Array.Empty<Bucket>());
             _writer = new MyWriter(this);
         }
 
@@ -57,7 +57,7 @@ namespace AmpScm.Buckets.Specialized
             {
                 _size = _buffered;
                 _readEof = true;
-                Dispose(true);
+                Dispose(disposing: true);
             }
         }
 

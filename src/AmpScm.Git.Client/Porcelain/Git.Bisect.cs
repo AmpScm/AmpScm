@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("bisect")]
         public static async ValueTask Bisect(this GitPorcelainClient c, GitBisectArgs? options = null)

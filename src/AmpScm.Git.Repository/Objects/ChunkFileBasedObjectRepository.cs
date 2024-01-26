@@ -10,7 +10,7 @@ namespace AmpScm.Git.Objects
 {
     internal abstract class ChunkFileBasedObjectRepository : GitObjectRepository
     {
-        readonly string _fileName;
+        private readonly string _fileName;
         protected GitIdType IdType { get; private set; }
         protected FileBucket? ChunkReader { get; private set; }
 
@@ -46,14 +46,14 @@ namespace AmpScm.Git.Objects
         }
 
         [DebuggerDisplay("{Name}, Length={Length}")]
-        struct Chunk
+        private struct Chunk
         {
             public string? Name;
             public long Position;
             public long Length;
         }
 
-        Chunk[]? _chunks;
+        private Chunk[]? _chunks;
         protected uint[]? FanOut { get; private set; }
 
         protected long AfterChunkPosition => _chunks?.Select(x => x.Position + x.Length).Last() ?? -1;
@@ -82,7 +82,7 @@ namespace AmpScm.Git.Objects
 
         protected abstract ValueTask<(GitIdType IdType, int ChunkCount, long ChunkTableOffset)> ReadHeaderAsync();
 
-        async ValueTask ReadChunks(long chunkTableOffset, int chunkCount)
+        private async ValueTask ReadChunks(long chunkTableOffset, int chunkCount)
         {
             if (ChunkReader is null)
                 throw new InvalidOperationException();

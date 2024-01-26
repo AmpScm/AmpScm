@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("pack-objects")]
         public static async ValueTask PackObjects(this GitPlumbingClient c, GitPackObjectsArgs options)

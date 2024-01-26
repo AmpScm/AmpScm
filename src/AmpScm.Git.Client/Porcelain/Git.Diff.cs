@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("diff")]
         public static async ValueTask Diff(this GitPorcelainClient c, GitDiffArgs? options = null)

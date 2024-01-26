@@ -79,8 +79,8 @@ namespace AmpScm.Git
         where TEntry : GitTreeEntry<TEntry, TObject>
         where TObject : GitObject
     {
-        bool _loaded;
-        TObject? _object;
+        private bool _loaded;
+        private TObject? _object;
 
 
         private protected GitTreeEntry(GitTree tree, string name, GitId item) : base(tree, name, item)

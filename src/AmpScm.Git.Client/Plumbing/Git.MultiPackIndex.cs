@@ -24,7 +24,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("multi-pack-index")]
         public static async ValueTask MultiPackIndex(this GitPlumbingClient c, GitMultiPackIndexArgs? options = null)

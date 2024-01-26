@@ -44,7 +44,7 @@ namespace AmpScm.Git
         /// <param name="path"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        static (string? Path, GitRootType Type) FindGitRoot(string path)
+        private static (string? Path, GitRootType Type) FindGitRoot(string path)
         {
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentNullException(nameof(path));

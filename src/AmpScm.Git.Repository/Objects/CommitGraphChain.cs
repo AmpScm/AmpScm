@@ -6,8 +6,8 @@ namespace AmpScm.Git.Objects
 {
     internal sealed class CommitGraphChain : GitObjectRepository
     {
-        readonly string _chainDir;
-        List<GitCommitGraph>? Graphs;
+        private readonly string _chainDir;
+        private List<GitCommitGraph>? Graphs;
 
         public CommitGraphChain(GitRepository repository, string chain) : base(repository, "CommitChain:" + chain)
         {

@@ -26,7 +26,7 @@ namespace GitBucketTests
         public TestContext TestContext { get; set; } = default!;
 
         // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
-        const string SshSig =
+        private const string SshSig =
 @"-----BEGIN SSH SIGNATURE-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAP5ogvLJzK+1q2cwJ7K5y6
 tIKRc9y4wv9uAk4cULCN4UDwIBcGU4QiAxuWPsgjxKko/qaQMQWBdBcAUXqLTRQC7z80ER
@@ -46,9 +46,7 @@ zMVsThr0xjYrEpCy7Mk+v6B94DsJFvSpycppXmfnYX+H2Umi1qw9hp7d/wb2txmqFStM8g
 9JDwomS99jM88rMEhZWi6dRjXlEG4q/OoTKnTmT30Aib71Ill+sFxEtmGesS8eeJ+js6B7
 GtAh3JPRDOlZUZM=
 -----END SSH SIGNATURE-----";
-
-
-        const string MergeTag =
+        private const string MergeTag =
 @"tree 31b100c21e7d04fab9a2ce69b192f40798f2f260
 parent 233087ca063686964a53c829d547c7571e3f67bf
 parent ba7542eb2dd5dfc75c457198b88986642e602065
@@ -136,7 +134,7 @@ Pull MTD fixes from Miquel Raynal:
             }
         }
 
-        const string SignedCommit =
+        private const string SignedCommit =
 @"tree d6b79075cd65b101cec0b38f9e4eb86de5b850a7
 parent 660e6bd5cd277296aa8b3aadc1383995b6c00e87
 parent 0f5944459beb952fd49461dfb3c2867de7df314b
@@ -189,7 +187,7 @@ A couple of simplications around mwindow";
             }
         }
 
-        const string SignedTag =
+        private const string SignedTag =
 @"object ba7542eb2dd5dfc75c457198b88986642e602065
 type commit
 tag mtd/fixes-for-5.18-rc5
@@ -214,8 +212,7 @@ grze+yeq0AqntS2gaiIsmRHShd/gpTfd4OAYkifpvclUYMGlfy2i038eTsuLLMfA
 =gnxP
 -----END PGP SIGNATURE-----
 ";
-
-        const string PublicKeyOfSignedTag =
+        private const string PublicKeyOfSignedTag =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQENBFk/j/ABCADBrAWnqPpax2so2sQFrihYOy2AebXaq/o3NBtd62v2q+HspQj0
@@ -271,7 +268,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 -----END PGP PUBLIC KEY BLOCK-----
 ";
 
-        static async ValueTask<PublicKeySignature> GetKey(string keyData = PublicKeyOfSignedTag)
+        private static async ValueTask<PublicKeySignature> GetKey(string keyData = PublicKeyOfSignedTag)
         {
             var key = Bucket.Create.FromASCII(keyData.Replace("\r", ""));
 
@@ -281,7 +278,7 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
             return await kb.ReadKeyAsync();
         }
 
-        const string WebFlowKey =
+        private const string WebFlowKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 xsBNBFmUaEEBCACzXTDt6ZnyaVtueZASBzgnAmK13q9Urgch+sKYeIhdymjuMQta
@@ -299,7 +296,8 @@ DDMeh6j80WT7cgoX7V7xqJOxrfrqPEthQ3hgHIm7b5MPQlUr2q+UPL22t/I+ESF6
 j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 =HXDP
 -----END PGP PUBLIC KEY BLOCK-----";
-        static async ValueTask<PublicKeySignature> GetGitHubWebFlowKey()
+
+        private static async ValueTask<PublicKeySignature> GetGitHubWebFlowKey()
         {
             var key = Bucket.Create.FromASCII(WebFlowKey.Replace("\r", ""));
 
@@ -476,7 +474,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
             }
         }
 
-        const string APrivateKey =
+        private const string APrivateKey =
 @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lFgEY+jHGBYJKwYBBAHaRw8BAQdA4LuQh88dckAm8tn5rJS5fIzkbLKtoSRvTlA9
@@ -492,8 +490,7 @@ TLQz69WEUUAtQ1SwiGAaAP9MaVfEDY7GtSZO97Vs5prfBkYhWc3qEknTOhfiZbql
 BA==
 =PIZ4
 -----END PGP PRIVATE KEY BLOCK-----";
-
-        const string AMessage =
+        private const string AMessage =
 @"-----BEGIN PGP MESSAGE-----
 
 hF4DxaX2D8f75n0SAQdACeR83BHHiw1jGFVw4TcPcoHqOyZdl/9AHvY8TlkIf38w
@@ -522,7 +519,7 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
             Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
         }
 
-        string RunSshKeyGen(params string[] args)
+        private string RunSshKeyGen(params string[] args)
         {
             return TestContext.RunApp("ssh-keygen", args);
         }

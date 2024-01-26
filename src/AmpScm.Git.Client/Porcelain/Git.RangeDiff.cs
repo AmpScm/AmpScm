@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("range-diff")]
         public static async ValueTask RangeDiff(this GitPorcelainClient c, GitRangeDiffArgs? options = null)

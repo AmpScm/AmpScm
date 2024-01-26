@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("add")]
         public static ValueTask Add(this GitPorcelainClient c, string path, GitAddArgs? options=null)

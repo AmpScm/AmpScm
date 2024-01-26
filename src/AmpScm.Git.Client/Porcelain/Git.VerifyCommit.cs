@@ -15,7 +15,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("verify-commit")]
         public static async ValueTask VerifyCommit(this GitPorcelainClient c, string commit, GitVerifyCommitArgs? options = null)

@@ -22,7 +22,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("stash")]
         public static async ValueTask Stash(this GitPorcelainClient c, GitStashArgs? options = null)

@@ -17,7 +17,7 @@ namespace AmpScm.Diff
 
     public sealed partial class DifferenceSet : IReadOnlyCollection<DiffChunk>
     {
-        DifferenceSet(IEnumerable<DiffChunk> range)
+        private DifferenceSet(IEnumerable<DiffChunk> range)
         {
             Ranges = range;
         }
@@ -48,7 +48,7 @@ namespace AmpScm.Diff
             }
         }
 
-        IEnumerable<DiffChunk> Ranges { get; }
+        private IEnumerable<DiffChunk> Ranges { get; }
 
         int IReadOnlyCollection<DiffChunk>.Count => Ranges.Count();
 

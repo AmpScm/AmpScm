@@ -11,8 +11,9 @@ namespace AmpScm.Git.Sets.Walker
     internal class GitRevisionWalker : IAsyncEnumerable<GitRevision>
     {
         private GitRevisionSetOptions options;
-        Dictionary<GitId, GitCommitInfo> Commits { get; } = new Dictionary<GitId, GitCommitInfo>();
-        GitRepository Repository {get;}
+
+        private Dictionary<GitId, GitCommitInfo> Commits { get; } = new Dictionary<GitId, GitCommitInfo>();
+        private GitRepository Repository {get;}
 
         public GitRevisionWalker(GitRevisionSetOptions options, GitRepository repository)
         {
@@ -98,7 +99,7 @@ namespace AmpScm.Git.Sets.Walker
             }
         }
 
-        GitCommitInfo EnsureCommit(GitId id)
+        private GitCommitInfo EnsureCommit(GitId id)
         {
             if (!Commits.TryGetValue(id, out var v))
             {

@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("apply")]
         public static async ValueTask Apply(this GitPlumbingClient c, GitApplyArgs options)

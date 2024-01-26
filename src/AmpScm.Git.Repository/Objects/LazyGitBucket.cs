@@ -11,11 +11,12 @@ namespace AmpScm.Git.Objects
 {
     internal sealed class LazyGitObjectBucket : GitObjectBucket, IBucketPoll
     {
-        GitRepository Repository { get; }
-        GitId Id { get; }
-        GitObjectBucket? _inner;
-        GitObjectType _type;
-        bool _eof;
+        private GitRepository Repository { get; }
+        private GitId Id { get; }
+
+        private GitObjectBucket? _inner;
+        private GitObjectType _type;
+        private bool _eof;
 
         public LazyGitObjectBucket(GitRepository repository, GitId id, GitObjectType type=GitObjectType.None) : base(Bucket.Empty)
         {

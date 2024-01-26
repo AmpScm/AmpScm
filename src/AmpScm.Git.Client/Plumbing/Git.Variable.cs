@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("var")]
         public static async ValueTask Variable(this GitPlumbingClient c, GitVariableArgs options)

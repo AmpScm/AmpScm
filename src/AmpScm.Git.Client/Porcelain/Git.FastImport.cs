@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("fast-import")]
         public static async ValueTask FastImport(this GitPorcelainClient c, GitFastImportArgs? options = null)

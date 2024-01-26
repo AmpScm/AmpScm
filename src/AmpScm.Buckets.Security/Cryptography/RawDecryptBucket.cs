@@ -15,7 +15,7 @@ namespace AmpScm.Buckets.Cryptography
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private byte[]? _buffer;
         private ByteCollector _byteCollector;
-        bool _done;
+        private bool _done;
 
         public RawDecryptBucket(Bucket source, SymmetricAlgorithm algorithm, bool decrypt)
             : base(source)

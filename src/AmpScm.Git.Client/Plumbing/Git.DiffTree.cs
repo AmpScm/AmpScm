@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("diff-tree")]
         public static async ValueTask DiffTree(this GitPlumbingClient c, GitDiffTreeArgs options)

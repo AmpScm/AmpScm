@@ -20,7 +20,7 @@ namespace AmpScm.Buckets
         AnyEol = LF | CR | CRLF,
 
         EolMask = Zero | AnyEol,
-        CRSplit = 0x100000
+        CRSplit = 0x100000,
     }
 
     public sealed class BucketEolState
@@ -58,7 +58,7 @@ namespace AmpScm.Buckets
             return new(read, found);
         }
 
-        static readonly ReadOnlyMemory<byte>[] Eols =
+        private static readonly ReadOnlyMemory<byte>[] Eols =
 {
             Array.Empty<byte>(),
             new byte[] { 0 },
@@ -69,7 +69,6 @@ namespace AmpScm.Buckets
             new byte[] { (byte)'\n', (byte)'\r'},
             new byte[] { 0, (byte)'\n', (byte)'\r'},
         };
-
 
 #if !NETFRAMEWORK
         [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]

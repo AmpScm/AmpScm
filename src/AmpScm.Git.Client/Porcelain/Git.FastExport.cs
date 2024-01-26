@@ -16,7 +16,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("fast-export")]
         public static async ValueTask<Bucket> FastExport(this GitPorcelainClient c, GitFastExportArgs? options = null)

@@ -11,7 +11,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("cherry")]
         public static async ValueTask Cherry(this GitPlumbingClient c, GitCherryArgs options)

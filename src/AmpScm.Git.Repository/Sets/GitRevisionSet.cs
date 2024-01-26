@@ -10,10 +10,10 @@ namespace AmpScm.Git.Sets
 {
     public class GitRevisionSet : GitSet<GitRevision>, IQueryableAndAsyncQueryable<GitRevision>
     {
-        readonly GitRevisionSetOptions _options;
+        private readonly GitRevisionSetOptions _options;
 
         internal GitRevisionSet(GitRepository repository)
-            : this(repository, null)
+            : this(repository, options: null)
         {
             _options = new GitRevisionSetOptions();
             Expression = Expression.Call(Expression.Property(Expression.Constant(Repository),
@@ -32,10 +32,10 @@ namespace AmpScm.Git.Sets
                                 Expression.Constant(_options));
         }
 
-        static System.Reflection.PropertyInfo GetProperty<T>(Expression<Func<T, object>> pr)
+        private static System.Reflection.PropertyInfo GetProperty<T>(Expression<Func<T, object>> pr)
             => (System.Reflection.PropertyInfo)((MemberExpression)pr.Body).Member;
 
-        static System.Reflection.MethodInfo GetMethod(Expression<Func<GitRevisionSet, object>> pr)
+        private static System.Reflection.MethodInfo GetMethod(Expression<Func<GitRevisionSet, object>> pr)
             => ((MethodCallExpression)pr.Body).Method;
 
         IAsyncEnumerator<GitRevision> IAsyncEnumerable<GitRevision>.GetAsyncEnumerator(CancellationToken cancellationToken)

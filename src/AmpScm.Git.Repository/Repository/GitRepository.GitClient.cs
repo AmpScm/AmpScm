@@ -13,7 +13,7 @@ using AmpScm.Git.Repository;
 
 namespace AmpScm.Git
 {
-    partial class GitRepository
+    public partial class GitRepository
     {
         internal GitRepository(GitRepositoryOpenArgs a)
             : this(GitRepositoryOpenArgs.NotNull(a).Path, a.RootType)

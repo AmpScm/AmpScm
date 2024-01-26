@@ -24,7 +24,7 @@ namespace AmpScm.Buckets.Git
             if (writeBitmap)
                 throw new NotImplementedException();
 
-            using var srcFile = FileBucket.OpenRead(packFile, false);
+            using var srcFile = FileBucket.OpenRead(packFile, forAsync: false);
             var hashes = new SortedList<GitId, long>();
             var crcs = new SortedList<long, (int CRC, List<long> Deps)>();
 
@@ -229,7 +229,7 @@ namespace AmpScm.Buckets.Git
             }
         }
 
-        sealed class DummyObjectBucket : GitObjectBucket
+        private sealed class DummyObjectBucket : GitObjectBucket
         {
             private DummyObjectBucket() : base(Bucket.Empty)
             {
@@ -267,10 +267,10 @@ namespace AmpScm.Buckets.Git
             public override long? Position => 0;
         }
 
-        sealed class BufferObjectBucket : GitObjectBucket, IBucketSeek, IBucketPoll
+        private sealed class BufferObjectBucket : GitObjectBucket, IBucketSeek, IBucketPoll
         {
 #pragma warning disable CA2213 // Disposable fields should be disposed
-            readonly Bucket _buffer;
+            private readonly Bucket _buffer;
 #pragma warning restore CA2213 // Disposable fields should be disposed
             public BufferObjectBucket(GitObjectBucket source)
                 : base(source)

@@ -10,12 +10,12 @@ namespace AmpScm.Git.Objects
 {
     public sealed class GitCommitWriter : GitObjectWriter<GitCommit>
     {
-        IReadOnlyList<IGitLazy<GitCommit>>? _parents;
-        IReadOnlyList<IGitLazy<GitTagObject>>? _mergeTags;
-        GitSignature? _committer;
-        GitSignature? _author;
-        GitTreeWriter? _tree;
-        string? _message;
+        private IReadOnlyList<IGitLazy<GitCommit>>? _parents;
+        private IReadOnlyList<IGitLazy<GitTagObject>>? _mergeTags;
+        private GitSignature? _committer;
+        private GitSignature? _author;
+        private GitTreeWriter? _tree;
+        private string? _message;
 
         public override GitObjectType Type => GitObjectType.Commit;
 

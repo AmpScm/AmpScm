@@ -12,10 +12,10 @@ namespace AmpScm.Git
     [DebuggerDisplay("{TargetId.ToString(\"x12\"),nq} {Signature.When,nq} {Reason,nq}")]
     public sealed class GitReferenceChange : IGitObject
     {
-        object _signature;
-        GitRepository _repository;
-        GitObject? _targetObject;
-        GitObject? _originalObject;
+        private object _signature;
+        private GitRepository _repository;
+        private GitObject? _targetObject;
+        private GitObject? _originalObject;
 
         internal GitReferenceChange(GitRepository repository, GitReferenceLogRecord record)
         {

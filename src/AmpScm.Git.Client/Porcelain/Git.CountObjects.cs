@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("count-objects")]
         public static async ValueTask CountObjects(this GitPorcelainClient c, GitCountObjectsArgs? options = null)

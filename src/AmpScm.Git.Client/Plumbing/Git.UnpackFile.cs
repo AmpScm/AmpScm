@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("unpack-file")]
         public static async ValueTask UnpackFile(this GitPlumbingClient c, GitUnpackFileArgs options)

@@ -148,7 +148,7 @@ public class SshTests
 #endif
     }
 
-    string RunSshKeyGen(params string[] args)
+    private string RunSshKeyGen(params string[] args)
     {
         try
         {

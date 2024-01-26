@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("cat-file")]
         public static async ValueTask CatFile(this GitPlumbingClient c, GitCatFileArgs options)

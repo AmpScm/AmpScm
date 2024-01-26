@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("checkout-index")]
         public static async ValueTask CheckOutIndex(this GitPlumbingClient c, GitCheckOutIndexArgs options)

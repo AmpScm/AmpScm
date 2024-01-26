@@ -12,11 +12,12 @@ namespace AmpScm.Git
     public class GitReference : IGitNamedObject, IEquatable<GitReference>
     {
         protected GitReferenceRepository ReferenceRepository { get; }
-        object? _object;
-        object? _commit;
-        Func<ValueTask<GitId?>>? _resolver;
-        string? _shortName;
-        GitReference? _resolved;
+
+        private object? _object;
+        private object? _commit;
+        private Func<ValueTask<GitId?>>? _resolver;
+        private string? _shortName;
+        private GitReference? _resolved;
 
         internal GitReference(GitReferenceRepository repository, string name, Func<ValueTask<GitId?>> resolver)
             : this(repository, name)
@@ -172,7 +173,7 @@ namespace AmpScm.Git
         internal bool IsBranch => Name.StartsWith("refs/heads/", StringComparison.Ordinal) || (Name == GitReferenceRepository.Head && ((this as GitSymbolicReference)?.Reference == this));
         internal bool IsTag => Name.StartsWith("refs/tags/", StringComparison.Ordinal);
 
-        static HashSet<char> InvalidChars = new HashSet<char>(Path.GetInvalidFileNameChars());
+        private static HashSet<char> InvalidChars = new HashSet<char>(Path.GetInvalidFileNameChars());
 
         public static bool ValidName(string name, bool allowSpecialSymbols)
         {

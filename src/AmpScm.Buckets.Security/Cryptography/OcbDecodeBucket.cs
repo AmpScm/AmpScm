@@ -32,7 +32,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
     /// <summary>
     /// Length of the tag in bytes
     /// </summary>
-    int TagSize { get; }
+    private int TagSize { get; }
 
 
     /// <summary>
@@ -232,8 +232,8 @@ public sealed class OcbDecodeBucket : ConversionBucket
         return _masks[n];
     }
 
-    byte[]? _annotation;
-    bool _verifyLater;
+    private byte[]? _annotation;
+    private bool _verifyLater;
 
     private void LeftData(BucketBytes bb)
     {
@@ -265,7 +265,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
         }
     }
 
-    void DoVerify()
+    private void DoVerify()
     {
         byte[] tag = Encipher(_checksum);
         SpanXor(tag, Hash(_associatedData).Span);
@@ -350,7 +350,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
         return new(_buffer2, 0, offset);
     }
 
-    void TransformBlock(ReadOnlySpan<byte> srcData, ref int offset)
+    private void TransformBlock(ReadOnlySpan<byte> srcData, ref int offset)
     {
         byte[] src = _buf16;
 
@@ -443,7 +443,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
             return requested;
     }
 
-    sealed class OcbLeaver
+    private sealed class OcbLeaver
     {
         public void Left(BucketBytes bb, long length)
         {

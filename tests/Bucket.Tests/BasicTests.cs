@@ -129,7 +129,7 @@ namespace BucketTests
         }
 
         // Git blob of "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        static readonly byte[] git_blob_ABCDEFGHIJKLMNOPQRSTUVWXYZ = {
+        private static readonly byte[] git_blob_ABCDEFGHIJKLMNOPQRSTUVWXYZ = {
             0x78, 0x01, 0x4b, 0xca, 0xc9, 0x4f, 0x52, 0x30, 0x32, 0x63, 0x70, 0x74,
             0x72, 0x76, 0x71, 0x75, 0x73, 0xf7, 0xf0, 0xf4, 0xf2, 0xf6, 0xf1, 0xf5,
             0xf3, 0x0f, 0x08, 0x0c, 0x0a, 0x0e, 0x09, 0x0d, 0x0b, 0x8f, 0x88, 0x8c,
@@ -579,7 +579,7 @@ namespace BucketTests
             Assert.IsFalse(bEmpty.IsEof, "Not EOF");
         }
 
-        static ReadOnlySpan<byte> readOnlyBytesNoTable => new byte[] {
+        private static ReadOnlySpan<byte> readOnlyBytesNoTable => new byte[] {
             (byte)'0',
             (byte)'1',
             (byte)'2',
@@ -598,7 +598,7 @@ namespace BucketTests
             (byte)'F',
         };
 
-        static ReadOnlyMemory<byte> readOnlyByteMemNoTable => new byte[] {
+        private static ReadOnlyMemory<byte> readOnlyByteMemNoTable => new byte[] {
             (byte)'0',
             (byte)'1',
             (byte)'2',

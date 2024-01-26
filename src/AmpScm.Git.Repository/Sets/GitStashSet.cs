@@ -20,7 +20,7 @@ namespace AmpScm.Git.Sets
         public GitStash this[int index] => StashChanges.Skip(index >= 0 ? index : throw new ArgumentOutOfRangeException(nameof(index)))
             .FirstOrDefault() is { } c ? new GitStash(c) : throw new ArgumentOutOfRangeException(nameof(index));
 
-        IQueryableAndAsyncQueryable<GitReferenceChange> StashChanges => Repository.References["refs/stash"]?.ReferenceChanges ?? AmpAsyncQueryable.Empty<GitReferenceChange>();
+        private IQueryableAndAsyncQueryable<GitReferenceChange> StashChanges => Repository.References["refs/stash"]?.ReferenceChanges ?? AmpAsyncQueryable.Empty<GitReferenceChange>();
 
         public int Count => StashChanges.Count();
 

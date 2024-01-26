@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("rebase")]
         public static async ValueTask Rebase(this GitPorcelainClient c, GitRebaseArgs? options = null)

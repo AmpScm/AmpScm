@@ -46,7 +46,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("rev-list")]
         public static IAsyncEnumerable<GitId> RevisionList(this GitPlumbingClient c, GitRevisionListArgs options)

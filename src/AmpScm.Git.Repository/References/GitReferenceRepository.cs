@@ -35,7 +35,7 @@ namespace AmpScm.Git.References
 
         public ValueTask<GitReference?> GetAsync(string name)
         {
-            if (!GitReference.ValidName(name, true))
+            if (!GitReference.ValidName(name, allowSpecialSymbols: true))
                 throw new ArgumentOutOfRangeException(nameof(name), name, "Invalid Reference name");
 
             return GetUnsafeAsync(name);

@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("verify-tag")]
         public static async ValueTask VerifyTag(this GitPorcelainClient c, GitVerifyTagArgs? options = null)

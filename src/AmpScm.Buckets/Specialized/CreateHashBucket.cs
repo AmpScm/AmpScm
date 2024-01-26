@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -21,7 +20,7 @@ namespace AmpScm.Buckets.Specialized
         }
 
         public CreateHashBucket(Bucket source, HashAlgorithm hasher, Action<byte[]> hashCreated)
-            : this(source, hasher, x => hashCreated(x(null)))
+            : this(source, hasher, x => hashCreated(x(arg: null)))
         {
         }
 
@@ -65,7 +64,7 @@ namespace AmpScm.Buckets.Specialized
                 _hasher = null;
 
                 h.TransformFinalBlock(suffix ?? Array.Empty<byte>(), 0, suffix?.Length ?? 0);
-                return  h.Hash ?? throw new InvalidOperationException();
+                return h.Hash ?? throw new InvalidOperationException();
             }
             else
                 return null!;

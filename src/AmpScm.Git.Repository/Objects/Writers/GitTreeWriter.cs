@@ -12,7 +12,7 @@ namespace AmpScm.Git.Objects
 {
     public sealed class GitTreeWriter : GitObjectWriter<GitTree>, IEnumerable<KeyValuePair<string, IGitLazy<GitObject>>>
     {
-        readonly SortedList<string, TWItem> _items = new SortedList<string, TWItem>(StringComparer.Ordinal);
+        private readonly SortedList<string, TWItem> _items = new SortedList<string, TWItem>(StringComparer.Ordinal);
 
         public override GitObjectType Type => GitObjectType.Tree;
 
@@ -21,7 +21,7 @@ namespace AmpScm.Git.Objects
 
         }
 
-        static bool IsValidName(string name)
+        private static bool IsValidName(string name)
         {
             if (string.IsNullOrEmpty(name))
                 return false;
@@ -75,7 +75,7 @@ namespace AmpScm.Git.Objects
                     else
                     {
                         var stw = GitTreeWriter.CreateEmpty();
-                        tw.Add(si, stw, null);
+                        tw.Add(si, stw, setType: null);
                         tw = stw;
                     }
                 }
@@ -226,7 +226,7 @@ namespace AmpScm.Git.Objects
             return Id;
         }
 
-        abstract class TWItem
+        private abstract class TWItem
         {
             protected TWItem(string name)
             {
@@ -244,10 +244,10 @@ namespace AmpScm.Git.Objects
             public abstract IGitLazy<GitObject> Lazy { get; }
         }
 
-        sealed class TWItem<TGitObject> : TWItem
+        private sealed class TWItem<TGitObject> : TWItem
             where TGitObject : GitObject
         {
-            IGitLazy<TGitObject> _lazy;
+            private IGitLazy<TGitObject> _lazy;
             private GitObjectWriter? _writer;
 
             public TWItem(string name, IGitLazy<TGitObject> lazy, GitTreeElementType? setType)

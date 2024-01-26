@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("write-tree")]
         public static async ValueTask WriteTree(this GitPlumbingClient c, GitWriteTreeArgs options)

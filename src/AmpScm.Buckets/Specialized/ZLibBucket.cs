@@ -233,7 +233,7 @@ namespace AmpScm.Buckets.Specialized
         async ValueTask<BucketBytes> IBucketPoll.PollAsync(int minSize)
         {
             if (!_eof && write_buffer.IsEmpty)
-                await Refill(false).ConfigureAwait(false);
+                await Refill(forPeek: false).ConfigureAwait(false);
 
             return write_buffer;
         }
@@ -248,7 +248,7 @@ namespace AmpScm.Buckets.Specialized
                 // Loosing data. See TestConvertFail for deflate and zlib stream
                 int rq = (_level.HasValue && requested < 256) ? 256 : requested;
 
-                if (_eof || await Refill(false, rq).ConfigureAwait(false))
+                if (_eof || await Refill(forPeek: false, rq).ConfigureAwait(false))
                     return BucketBytes.Eof;
             }
 

@@ -664,7 +664,7 @@ bv+LjLMogTCQlrJoGgN9Hc0gllsIhpT67/iAXcDtxEO6xsMW97/Xr4mAWejuvC5+
         Assert.AreEqual("Without-PW\r\n", bb.ToUTF8String());
     }
 
-    static byte[] ParseKey(string strKey)
+    private static byte[] ParseKey(string strKey)
     {
         byte[] result = new byte[strKey.Length / 2];
 

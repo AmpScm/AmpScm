@@ -10,9 +10,9 @@ namespace AmpScm.Git.Objects
 {
     public class GitTagObjectWriter : GitObjectWriter<GitTagObject>
     {
-        string? _name;
-        string? _message;
-        GitSignature? _tagger;
+        private string? _name;
+        private string? _message;
+        private GitSignature? _tagger;
         public IGitLazy<GitObject> GitObject { get; set; } = default!;
 
         private GitTagObjectWriter()

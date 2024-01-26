@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("pack-redundant")]
         public static async ValueTask PackRedundant(this GitPlumbingClient c, GitPackRedundantArgs options)

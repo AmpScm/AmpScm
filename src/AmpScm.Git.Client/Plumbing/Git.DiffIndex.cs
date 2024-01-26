@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("diff-index")]
         public static async ValueTask DiffIndex(this GitPlumbingClient c, GitDiffIndexArgs options)

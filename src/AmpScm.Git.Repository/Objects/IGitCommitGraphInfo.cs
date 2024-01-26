@@ -7,7 +7,7 @@ using AmpScm.Buckets.Git;
 
 namespace AmpScm.Git.Objects
 {
-    interface IGitCommitGraphInfo
+    internal interface IGitCommitGraphInfo
     {
         IEnumerable<GitId> ParentIds { get; }
         GitCommitGenerationValue Value { get; }

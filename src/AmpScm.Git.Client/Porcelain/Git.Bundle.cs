@@ -26,7 +26,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("bundle")]
         public static async ValueTask Bundle(this GitPorcelainClient c, string bundleFile, GitBundleArgs? options = null)

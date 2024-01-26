@@ -17,7 +17,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("index-pack")]
         public static async ValueTask IndexPack(this GitPlumbingClient c, string path, GitIndexPackArgs? options = null)

@@ -18,7 +18,7 @@ internal partial class Rfc3394Algorithm
     /// A <b>Block</b> contains exactly 64 bits of data.  This class
     /// provides several handy block-level operations.
     /// </summary>
-    struct Rfc3394Block
+    private struct Rfc3394Block
     {
         public Rfc3394Block(ReadOnlyMemory<byte> bytes)
         {
@@ -79,7 +79,7 @@ internal partial class Rfc3394Algorithm
         }
 
         // XORs a block with a 64-bit value.
-        static Rfc3394Block Xor(Rfc3394Block left, long right)
+        private static Rfc3394Block Xor(Rfc3394Block left, long right)
         {
             var bb = left.Bytes.ToArray();
             long temp = NetBitConverter.ToInt64(bb, 0);

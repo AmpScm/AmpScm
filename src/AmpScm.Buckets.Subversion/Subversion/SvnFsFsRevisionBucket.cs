@@ -8,10 +8,10 @@ namespace AmpScm.Buckets.Subversion
 {
     public class SvnFsFsRevisionBucket : SvnBucket
     {
-        readonly Func<long, long, long, ValueTask<Bucket>>? _fetchBase;
-        bool _reading;
-        bool _readEndRep;
-        int _idx;
+        private readonly Func<long, long, long, ValueTask<Bucket>>? _fetchBase;
+        private bool _reading;
+        private bool _readEndRep;
+        private int _idx;
 
         public SvnFsFsRevisionBucket(Bucket source, Func<long, long, long, ValueTask<Bucket>>? fetchBase = null) : base(source)
         {

@@ -167,7 +167,7 @@ namespace DiffTests
             return d.ToArray();
         }
 
-        static Lazy<string?> SvnExe { get; } = new (() =>
+        private static Lazy<string?> SvnExe { get; } = new (() =>
         {
             foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator).Where(x => !string.IsNullOrWhiteSpace(x)))
             {

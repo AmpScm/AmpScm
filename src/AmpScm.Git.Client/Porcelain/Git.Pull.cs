@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("pull")]
         public static async ValueTask Pull(this GitPorcelainClient c, GitPullArgs? options = null)

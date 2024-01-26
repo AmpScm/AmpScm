@@ -235,8 +235,9 @@ namespace AmpScm.Git.References
 #endif
         }
 
-        GitId? _zero;
-        GitId Zero
+        private GitId? _zero;
+
+        private GitId Zero
         {
             get => _zero ??= new GitId(Repository.InternalConfig.IdType, new byte[Repository.InternalConfig.IdType.HashLength()]);
         }

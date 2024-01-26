@@ -10,7 +10,7 @@ namespace AmpScm.Buckets
 {
     [DebuggerDisplay($"{{{nameof(DebuggerDisplay)},nq}}")]
     [DebuggerTypeProxy(typeof(DebuggerProxy))]
-    partial struct ByteCollector
+    public partial struct ByteCollector
     {
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

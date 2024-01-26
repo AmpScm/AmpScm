@@ -9,15 +9,16 @@ namespace AmpScm.Buckets.Subversion
 {
     public class SvnDeltaBucket : SvnBucket
     {
-        Bucket DeltaBase { get; }
-        byte _version;
-        readonly bool _haveBase;
-        BucketBytes _remaining;
-        long _position;
-        ReadOnlyMemory<byte> _srcView;
-        long _srcViewoffset;
-        byte[]? _window;
-        Action? _atEof;
+        private Bucket DeltaBase { get; }
+
+        private byte _version;
+        private readonly bool _haveBase;
+        private BucketBytes _remaining;
+        private long _position;
+        private ReadOnlyMemory<byte> _srcView;
+        private long _srcViewoffset;
+        private byte[]? _window;
+        private Action? _atEof;
 
         public SvnDeltaBucket(Bucket source, Bucket? deltaBase, Action? atEof = null)
             : base(source)
@@ -268,7 +269,7 @@ namespace AmpScm.Buckets.Subversion
             }
         }
 
-        static int LengthOfLength(long value)
+        private static int LengthOfLength(long value)
         {
             //#if NET6_0_OR_GREATER
             //            return (BitOperations.Log2((uint)Math.Min(value, 1)) + 6) / 7;
@@ -284,7 +285,7 @@ namespace AmpScm.Buckets.Subversion
             //#endif
         }
 
-        static async ValueTask<long> ReadLongLengthAsync(Bucket source)
+        private static async ValueTask<long> ReadLongLengthAsync(Bucket source)
         {
             ulong len = 0;
             byte b;
@@ -300,7 +301,7 @@ namespace AmpScm.Buckets.Subversion
             return checked((long)len);
         }
 
-        static async ValueTask<int> ReadLengthAsync(Bucket source)
+        private static async ValueTask<int> ReadLengthAsync(Bucket source)
         {
             long l = await ReadLongLengthAsync(source).ConfigureAwait(false);
 

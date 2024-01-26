@@ -39,7 +39,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("clone")]
         public static async ValueTask Clone(this GitPorcelainClient c, Uri sourceUri, string path, GitCloneArgs? options = null)

@@ -21,8 +21,8 @@ namespace AmpScm.Buckets.Cryptography;
 /// </summary>
 internal sealed partial class Rfc3394Algorithm : IDisposable
 {
-    readonly ReadOnlyMemory<byte> DefaultIV = new byte[] { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6 };
-    byte[] _kek;
+    private readonly ReadOnlyMemory<byte> DefaultIV = new byte[] { 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6 };
+    private byte[] _kek;
 
     /// <summary>
     /// Constructs a <see cref="Rfc3394Algorithm" /> object with the specified key-encryption key.

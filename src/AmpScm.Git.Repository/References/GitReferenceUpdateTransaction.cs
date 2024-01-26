@@ -23,7 +23,7 @@ namespace AmpScm.Git.References
         {
             if (string.IsNullOrWhiteSpace(referenceName))
                 throw new ArgumentNullException(nameof(referenceName));
-            else if (!GitReference.ValidName(referenceName, true))
+            else if (!GitReference.ValidName(referenceName, allowSpecialSymbols: true))
                 throw new ArgumentOutOfRangeException(nameof(referenceName));
             else if (newValue is null)
                 throw new ArgumentNullException(nameof(newValue));
@@ -57,7 +57,7 @@ namespace AmpScm.Git.References
         {
             if (string.IsNullOrWhiteSpace(referenceName))
                 throw new ArgumentNullException(nameof(referenceName));
-            else if (!GitReference.ValidName(referenceName, true))
+            else if (!GitReference.ValidName(referenceName, allowSpecialSymbols: true))
                 throw new ArgumentOutOfRangeException(nameof(referenceName));
             else if (newValue is null)
                 throw new ArgumentNullException(nameof(newValue));
@@ -74,7 +74,7 @@ namespace AmpScm.Git.References
         {
             if (string.IsNullOrWhiteSpace(referenceName))
                 throw new ArgumentNullException(nameof(referenceName));
-            else if (!GitReference.ValidName(referenceName, true))
+            else if (!GitReference.ValidName(referenceName, allowSpecialSymbols: true))
                 throw new ArgumentOutOfRangeException(nameof(referenceName));
 
             var r = Updates.LastOrDefault(x => x.Name == referenceName);
@@ -92,7 +92,7 @@ namespace AmpScm.Git.References
         {
             if (string.IsNullOrWhiteSpace(referenceName))
                 throw new ArgumentNullException(nameof(referenceName));
-            else if (!GitReference.ValidName(referenceName, true))
+            else if (!GitReference.ValidName(referenceName, allowSpecialSymbols: true))
                 throw new ArgumentOutOfRangeException(nameof(referenceName));
 
             var r = Updates.FirstOrDefault(x => x.Name == referenceName);
@@ -109,7 +109,7 @@ namespace AmpScm.Git.References
 
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
@@ -127,7 +127,7 @@ namespace AmpScm.Git.References
         }
         private protected record class GitReferenceUpdateItem
         {
-            string? _targetName;
+            private string? _targetName;
             public string Name { get; set; } = default!;
             public UpdateType Type { get; init; }
             public GitId? Id { get; init; }

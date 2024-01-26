@@ -16,7 +16,7 @@ namespace AmpScm.Buckets.Specialized
             Read,
             Eol0,
             Eol1,
-            CRSplit
+            CRSplit,
         }
 
         public EolNormalizeBucket(Bucket source, BucketEol acceptedEols, BucketEol producedEol = BucketEol.LF)

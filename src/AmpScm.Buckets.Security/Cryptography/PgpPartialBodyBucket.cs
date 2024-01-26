@@ -29,7 +29,7 @@ internal sealed class PgpPartialBodyBucket : WrappingBucket
     public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
     {
         if (requested < 1)
-            throw new ArgumentOutOfRangeException(nameof(requested), requested, null);
+            throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
 
         if (_remaining == 0 && !_final)
         {

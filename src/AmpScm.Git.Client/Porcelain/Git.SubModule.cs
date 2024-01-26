@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("submodule")]
         public static async ValueTask SubModule(this GitPorcelainClient c, GitSubModuleArgs? options = null)

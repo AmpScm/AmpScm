@@ -10,7 +10,7 @@ namespace AmpScm.Git
     public sealed class GitTag : GitNamedObjectWrapper<GitObject, GitReference>
     {
         internal GitTag(GitReference reference)
-            : base(reference, null)
+            : base(reference, obj: null)
         {
         }
 

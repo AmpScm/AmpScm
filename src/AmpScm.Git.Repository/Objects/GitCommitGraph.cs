@@ -9,11 +9,11 @@ namespace AmpScm.Git.Objects
 {
     internal sealed class GitCommitGraph : ChunkFileBasedObjectRepository
     {
-        bool _haveV2;
-        int _baseCommitGraphs;
-        readonly CommitGraphChain? _graphRoot;
+        private bool _haveV2;
+        private int _baseCommitGraphs;
+        private readonly CommitGraphChain? _graphRoot;
         internal readonly GitId? GraphId;
-        int? _oidOffset;
+        private int? _oidOffset;
 
         public GitCommitGraph(GitRepository repository, string chainFile)
             : base(repository, chainFile, "CommitGraph:" + chainFile)

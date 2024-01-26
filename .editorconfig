@@ -177,7 +177,7 @@ dotnet_diagnostic.MA0026.severity = suggestion
 
 # MA0006: Use String.Equals instead of equality operator
 dotnet_diagnostic.MA0006.severity = suggestion
-dotnet_diagnostic.MA0099.severity = suggestion
+dotnet_diagnostic.MA0099.severity = none
 dotnet_diagnostic.MA0051.severity = suggestion
 
 [*.vb]

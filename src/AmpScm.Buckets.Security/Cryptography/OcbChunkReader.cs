@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Cryptography
         private readonly Func<int, Bucket, Bucket> _createAdditional;
         private int _iChunkNumber;
         private bool _done;
-        long _position;
+        private long _position;
 
         public OcbChunkReader(Bucket source, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional) 
             : base(source)

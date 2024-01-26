@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("hash-object")]
         public static async ValueTask HashObject(this GitPlumbingClient c, GitHashObjectArgs options)

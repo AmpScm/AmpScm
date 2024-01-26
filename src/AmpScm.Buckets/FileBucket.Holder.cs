@@ -15,7 +15,7 @@ namespace AmpScm.Buckets
         private sealed class FileHolder : IDisposable
         {
 #if !NET6_0_OR_GREATER
-            readonly Stack<FileStream> _keep;
+            private readonly Stack<FileStream> _keep;
 #endif
             private readonly FileStream _primary;
             private readonly SafeFileHandle _handle;
@@ -48,7 +48,6 @@ namespace AmpScm.Buckets
             }
 
             public string Path { get; }
-
 
 #if NET5_0_OR_GREATER
             [SupportedOSPlatform("windows")]
@@ -83,7 +82,7 @@ namespace AmpScm.Buckets
             {
                 var d = _disposers;
                 _disposers = null!;
-                foreach (Action a in d.GetInvocationList())
+                foreach (Action a in (Action[])d.GetInvocationList())
                 {
 #pragma warning disable CA1031 // Do not catch general exception types
                     try
@@ -226,7 +225,7 @@ namespace AmpScm.Buckets
 
                         if (err == 997 /* Pending IO */)
                         {
-                            if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, false))
+                            if (NativeMethods.GetOverlappedResult(_handle, lpOverlapped, out uint bytes, bWait: false))
                             {
                                 // Typical all-data cached in filecache case on Windows 10/11 2022-04
                                 return new((int)bytes); // Return succes. Task will release lpOverlapped
@@ -272,7 +271,7 @@ namespace AmpScm.Buckets
                 }
             }
 
-            Returner GetFileStream(out FileStream f)
+            private Returner GetFileStream(out FileStream f)
             {
                 lock (_keep)
                 {
@@ -286,7 +285,7 @@ namespace AmpScm.Buckets
 
             private FileStream NewStream()
             {
-                return new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, true);
+                return new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 4096, useAsync: true);
             }
 
             private void Return(FileStream f)
@@ -315,10 +314,10 @@ namespace AmpScm.Buckets
                 }
             }
 
-            sealed class Returner : IDisposable
+            private sealed class Returner : IDisposable
             {
-                readonly FileStream _fs;
-                FileHolder? _fh;
+                private readonly FileStream _fs;
+                private FileHolder? _fh;
 
                 public Returner(FileHolder fh, FileStream fs)
                 {
@@ -336,9 +335,8 @@ namespace AmpScm.Buckets
 
 #if NET5_0_OR_GREATER
             [SupportedOSPlatform("windows")]
-            private
 #endif
-            sealed class FileWaitHandler : IDisposable
+            private sealed class FileWaitHandler : IDisposable
             {
                 private readonly IntPtr _overlapped;
                 private FileHolder? _holder;
@@ -351,7 +349,7 @@ namespace AmpScm.Buckets
                 public FileWaitHandler(IntPtr overlapped)
                 {
                     _overlapped = overlapped;
-                    _eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
+                    _eventWaitHandle = new EventWaitHandle(initialState: false, EventResetMode.AutoReset);
                 }
 
                 private void OnSignal(object? state, bool timedOut)
@@ -359,7 +357,7 @@ namespace AmpScm.Buckets
                     Debug.Assert(_holder is not null);
                     try
                     {
-                        if (NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out uint t, false))
+                        if (NativeMethods.GetOverlappedResult(_holder!._handle, _overlapped, out uint t, bWait: false))
                         {
                             _tcs!.TrySetResult((int)t);
                         }
@@ -411,14 +409,14 @@ namespace AmpScm.Buckets
                     _tcs = tcs;
                     _c = 2; // Release in callback and caller
 
-                    _registeredWaitHandle ??= ThreadPool.RegisterWaitForSingleObject(_eventWaitHandle, OnSignal, this, -1, false);
+                    _registeredWaitHandle ??= ThreadPool.RegisterWaitForSingleObject(_eventWaitHandle, OnSignal, this, -1, executeOnlyOnce: false);
 
                     NativeOverlapped nol = default;
                     nol.OffsetLow = (int)(offset & uint.MaxValue);
                     nol.OffsetHigh = (int)(offset >> 32);
                     nol.EventHandle = _eventWaitHandle.SafeWaitHandle.DangerousGetHandle();
 
-                    Marshal.StructureToPtr(nol, _overlapped, false);
+                    Marshal.StructureToPtr(nol, _overlapped, fDeleteOld: false);
 
                     lpOverlapped = _overlapped;
                     return new Releaser(this);
@@ -471,7 +469,6 @@ namespace AmpScm.Buckets
                 public static extern bool ReadFile(SafeFileHandle hFile, [Out] byte[] lpBuffer,
                     int nNumberOfBytesToRead, out uint pRead, IntPtr pOverlapped);
 
-
                 [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
                 [return: MarshalAs(UnmanagedType.Bool)]
@@ -480,7 +477,7 @@ namespace AmpScm.Buckets
 #if !NET6_0_OR_GREATER
                 [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
                 [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-                static extern bool GetFileSizeEx(SafeFileHandle hFile, out ulong size);
+                private static extern bool GetFileSizeEx(SafeFileHandle hFile, out ulong size);
 
                 internal static long GetFileSize(SafeFileHandle handle)
                 {

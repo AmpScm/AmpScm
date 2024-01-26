@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets;
+﻿using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
@@ -13,9 +7,9 @@ namespace AmpScm.Buckets.Git
 {
     public sealed class GitFileObjectBucket : GitObjectBucket, IBucketPoll
     {
-        long _startOffset;
-        long? _length;
-        GitObjectType _type;
+        private long _startOffset;
+        private long? _length;
+        private GitObjectType _type;
 
         public GitFileObjectBucket(Bucket source)
             : base(new ZLibBucket(source, BucketCompressionAlgorithm.ZLib))
@@ -109,7 +103,7 @@ namespace AmpScm.Buckets.Git
             }
         }
 
-        const int MaxReadForHeader = 5 /* "commit" */+ 1 /* " " */ + 20 /* UInt64.MaxValue.ToString().Length */ + 1 /* '\1' */;
+        private const int MaxReadForHeader = 5 /* "commit" */+ 1 /* " " */ + 20 /* UInt64.MaxValue.ToString().Length */ + 1 /* '\1' */;
 
         public override async ValueTask<long?> ReadRemainingBytesAsync()
         {
@@ -124,7 +118,6 @@ namespace AmpScm.Buckets.Git
 
                 if (eol != BucketEol.Zero)
                     throw new BucketException($"Expected '\\0' within first {MaxReadForHeader} characters of '{Source.Name}'");
-
 
                 int nSize = bb.IndexOf(' ');
 

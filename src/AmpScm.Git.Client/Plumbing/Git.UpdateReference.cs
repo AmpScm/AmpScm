@@ -44,7 +44,7 @@ namespace AmpScm.Git.Client.Plumbing
             switch (Type)
             {
                 case GitUpdateReferenceType.Update:
-                    if (!GitReference.ValidName(Name, true))
+                    if (!GitReference.ValidName(Name, allowSpecialSymbols: true))
                         throw new InvalidOperationException($"'{Name}' is not a valid reference name");
                     if (Target != null && OldTarget != null)
                         return $"update {Name}\0{Target}\0{OldTarget}\0";
@@ -52,7 +52,7 @@ namespace AmpScm.Git.Client.Plumbing
                         return $"update {Name}\0{Target}\0\0";
                     else if (SymbolicTarget != null)
                     {
-                        if (!GitReference.ValidName(SymbolicTarget, true))
+                        if (!GitReference.ValidName(SymbolicTarget, allowSpecialSymbols: true))
                             throw new InvalidOperationException($"'{SymbolicTarget}' is not a valid reference name");
 
                         return $"update {Name}\0{SymbolicTarget}\0";
@@ -65,7 +65,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("update-ref")]
         public static async ValueTask UpdateReference(this GitPlumbingClient c, GitUpdateReference[] updates, GitUpdateReferenceArgs? options = null)

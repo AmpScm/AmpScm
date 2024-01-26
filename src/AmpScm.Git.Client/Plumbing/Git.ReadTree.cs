@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("read-tree")]
         public static async ValueTask ReadTree(this GitPlumbingClient c, GitReadTreeArgs options)

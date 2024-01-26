@@ -91,12 +91,9 @@ namespace AmpScm.Buckets.Specialized
         }
 
         public override string Name => _name ?? (_name = (GetType() == typeof(ProxyBucket) ? "Proxy" : base.Name) + ">" + Source.Name);
-
-
         internal ProxyBucket(Bucket source, bool noDispose) : base(source, noDispose)
         {
         }
-
 
         internal sealed class Sealed : ProxyBucket, IBucketPoll, IBucketNoDispose
         {

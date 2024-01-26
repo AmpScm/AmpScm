@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("remote")]
         public static async ValueTask Remote(this GitPorcelainClient c, GitRemoteArgs? options = null)

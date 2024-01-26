@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Subversion
 {
-    sealed class SvnKeyValueHeaderBucket : SvnBucket
+    internal sealed class SvnKeyValueHeaderBucket : SvnBucket
     {
-        Action? _atEof;
+        private Action? _atEof;
 
         public SvnKeyValueHeaderBucket(Bucket source, Action? atEof = null)
             : base(source)

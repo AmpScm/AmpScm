@@ -11,7 +11,7 @@ using AmpScm.Git.Repository;
 
 namespace AmpScm.Git
 {
-    partial class GitRepository
+    public partial class GitRepository
     {
         internal class GitInternalConfigAccess
         {

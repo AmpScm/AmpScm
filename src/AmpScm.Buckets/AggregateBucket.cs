@@ -201,7 +201,7 @@ namespace AmpScm.Buckets
                 else
                     return BucketBytes.Eof;
 
-                MoveNext(true);
+                MoveNext(close: true);
             }
         }
 
@@ -267,7 +267,7 @@ namespace AmpScm.Buckets
             foreach (var v in _buckets)
                 newBuckets.Add(v!.Duplicate(reset));
 
-            var ab = new AggregateBucket(true, newBuckets.ToArray());
+            var ab = new AggregateBucket(keepOpen: true, newBuckets.ToArray());
             if (!reset)
                 ab._position = _position;
             return ab;
@@ -305,7 +305,7 @@ namespace AmpScm.Buckets
                 }
                 else
                 {
-                    MoveNext(false);
+                    MoveNext(close: false);
                 }
             }
 

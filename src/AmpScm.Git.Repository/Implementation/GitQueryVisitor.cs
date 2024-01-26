@@ -11,9 +11,9 @@ namespace AmpScm.Git.Implementation
 {
     internal class GitQueryVisitor : ExpressionVisitor
     {
-        ConstantExpression? _defaultRoot;
+        private ConstantExpression? _defaultRoot;
 
-        static System.Reflection.MethodInfo GetMethod<TOn>(Expression<Func<TOn, object>> callExpression)
+        private static System.Reflection.MethodInfo GetMethod<TOn>(Expression<Func<TOn, object>> callExpression)
         {
             return (callExpression.Body as MethodCallExpression)?.Method ?? throw new ArgumentOutOfRangeException(nameof(callExpression));
         }

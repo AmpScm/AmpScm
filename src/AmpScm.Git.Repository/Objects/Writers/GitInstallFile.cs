@@ -12,7 +12,7 @@ namespace AmpScm.Git.Objects.Writers
 {
     internal static class GitInstallFile
     {
-        static bool IsWindows { get; } = (Environment.OSVersion.Platform == PlatformID.Win32NT);
+        private static bool IsWindows { get; } = (Environment.OSVersion.Platform == PlatformID.Win32NT);
 
         public static FileStream Create(string path)
         {
@@ -22,10 +22,9 @@ namespace AmpScm.Git.Objects.Writers
                 return File.Create(path);
         }
 
-
-        static class NativeMethods
+        private static class NativeMethods
         {
-            enum FileInformationClass
+            private enum FileInformationClass
             {
                 FileRenameInfo = 3,
                 FileDispositionInfo = 4,

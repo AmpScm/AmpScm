@@ -26,7 +26,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("repack")]
         public static async ValueTask Repack(this GitPlumbingClient c, GitRepackArgs? options = null)

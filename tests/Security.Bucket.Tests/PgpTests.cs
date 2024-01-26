@@ -22,7 +22,7 @@ namespace SecurityBucketTests;
 [TestClass]
 public partial class PgpTests
 {
-    const string Sig1 =
+    private const string Sig1 =
 @"-----BEGIN PGP SignaturePublicKey-----
 
 wsBcBAABCAAQBQJioEepCRBK7hj4Ov3rIwAAGoMIAHCHbTas3gShVMMX2dx2r82B
@@ -33,8 +33,7 @@ KJWsEX/HpigGCiiQ/BHf/z3hj9URNEKOWd2hRAJsvkYzczhV8/yZmSjlg9kUp/Cw
 aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
 =7fmL
 -----END PGP SignaturePublicKey-----";
-
-    const string Sig2 = // Similar as sig1 but whitespace at start of line
+    private const string Sig2 = // Similar as sig1 but whitespace at start of line
 @"-----BEGIN PGP SignaturePublicKey-----
 
  wsBcBAABCAAQBQJimgGPCRBK7hj4Ov3rIwAAP10IAGkgEDtRaPWlyreQincqo8KM
@@ -45,8 +44,7 @@ aWhgukgOUppFsmnAfSp4zz0MmV2vbAKJQrrTmi1PmDFXt/mDv5xCifZpWbS46cY=
  oJzt9PpjzQpPRp9baotmzN72sIHjh5bMqJ9HpUK/RR6FLUSO0qwi54xxL8RckZ4=
  =37hr
  -----END PGP SignaturePublicKey-----";
-
-    const string SigDSA =
+    private const string SigDSA =
 @"-----BEGIN PGP SignaturePublicKey-----
 
 iIIEABEIACoWIQTHNE8vTjJt+Sudk9934a70jlWGXwUCYrAsPwwcZHNhQGxwdDEu
@@ -56,7 +54,7 @@ WukA/jvr/XbHcqQmFzmWYxf+k3Q5eqKGtMka41jfCWCPxt0Y
 -----END PGP SignaturePublicKey-----";
 
     // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
-    const string SshSig =
+    private const string SshSig =
 @"-----BEGIN SSH SignaturePublicKey-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAP5ogvLJzK+1q2cwJ7K5y6
 tIKRc9y4wv9uAk4cULCN4UDwIBcGU4QiAxuWPsgjxKko/qaQMQWBdBcAUXqLTRQC7z80ER
@@ -140,8 +138,8 @@ GtAh3JPRDOlZUZM=
         Assert.AreEqual("TAIL!", bt.ToASCIIString());
     }
 
-    const string rsa_key1_fingerprint = "1E4EA61FCC73D2D96075A9835B15B06B7943D080";
-    const string rsa_key1 =
+    private const string rsa_key1_fingerprint = "1E4EA61FCC73D2D96075A9835B15B06B7943D080";
+    private const string rsa_key1 =
 @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQOYBGQYGzIBCADvMp14uUN7RAjeVnm1gQmQyjW+2BfKXy6dOHuxcF0aBh5+60wR
@@ -199,9 +197,8 @@ iiuSFp4V0CTUTZpV+9JGFStgHff0rPJg+FwqhxNQV0pjQxsst1OJzRAZ/+d0wvNA
 9GPs2YhVJY76FLNUH7BPGXZ+6jo3KrQA
 =8qhj
 -----END PGP PRIVATE KEY BLOCK-----";
-
-    const string rsa_key2_fingerprint = "8B34F2DCDBA7FECF88029C53C5D6650A9716C11A";
-    const string rsa_key2 =
+    private const string rsa_key2_fingerprint = "8B34F2DCDBA7FECF88029C53C5D6650A9716C11A";
+    private const string rsa_key2 =
 @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQVYBGQYHGkBDADHOVHBO57IyTzY627LJ++0ntjD3oY5epykVb8Z0E5Q4onSqil1
@@ -284,8 +281,7 @@ Z507BaqbktlQNSWJB08lV/99N4csnwmmVjNPSnp9yEPtSQ==
 =uXxW
 -----END PGP PRIVATE KEY BLOCK-----
 ";
-
-    string msg_from_rsa1_to_rsa2 =
+    private string msg_from_rsa1_to_rsa2 =
 @"-----BEGIN PGP MESSAGE-----
 
 hQGMAzI//wS08Dw8AQv/fy/zx77K2jHV6VVMKIWfQn0YPcUBR8Xv9Mw7ERLeP3wE
@@ -302,8 +298,7 @@ p1Sxxzh2DyLOpTYUFshpanw=
 =DtZ3
 -----END PGP MESSAGE-----
 ";
-
-    string msg_from_rsa1_to_rsa2_2 =
+    private string msg_from_rsa1_to_rsa2_2 =
 @"-----BEGIN PGP MESSAGE-----
 
 hQGMAzI//wS08Dw8AQv/UMXN2e3ew/CBMxzOZaX5pH8OBFVdeNJHHmfZ6b8igdJI
@@ -320,7 +315,7 @@ FfT7+cRyXwTCQKtCfPAcLA==
 =eoW8
 -----END PGP MESSAGE-----
 ";
-    string msg_from_rsa1_to_rsa2_3 =
+    private string msg_from_rsa1_to_rsa2_3 =
 @"-----BEGIN PGP MESSAGE-----
 
 hQGMAzI//wS08Dw8AQwAlbn1Jx+3QmpCfounrMIPw34bYBxRwNgFUY9oxXMyjH41
@@ -522,8 +517,7 @@ cEgAjelaGkn3RJOwXWoJbA==
         Assert.IsTrue(ok);
     }
 
-
-    const string APrivateKey =
+    private const string APrivateKey =
 @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lFgEY+jHGBYJKwYBBAHaRw8BAQdA4LuQh88dckAm8tn5rJS5fIzkbLKtoSRvTlA9
@@ -539,8 +533,7 @@ TLQz69WEUUAtQ1SwiGAaAP9MaVfEDY7GtSZO97Vs5prfBkYhWc3qEknTOhfiZbql
 BA==
 =PIZ4
 -----END PGP PRIVATE KEY BLOCK-----";
-
-    const string AMessage =
+    private const string AMessage =
 @"-----BEGIN PGP MESSAGE-----
 
 hF4DxaX2D8f75n0SAQdACeR83BHHiw1jGFVw4TcPcoHqOyZdl/9AHvY8TlkIf38w

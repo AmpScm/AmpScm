@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("diff-files")]
         public static async ValueTask DiffFiles(this GitPlumbingClient c, GitDiffFilesArgs options)

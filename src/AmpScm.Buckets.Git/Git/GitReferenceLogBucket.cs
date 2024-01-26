@@ -95,8 +95,8 @@ namespace AmpScm.Buckets.Git
 
     public class GitReferenceLogBucket : GitBucket
     {
-        GitId? _lastId;
-        int? _idLength;
+        private GitId? _lastId;
+        private int? _idLength;
 
         public GitReferenceLogBucket(Bucket source) : base(source)
         {

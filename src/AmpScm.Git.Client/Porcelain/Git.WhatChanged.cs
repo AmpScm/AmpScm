@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("whatchanged")]
         public static async ValueTask WhatChanged(this GitPorcelainClient c, GitWhatChangedArgs? options = null)

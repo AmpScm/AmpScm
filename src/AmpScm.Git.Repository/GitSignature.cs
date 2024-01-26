@@ -7,11 +7,11 @@ namespace AmpScm.Git
     public sealed class GitSignature : IEquatable<GitSignature>
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string _name;
+        private string _name;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        string? _email;
+        private string? _email;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        DateTimeOffset _when;
+        private DateTimeOffset _when;
 
         internal GitSignature(GitSignatureRecord signature)
         {
@@ -20,7 +20,7 @@ namespace AmpScm.Git
             _when = signature.When;
         }
 
-        static readonly char[] _ltgt = new[] { '<', '>' };
+        private static readonly char[] _ltgt = new[] { '<', '>' };
 
         public GitSignature(string name, string email, DateTimeOffset now)
         {

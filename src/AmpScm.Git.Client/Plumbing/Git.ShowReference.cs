@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("show-ref")]
         public static async ValueTask ShowReference(this GitPlumbingClient c, GitShowReferenceArgs options)

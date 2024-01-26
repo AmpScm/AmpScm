@@ -414,7 +414,7 @@ namespace AmpScm.Diff
         /// <param name="upperB">upper bound of the actual range in DataB (exclusive)</param>
         /// <param name="downVector">a vector for the (0,0) to (x,y) search. Passed as a parameter for speed reasons.</param>
         /// <param name="upVector">a vector for the (u,v) to (N,M) search. Passed as a parameter for speed reasons.</param>
-        static void LCS<TToken>(IEqualityComparer<TToken> cmp, TToken[] dataA, BitArray modA, int lowerA, int upperA, TToken[] dataB, BitArray modB, int lowerB, int upperB, int[] downVector, int[] upVector)
+        private static void LCS<TToken>(IEqualityComparer<TToken> cmp, TToken[] dataA, BitArray modA, int lowerA, int upperA, TToken[] dataB, BitArray modB, int lowerB, int upperB, int[] downVector, int[] upVector)
             where TToken : notnull
         {
             // Fast walkthrough equal lines at the start

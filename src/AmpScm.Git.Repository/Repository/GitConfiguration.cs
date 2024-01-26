@@ -16,18 +16,18 @@ namespace AmpScm.Git.Repository
     public class GitConfiguration : GitBackendRepository
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly string _gitDir;
+        private readonly string _gitDir;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool _loaded;
+        private bool _loaded;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int _repositoryFormatVersion;
+        private int _repositoryFormatVersion;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        readonly Dictionary<(string Group, string? SubGroup, string Key), string> _config = new();
+        private readonly Dictionary<(string Group, string? SubGroup, string Key), string> _config = new();
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        static readonly Lazy<string> _gitExePath = new Lazy<string>(GetGitExePath, true);
+        private static readonly Lazy<string> _gitExePath = new Lazy<string>(GetGitExePath, isThreadSafe: true);
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        static readonly Lazy<string> _homeDir = new Lazy<string>(GetHomeDirectory, true);
+        private static readonly Lazy<string> _homeDir = new Lazy<string>(GetHomeDirectory, isThreadSafe: true);
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public static string GitProgramPath => _gitExePath.Value;
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -36,7 +36,7 @@ namespace AmpScm.Git.Repository
         public static string UserHomeDirectory => _homeDir.Value;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        Lazy<GitLazyConfig> _lazy;
+        private Lazy<GitLazyConfig> _lazy;
         private bool _parseWorkTreeConfig;
 
         internal GitConfiguration(GitRepository repository, string gitDir)
@@ -107,9 +107,9 @@ namespace AmpScm.Git.Repository
             }
         }
 
-        async ValueTask LoadConfigAsync(string path)
+        private async ValueTask LoadConfigAsync(string path)
         {
-            var b = FileBucket.OpenRead(path, false);
+            var b = FileBucket.OpenRead(path, forAsync: false);
             using var cr = new GitConfigurationBucket(b);
 
             while (await cr.ReadRecord().ConfigureAwait(false) is GitConfigurationRecord item)
@@ -181,7 +181,7 @@ namespace AmpScm.Git.Repository
             }
         }
 
-        static string ApplyHomeDir(string path)
+        private static string ApplyHomeDir(string path)
         {
             if (path != null && path.StartsWith('~')
                 && UserHomeDirectory is var homeDir && !string.IsNullOrWhiteSpace(homeDir))
@@ -329,7 +329,7 @@ namespace AmpScm.Git.Repository
                 return null;
         }
 
-        static int SuffixFactor(char v)
+        private static int SuffixFactor(char v)
             => v switch
             {
                 'k' or 'K' => 1024,
@@ -443,18 +443,18 @@ namespace AmpScm.Git.Repository
         internal class GitLazyConfig
         {
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            GitConfiguration Configuration { get; }
+            private GitConfiguration Configuration { get; }
 
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            readonly Lazy<bool> _repositoryIsLazy;
+            private readonly Lazy<bool> _repositoryIsLazy;
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            readonly Lazy<bool> _repositoryIsShallow;
+            private readonly Lazy<bool> _repositoryIsShallow;
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            readonly Lazy<bool> _repositoryCommitGraph;
+            private readonly Lazy<bool> _repositoryCommitGraph;
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            readonly Lazy<bool> _repositorySupportsMultiPack;
+            private readonly Lazy<bool> _repositorySupportsMultiPack;
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            readonly Lazy<int> _autoGCBlobs;
+            private readonly Lazy<int> _autoGCBlobs;
 
             public GitLazyConfig(GitConfiguration config)
             {
@@ -467,7 +467,7 @@ namespace AmpScm.Git.Repository
                 _autoGCBlobs = new Lazy<int>(GetAutGCBlobs);
             }
 
-            bool GetRepositoryIsLazy()
+            private bool GetRepositoryIsLazy()
             {
                 if (Configuration._loaded && Configuration._repositoryFormatVersion == 0)
                     return false;
@@ -481,22 +481,22 @@ namespace AmpScm.Git.Repository
                 return false;
             }
 
-            bool GetRepositoryIsShallow()
+            private bool GetRepositoryIsShallow()
             {
                 return File.Exists(Path.Combine(Configuration.Repository.GitDirectory, "shallow"));
             }
 
-            bool GetRepositoryCommitGraph()
+            private bool GetRepositoryCommitGraph()
             {
                 return Configuration.GetBool("core", "commitGraph") ?? true; // By default enabled in git current
             }
 
-            bool GetRepositorySupportsMultiPack()
+            private bool GetRepositorySupportsMultiPack()
             {
                 return Configuration.GetBool("core", "multiPackIndex") ?? true; // By default enabled in git current
             }
 
-            int GetAutGCBlobs()
+            private int GetAutGCBlobs()
             {
                 return Configuration.GetInt("gc", "auto") ?? 6700;
             }
@@ -513,7 +513,7 @@ namespace AmpScm.Git.Repository
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal GitLazyConfig Lazy => _lazy.Value;
 
-        static string GetGitExePath()
+        private static string GetGitExePath()
         {
             return GitExePathLook() ?? GetExePathWhere() ?? null!;
         }
@@ -616,7 +616,7 @@ namespace AmpScm.Git.Repository
             }
         }
 
-        static readonly object _extraHeaderSetTag = new();
+        private static readonly object _extraHeaderSetTag = new();
 #pragma warning disable CA2109 // Review visible event handlers
         public void BasicAuthenticationHandler(object? sender, BasicBucketAuthenticationEventArgs e)
 #pragma warning restore CA2109 // Review visible event handlers
@@ -760,7 +760,7 @@ namespace AmpScm.Git.Repository
 
         }
 
-        static string GetHomeDirectory()
+        private static string GetHomeDirectory()
         {
             if (Environment.GetEnvironmentVariable("HOME") is string home
                 && !string.IsNullOrWhiteSpace(home) && Directory.Exists(home))

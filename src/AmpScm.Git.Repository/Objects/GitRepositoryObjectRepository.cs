@@ -47,7 +47,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        Lazy<GitObjectRepository[]> _repositories;
+        private Lazy<GitObjectRepository[]> _repositories;
 
 
         public override void Refresh()
@@ -109,7 +109,7 @@ namespace AmpScm.Git.Objects
             int format = Repository.Configuration.GetInt("core", "repositoryformatversion") ?? -1;
             if (format == 1)
             {
-                foreach (var (key, value) in Repository.Configuration.GetGroup("extensions", null))
+                foreach (var (key, value) in Repository.Configuration.GetGroup("extensions", subGroup: null))
                 {
                     switch (key)
                     {

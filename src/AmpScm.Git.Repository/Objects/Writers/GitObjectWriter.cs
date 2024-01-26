@@ -56,7 +56,7 @@ namespace AmpScm.Git.Objects
 
                     newName = Path.Combine(dir, idName.Substring(2));
                 }
-                catch when (!GitInstallFile.TrySetDeleteOnClose(f, true))
+                catch when (!GitInstallFile.TrySetDeleteOnClose(f, deleteFile: true))
                 {
                     f.Close();
 
@@ -91,7 +91,7 @@ namespace AmpScm.Git.Objects
                 }
                 else
                 {
-                    if (GitInstallFile.TrySetDeleteOnClose(f, true))
+                    if (GitInstallFile.TrySetDeleteOnClose(f, deleteFile: true))
                         return id;
                 }
             }

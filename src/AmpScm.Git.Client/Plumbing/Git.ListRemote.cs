@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("ls-remote")]
         public static async ValueTask ListRemote(this GitPlumbingClient c, GitListRemoteArgs options)

@@ -16,7 +16,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("tag")]
         public static async ValueTask Tag(this GitPorcelainClient c, string name, GitTagArgs? options = null)

@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("for-each-ref")]
         public static async ValueTask ForEachReference(this GitPlumbingClient c, GitForEachReferenceArgs options)

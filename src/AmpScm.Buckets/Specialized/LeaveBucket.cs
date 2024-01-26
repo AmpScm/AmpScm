@@ -124,7 +124,6 @@ internal sealed class LeaveBucket : WrappingBucket
                     return tmp;
                 }
 
-
                 tmp = _bufferLeft.Take(requested).ToArray();
                 _bufferLeft = _bufferLeft.Skip(requested).ToArray();
                 return tmp;

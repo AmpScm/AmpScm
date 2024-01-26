@@ -9,7 +9,7 @@ namespace AmpScm.Git
 {
     public sealed class GitStash : IGitObject
     {
-        readonly GitReferenceChange _change;
+        private readonly GitReferenceChange _change;
 
         internal GitStash(GitReferenceChange change)
         {

@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Cryptography;
 
 namespace AmpScm.Git.Objects
 {
     public sealed class GitPublicKey
     {
-        PublicKeySignature _key;
-        ReadOnlyMemory<byte> _fingerprint;
+        private readonly PublicKeySignature _key;
+        private ReadOnlyMemory<byte> _fingerprint;
 
         public string? Principal { get; init; }
 

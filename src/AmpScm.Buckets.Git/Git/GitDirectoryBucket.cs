@@ -79,26 +79,26 @@ namespace AmpScm.Buckets.Git
     /// </summary>
     public sealed class GitDirectoryBucket : GitBucket
     {
-        readonly GitIdType _idType;
-        readonly bool _lookForEndOfIndex;
-        int _version;
-        int _indexCount;
-        long _indexStart;
-        long? _endOfIndex;
-        int _skip;
-        int _nRead;
-        string? _lastName;
-        long _length;
-        bool _processedExtensions;
-        bool _preLoadExtensions;
+        private readonly GitIdType _idType;
+        private readonly bool _lookForEndOfIndex;
+        private int _version;
+        private int _indexCount;
+        private long _indexStart;
+        private long? _endOfIndex;
+        private int _skip;
+        private int _nRead;
+        private string? _lastName;
+        private long _length;
+        private bool _processedExtensions;
+        private bool _preLoadExtensions;
         public static readonly int LowestSupportedFormat = 2;
         public static readonly int HighestSupportedFormat = 4;
-        string? _directory;
-        long? _firstReal;
-        int _firstRealIdx;
-        GitEwahBitmapBucket? _deleted;
-        GitEwahBitmapBucket? _replaced;
-        GitDirectoryBucket? _shared;
+        private string? _directory;
+        private long? _firstReal;
+        private int _firstRealIdx;
+        private GitEwahBitmapBucket? _deleted;
+        private GitEwahBitmapBucket? _replaced;
+        private GitDirectoryBucket? _shared;
 
         public int? IndexVersion => _version > 0 ? _version : null;
 
@@ -213,7 +213,7 @@ namespace AmpScm.Buckets.Git
                 return ReadEntryLinkAsync();
         }
 
-        async ValueTask<GitDirectoryEntry?> ReadEntryDirectAsync(bool allowSplit = false)
+        private async ValueTask<GitDirectoryEntry?> ReadEntryDirectAsync(bool allowSplit = false)
         {
             if (_indexStart == 0)
                 await ReadHeaderAsync().ConfigureAwait(false);
@@ -382,10 +382,10 @@ namespace AmpScm.Buckets.Git
         }
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        IAsyncEnumerator<bool>? _deletedWalk;
-        IAsyncEnumerator<bool>? _replacedWalk;
+        private IAsyncEnumerator<bool>? _deletedWalk;
+        private IAsyncEnumerator<bool>? _replacedWalk;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        async ValueTask<GitDirectoryEntry?> ReadEntryLinkAsync()
+        private async ValueTask<GitDirectoryEntry?> ReadEntryLinkAsync()
         {
             while (true)
             {
@@ -409,7 +409,7 @@ namespace AmpScm.Buckets.Git
                     continue;
                 else if (replaced)
                 {
-                    var me = await ReadEntryDirectAsync(true).ConfigureAwait(false);
+                    var me = await ReadEntryDirectAsync(allowSplit: true).ConfigureAwait(false);
 
                     return me! with { Name = shared.Name };
                 }
@@ -431,10 +431,11 @@ namespace AmpScm.Buckets.Git
             return null;
         }
 
-        GitDirectoryBucket? _remaining;
-        GitDirectoryEntry? _linkEntry;
-        GitDirectoryEntry? _remainingEntry;
-        async ValueTask<GitDirectoryEntry?> ReadMixedAsync()
+        private GitDirectoryBucket? _remaining;
+        private GitDirectoryEntry? _linkEntry;
+        private GitDirectoryEntry? _remainingEntry;
+
+        private async ValueTask<GitDirectoryEntry?> ReadMixedAsync()
         {
             if (_remaining is null && _firstReal.HasValue)
             {
@@ -489,7 +490,7 @@ namespace AmpScm.Buckets.Git
 
             if (_nRead < _indexCount || !_endOfIndex.HasValue)
             {
-                while (null != await ReadEntryDirectAsync(true).ConfigureAwait(false))
+                while (null != await ReadEntryDirectAsync(allowSplit: true).ConfigureAwait(false))
                 {
                 }
             }
@@ -501,7 +502,7 @@ namespace AmpScm.Buckets.Git
 
             Bucket reader;
             if (_nRead == _indexCount)
-                reader = Source.NoDispose(true);
+                reader = Source.NoDispose(alwaysWrap: true);
             else
             {
                 reader = await Source.DuplicateSeekedAsync(_endOfIndex.Value).ConfigureAwait(false);
@@ -594,7 +595,7 @@ namespace AmpScm.Buckets.Git
 
             if (!_firstReal.HasValue)
             {
-                while (await ReadEntryDirectAsync(true).ConfigureAwait(false) is GitDirectoryEntry entry)
+                while (await ReadEntryDirectAsync(allowSplit: true).ConfigureAwait(false) is GitDirectoryEntry entry)
                 {
                     if (!string.IsNullOrEmpty(entry.Name))
                         break;

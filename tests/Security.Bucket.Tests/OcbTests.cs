@@ -13,7 +13,7 @@ namespace SecurityBucketTests
     [TestClass]
     public class OCBTests
     {
-        static readonly byte[] Key = Dec("000102030405060708090A0B0C0D0E0F");
+        private static readonly byte[] Key = Dec("000102030405060708090A0B0C0D0E0F");
 
         [TestMethod]
         public async Task Ocb_00_Empty()
@@ -303,8 +303,7 @@ namespace SecurityBucketTests
             Assert.AreEqual(true, ok, "Got verified");
         }
 
-
-        static byte[] Dec(string txt)
+        private static byte[] Dec(string txt)
         {
             byte[] result = new byte[txt.Length / 2];
 
@@ -316,7 +315,7 @@ namespace SecurityBucketTests
             return result;
         }
 
-        static string GetHex(BucketBytes bb)
+        private static string GetHex(BucketBytes bb)
         {
             StringBuilder sb = new StringBuilder();
 

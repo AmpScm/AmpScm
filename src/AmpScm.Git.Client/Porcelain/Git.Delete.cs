@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("rm")]
         public static async ValueTask Delete(this GitPorcelainClient c, GitDeleteArgs? options = null)

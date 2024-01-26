@@ -14,8 +14,8 @@ namespace AmpScm.Git.Sets
 {
     public class GitTreeItemCollection : GitSet, IEnumerable<GitTreeItem>, IAsyncEnumerable<GitTreeItem>
     {
-        readonly GitTree _gitTree;
-        readonly bool _justFiles;
+        private readonly GitTree _gitTree;
+        private readonly bool _justFiles;
 
         internal GitTreeItemCollection(GitTree gitTree, bool justFiles)
             : base(gitTree?.Repository ?? throw new ArgumentNullException(nameof(gitTree)))

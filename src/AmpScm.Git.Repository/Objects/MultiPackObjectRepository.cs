@@ -13,14 +13,14 @@ namespace AmpScm.Git.Objects
 {
     internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
     {
-        readonly string _dir;
-        string[]? _packNames;
-        PackObjectRepository[]? _packs;
-        string? _multiPackBitmapPath;
-        Lazy<bool> HasBitmap;
-        int _bmpHdrSize;
-        FileBucket? _bitmapBucket;
-        FileBucket? _revIdxBucket;
+        private readonly string _dir;
+        private string[]? _packNames;
+        private PackObjectRepository[]? _packs;
+        private string? _multiPackBitmapPath;
+        private Lazy<bool> HasBitmap;
+        private int _bmpHdrSize;
+        private FileBucket? _bitmapBucket;
+        private FileBucket? _revIdxBucket;
 
         public MultiPackObjectRepository(GitRepository repository, string multipackFile) : base(repository, multipackFile, "MultiPack:" + repository.GitDirectory)
         {
@@ -50,7 +50,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        async ValueTask<bool> GetHasBitmap()
+        private async ValueTask<bool> GetHasBitmap()
         {
             if (ChunkReader is null)
                 return false;
@@ -194,7 +194,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(HashSet<GitId> alreadyReturned)
+        private async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(HashSet<GitId> alreadyReturned)
             where TGitObject : GitObject
         {
             if (FanOut is null || FanOut[255] == 0 || !HasBitmap.Value)
@@ -342,7 +342,7 @@ namespace AmpScm.Git.Objects
                 File.Delete(tmpName);
         }
 
-        async ValueTask VerifyBitmap(FileBucket bmp)
+        private async ValueTask VerifyBitmap(FileBucket bmp)
         {
             using var bhr = new GitBitmapHeaderBucket(bmp.NoDispose(), Repository.InternalConfig.IdType);
 

@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("merge-file")]
         public static async ValueTask MergeFile(this GitPlumbingClient c, GitMergeFileArgs options)

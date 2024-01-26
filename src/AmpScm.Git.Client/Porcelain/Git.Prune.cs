@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("prune")]
         public static async ValueTask Prune(this GitPorcelainClient c, GitPruneArgs? options = null)

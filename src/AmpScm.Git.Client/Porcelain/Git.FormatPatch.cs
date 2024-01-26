@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("format-patch")]
         public static async ValueTask FormatPatch(this GitPorcelainClient c, GitFormatPatchArgs? options = null)

@@ -5,11 +5,11 @@ namespace AmpScm.Buckets.Git
 {
     public sealed class GitLineIndentBucket : WrappingBucket
     {
-        readonly BucketEol _acceptableEols;
-        static readonly ReadOnlyMemory<byte> _indentData = new byte[] { (byte)' ' };
-        bool _indent;
-        BucketBytes _next;
-        bool _lastWasEol;
+        private readonly BucketEol _acceptableEols;
+        private static readonly ReadOnlyMemory<byte> _indentData = new byte[] { (byte)' ' };
+        private bool _indent;
+        private BucketBytes _next;
+        private bool _lastWasEol;
 
         public GitLineIndentBucket(Bucket source, BucketEol acceptableEols = BucketEol.LF) : base(source)
         {

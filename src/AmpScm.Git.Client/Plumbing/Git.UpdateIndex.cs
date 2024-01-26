@@ -23,7 +23,7 @@ namespace AmpScm.Git.Client.Plumbing
         }
     }
 
-    partial class GitPlumbing
+    public partial class GitPlumbing
     {
         [GitCommand("update-index")]
         public static async ValueTask UpdateIndex(this GitPlumbingClient c, GitUpdateIndexArgs? options = null)

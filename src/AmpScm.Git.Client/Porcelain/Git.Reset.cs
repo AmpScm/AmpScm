@@ -14,7 +14,7 @@ namespace AmpScm.Git.Client.Porcelain
         }
     }
 
-    partial class GitPorcelain
+    public partial class GitPorcelain
     {
         [GitCommand("reset")]
         public static async ValueTask Reset(this GitPorcelainClient c, GitResetArgs? options = null)

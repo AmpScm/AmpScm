@@ -12,15 +12,15 @@ namespace AmpScm.Git.Objects
 {
     internal sealed class PackObjectRepository : GitObjectRepository
     {
-        readonly GitIdType _idType;
-        FileBucket? _fIdx;
-        FileBucket? _packBucket;
-        FileBucket? _bitmapBucket;
-        FileBucket? _revIdxBucket;
-        int _ver;
-        uint[]? _fanOut;
-        bool _hasBitmap;
-        int _bmpHdrSize;
+        private readonly GitIdType _idType;
+        private FileBucket? _fIdx;
+        private FileBucket? _packBucket;
+        private FileBucket? _bitmapBucket;
+        private FileBucket? _revIdxBucket;
+        private int _ver;
+        private uint[]? _fanOut;
+        private bool _hasBitmap;
+        private int _bmpHdrSize;
 
         public PackObjectRepository(GitRepository repository, string packFile, GitIdType idType)
             : base(repository, "Pack:" + packFile)
@@ -49,7 +49,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        async ValueTask InitAsync()
+        private async ValueTask InitAsync()
         {
             if (_ver == 0)
             {
@@ -315,7 +315,7 @@ namespace AmpScm.Git.Objects
         {
             await OpenPackIfNecessary().ConfigureAwait(false);
 
-            var rdr = _packBucket!.Duplicate(true);
+            var rdr = _packBucket!.Duplicate(reset: true);
             await rdr.SeekAsync(offset).ConfigureAwait(false);
 
             GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
@@ -372,7 +372,7 @@ namespace AmpScm.Git.Objects
 
                 await OpenPackIfNecessary().ConfigureAwait(false);
 
-                var rdr = _packBucket!.Duplicate(true);
+                var rdr = _packBucket!.Duplicate(reset: true);
                 await rdr.SeekAsync(offset).ConfigureAwait(false);
 
                 GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
@@ -436,8 +436,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-
-        async IAsyncEnumerable<TGitObject> GetAllAll<TGitObject>(HashSet<GitId> alreadyReturned)
+        private async IAsyncEnumerable<TGitObject> GetAllAll<TGitObject>(HashSet<GitId> alreadyReturned)
             where TGitObject : class
         {
             await OpenPackIfNecessary().ConfigureAwait(false);
@@ -459,7 +458,7 @@ namespace AmpScm.Git.Objects
 
                 long offset = GetOffset(offsets, i);
 
-                var rdr = _packBucket!.Duplicate(true);
+                var rdr = _packBucket!.Duplicate(reset: true);
                 await rdr.SeekAsync(offset).ConfigureAwait(false);
 
                 GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
@@ -473,7 +472,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(HashSet<GitId> alreadyReturned)
+        private async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(HashSet<GitId> alreadyReturned)
             where TGitObject : GitObject
         {
             await OpenPackIfNecessary().ConfigureAwait(false);
@@ -524,7 +523,7 @@ namespace AmpScm.Git.Objects
             }
         }
 
-        async ValueTask<TGitObject?> GetOneViaPackIndex<TGitObject>(int v, GitObjectType gitObjectType, Predicate<GitId> skip)
+        private async ValueTask<TGitObject?> GetOneViaPackIndex<TGitObject>(int v, GitObjectType gitObjectType, Predicate<GitId> skip)
             where TGitObject : class
         {
             await OpenPackIfNecessary().ConfigureAwait(false);
@@ -547,7 +546,7 @@ namespace AmpScm.Git.Objects
             if (skip(objectId))
                 return null;
 
-            var rdr = _packBucket!.Duplicate(true);
+            var rdr = _packBucket!.Duplicate(reset: true);
             await rdr.SeekAsync(GetOffset(offsets, 0)).ConfigureAwait(false);
 
             GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
@@ -617,7 +616,7 @@ namespace AmpScm.Git.Objects
                 File.Delete(tmpName);
         }
 
-        async ValueTask VerifyBitmap(FileBucket bmp)
+        private async ValueTask VerifyBitmap(FileBucket bmp)
         {
             using var bhr = new GitBitmapHeaderBucket(bmp.NoDispose(), Repository.InternalConfig.IdType);
 
@@ -633,7 +632,7 @@ namespace AmpScm.Git.Objects
                 throw new GitBucketException($"BITMAP_OPT_FULL_DAG not set, flags={bhr.Flags}");
         }
 
-        async ValueTask<GitObjectBucket?> MyResolveByOid(GitId id)
+        private async ValueTask<GitObjectBucket?> MyResolveByOid(GitId id)
         {
             // 99% case. All deltas should be in the same pack
             var r = await ResolveById(id).ConfigureAwait(false);
@@ -667,7 +666,7 @@ namespace AmpScm.Git.Objects
 
                 await OpenPackIfNecessary().ConfigureAwait(false);
 
-                var rdr = _packBucket!.Duplicate(true);
+                var rdr = _packBucket!.Duplicate(reset: true);
                 await rdr.SeekAsync(offset).ConfigureAwait(false);
 
                 GitPackObjectBucket pf = new GitPackObjectBucket(rdr, _idType, MyResolveByOid);
