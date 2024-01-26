@@ -44,7 +44,11 @@ internal sealed class SvnHashBucket : SvnBucket
             throw new BucketException();
         }
 
-        if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.None, CultureInfo.InvariantCulture, out var len))
+#if NET8_0_OR_GREATER
+        if (!int.TryParse(bb.Slice(2, eol).Span, NumberStyles.None, CultureInfo.InvariantCulture, out var len))
+#else
+        if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), NumberStyles.None, CultureInfo.InvariantCulture, out var len))
+#endif
             throw new BucketException();
 
         bb = await Source.ReadExactlyAsync(len).ConfigureAwait(false);
@@ -61,7 +65,11 @@ internal sealed class SvnHashBucket : SvnBucket
         if (!bb.StartsWithASCII("V "))
             throw new BucketException();
 
+#if NET8_0_OR_GREATER
+        if (!int.TryParse(bb.Slice(2, eol).Span, NumberStyles.None, CultureInfo.InvariantCulture, out len))
+#else
         if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.None, CultureInfo.InvariantCulture, out len))
+#endif
             throw new BucketException();
 
         bb = await Source.ReadExactlyAsync(len).ConfigureAwait(false);

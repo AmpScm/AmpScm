@@ -24,7 +24,7 @@ public static partial class GitObjectWriterExtensions
                     break;
                 case GitTreeElementType.SymbolicLink:
                 case GitTreeElementType.GitCommitLink:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
             }
         }
         gtw.PutId(tree.Id); // TODO: Cleanup

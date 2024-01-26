@@ -165,7 +165,7 @@ public sealed class GitCommitWriter : GitObjectWriter<GitCommit>
                     tagId = tagOb.Id;
                 }
                 else
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
 
                 Bucket obBucket = await repository.ObjectRepository.ResolveById(tagId).ConfigureAwait(false) ?? throw new InvalidOperationException();
 

@@ -92,7 +92,7 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
 
             if (offset > int.MaxValue && GetChunkLength("LOFF") != null) // If chunk does not exist we have 32 bits
             {
-                throw new NotImplementedException("TODO: Implement LOFF support on MIDX");
+                throw new NotSupportedException("TODO: Implement LOFF support on MIDX");
             }
 
             if (pack < _packs.Length)
@@ -305,7 +305,7 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
 
                 if (offset > int.MaxValue && GetChunkLength("LOFF") != null) // If chunk doesn't exist we have 32 bits
                 {
-                    throw new NotImplementedException("TODO: Implement LOFF support on MIDX");
+                    throw new NotSupportedException("TODO: Implement LOFF support on MIDX");
                 }
 
                 offset += ((long)pack) << 48;

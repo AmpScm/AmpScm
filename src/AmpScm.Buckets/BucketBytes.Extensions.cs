@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets;
 
@@ -160,7 +157,7 @@ public partial struct BucketBytes
         int start = 0;
 
         var result = new List<BucketBytes>();
-        while(next >= 0)
+        while (next >= 0)
         {
             if (next > start)
                 result.Add(Slice(start, next - start));
@@ -243,7 +240,7 @@ public partial struct BucketBytes
 
         var p = Memory.Slice(Length - value.Length).Span;
 
-        for(int i = 0; i < value.Length; i++)
+        for (int i = 0; i < value.Length; i++)
         {
             if (p[i] != value[i])
                 return false;

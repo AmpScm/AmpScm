@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Git.Sets;
 
 namespace AmpScm.Git.Implementation;
@@ -66,7 +63,7 @@ internal class GitQueryVisitor : ExpressionVisitor
                     else if (typeof(GitStash).IsAssignableFrom(elementType))
                         newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllStashes(null!)), newArguments[i]);
                     else
-                        throw new NotImplementedException($"Can't unwrap type {elementType}");
+                        throw new NotSupportedException($"Can't unwrap type {elementType}");
 
                     node = node.Update(node.Object!, newArguments);
                 }

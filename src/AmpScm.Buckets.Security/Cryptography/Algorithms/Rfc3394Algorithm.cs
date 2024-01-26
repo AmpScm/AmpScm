@@ -8,11 +8,10 @@
  */
 
 using System;
-using System.IO;
-using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Linq;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
 
 namespace AmpScm.Buckets.Cryptography;
 
@@ -168,7 +167,7 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         using (ICryptoTransform xf = aes.CreateEncryptor())
         using (CryptoStream cs = new CryptoStream(ms, xf,
               CryptoStreamMode.Read))
-            cs.Read(ciphertext, 0, aes.BlockSize / 8);
+            _ = cs.Read(ciphertext, 0, aes.BlockSize / 8);
 
         return Rfc3394Block.BytesToBlocks(ciphertext);
     }

@@ -97,7 +97,7 @@ public class HttpResponseBucket : ResponseBucket
         // RFC 7231 specifies that we should determine the message length via Transfer-Encoding
         // chunked, when both chunked and Content-Length are passed
         if (!chunked && headers[HttpResponseHeader.ContentLength] is string cl
-            && long.TryParse(cl, out long contentLength) && contentLength >= 0)
+            && long.TryParse(cl, NumberStyles.None, CultureInfo.InvariantCulture, out long contentLength) && contentLength >= 0)
         {
             rdr = rdr.TakeExactly(contentLength, alwaysWrap: true).NoDispose();
             allowNext = true;
@@ -200,7 +200,12 @@ public class HttpResponseBucket : ResponseBucket
             else
                 throw new HttpBucketException($"No HTTP result: {bb.ToASCIIString()}");
 
-            if (int.TryParse(parts[1].ToASCIIString(), out int status) && status >= 100 && status < 1000)
+#if NET8_0_OR_GREATER
+            if (int.TryParse(parts[1].Span, NumberStyles.None, CultureInfo.InvariantCulture, out int status) 
+#else
+            if (int.TryParse(parts[1].ToASCIIString(), NumberStyles.None, CultureInfo.InvariantCulture, out int status)
+#endif
+            && status >= 100 && status < 1000)
             {
                 switch (status)
                 {

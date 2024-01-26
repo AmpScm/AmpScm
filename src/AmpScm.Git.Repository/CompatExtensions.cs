@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AmpScm.Git;
 
@@ -42,12 +39,11 @@ internal static class CompatExtensions
         return on.Contains(value);
     }
 
-    public static int GetHashCode(this string on, StringComparison comparison)
-    {
-        if (comparison != StringComparison.Ordinal)
-            throw new ArgumentOutOfRangeException(nameof(comparison));
-
-        return on.GetHashCode();
-    }
+    internal static int GetHashCode(this string on, StringComparison comparison)
+        => comparison switch {
+            StringComparison.Ordinal => StringComparer.Ordinal.GetHashCode(on),
+            StringComparison.OrdinalIgnoreCase => StringComparer.OrdinalIgnoreCase.GetHashCode(on),
+            _ => throw new ArgumentOutOfRangeException(nameof(comparison))
+        };
 #endif
 }

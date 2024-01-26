@@ -189,11 +189,11 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
             case "ecdsa-sha2-nistp521":
                 {
                     var values = CryptoDataBucket.GetEcdsaValues(vals.Skip(1).ToArray());
-                    vv =(CryptoAlgorithm.Ecdsa, values);
+                    vv = (CryptoAlgorithm.Ecdsa, values);
                     break;
                 }
             default:
-                throw new NotImplementedException($"SSH public key format {items[0]} not implemented yet");
+                throw new NotSupportedException($"SSH public key format {items[0]} not implemented yet");
         }
 
 

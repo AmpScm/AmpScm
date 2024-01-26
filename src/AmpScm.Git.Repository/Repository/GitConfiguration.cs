@@ -268,7 +268,7 @@ public class GitConfiguration : GitBackendRepository
 
     internal async IAsyncEnumerable<GitRemote> GetAllRemotes()
     {
-        HashSet<string> names = new HashSet<string>();
+        HashSet<string> names = new HashSet<string>(StringComparer.Ordinal);
 
         await LoadAsync().ConfigureAwait(false);
 

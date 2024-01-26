@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
@@ -299,7 +298,7 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
             "mergetag" => GitSubBucketType.MergeTag,
             "gpgsig" => GitSubBucketType.Signature,
             "gpgsig-sha256" => GitSubBucketType.SignatureSha256,
-            _ => throw new NotImplementedException()
+            _ => throw new NotSupportedException($"Not found {key}")
         };
 
     public override ValueTask<long?> ReadRemainingBytesAsync()

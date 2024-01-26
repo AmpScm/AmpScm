@@ -180,6 +180,11 @@ dotnet_diagnostic.MA0006.severity = suggestion
 dotnet_diagnostic.MA0099.severity = none
 dotnet_diagnostic.MA0051.severity = suggestion
 
+# Good async practices
+dotnet_diagnostic.MA0032.severity = suggestion
+dotnet_diagnostic.MA0045.severity = suggestion
+dotnet_diagnostic.MA0080.severity = suggestion
+
 [*.vb]
 ###############################
 # VB Coding Conventions       #

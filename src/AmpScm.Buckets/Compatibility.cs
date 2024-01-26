@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 #if !NET5_0_OR_GREATER
 namespace System.Runtime.CompilerServices
@@ -60,7 +54,7 @@ namespace System
             if (value.Length == 0)
                 return false;
 
-            char last = value[value.Length-1];
+            char last = value[value.Length - 1];
 
             if (last == key)
                 return true;
@@ -79,6 +73,11 @@ namespace System
                 return true;
             else
                 return false;
+        }
+
+        internal static string GetString(this System.Text.Encoding encoding, ReadOnlySpan<byte> bytes)
+        {
+            return encoding.GetString(bytes.ToArray());
         }
     }
 }

@@ -122,12 +122,11 @@ public static class GitBucketExtensions
     }
 
     internal static int GetHashCode(this string on, StringComparison comparison)
-    {
-        if (comparison != StringComparison.Ordinal)
-            throw new ArgumentOutOfRangeException(nameof(comparison));
-
-        return on.GetHashCode();
-    }
+        => comparison switch {
+            StringComparison.Ordinal => StringComparer.Ordinal.GetHashCode(on),
+            StringComparison.OrdinalIgnoreCase => StringComparer.OrdinalIgnoreCase.GetHashCode(on),
+            _ => throw new ArgumentOutOfRangeException(nameof(comparison))
+        };
 
     internal static byte[] ToByteArray(this BigInteger bi, bool isUnsigned=false, bool isBigEndian=false)
     {

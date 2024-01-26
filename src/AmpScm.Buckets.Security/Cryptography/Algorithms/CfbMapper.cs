@@ -5,8 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Cryptography;
 
@@ -42,7 +40,7 @@ internal sealed class CfbMapper : SymmetricAlgorithm
 
     public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV)
     {
-        throw new NotImplementedException("CFB encryptor not implemented yet");
+        throw new NotSupportedException("CFB encryptor not implemented yet");
     }
 
     public override void GenerateIV()

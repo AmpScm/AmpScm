@@ -5,7 +5,8 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0;net6.0;net48</TargetFrameworks>
     <LangVersion>12</LangVersion>
-    <Nullable>enable</Nullable>    
+    <Nullable>enable</Nullable>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>

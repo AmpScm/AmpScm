@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets;
 using Microsoft.Win32.SafeHandles;
 
@@ -82,7 +79,7 @@ internal static class GitInstallFile
                 return new FileStream(handle, FileAccess.ReadWrite);
             else
                 throw new FileNotFoundException($"Couldn't open {path}", Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()));
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 

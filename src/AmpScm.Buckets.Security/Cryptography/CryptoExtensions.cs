@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Cryptography.Algorithms;
 
 namespace AmpScm.Buckets.Cryptography;
@@ -206,7 +202,7 @@ public static partial class CryptoExtensions
             x = x.Skip(1).Take(n).ToArray();
         }
         else // 0x40 -> native format, 0x41 -> Only X, 0x42 -> Only Y
-            throw new NotImplementedException($"Unexpected ECDH keyformat with first byte {x[0]}");
+            throw new NotSupportedException($"Unexpected ECDH keyformat with first byte {x[0]}");
 
         var p = new ECParameters()
         {
@@ -253,7 +249,7 @@ public static partial class CryptoExtensions
             curve25519.PublicKey = v.Skip(1).ToArray();
         }
         else
-            throw new NotImplementedException($"Unexpected Curve25519 keyformat with first byte {v[0]}");
+            throw new NotSupportedException($"Unexpected Curve25519 keyformat with first byte {v[0]}");
 
         // ints[2] is kdf
         if (ints.Count == 4)
@@ -297,7 +293,7 @@ public static partial class CryptoExtensions
             return v.Skip(1).ToArray();
         }
 
-        throw new NotImplementedException($"Unexpected Curve25519 keyformat with first byte {v[0]}");
+        throw new NotSupportedException($"Unexpected Curve25519 keyformat with first byte {v[0]}");
     }
 
     internal static byte[] DeriveKeyFromHash(this Curve25519 curve25519, byte[] publicKey, HashAlgorithm hashAlgorithm, byte[]? secretPrepend = null, byte[]? secretAppend = null)
@@ -407,7 +403,7 @@ public static partial class CryptoExtensions
             v1 = v1.Skip(1).Take(n).ToArray();
         }
         else
-            throw new NotImplementedException($"Unexpected ECDSA keyformat with first byte {v1[0]}");
+            throw new NotSupportedException($"Unexpected ECDSA keyformat with first byte {v1[0]}");
 
 
         var oidString = ParseOid(curveValue);
@@ -464,7 +460,7 @@ public static partial class CryptoExtensions
             PgpHashAlgorithm.SHA384 => HashAlgorithmName.SHA384,
             PgpHashAlgorithm.SHA1 => HashAlgorithmName.SHA1,
             PgpHashAlgorithm.MD5 => HashAlgorithmName.MD5,
-            _ => throw new NotImplementedException($"PGP scheme {hashAlgorithm} not mapped yet.")
+            _ => throw new NotSupportedException($"PGP scheme {hashAlgorithm} not mapped yet.")
         };
     }
 
@@ -477,7 +473,7 @@ public static partial class CryptoExtensions
             PgpSymmetricAlgorithm.Aes256 => 256,
             PgpSymmetricAlgorithm.TripleDes => 192,
             PgpSymmetricAlgorithm.Blowfish128 => 128,
-            _ => throw new NotImplementedException($"Keysize for cipher {cipherAlgorithm} not implemented yet.")
+            _ => throw new NotSupportedException($"Keysize for cipher {cipherAlgorithm} not implemented yet.")
         };
     }
 
@@ -491,7 +487,7 @@ public static partial class CryptoExtensions
         return cipherAlgorithm switch
         {
             PgpSymmetricAlgorithm.Aes or PgpSymmetricAlgorithm.Aes192 or PgpSymmetricAlgorithm.Aes256 => 16,
-            _ => throw new NotImplementedException($"Blocksize for cipher {cipherAlgorithm} not implemented yet.")
+            _ => throw new NotSupportedException($"Blocksize for cipher {cipherAlgorithm} not implemented yet.")
         };
     }
 }

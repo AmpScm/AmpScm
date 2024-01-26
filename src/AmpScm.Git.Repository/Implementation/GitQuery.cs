@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Git.Sets;
@@ -31,7 +30,7 @@ internal class GitQuery<T> : IOrderedQueryableAndAsyncQueryable<T>
 
     public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        foreach(var v in this)
+        foreach (var v in this)
         {
             if (v is IGitObject r)
                 await r.ReadAsync().ConfigureAwait(false);
@@ -47,17 +46,17 @@ internal class GitQuery<T> : IOrderedQueryableAndAsyncQueryable<T>
 
     IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException();
     }
 
     IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException();
     }
 
     IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException();
     }
 
     IEnumerator IEnumerable.GetEnumerator()

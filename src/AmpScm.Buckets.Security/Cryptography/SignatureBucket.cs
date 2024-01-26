@@ -102,7 +102,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     {
                         "sha256" => PgpHashAlgorithm.SHA256,
                         "sha512" => PgpHashAlgorithm.SHA512,
-                        _ => throw new NotImplementedException($"Unexpected hash type: {sigHashAlgo} in SSH SignaturePublicKey from {bucket.Name} Bucket"),
+                        _ => throw new NotSupportedException($"Unexpected hash type: {sigHashAlgo} in SSH SignaturePublicKey from {bucket.Name} Bucket"),
                     };
 
                     bb = await ReadSshStringAsync(bucket).ConfigureAwait(false);
@@ -341,7 +341,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                                     if (version >= 4)
                                         nrOfInts += 1; // Encoded in one int
                                     else
-                                        throw new NotImplementedException($"Unexpected private key key type {keyPublicKeyType}");
+                                        throw new NotSupportedException($"Unexpected private key key type {keyPublicKeyType}");
                                     break;
                             }
 

@@ -23,7 +23,7 @@ public class SvnDeltaBucket : SvnBucket
     public SvnDeltaBucket(Bucket source, Bucket? deltaBase, Action? atEof = null)
         : base(source)
     {
-        DeltaBase = deltaBase ?? Bucket.Empty;
+        DeltaBase = deltaBase ?? Empty;
         _version = 0xFF;
 
         _haveBase = (deltaBase != null);

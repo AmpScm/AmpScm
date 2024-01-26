@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 // From: https://github.com/hanswolff/curve25519/ - Apache 2 Licensed
@@ -49,7 +48,7 @@ internal sealed class Curve25519 : IDisposable
     public static void ClampPrivateKeyInline(Span<byte> key)
     {
         if (key.Length != 32)
-            throw new ArgumentException($"key must be 32 bytes long (but was {key.Length} bytes long)");
+            throw new ArgumentException($"key must be 32 bytes long (but was {key.Length} bytes long)", nameof(key));
 
         key[31] &= 0x7F;
         key[31] |= 0x40;

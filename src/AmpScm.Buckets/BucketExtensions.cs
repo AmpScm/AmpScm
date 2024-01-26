@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
 using AmpScm.Buckets.Interfaces;
-using System.ComponentModel;
-using System.Threading;
-using System.Diagnostics;
-using System.Collections.Concurrent;
+using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets;
 
@@ -667,12 +664,15 @@ public static partial class BucketExtensions
         return new StreamReader(bucket.AsStream());
     }
 
-#if NETFRAMEWORK
-    internal static string GetString(this System.Text.Encoding encoding, ReadOnlySpan<byte> bytes)
+    internal static ReadOnlySpan<T> Slice<T>(this ReadOnlySpan<T> span, BucketEol eol)
     {
-        return encoding.GetString(bytes.ToArray());
+        return span.Slice(0, span.Length - eol.CharCount());
     }
-#endif
+
+    internal static ReadOnlySpan<T> Slice<T>(this ReadOnlySpan<T> span, int start, BucketEol eol)
+    {
+        return span.Slice(start, span.Length - start - eol.CharCount());
+    }
 
     public static int CharCount(this BucketEol eol)
     {
@@ -680,6 +680,9 @@ public static partial class BucketExtensions
         {
             BucketEol.CRLF => 2,
             BucketEol.None => 0,
+#if !NETFRAMEWORK
+            _ when System.Numerics.BitOperations.PopCount((uint)(int)eol) != 1 => throw new ArgumentOutOfRangeException(nameof(eol)),
+#endif
             _ => 1,
         };
     }

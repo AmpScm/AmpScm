@@ -22,7 +22,7 @@ public static partial class GitIndexer
         DateTime start = DateTime.Now;
 
         if (writeBitmap)
-            throw new NotImplementedException();
+            throw new NotSupportedException();
 
         using var srcFile = FileBucket.OpenRead(packFile, forAsync: false);
         var hashes = new SortedList<GitId, long>();
@@ -261,7 +261,7 @@ public static partial class GitIndexer
 
         public override ValueTask SeekAsync(long newPosition)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override long? Position => 0;

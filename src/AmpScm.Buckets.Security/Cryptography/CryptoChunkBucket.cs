@@ -148,7 +148,8 @@ internal sealed class CryptoChunkBucket : WrappingBucket
                     0 => await inner.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Source),
                     1 => await inner.ReadNetworkUInt16Async().ConfigureAwait(false),
                     2 => await inner.ReadNetworkUInt32Async().ConfigureAwait(false),
-                    _ => throw new NotImplementedException("Indetermined size"),
+                    _ when (await inner.ReadRemainingBytesAsync().ConfigureAwait(false)) is { } size => checked((uint)size), // Old definition: until end of stream
+                    _ => throw new NotSupportedException("Indetermined size"),
                 };
             }
 

@@ -74,7 +74,7 @@ public class SvnFsFsRevisionBucket : SvnBucket
                 if (_fetchBase != null)
                     baseBucket = await _fetchBase.Invoke(rev, index, baseLength).ConfigureAwait(false);
                 else
-                    baseBucket = Bucket.Create.FromUTF8("This is iota.\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\n");
+                    baseBucket = Create.FromUTF8("This is iota.\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\nThis is more iota\n");
 
                 _reading = true;
                 _readEndRep = true;
