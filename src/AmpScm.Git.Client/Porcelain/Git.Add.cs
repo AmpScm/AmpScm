@@ -4,38 +4,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Porcelain
-{
-    public class GitAddArgs : GitPorcelainArgs
-    {
-        public override void Verify()
-        {
+namespace AmpScm.Git.Client.Porcelain;
 
-        }
+public class GitAddArgs : GitPorcelainArgs
+{
+    public override void Verify()
+    {
+
+    }
+}
+
+public partial class GitPorcelain
+{
+    [GitCommand("add")]
+    public static ValueTask Add(this GitPorcelainClient c, string path, GitAddArgs? options=null)
+    {
+        return Add(c, new[] { path }, options);
     }
 
-    public partial class GitPorcelain
+    [GitCommand("add")]
+    public static async ValueTask Add(this GitPorcelainClient c, string[] paths, GitAddArgs? options = null)
     {
-        [GitCommand("add")]
-        public static ValueTask Add(this GitPorcelainClient c, string path, GitAddArgs? options=null)
-        {
-            return Add(c, new[] { path }, options);
-        }
+        options?.Verify();
+        options ??= new();
 
-        [GitCommand("add")]
-        public static async ValueTask Add(this GitPorcelainClient c, string[] paths, GitAddArgs? options = null)
-        {
-            options?.Verify();
-            options ??= new();
+        List<string> args = new List<string>();
 
-            List<string> args = new List<string>();
+        args.Add("--");
+        args.AddRange(paths);
 
-            args.Add("--");
-            args.AddRange(paths);
+        await c.Repository.RunGitCommandAsync("add", args);
 
-            await c.Repository.RunGitCommandAsync("add", args);
-
-            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
-        }
+        Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }
 }

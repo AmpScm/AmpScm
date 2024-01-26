@@ -1,7 +1,7 @@
 ﻿using System;
 
-namespace Chaos.NaCl.Internal.Ed25519Ref10
-{
+namespace Chaos.NaCl.Internal.Ed25519Ref10;
+
 	internal static partial class GroupOperations
 	{
 		/*
@@ -70,4 +70,3 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 			/* qhasm: return */
 		}
 	}
-}

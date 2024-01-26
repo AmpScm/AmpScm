@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.References
-{
-    
-}
+namespace AmpScm.Git.References;
+
+

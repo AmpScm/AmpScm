@@ -4,20 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Porcelain
+namespace AmpScm.Git.Client.Porcelain;
+
+public class GitPorcelainClient
 {
-    public class GitPorcelainClient
+    public GitPorcelainClient(GitRepository repository)
     {
-        public GitPorcelainClient(GitRepository repository)
-        {
-            Repository = repository;
-        }
+        Repository = repository;
+    }
 
-        internal GitRepository Repository { get; }
+    internal GitRepository Repository { get; }
 
-        internal ValueTask ThrowNotImplemented()
-        {
-            throw new NotImplementedException();
-        }
+    internal ValueTask ThrowNotImplemented()
+    {
+        throw new NotImplementedException();
     }
 }

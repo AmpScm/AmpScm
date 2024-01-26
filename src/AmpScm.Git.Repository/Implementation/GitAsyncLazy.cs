@@ -4,22 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Repository.Implementation
+namespace AmpScm.Git.Repository.Implementation;
+
+internal sealed class GitAsyncLazy<T> : Lazy<T>
 {
-    internal sealed class GitAsyncLazy<T> : Lazy<T>
-    {
-        public GitAsyncLazy(Func<ValueTask<T>> task) :
-            base(() => task().AsTask().Result)
-        { }
+    public GitAsyncLazy(Func<ValueTask<T>> task) :
+        base(() => task().AsTask().Result)
+    { }
 
-        public GitAsyncLazy(T value)
-            #if !NETFRAMEWORK
-            : base(value)
+    public GitAsyncLazy(T value)
+        #if !NETFRAMEWORK
+        : base(value)
 #else
-            : base(() =>value)
+        : base(() =>value)
 #endif
-        {
+    {
 
-        }
     }
 }

@@ -5,66 +5,65 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Porcelain
+namespace AmpScm.Git.Client.Porcelain;
+
+public enum GitArchiveFormat
 {
-    public enum GitArchiveFormat
+    Zip,
+    Tar,
+    TarGz
+}
+public class GitArchiveArgs : GitPorcelainArgs
+{
+    public GitArchiveFormat? Format { get; set; }
+    public string[]? Paths { get; set; }
+    public string? Prefix { get; set; }
+    public bool WorktreeAttributes { get; set; }
+
+    public override void Verify()
     {
-        Zip,
-        Tar,
-        TarGz
+        //throw new NotImplementedException();
     }
-    public class GitArchiveArgs : GitPorcelainArgs
+}
+
+public partial class GitPorcelain
+{
+    [GitCommand("archive")]
+    public static async ValueTask Archive(this GitPorcelainClient c, string? file, string treeIsh, GitArchiveArgs? options = null)
     {
-        public GitArchiveFormat? Format { get; set; }
-        public string[]? Paths { get; set; }
-        public string? Prefix { get; set; }
-        public bool WorktreeAttributes { get; set; }
+        options?.Verify();
+        options ??= new();
 
-        public override void Verify()
-        {
-            //throw new NotImplementedException();
-        }
-    }
+        List<string> args = new();
 
-    public partial class GitPorcelain
-    {
-        [GitCommand("archive")]
-        public static async ValueTask Archive(this GitPorcelainClient c, string? file, string treeIsh, GitArchiveArgs? options = null)
-        {
-            options?.Verify();
-            options ??= new();
+        if (options.Format.HasValue)
+            switch (options.Format.Value)
+            {
+                case GitArchiveFormat.Zip:
+                    args.Add("--format=zip");
+                    break;
+                case GitArchiveFormat.Tar:
+                    args.Add("--format=tar");
+                    break;
+                case GitArchiveFormat.TarGz:
+                    args.Add("--format=tgz");
+                    break;
+            }
 
-            List<string> args = new();
+        if (!string.IsNullOrEmpty(file))
+            args.Add($"--output={file!.Replace(Path.DirectorySeparatorChar, '/')}");
 
-            if (options.Format.HasValue)
-                switch (options.Format.Value)
-                {
-                    case GitArchiveFormat.Zip:
-                        args.Add("--format=zip");
-                        break;
-                    case GitArchiveFormat.Tar:
-                        args.Add("--format=tar");
-                        break;
-                    case GitArchiveFormat.TarGz:
-                        args.Add("--format=tgz");
-                        break;
-                }
+        if (!string.IsNullOrEmpty(options.Prefix))
+            args.Add($"--prefix={options.Prefix!.Replace(Path.DirectorySeparatorChar, '/').TrimEnd('/') + '/'}");
 
-            if (!string.IsNullOrEmpty(file))
-                args.Add($"--output={file!.Replace(Path.DirectorySeparatorChar, '/')}");
+        if (options.WorktreeAttributes)
+            args.Add("--worktree-attributes");
 
-            if (!string.IsNullOrEmpty(options.Prefix))
-                args.Add($"--prefix={options.Prefix!.Replace(Path.DirectorySeparatorChar, '/').TrimEnd('/') + '/'}");
+        args.Add(treeIsh);
 
-            if (options.WorktreeAttributes)
-                args.Add("--worktree-attributes");
+        if (options.Paths?.Any() ?? false)
+            args.AddRange(options.Paths);
 
-            args.Add(treeIsh);
-
-            if (options.Paths?.Any() ?? false)
-                args.AddRange(options.Paths);
-
-            await c.Repository.RunGitCommandAsync("archive", args);
-        }
+        await c.Repository.RunGitCommandAsync("archive", args);
     }
 }

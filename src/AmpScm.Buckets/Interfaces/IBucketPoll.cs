@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Interfaces
+namespace AmpScm.Buckets.Interfaces;
+
+public interface IBucketPoll
 {
-    public interface IBucketPoll
-    {
-        ValueTask<BucketBytes> PollAsync(int minRequested = 1);
-    }
+    ValueTask<BucketBytes> PollAsync(int minRequested = 1);
 }

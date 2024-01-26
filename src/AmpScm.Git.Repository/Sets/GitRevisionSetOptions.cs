@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace AmpScm.Git.Sets
+namespace AmpScm.Git.Sets;
+
+internal record GitRevisionSetOptions
 {
-    internal record GitRevisionSetOptions
+    internal GitRevisionSetOptions AddCommit(GitCommit gitCommit)
     {
-        internal GitRevisionSetOptions AddCommit(GitCommit gitCommit)
-        {
-            if (Commits.Contains(gitCommit))
-                return this;
+        if (Commits.Contains(gitCommit))
+            return this;
 
-            var c = new GitRevisionSetOptions(this);
-            c.Commits.Add(gitCommit);
+        var c = new GitRevisionSetOptions(this);
+        c.Commits.Add(gitCommit);
 
-            return c;
-        }
-
-        public List<GitCommit> Commits { get; } = new List<GitCommit>();
+        return c;
     }
+
+    public List<GitCommit> Commits { get; } = new List<GitCommit>();
 }

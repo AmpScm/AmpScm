@@ -1,12 +1,11 @@
 ﻿using Elskom.Generic.Libs;
 
-namespace AmpScm.Buckets.Specialized
+namespace AmpScm.Buckets.Specialized;
+
+public enum BucketCompressionLevel
 {
-    public enum BucketCompressionLevel
-    {
-        Default = ZlibConst.ZDEFAULTCOMPRESSION,
-        Store = ZlibConst.ZNOCOMPRESSION,
-        BestSpeed = ZlibConst.ZBESTSPEED,
-        Maximum = ZlibConst.ZBESTCOMPRESSION
-    }
+    Default = ZlibConst.ZDEFAULTCOMPRESSION,
+    Store = ZlibConst.ZNOCOMPRESSION,
+    BestSpeed = ZlibConst.ZBESTSPEED,
+    Maximum = ZlibConst.ZBESTCOMPRESSION
 }

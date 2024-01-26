@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Git
+namespace AmpScm.Buckets.Git;
+
+public abstract class GitBucket : WrappingBucket
 {
-    public abstract class GitBucket : WrappingBucket
+    protected GitBucket(Bucket source) : base(source)
     {
-        protected GitBucket(Bucket source) : base(source)
-        {
-        }
     }
 }

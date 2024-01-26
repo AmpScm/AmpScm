@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Interfaces
+namespace AmpScm.Buckets.Interfaces;
+
+public interface IBucketProduceHash
 {
-    public interface IBucketProduceHash
-    {
-        void ProduceHash();
-    }
+    void ProduceHash();
 }

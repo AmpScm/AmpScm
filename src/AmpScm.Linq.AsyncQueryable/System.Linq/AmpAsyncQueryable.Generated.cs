@@ -8,303 +8,302 @@ using AmpScm.Linq;
 
 #pragma warning disable RS0041 // Public members should not use oblivious types
 
-namespace System.Linq
+namespace System.Linq;
+
+partial class AmpAsyncQueryable
 {
-    partial class AmpAsyncQueryable
+    /// <inheritdoc cref="Queryable.Cast{TResult}(IQueryable)" />
+    public static IQueryableAndAsyncQueryable<TResult> Cast<TResult>(this IQueryableAndAsyncQueryable source)
     {
-        /// <inheritdoc cref="Queryable.Cast{TResult}(IQueryable)" />
-        public static IQueryableAndAsyncQueryable<TResult> Cast<TResult>(this IQueryableAndAsyncQueryable source)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.Cast<TResult>(source);
-        }
-
-        /// <inheritdoc cref="Queryable.Concat{TSource}(IQueryable{TSource}, IEnumerable{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Concat<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Concat<TSource>(source1, source2);
-        }
-
-        /// <inheritdoc cref="Queryable.DefaultIfEmpty{TSource}(IQueryable{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> DefaultIfEmpty<TSource>(this IQueryableAndAsyncQueryable<TSource> source)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.DefaultIfEmpty<TSource>(source);
-        }
-
-        /// <inheritdoc cref="Queryable.DefaultIfEmpty{TSource}(IQueryable{TSource}, TSource)" />
-        public static IQueryableAndAsyncQueryable<TSource> DefaultIfEmpty<TSource>(this IQueryableAndAsyncQueryable<TSource> source, TSource defaultValue)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.DefaultIfEmpty<TSource>(source, defaultValue);
-        }
-
-        /// <inheritdoc cref="Queryable.Distinct{TSource}(IQueryable{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Distinct<TSource>(this IQueryableAndAsyncQueryable<TSource> source)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Distinct<TSource>(source);
-        }
-
-        /// <inheritdoc cref="Queryable.Distinct{TSource}(IQueryable{TSource}, IEqualityComparer{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Distinct<TSource>(this IQueryableAndAsyncQueryable<TSource> source, IEqualityComparer<TSource> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Distinct<TSource>(source, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.Except{TSource}(IQueryable{TSource}, IEnumerable{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Except<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Except<TSource>(source1, source2);
-        }
-
-        /// <inheritdoc cref="Queryable.Except{TSource}(IQueryable{TSource}, IEnumerable{TSource}, IEqualityComparer{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Except<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2, IEqualityComparer<TSource> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Except<TSource>(source1, source2, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}})" />
-        public static IQueryableAndAsyncQueryable<IGrouping<TKey, TSource>> GroupBy<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
-        {
-            return (IQueryableAndAsyncQueryable<IGrouping<TKey, TSource>>)Queryable.GroupBy<TSource, TKey>(source, keySelector);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, IEqualityComparer{TKey})" />
-        public static IQueryableAndAsyncQueryable<IGrouping<TKey, TSource>> GroupBy<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IEqualityComparer<TKey> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<IGrouping<TKey, TSource>>)Queryable.GroupBy<TSource, TKey>(source, keySelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TResult}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TKey, IEnumerable{TSource}, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> GroupBy<TSource, TKey, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupBy<TSource, TKey, TResult>(source, keySelector, resultSelector);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TElement}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TSource, TElement}})" />
-        public static IQueryableAndAsyncQueryable<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TSource, TElement>> elementSelector)
-        {
-            return (IQueryableAndAsyncQueryable<IGrouping<TKey, TElement>>)Queryable.GroupBy<TSource, TKey, TElement>(source, keySelector, elementSelector);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TResult}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TKey, IEnumerable{TSource}, TResult}}, IEqualityComparer{TKey})" />
-        public static IQueryableAndAsyncQueryable<TResult> GroupBy<TSource, TKey, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector, IEqualityComparer<TKey> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupBy<TSource, TKey, TResult>(source, keySelector, resultSelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TElement}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TSource, TElement}}, IEqualityComparer{TKey})" />
-        public static IQueryableAndAsyncQueryable<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TSource, TElement>> elementSelector, IEqualityComparer<TKey> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<IGrouping<TKey, TElement>>)Queryable.GroupBy<TSource, TKey, TElement>(source, keySelector, elementSelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TElement, TResult}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TSource, TElement}}, Expression{Func{TKey, IEnumerable{TElement}, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> GroupBy<TSource, TKey, TElement, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TSource, TElement>> elementSelector, Expression<Func<TKey, IEnumerable<TElement>, TResult>> resultSelector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupBy<TSource, TKey, TElement, TResult>(source, keySelector, elementSelector, resultSelector);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TElement, TResult}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TSource, TElement}}, Expression{Func{TKey, IEnumerable{TElement}, TResult}}, IEqualityComparer{TKey})" />
-        public static IQueryableAndAsyncQueryable<TResult> GroupBy<TSource, TKey, TElement, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TSource, TElement>> elementSelector, Expression<Func<TKey, IEnumerable<TElement>, TResult>> resultSelector, IEqualityComparer<TKey> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupBy<TSource, TKey, TElement, TResult>(source, keySelector, elementSelector, resultSelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupJoin{TOuter, TInner, TKey, TResult}(IQueryable{TOuter}, IEnumerable{TInner}, Expression{Func{TOuter, TKey}}, Expression{Func{TInner, TKey}}, Expression{Func{TOuter, IEnumerable{TInner}, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(this IQueryableAndAsyncQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupJoin<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector);
-        }
-
-        /// <inheritdoc cref="Queryable.GroupJoin{TOuter, TInner, TKey, TResult}(IQueryable{TOuter}, IEnumerable{TInner}, Expression{Func{TOuter, TKey}}, Expression{Func{TInner, TKey}}, Expression{Func{TOuter, IEnumerable{TInner}, TResult}}, IEqualityComparer{TKey})" />
-        public static IQueryableAndAsyncQueryable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(this IQueryableAndAsyncQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector, IEqualityComparer<TKey> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupJoin<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.Intersect{TSource}(IQueryable{TSource}, IEnumerable{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Intersect<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Intersect<TSource>(source1, source2);
-        }
-
-        /// <inheritdoc cref="Queryable.Intersect{TSource}(IQueryable{TSource}, IEnumerable{TSource}, IEqualityComparer{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Intersect<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2, IEqualityComparer<TSource> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Intersect<TSource>(source1, source2, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.Join{TOuter, TInner, TKey, TResult}(IQueryable{TOuter}, IEnumerable{TInner}, Expression{Func{TOuter, TKey}}, Expression{Func{TInner, TKey}}, Expression{Func{TOuter, TInner, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> Join<TOuter, TInner, TKey, TResult>(this IQueryableAndAsyncQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner, TResult>> resultSelector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.Join<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector);
-        }
-
-        /// <inheritdoc cref="Queryable.Join{TOuter, TInner, TKey, TResult}(IQueryable{TOuter}, IEnumerable{TInner}, Expression{Func{TOuter, TKey}}, Expression{Func{TInner, TKey}}, Expression{Func{TOuter, TInner, TResult}}, IEqualityComparer{TKey})" />
-        public static IQueryableAndAsyncQueryable<TResult> Join<TOuter, TInner, TKey, TResult>(this IQueryableAndAsyncQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner, TResult>> resultSelector, IEqualityComparer<TKey> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.Join<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.OfType{TResult}(IQueryable)" />
-        public static IQueryableAndAsyncQueryable<TResult> OfType<TResult>(this IQueryableAndAsyncQueryable source)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.OfType<TResult>(source);
-        }
-
-        /// <inheritdoc cref="Queryable.OrderBy{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}})" />
-        public static IOrderedQueryableAndAsyncQueryable<TSource> OrderBy<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
-        {
-            return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.OrderBy<TSource, TKey>(source, keySelector);
-        }
-
-        /// <inheritdoc cref="Queryable.OrderBy{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, IComparer{TKey})" />
-        public static IOrderedQueryableAndAsyncQueryable<TSource> OrderBy<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
-        {
-            return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.OrderBy<TSource, TKey>(source, keySelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.OrderByDescending{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}})" />
-        public static IOrderedQueryableAndAsyncQueryable<TSource> OrderByDescending<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
-        {
-            return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.OrderByDescending<TSource, TKey>(source, keySelector);
-        }
-
-        /// <inheritdoc cref="Queryable.OrderByDescending{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, IComparer{TKey})" />
-        public static IOrderedQueryableAndAsyncQueryable<TSource> OrderByDescending<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
-        {
-            return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.OrderByDescending<TSource, TKey>(source, keySelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.Reverse{TSource}(IQueryable{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Reverse<TSource>(this IQueryableAndAsyncQueryable<TSource> source)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Reverse<TSource>(source);
-        }
-
-        /// <inheritdoc cref="Queryable.Select{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, int, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> Select<TSource, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, TResult>> selector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.Select<TSource, TResult>(source, selector);
-        }
-
-        /// <inheritdoc cref="Queryable.Select{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> Select<TSource, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TResult>> selector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.Select<TSource, TResult>(source, selector);
-        }
-
-        /// <inheritdoc cref="Queryable.SelectMany{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, IEnumerable{TResult}}})" />
-        public static IQueryableAndAsyncQueryable<TResult> SelectMany<TSource, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, IEnumerable<TResult>>> selector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.SelectMany<TSource, TResult>(source, selector);
-        }
-
-        /// <inheritdoc cref="Queryable.SelectMany{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, int, IEnumerable{TResult}}})" />
-        public static IQueryableAndAsyncQueryable<TResult> SelectMany<TSource, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, IEnumerable<TResult>>> selector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.SelectMany<TSource, TResult>(source, selector);
-        }
-
-        /// <inheritdoc cref="Queryable.SelectMany{TSource, TCollection, TResult}(IQueryable{TSource}, Expression{Func{TSource, IEnumerable{TCollection}}}, Expression{Func{TSource, TCollection, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> SelectMany<TSource, TCollection, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, IEnumerable<TCollection>>> collectionSelector, Expression<Func<TSource, TCollection, TResult>> resultSelector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.SelectMany<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
-        }
-
-        /// <inheritdoc cref="Queryable.SelectMany{TSource, TCollection, TResult}(IQueryable{TSource}, Expression{Func{TSource, int, IEnumerable{TCollection}}}, Expression{Func{TSource, TCollection, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> SelectMany<TSource, TCollection, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, IEnumerable<TCollection>>> collectionSelector, Expression<Func<TSource, TCollection, TResult>> resultSelector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.SelectMany<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
-        }
-
-        /// <inheritdoc cref="Queryable.Skip{TSource}(IQueryable{TSource}, int)" />
-        public static IQueryableAndAsyncQueryable<TSource> Skip<TSource>(this IQueryableAndAsyncQueryable<TSource> source, int count)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Skip<TSource>(source, count);
-        }
-
-        /// <inheritdoc cref="Queryable.SkipWhile{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}})" />
-        public static IQueryableAndAsyncQueryable<TSource> SkipWhile<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.SkipWhile<TSource>(source, predicate);
-        }
-
-        /// <inheritdoc cref="Queryable.SkipWhile{TSource}(IQueryable{TSource}, Expression{Func{TSource, int, bool}})" />
-        public static IQueryableAndAsyncQueryable<TSource> SkipWhile<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, bool>> predicate)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.SkipWhile<TSource>(source, predicate);
-        }
-
-        /// <inheritdoc cref="Queryable.Take{TSource}(IQueryable{TSource}, int)" />
-        public static IQueryableAndAsyncQueryable<TSource> Take<TSource>(this IQueryableAndAsyncQueryable<TSource> source, int count)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Take<TSource>(source, count);
-        }
-
-        /// <inheritdoc cref="Queryable.TakeWhile{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}})" />
-        public static IQueryableAndAsyncQueryable<TSource> TakeWhile<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.TakeWhile<TSource>(source, predicate);
-        }
-
-        /// <inheritdoc cref="Queryable.TakeWhile{TSource}(IQueryable{TSource}, Expression{Func{TSource, int, bool}})" />
-        public static IQueryableAndAsyncQueryable<TSource> TakeWhile<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, bool>> predicate)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.TakeWhile<TSource>(source, predicate);
-        }
-
-        /// <inheritdoc cref="Queryable.ThenBy{TSource, TKey}(IOrderedQueryable{TSource}, Expression{Func{TSource, TKey}})" />
-        public static IOrderedQueryableAndAsyncQueryable<TSource> ThenBy<TSource, TKey>(this IOrderedQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
-        {
-            return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.ThenBy<TSource, TKey>(source, keySelector);
-        }
-
-        /// <inheritdoc cref="Queryable.ThenBy{TSource, TKey}(IOrderedQueryable{TSource}, Expression{Func{TSource, TKey}}, IComparer{TKey})" />
-        public static IOrderedQueryableAndAsyncQueryable<TSource> ThenBy<TSource, TKey>(this IOrderedQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
-        {
-            return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.ThenBy<TSource, TKey>(source, keySelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.ThenByDescending{TSource, TKey}(IOrderedQueryable{TSource}, Expression{Func{TSource, TKey}})" />
-        public static IOrderedQueryableAndAsyncQueryable<TSource> ThenByDescending<TSource, TKey>(this IOrderedQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
-        {
-            return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.ThenByDescending<TSource, TKey>(source, keySelector);
-        }
-
-        /// <inheritdoc cref="Queryable.ThenByDescending{TSource, TKey}(IOrderedQueryable{TSource}, Expression{Func{TSource, TKey}}, IComparer{TKey})" />
-        public static IOrderedQueryableAndAsyncQueryable<TSource> ThenByDescending<TSource, TKey>(this IOrderedQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
-        {
-            return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.ThenByDescending<TSource, TKey>(source, keySelector, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.Union{TSource}(IQueryable{TSource}, IEnumerable{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Union<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Union<TSource>(source1, source2);
-        }
-
-        /// <inheritdoc cref="Queryable.Union{TSource}(IQueryable{TSource}, IEnumerable{TSource}, IEqualityComparer{TSource})" />
-        public static IQueryableAndAsyncQueryable<TSource> Union<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2, IEqualityComparer<TSource> comparer)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Union<TSource>(source1, source2, comparer);
-        }
-
-        /// <inheritdoc cref="Queryable.Where{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}})" />
-        public static IQueryableAndAsyncQueryable<TSource> Where<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Where<TSource>(source, predicate);
-        }
-
-        /// <inheritdoc cref="Queryable.Where{TSource}(IQueryable{TSource}, Expression{Func{TSource, int, bool}})" />
-        public static IQueryableAndAsyncQueryable<TSource> Where<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, bool>> predicate)
-        {
-            return (IQueryableAndAsyncQueryable<TSource>)Queryable.Where<TSource>(source, predicate);
-        }
-
-        /// <inheritdoc cref="Queryable.Zip{TFirst, TSecond, TResult}(IQueryable{TFirst}, IEnumerable{TSecond}, Expression{Func{TFirst, TSecond, TResult}})" />
-        public static IQueryableAndAsyncQueryable<TResult> Zip<TFirst, TSecond, TResult>(this IQueryableAndAsyncQueryable<TFirst> source1, IEnumerable<TSecond> source2, Expression<Func<TFirst, TSecond, TResult>> resultSelector)
-        {
-            return (IQueryableAndAsyncQueryable<TResult>)Queryable.Zip<TFirst, TSecond, TResult>(source1, source2, resultSelector);
-        }
-
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.Cast<TResult>(source);
     }
+
+    /// <inheritdoc cref="Queryable.Concat{TSource}(IQueryable{TSource}, IEnumerable{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Concat<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Concat<TSource>(source1, source2);
+    }
+
+    /// <inheritdoc cref="Queryable.DefaultIfEmpty{TSource}(IQueryable{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> DefaultIfEmpty<TSource>(this IQueryableAndAsyncQueryable<TSource> source)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.DefaultIfEmpty<TSource>(source);
+    }
+
+    /// <inheritdoc cref="Queryable.DefaultIfEmpty{TSource}(IQueryable{TSource}, TSource)" />
+    public static IQueryableAndAsyncQueryable<TSource> DefaultIfEmpty<TSource>(this IQueryableAndAsyncQueryable<TSource> source, TSource defaultValue)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.DefaultIfEmpty<TSource>(source, defaultValue);
+    }
+
+    /// <inheritdoc cref="Queryable.Distinct{TSource}(IQueryable{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Distinct<TSource>(this IQueryableAndAsyncQueryable<TSource> source)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Distinct<TSource>(source);
+    }
+
+    /// <inheritdoc cref="Queryable.Distinct{TSource}(IQueryable{TSource}, IEqualityComparer{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Distinct<TSource>(this IQueryableAndAsyncQueryable<TSource> source, IEqualityComparer<TSource> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Distinct<TSource>(source, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.Except{TSource}(IQueryable{TSource}, IEnumerable{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Except<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Except<TSource>(source1, source2);
+    }
+
+    /// <inheritdoc cref="Queryable.Except{TSource}(IQueryable{TSource}, IEnumerable{TSource}, IEqualityComparer{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Except<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2, IEqualityComparer<TSource> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Except<TSource>(source1, source2, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}})" />
+    public static IQueryableAndAsyncQueryable<IGrouping<TKey, TSource>> GroupBy<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
+    {
+        return (IQueryableAndAsyncQueryable<IGrouping<TKey, TSource>>)Queryable.GroupBy<TSource, TKey>(source, keySelector);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, IEqualityComparer{TKey})" />
+    public static IQueryableAndAsyncQueryable<IGrouping<TKey, TSource>> GroupBy<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IEqualityComparer<TKey> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<IGrouping<TKey, TSource>>)Queryable.GroupBy<TSource, TKey>(source, keySelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TResult}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TKey, IEnumerable{TSource}, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> GroupBy<TSource, TKey, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupBy<TSource, TKey, TResult>(source, keySelector, resultSelector);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TElement}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TSource, TElement}})" />
+    public static IQueryableAndAsyncQueryable<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TSource, TElement>> elementSelector)
+    {
+        return (IQueryableAndAsyncQueryable<IGrouping<TKey, TElement>>)Queryable.GroupBy<TSource, TKey, TElement>(source, keySelector, elementSelector);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TResult}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TKey, IEnumerable{TSource}, TResult}}, IEqualityComparer{TKey})" />
+    public static IQueryableAndAsyncQueryable<TResult> GroupBy<TSource, TKey, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TKey, IEnumerable<TSource>, TResult>> resultSelector, IEqualityComparer<TKey> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupBy<TSource, TKey, TResult>(source, keySelector, resultSelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TElement}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TSource, TElement}}, IEqualityComparer{TKey})" />
+    public static IQueryableAndAsyncQueryable<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TSource, TElement>> elementSelector, IEqualityComparer<TKey> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<IGrouping<TKey, TElement>>)Queryable.GroupBy<TSource, TKey, TElement>(source, keySelector, elementSelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TElement, TResult}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TSource, TElement}}, Expression{Func{TKey, IEnumerable{TElement}, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> GroupBy<TSource, TKey, TElement, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TSource, TElement>> elementSelector, Expression<Func<TKey, IEnumerable<TElement>, TResult>> resultSelector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupBy<TSource, TKey, TElement, TResult>(source, keySelector, elementSelector, resultSelector);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupBy{TSource, TKey, TElement, TResult}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, Expression{Func{TSource, TElement}}, Expression{Func{TKey, IEnumerable{TElement}, TResult}}, IEqualityComparer{TKey})" />
+    public static IQueryableAndAsyncQueryable<TResult> GroupBy<TSource, TKey, TElement, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, Expression<Func<TSource, TElement>> elementSelector, Expression<Func<TKey, IEnumerable<TElement>, TResult>> resultSelector, IEqualityComparer<TKey> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupBy<TSource, TKey, TElement, TResult>(source, keySelector, elementSelector, resultSelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupJoin{TOuter, TInner, TKey, TResult}(IQueryable{TOuter}, IEnumerable{TInner}, Expression{Func{TOuter, TKey}}, Expression{Func{TInner, TKey}}, Expression{Func{TOuter, IEnumerable{TInner}, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(this IQueryableAndAsyncQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupJoin<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector);
+    }
+
+    /// <inheritdoc cref="Queryable.GroupJoin{TOuter, TInner, TKey, TResult}(IQueryable{TOuter}, IEnumerable{TInner}, Expression{Func{TOuter, TKey}}, Expression{Func{TInner, TKey}}, Expression{Func{TOuter, IEnumerable{TInner}, TResult}}, IEqualityComparer{TKey})" />
+    public static IQueryableAndAsyncQueryable<TResult> GroupJoin<TOuter, TInner, TKey, TResult>(this IQueryableAndAsyncQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, IEnumerable<TInner>, TResult>> resultSelector, IEqualityComparer<TKey> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.GroupJoin<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.Intersect{TSource}(IQueryable{TSource}, IEnumerable{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Intersect<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Intersect<TSource>(source1, source2);
+    }
+
+    /// <inheritdoc cref="Queryable.Intersect{TSource}(IQueryable{TSource}, IEnumerable{TSource}, IEqualityComparer{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Intersect<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2, IEqualityComparer<TSource> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Intersect<TSource>(source1, source2, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.Join{TOuter, TInner, TKey, TResult}(IQueryable{TOuter}, IEnumerable{TInner}, Expression{Func{TOuter, TKey}}, Expression{Func{TInner, TKey}}, Expression{Func{TOuter, TInner, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> Join<TOuter, TInner, TKey, TResult>(this IQueryableAndAsyncQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner, TResult>> resultSelector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.Join<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector);
+    }
+
+    /// <inheritdoc cref="Queryable.Join{TOuter, TInner, TKey, TResult}(IQueryable{TOuter}, IEnumerable{TInner}, Expression{Func{TOuter, TKey}}, Expression{Func{TInner, TKey}}, Expression{Func{TOuter, TInner, TResult}}, IEqualityComparer{TKey})" />
+    public static IQueryableAndAsyncQueryable<TResult> Join<TOuter, TInner, TKey, TResult>(this IQueryableAndAsyncQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner, TResult>> resultSelector, IEqualityComparer<TKey> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.Join<TOuter, TInner, TKey, TResult>(outer, inner, outerKeySelector, innerKeySelector, resultSelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.OfType{TResult}(IQueryable)" />
+    public static IQueryableAndAsyncQueryable<TResult> OfType<TResult>(this IQueryableAndAsyncQueryable source)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.OfType<TResult>(source);
+    }
+
+    /// <inheritdoc cref="Queryable.OrderBy{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}})" />
+    public static IOrderedQueryableAndAsyncQueryable<TSource> OrderBy<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
+    {
+        return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.OrderBy<TSource, TKey>(source, keySelector);
+    }
+
+    /// <inheritdoc cref="Queryable.OrderBy{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, IComparer{TKey})" />
+    public static IOrderedQueryableAndAsyncQueryable<TSource> OrderBy<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
+    {
+        return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.OrderBy<TSource, TKey>(source, keySelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.OrderByDescending{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}})" />
+    public static IOrderedQueryableAndAsyncQueryable<TSource> OrderByDescending<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
+    {
+        return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.OrderByDescending<TSource, TKey>(source, keySelector);
+    }
+
+    /// <inheritdoc cref="Queryable.OrderByDescending{TSource, TKey}(IQueryable{TSource}, Expression{Func{TSource, TKey}}, IComparer{TKey})" />
+    public static IOrderedQueryableAndAsyncQueryable<TSource> OrderByDescending<TSource, TKey>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
+    {
+        return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.OrderByDescending<TSource, TKey>(source, keySelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.Reverse{TSource}(IQueryable{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Reverse<TSource>(this IQueryableAndAsyncQueryable<TSource> source)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Reverse<TSource>(source);
+    }
+
+    /// <inheritdoc cref="Queryable.Select{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, int, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> Select<TSource, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, TResult>> selector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.Select<TSource, TResult>(source, selector);
+    }
+
+    /// <inheritdoc cref="Queryable.Select{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> Select<TSource, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TResult>> selector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.Select<TSource, TResult>(source, selector);
+    }
+
+    /// <inheritdoc cref="Queryable.SelectMany{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, IEnumerable{TResult}}})" />
+    public static IQueryableAndAsyncQueryable<TResult> SelectMany<TSource, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, IEnumerable<TResult>>> selector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.SelectMany<TSource, TResult>(source, selector);
+    }
+
+    /// <inheritdoc cref="Queryable.SelectMany{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, int, IEnumerable{TResult}}})" />
+    public static IQueryableAndAsyncQueryable<TResult> SelectMany<TSource, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, IEnumerable<TResult>>> selector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.SelectMany<TSource, TResult>(source, selector);
+    }
+
+    /// <inheritdoc cref="Queryable.SelectMany{TSource, TCollection, TResult}(IQueryable{TSource}, Expression{Func{TSource, IEnumerable{TCollection}}}, Expression{Func{TSource, TCollection, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> SelectMany<TSource, TCollection, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, IEnumerable<TCollection>>> collectionSelector, Expression<Func<TSource, TCollection, TResult>> resultSelector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.SelectMany<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
+    }
+
+    /// <inheritdoc cref="Queryable.SelectMany{TSource, TCollection, TResult}(IQueryable{TSource}, Expression{Func{TSource, int, IEnumerable{TCollection}}}, Expression{Func{TSource, TCollection, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> SelectMany<TSource, TCollection, TResult>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, IEnumerable<TCollection>>> collectionSelector, Expression<Func<TSource, TCollection, TResult>> resultSelector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.SelectMany<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
+    }
+
+    /// <inheritdoc cref="Queryable.Skip{TSource}(IQueryable{TSource}, int)" />
+    public static IQueryableAndAsyncQueryable<TSource> Skip<TSource>(this IQueryableAndAsyncQueryable<TSource> source, int count)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Skip<TSource>(source, count);
+    }
+
+    /// <inheritdoc cref="Queryable.SkipWhile{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}})" />
+    public static IQueryableAndAsyncQueryable<TSource> SkipWhile<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.SkipWhile<TSource>(source, predicate);
+    }
+
+    /// <inheritdoc cref="Queryable.SkipWhile{TSource}(IQueryable{TSource}, Expression{Func{TSource, int, bool}})" />
+    public static IQueryableAndAsyncQueryable<TSource> SkipWhile<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, bool>> predicate)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.SkipWhile<TSource>(source, predicate);
+    }
+
+    /// <inheritdoc cref="Queryable.Take{TSource}(IQueryable{TSource}, int)" />
+    public static IQueryableAndAsyncQueryable<TSource> Take<TSource>(this IQueryableAndAsyncQueryable<TSource> source, int count)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Take<TSource>(source, count);
+    }
+
+    /// <inheritdoc cref="Queryable.TakeWhile{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}})" />
+    public static IQueryableAndAsyncQueryable<TSource> TakeWhile<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.TakeWhile<TSource>(source, predicate);
+    }
+
+    /// <inheritdoc cref="Queryable.TakeWhile{TSource}(IQueryable{TSource}, Expression{Func{TSource, int, bool}})" />
+    public static IQueryableAndAsyncQueryable<TSource> TakeWhile<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, bool>> predicate)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.TakeWhile<TSource>(source, predicate);
+    }
+
+    /// <inheritdoc cref="Queryable.ThenBy{TSource, TKey}(IOrderedQueryable{TSource}, Expression{Func{TSource, TKey}})" />
+    public static IOrderedQueryableAndAsyncQueryable<TSource> ThenBy<TSource, TKey>(this IOrderedQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
+    {
+        return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.ThenBy<TSource, TKey>(source, keySelector);
+    }
+
+    /// <inheritdoc cref="Queryable.ThenBy{TSource, TKey}(IOrderedQueryable{TSource}, Expression{Func{TSource, TKey}}, IComparer{TKey})" />
+    public static IOrderedQueryableAndAsyncQueryable<TSource> ThenBy<TSource, TKey>(this IOrderedQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
+    {
+        return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.ThenBy<TSource, TKey>(source, keySelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.ThenByDescending{TSource, TKey}(IOrderedQueryable{TSource}, Expression{Func{TSource, TKey}})" />
+    public static IOrderedQueryableAndAsyncQueryable<TSource> ThenByDescending<TSource, TKey>(this IOrderedQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector)
+    {
+        return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.ThenByDescending<TSource, TKey>(source, keySelector);
+    }
+
+    /// <inheritdoc cref="Queryable.ThenByDescending{TSource, TKey}(IOrderedQueryable{TSource}, Expression{Func{TSource, TKey}}, IComparer{TKey})" />
+    public static IOrderedQueryableAndAsyncQueryable<TSource> ThenByDescending<TSource, TKey>(this IOrderedQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, TKey>> keySelector, IComparer<TKey> comparer)
+    {
+        return (IOrderedQueryableAndAsyncQueryable<TSource>)Queryable.ThenByDescending<TSource, TKey>(source, keySelector, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.Union{TSource}(IQueryable{TSource}, IEnumerable{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Union<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Union<TSource>(source1, source2);
+    }
+
+    /// <inheritdoc cref="Queryable.Union{TSource}(IQueryable{TSource}, IEnumerable{TSource}, IEqualityComparer{TSource})" />
+    public static IQueryableAndAsyncQueryable<TSource> Union<TSource>(this IQueryableAndAsyncQueryable<TSource> source1, IEnumerable<TSource> source2, IEqualityComparer<TSource> comparer)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Union<TSource>(source1, source2, comparer);
+    }
+
+    /// <inheritdoc cref="Queryable.Where{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}})" />
+    public static IQueryableAndAsyncQueryable<TSource> Where<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Where<TSource>(source, predicate);
+    }
+
+    /// <inheritdoc cref="Queryable.Where{TSource}(IQueryable{TSource}, Expression{Func{TSource, int, bool}})" />
+    public static IQueryableAndAsyncQueryable<TSource> Where<TSource>(this IQueryableAndAsyncQueryable<TSource> source, Expression<Func<TSource, int, bool>> predicate)
+    {
+        return (IQueryableAndAsyncQueryable<TSource>)Queryable.Where<TSource>(source, predicate);
+    }
+
+    /// <inheritdoc cref="Queryable.Zip{TFirst, TSecond, TResult}(IQueryable{TFirst}, IEnumerable{TSecond}, Expression{Func{TFirst, TSecond, TResult}})" />
+    public static IQueryableAndAsyncQueryable<TResult> Zip<TFirst, TSecond, TResult>(this IQueryableAndAsyncQueryable<TFirst> source1, IEnumerable<TSecond> source2, Expression<Func<TFirst, TSecond, TResult>> resultSelector)
+    {
+        return (IQueryableAndAsyncQueryable<TResult>)Queryable.Zip<TFirst, TSecond, TResult>(source1, source2, resultSelector);
+    }
+
 }

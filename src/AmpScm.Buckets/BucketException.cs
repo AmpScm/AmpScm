@@ -5,26 +5,25 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets
+namespace AmpScm.Buckets;
+
+[Serializable]
+public class BucketException : Exception
 {
-    [Serializable]
-    public class BucketException : Exception
+    public BucketException()
     {
-        public BucketException()
-        {
-        }
+    }
 
-        public BucketException(string? message) : base(message)
-        {
-        }
+    public BucketException(string? message) : base(message)
+    {
+    }
 
-        public BucketException(string? message, Exception? innerException) : base(message, innerException)
-        {
-        }
+    public BucketException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
 
-        [Obsolete("Just for legacy .Net compatibilty")]
-        protected BucketException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
+    [Obsolete("Just for legacy .Net compatibilty")]
+    protected BucketException(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
     }
 }

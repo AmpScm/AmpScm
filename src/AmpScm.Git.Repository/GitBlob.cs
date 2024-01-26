@@ -8,64 +8,63 @@ using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Git.Objects;
 
-namespace AmpScm.Git
+namespace AmpScm.Git;
+
+public sealed class GitBlob : GitObject, IGitLazy<GitBlob>
 {
-    public sealed class GitBlob : GitObject, IGitLazy<GitBlob>
+    private GitBucket? _rdr;
+    private long? _length;
+
+    public sealed override GitObjectType Type => GitObjectType.Blob;
+
+    internal GitBlob(GitRepository repository, GitBucket rdr, GitId id)
+        : base(repository, id)
     {
-        private GitBucket? _rdr;
-        private long? _length;
+        _rdr = rdr;
+    }
 
-        public sealed override GitObjectType Type => GitObjectType.Blob;
+    internal Bucket GetBucket()
+    {
+        return Repository.ObjectRepository.ResolveById(Id).AsTask().Result!;
+    }
 
-        internal GitBlob(GitRepository repository, GitBucket rdr, GitId id)
-            : base(repository, id)
+    ValueTask<GitId> IGitLazy<GitBlob>.WriteToAsync(GitRepository repository)
+    {
+        if (repository != Repository && !repository.Blobs.ContainsId(Id))
+            return this.AsWriter().WriteToAsync(repository);
+        else
+            return new (Id);
+    }
+
+    public long Size
+    {
+        get
         {
-            _rdr = rdr;
+            if (!_length.HasValue)
+                ReadAsync().AsTask().Wait();
+
+            return _length ?? 0;
         }
+    }
 
-        internal Bucket GetBucket()
-        {
-            return Repository.ObjectRepository.ResolveById(Id).AsTask().Result!;
-        }
+    public override async ValueTask ReadAsync()
+    {
+        if (_rdr == null)
+            return;
 
-        ValueTask<GitId> IGitLazy<GitBlob>.WriteToAsync(GitRepository repository)
-        {
-            if (repository != Repository && !repository.Blobs.ContainsId(Id))
-                return this.AsWriter().WriteToAsync(repository);
-            else
-                return new (Id);
-        }
+        _length ??= await _rdr.ReadRemainingBytesAsync().ConfigureAwait(false);
 
-        public long Size
-        {
-            get
-            {
-                if (!_length.HasValue)
-                    ReadAsync().AsTask().Wait();
+        _rdr.Dispose();
+        _rdr = null;
+    }
 
-                return _length ?? 0;
-            }
-        }
+    public Bucket AsBucket()
+    {
+        return GetBucket();
+    }
 
-        public override async ValueTask ReadAsync()
-        {
-            if (_rdr == null)
-                return;
-
-            _length ??= await _rdr.ReadRemainingBytesAsync().ConfigureAwait(false);
-
-            _rdr.Dispose();
-            _rdr = null;
-        }
-
-        public Bucket AsBucket()
-        {
-            return GetBucket();
-        }
-
-        public Stream AsStream()
-        {
-            return GetBucket().AsStream();
-        }
+    public Stream AsStream()
+    {
+        return GetBucket().AsStream();
     }
 }

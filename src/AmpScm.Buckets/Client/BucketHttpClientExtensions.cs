@@ -5,24 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Client.Buckets;
 
-namespace AmpScm.Buckets.Client
+namespace AmpScm.Buckets.Client;
+
+public static class BucketHttpClientExtensions
 {
-    public static class BucketHttpClientExtensions
+    public static Bucket HttpChunk(this Bucket bucket)
     {
-        public static Bucket HttpChunk(this Bucket bucket)
-        {
-            if (bucket is null)
-                throw new ArgumentNullException(nameof(bucket));
+        if (bucket is null)
+            throw new ArgumentNullException(nameof(bucket));
 
-            return new HttpChunkBucket(bucket);
-        }
+        return new HttpChunkBucket(bucket);
+    }
 
-        public static Bucket HttpDechunk(this Bucket bucket)
-        {
-            if (bucket is null)
-                throw new ArgumentNullException(nameof(bucket));
+    public static Bucket HttpDechunk(this Bucket bucket)
+    {
+        if (bucket is null)
+            throw new ArgumentNullException(nameof(bucket));
 
-            return new HttpDechunkBucket(bucket);
-        }
+        return new HttpDechunkBucket(bucket);
     }
 }

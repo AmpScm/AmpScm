@@ -4,25 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Porcelain
+namespace AmpScm.Git.Client.Porcelain;
+
+public class GitShowBranchArgs : GitPorcelainArgs
 {
-    public class GitShowBranchArgs : GitPorcelainArgs
+    public override void Verify()
     {
-        public override void Verify()
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
+}
 
-    public partial class GitPorcelain
+public partial class GitPorcelain
+{
+    [GitCommand("show-branch")]
+    public static async ValueTask ShowBranch(this GitPorcelainClient c, GitShowBranchArgs? options = null)
     {
-        [GitCommand("show-branch")]
-        public static async ValueTask ShowBranch(this GitPorcelainClient c, GitShowBranchArgs? options = null)
-        {
-            options?.Verify();
-            //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+        options?.Verify();
+        //var (_, txt) = await c.Repository.RunPorcelainCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
-            await c.ThrowNotImplemented();
-        }
+        await c.ThrowNotImplemented();
     }
 }

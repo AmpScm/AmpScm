@@ -6,26 +6,25 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Git;
 
-namespace AmpScm.Git.Implementation
+namespace AmpScm.Git.Implementation;
+
+[Serializable]
+public class GitExecCommandException : GitException
 {
-    [Serializable]
-    public class GitExecCommandException : GitException
+    public GitExecCommandException()
     {
-        public GitExecCommandException()
-        {
-        }
+    }
 
-        public GitExecCommandException(string message) : base(message)
-        {
-        }
+    public GitExecCommandException(string message) : base(message)
+    {
+    }
 
-        public GitExecCommandException(string? message, Exception? innerException) : base(message, innerException)
-        {
-        }
+    public GitExecCommandException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
 
-        [Obsolete("Just for legacy .Net compatibilty")]
-        protected GitExecCommandException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
+    [Obsolete("Just for legacy .Net compatibilty")]
+    protected GitExecCommandException(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
     }
 }

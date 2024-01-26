@@ -4,17 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git
+namespace AmpScm.Git;
+
+public enum GitObjectType
 {
-    public enum GitObjectType
-    {
-        None = 0, // Reserved. Unused
+    None = 0, // Reserved. Unused
 
-        // These types are valid objects
-        Commit = 1,
-        Tree = 2,
-        Blob = 3,
-        Tag = 4,
-    };
-
-}
+    // These types are valid objects
+    Commit = 1,
+    Tree = 2,
+    Blob = 3,
+    Tag = 4,
+};

@@ -1,100 +1,99 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Git
-{
-    public sealed class GitLineIndentBucket : WrappingBucket
-    {
-        private readonly BucketEol _acceptableEols;
-        private static readonly ReadOnlyMemory<byte> _indentData = new byte[] { (byte)' ' };
-        private bool _indent;
-        private BucketBytes _next;
-        private bool _lastWasEol;
+namespace AmpScm.Buckets.Git;
 
-        public GitLineIndentBucket(Bucket source, BucketEol acceptableEols = BucketEol.LF) : base(source)
+public sealed class GitLineIndentBucket : WrappingBucket
+{
+    private readonly BucketEol _acceptableEols;
+    private static readonly ReadOnlyMemory<byte> _indentData = new byte[] { (byte)' ' };
+    private bool _indent;
+    private BucketBytes _next;
+    private bool _lastWasEol;
+
+    public GitLineIndentBucket(Bucket source, BucketEol acceptableEols = BucketEol.LF) : base(source)
+    {
+        _acceptableEols = acceptableEols;
+        _next = _indentData;
+    }
+
+    public override async ValueTask<BucketBytes> ReadAsync(int requested = Bucket.MaxRead)
+    {
+        if (!_next.IsEmpty)
         {
-            _acceptableEols = acceptableEols;
-            _next = _indentData;
+            int r = Math.Min(_next.Length, requested);
+
+            try
+            {
+                return _next.Slice(0, r);
+            }
+            finally
+            {
+                _next = _next.Slice(r);
+            }
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = Bucket.MaxRead)
+        if (_indent)
         {
-            if (!_next.IsEmpty)
+            var (bb, eol) = await Source.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
+
+            if (bb.IsEof)
             {
-                int r = Math.Min(_next.Length, requested);
-
-                try
+                if (!_lastWasEol)
                 {
-                    return _next.Slice(0, r);
-                }
-                finally
-                {
-                    _next = _next.Slice(r);
-                }
-            }
-
-            if (_indent)
-            {
-                var (bb, eol) = await Source.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
-
-                if (bb.IsEof)
-                {
-                    if (!_lastWasEol)
-                    {
-                        if ((_acceptableEols & BucketEol.LF) != 0)
-                            bb = new byte[] { (byte)'\n' };
-                        else
-                            throw new InvalidOperationException();
-                        _lastWasEol = true;
-                        return bb;
-                    }
+                    if ((_acceptableEols & BucketEol.LF) != 0)
+                        bb = new byte[] { (byte)'\n' };
+                    else
+                        throw new InvalidOperationException();
+                    _lastWasEol = true;
                     return bb;
                 }
-
-                _next = bb;
-                if (eol != BucketEol.None && eol != BucketEol.CRSplit)
-                {
-                    _indent = true;
-                    _lastWasEol = true;
-                }
-                else
-                    _lastWasEol = false;
-
-                return _indentData;
-            }
-            else
-            {
-                var (bb, eol) = await Source.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
-
-                if (eol != BucketEol.None && eol != BucketEol.CRSplit)
-                {
-                    _indent = true;
-                    _lastWasEol = true;
-                }
-                else
-                    _lastWasEol = false;
-
                 return bb;
             }
-        }
 
-        public override BucketBytes Peek()
-        {
-            if (!_next.IsEmpty)
-                return _next;
-            else if (_indent)
-                return _indentData;
-            else
+            _next = bb;
+            if (eol != BucketEol.None && eol != BucketEol.CRSplit)
             {
-                var bb = Source.Peek();
-
-                int n = bb.IndexOfAny((byte)'\n', (byte)'\r', (byte)'\0');
-
-                if (n >= 0)
-                    return bb.Slice(0, n);
-                else
-                    return bb;
+                _indent = true;
+                _lastWasEol = true;
             }
+            else
+                _lastWasEol = false;
+
+            return _indentData;
+        }
+        else
+        {
+            var (bb, eol) = await Source.ReadUntilEolAsync(_acceptableEols, requested).ConfigureAwait(false);
+
+            if (eol != BucketEol.None && eol != BucketEol.CRSplit)
+            {
+                _indent = true;
+                _lastWasEol = true;
+            }
+            else
+                _lastWasEol = false;
+
+            return bb;
+        }
+    }
+
+    public override BucketBytes Peek()
+    {
+        if (!_next.IsEmpty)
+            return _next;
+        else if (_indent)
+            return _indentData;
+        else
+        {
+            var bb = Source.Peek();
+
+            int n = bb.IndexOfAny((byte)'\n', (byte)'\r', (byte)'\0');
+
+            if (n >= 0)
+                return bb.Slice(0, n);
+            else
+                return bb;
         }
     }
 }

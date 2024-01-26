@@ -4,20 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Plumbing;
+
+public class GitPlumbingClient
 {
-    public class GitPlumbingClient
+    public GitPlumbingClient(GitRepository repository)
     {
-        public GitPlumbingClient(GitRepository repository)
-        {
-            Repository = repository;
-        }
+        Repository = repository;
+    }
 
-        internal GitRepository Repository { get; }
+    internal GitRepository Repository { get; }
 
-        internal ValueTask ThrowNotImplemented()
-        {
-            throw new NotImplementedException();
-        }
+    internal ValueTask ThrowNotImplemented()
+    {
+        throw new NotImplementedException();
     }
 }

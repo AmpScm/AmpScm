@@ -1,66 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Client;
-using AmpScm.Buckets.Client.Protocols;
 
-namespace AmpScm.Buckets.Client
+namespace AmpScm.Buckets.Client;
+
+public abstract class BucketWebRequest
 {
-    public abstract class BucketWebRequest
+    protected BucketWebClient Client { get; }
+
+    public Uri RequestUri { get; private set; }
+
+    public virtual string? Method
     {
-        protected BucketWebClient Client {get; }
+        get => null!;
+        set => throw new InvalidOperationException();
+    }
 
-        public Uri RequestUri { get; private set;}
+    public WebHeaderDictionary Headers { get; } = new WebHeaderDictionary();
 
-        public virtual string? Method
-        {
-            get => null!;
-            set => throw new InvalidOperationException();
-        }
+    public string? ContentType
+    {
+        get => Headers[HttpRequestHeader.ContentType];
+        set => Headers[HttpRequestHeader.ContentType] = value;
+    }
 
-        public WebHeaderDictionary Headers { get; } = new WebHeaderDictionary();
+    public long? ContentLength
+    {
+        get => long.TryParse(Headers[HttpRequestHeader.ContentLength], NumberStyles.None, CultureInfo.InvariantCulture, out long v) && v >= 0 ? v : null;
+        set => Headers[HttpRequestHeader.ContentLength] = value?.ToString(CultureInfo.InvariantCulture);
+    }
 
-        public string? ContentType
-        {
-            get => Headers[HttpRequestHeader.ContentType];
-            set => Headers[HttpRequestHeader.ContentType] = value;
-        }
+    public bool PreAuthenticate { get; set; }
 
-        public long? ContentLength
-        {
-            get => long.TryParse(Headers[HttpRequestHeader.ContentLength], out long v) && v >= 0 ? v : null;
-            set => Headers[HttpRequestHeader.ContentLength] = value?.ToString(CultureInfo.InvariantCulture);
-        }
+    public bool FollowRedirects { get; set; } = true;
 
-        public bool PreAuthenticate { get; set; }
+    protected BucketWebRequest(BucketWebClient client, Uri requestUri)
+    {
+        Client = client ?? throw new ArgumentNullException(nameof(client));
+        RequestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
+    }
 
-        public bool FollowRedirects { get; set; } = true;
+    public abstract ValueTask<ResponseBucket> GetResponseAsync();
 
-        protected BucketWebRequest(BucketWebClient client, Uri requestUri)
-        {
-            Client = client ?? throw new ArgumentNullException(nameof(client));
-            RequestUri = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
-        }
+    public event EventHandler<BasicBucketAuthenticationEventArgs>? BasicAuthentication;
 
-        public abstract ValueTask<ResponseBucket> GetResponseAsync();
+    internal EventHandler<BasicBucketAuthenticationEventArgs>? GetBasicAuthenticationHandlers()
+    {
+        return BasicAuthentication + Client.GetBasicAuthenticationHandlers();
+    }
 
-        public event EventHandler<BasicBucketAuthenticationEventArgs>? BasicAuthentication;
+    internal void UpdateUri(Uri newUri)
+    {
+        if (newUri == null)
+            throw new ArgumentNullException(nameof(newUri));
 
-        internal EventHandler<BasicBucketAuthenticationEventArgs>? GetBasicAuthenticationHandlers()
-        {
-            return BasicAuthentication + Client.GetBasicAuthenticationHandlers();
-        }
-
-        internal void UpdateUri(Uri newUri)
-        {
-            if (newUri == null)
-                throw new ArgumentNullException(nameof(newUri));
-
-            RequestUri = newUri;
-        }
+        RequestUri = newUri;
     }
 }

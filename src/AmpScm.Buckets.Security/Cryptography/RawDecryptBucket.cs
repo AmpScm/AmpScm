@@ -5,122 +5,121 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Cryptography
+namespace AmpScm.Buckets.Cryptography;
+
+internal sealed class RawDecryptBucket : ConversionBucket
 {
-    internal sealed class RawDecryptBucket : ConversionBucket
-    {
-        private readonly SymmetricAlgorithm _algorithm;
+    private readonly SymmetricAlgorithm _algorithm;
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly ICryptoTransform _transform;
+    private readonly ICryptoTransform _transform;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        private byte[]? _buffer;
-        private ByteCollector _byteCollector;
-        private bool _done;
+    private byte[]? _buffer;
+    private ByteCollector _byteCollector;
+    private bool _done;
 
-        public RawDecryptBucket(Bucket source, SymmetricAlgorithm algorithm, bool decrypt)
-            : base(source)
+    public RawDecryptBucket(Bucket source, SymmetricAlgorithm algorithm, bool decrypt)
+        : base(source)
+    {
+        _algorithm = algorithm;
+
+        if (decrypt)
+            _transform = _algorithm.CreateDecryptor();
+        else
+            _transform = _algorithm.CreateEncryptor();
+
+        BlockBytes = algorithm.BlockSize / 8;
+    }
+
+    /// <summary>
+    /// <see cref="SymmetricAlgorithm.BlockSize"/> but in bytes
+    /// </summary>
+    public int BlockBytes { get; }
+
+    protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
+    {
+        _byteCollector.Append(sourceData);
+        sourceData = BucketBytes.Empty;
+
+        if (final)
         {
-            _algorithm = algorithm;
+            if (_done)
+                return BucketBytes.Eof;
 
-            if (decrypt)
-                _transform = _algorithm.CreateDecryptor();
-            else
-                _transform = _algorithm.CreateEncryptor();
+            _buffer = null;
 
-            BlockBytes = algorithm.BlockSize / 8;
-        }
-
-        /// <summary>
-        /// <see cref="SymmetricAlgorithm.BlockSize"/> but in bytes
-        /// </summary>
-        public int BlockBytes { get; }
-
-        protected override BucketBytes ConvertData(ref BucketBytes sourceData, bool final)
-        {
-            _byteCollector.Append(sourceData);
-            sourceData = BucketBytes.Empty;
-
-            if (final)
+            int nUse = _byteCollector.Length;
+            if (_byteCollector.Length < _transform.InputBlockSize)
             {
-                if (_done)
-                    return BucketBytes.Eof;
+                _byteCollector.Append(new byte[_transform.InputBlockSize - _byteCollector.Length]);
+            }
+            var bc = _byteCollector.ToArray();
+            _byteCollector.Clear();
 
-                _buffer = null;
+            _done = true;
+            bc = _transform.TransformFinalBlock(bc, 0, bc.Length);
 
-                int nUse = _byteCollector.Length;
-                if (_byteCollector.Length < _transform.InputBlockSize)
-                {
-                    _byteCollector.Append(new byte[_transform.InputBlockSize - _byteCollector.Length]);
-                }
-                var bc = _byteCollector.ToArray();
-                _byteCollector.Clear();
+            return bc.AsMemory(0, nUse);
+        }
+        else
+        {
+            byte[] toConvert = _byteCollector.ToArray();
+            int convertSize = _byteCollector.Length - _byteCollector.Length % BlockBytes;
 
-                _done = true;
-                bc = _transform.TransformFinalBlock(bc, 0, bc.Length);
+            _buffer ??= new byte[1024];
 
-                return bc.AsMemory(0, nUse);
+            _byteCollector.Clear();
+            if (convertSize < toConvert.Length)
+            {
+                _byteCollector.Append(toConvert.AsMemory(convertSize).ToArray());
+            }
+
+            int n;
+            if (convertSize > 0)
+            {
+                n = _transform.TransformBlock(toConvert, 0, convertSize, _buffer!, 0);
+
+                //Debug.WriteLine($"X: {string.Join(" ", _buffer.Take(n).Select(x => x.ToString("X2")))}");
             }
             else
-            {
-                byte[] toConvert = _byteCollector.ToArray();
-                int convertSize = _byteCollector.Length - _byteCollector.Length % BlockBytes;
+                n = 0;
 
-                _buffer ??= new byte[1024];
-
-                _byteCollector.Clear();
-                if (convertSize < toConvert.Length)
-                {
-                    _byteCollector.Append(toConvert.AsMemory(convertSize).ToArray());
-                }
-
-                int n;
-                if (convertSize > 0)
-                {
-                    n = _transform.TransformBlock(toConvert, 0, convertSize, _buffer!, 0);
-
-                    //Debug.WriteLine($"X: {string.Join(" ", _buffer.Take(n).Select(x => x.ToString("X2")))}");
-                }
-                else
-                    n = 0;
-
-                return new BucketBytes(_buffer!, 0, n);
-            }
+            return new BucketBytes(_buffer!, 0, n);
         }
+    }
 
-        protected override int ConvertRequested(int requested)
+    protected override int ConvertRequested(int requested)
+    {
+        int needForRead = BlockBytes - _byteCollector.Length;
+
+        if (requested < needForRead)
+            return needForRead;
+        else
+            return requested;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        try
         {
-            int needForRead = BlockBytes - _byteCollector.Length;
-
-            if (requested < needForRead)
-                return needForRead;
-            else
-                return requested;
+            if (disposing)
+            {
+                _transform.Dispose();
+                _algorithm.Dispose();
+            }
         }
-
-        protected override void Dispose(bool disposing)
+        finally
         {
-            try
-            {
-                if (disposing)
-                {
-                    _transform.Dispose();
-                    _algorithm.Dispose();
-                }
-            }
-            finally
-            {
-                base.Dispose(disposing);
-            }
+            base.Dispose(disposing);
         }
+    }
 
-        public override async ValueTask<long?> ReadRemainingBytesAsync()
+    public override async ValueTask<long?> ReadRemainingBytesAsync()
+    {
+        if (_transform?.InputBlockSize == _transform?.OutputBlockSize)
         {
-            if (_transform?.InputBlockSize == _transform?.OutputBlockSize)
-            {
-                return await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
-            }
-            else
-                return null;
+            return await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
         }
+        else
+            return null;
     }
 }

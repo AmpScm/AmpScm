@@ -5,44 +5,43 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Porcelain
+namespace AmpScm.Git.Client.Porcelain;
+
+public abstract class GitPorcelainArgs
 {
-    public abstract class GitPorcelainArgs
+    public abstract void Verify();
+}
+
+public static partial class GitPorcelain
+{
+    public static GitPorcelainClient GetPorcelain(this GitRepository repository)
     {
-        public abstract void Verify();
+        return new GitPorcelainClient(repository);
     }
 
-    public static partial class GitPorcelain
+
+    internal static bool PerformReadOnlyCleanup { get; } = (AppDomain.CurrentDomain?.FriendlyName?.StartsWith("test", StringComparison.OrdinalIgnoreCase) ?? false);
+
+    internal static void RemoveReadOnlyIfNecessary(string gitDirectory)
     {
-        public static GitPorcelainClient GetPorcelain(this GitRepository repository)
-        {
-            return new GitPorcelainClient(repository);
-        }
+        if (!PerformReadOnlyCleanup)
+            return;
 
+        string dir = Path.Combine(gitDirectory, "objects");
 
-        internal static bool PerformReadOnlyCleanup { get; } = (AppDomain.CurrentDomain?.FriendlyName?.StartsWith("test", StringComparison.OrdinalIgnoreCase) ?? false);
-
-        internal static void RemoveReadOnlyIfNecessary(string gitDirectory)
-        {
-            if (!PerformReadOnlyCleanup)
-                return;
-
-            string dir = Path.Combine(gitDirectory, "objects");
-
-            if (Directory.Exists(dir))
-                foreach (var v in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+        if (Directory.Exists(dir))
+            foreach (var v in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+            {
+                switch (Path.GetExtension(v))
                 {
-                    switch (Path.GetExtension(v))
-                    {
-                        case ".pack":
-                        case ".idx":
-                        case ".bitmap":
-                        case ".graph":
-                        case "":
-                            File.SetAttributes(v, FileAttributes.Normal);
-                            break;
-                    }
+                    case ".pack":
+                    case ".idx":
+                    case ".bitmap":
+                    case ".graph":
+                    case "":
+                        File.SetAttributes(v, FileAttributes.Normal);
+                        break;
                 }
-        }
+            }
     }
 }

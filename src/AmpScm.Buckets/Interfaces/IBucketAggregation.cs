@@ -1,8 +1,7 @@
-﻿namespace AmpScm.Buckets.Interfaces
+﻿namespace AmpScm.Buckets.Interfaces;
+
+internal interface IBucketAggregation
 {
-    internal interface IBucketAggregation
-    {
-        Bucket Append(Bucket source);
-        Bucket Prepend(Bucket source);
-    }
+    Bucket Append(Bucket source);
+    Bucket Prepend(Bucket source);
 }

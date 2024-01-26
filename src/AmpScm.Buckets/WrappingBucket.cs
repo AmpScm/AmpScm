@@ -1,90 +1,88 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
-namespace AmpScm.Buckets
+namespace AmpScm.Buckets;
+
+public abstract class WrappingBucket : Bucket, IBucketNoDispose
 {
-    public abstract class WrappingBucket : Bucket, IBucketNoDispose
+    /// <summary>
+    /// The wrapped source <see cref="Bucket"/>
+    /// </summary>
+    protected Bucket Source { get; }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private int _nDispose;
+
+    protected WrappingBucket(Bucket source)
     {
-        /// <summary>
-        /// The wrapped source <see cref="Bucket"/>
-        /// </summary>
-        protected Bucket Source { get; }
+        Source = source ?? throw new ArgumentNullException(nameof(source));
+        _nDispose = 1;
+    }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private int _nDispose;
+    protected WrappingBucket(Bucket source, bool noDispose)
+        : this(source)
+    {
+        if (noDispose)
+            NoDispose();
+    }
 
-        protected WrappingBucket(Bucket source)
-        {
-            Source = source ?? throw new ArgumentNullException(nameof(source));
-            _nDispose = 1;
-        }
+    public override string Name => base.Name + ">" + Source.Name;
 
-        protected WrappingBucket(Bucket source, bool noDispose)
-            : this(source)
-        {
-            if (noDispose)
-                NoDispose();
-        }
+    protected override bool AcceptDisposing()
+    {
+        int n = Interlocked.Decrement(ref _nDispose);
 
-        public override string Name => base.Name + ">" + Source.Name;
-
-        protected override bool AcceptDisposing()
-        {
-            int n = Interlocked.Decrement(ref _nDispose);
-
-            if (n == 0)
-                return true;
+        if (n == 0)
+            return true;
 #if DEBUG && NET7_0_OR_GREATER
-            else
-                ObjectDisposedException.ThrowIf(n < 0, this);
+        else
+            ObjectDisposedException.ThrowIf(n < 0, this);
 #elif DEBUG
-            else if (n < 0)
-                throw new ObjectDisposedException(SafeName);
+        else if (n < 0)
+            throw new ObjectDisposedException(SafeName);
 #endif
-            return false;
-        }
+        return false;
+    }
 
-        protected override void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
+    {
+        try
         {
-            try
-            {
-                if (disposing)
-                    Source.Dispose();
-            }
-            finally
-            {
-                base.Dispose(disposing);
-            }
+            if (disposing)
+                Source.Dispose();
         }
-
-        protected Bucket NoDispose()
+        finally
         {
-            Interlocked.Increment(ref _nDispose);
-            return this;
+            base.Dispose(disposing);
         }
+    }
 
-        protected virtual bool HasMultipleDisposers()
-        {
-            return _nDispose > 1;
-        }
+    protected Bucket NoDispose()
+    {
+        Interlocked.Increment(ref _nDispose);
+        return this;
+    }
 
-        bool IBucketNoDispose.HasMultipleDisposers() => HasMultipleDisposers();
+    protected virtual bool HasMultipleDisposers()
+    {
+        return _nDispose > 1;
+    }
 
-        Bucket IBucketNoDispose.NoDispose() => NoDispose();
+    bool IBucketNoDispose.HasMultipleDisposers() => HasMultipleDisposers();
 
-        internal Bucket GetSourceBucket()
-        {
-            return Source;
-        }
+    Bucket IBucketNoDispose.NoDispose() => NoDispose();
 
-        public override void Reset()
-        {
-            base.Reset();
+    internal Bucket GetSourceBucket()
+    {
+        return Source;
+    }
 
-            Source.Reset();
-        }
+    public override void Reset()
+    {
+        base.Reset();
+
+        Source.Reset();
     }
 }

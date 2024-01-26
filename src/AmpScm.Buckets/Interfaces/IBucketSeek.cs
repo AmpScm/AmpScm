@@ -4,20 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Interfaces
+namespace AmpScm.Buckets.Interfaces;
+
+public interface IBucketSeek
 {
-    public interface IBucketSeek
-    {
-        ValueTask SeekAsync(long newPosition);
-    }
+    ValueTask SeekAsync(long newPosition);
+}
 
-    public interface IBucketSeekOnReset
-    {
-        Bucket SeekOnReset();
-    }
+public interface IBucketSeekOnReset
+{
+    Bucket SeekOnReset();
+}
 
-    public interface IBucketDuplicateSeekedAsync : IBucketSeek
-    {
-        ValueTask<Bucket> DuplicateSeekedAsync(long newPosition);
-    }
+public interface IBucketDuplicateSeekedAsync : IBucketSeek
+{
+    ValueTask<Bucket> DuplicateSeekedAsync(long newPosition);
 }

@@ -2,74 +2,73 @@
 using System.IO;
 using System.Linq;
 
-namespace AmpScm.Git
+namespace AmpScm.Git;
+
+public static class GitTools
 {
-    public static class GitTools
+    public static string GetNormalizedFullPath(string path)
     {
-        public static string GetNormalizedFullPath(string path)
+        if (string.IsNullOrEmpty(path))
+            throw new ArgumentNullException(nameof(path));
+
+        path = Path.GetFullPath(path);
+
+        string? dir = Path.GetDirectoryName(path)!;
+
+        if (File.Exists(path))
         {
-            if (string.IsNullOrEmpty(path))
-                throw new ArgumentNullException(nameof(path));
+            path = Directory.EnumerateFiles(dir, Path.GetFileName(path)).Single();
+        }
+        else if (Directory.Exists(path))
+        {
+            path = Directory.EnumerateDirectories(dir, Path.GetFileName(path)).Single();
+        }
 
-            path = Path.GetFullPath(path);
+        for (string parent = Path.GetDirectoryName(dir)!; parent != null && parent != dir; parent = Path.GetDirectoryName(parent)!)
+        {
+            var p = Directory.GetDirectories(parent!, Path.GetFileName(dir)).FirstOrDefault();
 
-            string? dir = Path.GetDirectoryName(path)!;
-
-            if (File.Exists(path))
+            if (p != null && (!path.StartsWith(p, StringComparison.Ordinal) || path[p.Length] == Path.DirectorySeparatorChar))
             {
-                path = Directory.EnumerateFiles(dir, Path.GetFileName(path)).Single();
-            }
-            else if (Directory.Exists(path))
-            {
-                path = Directory.EnumerateDirectories(dir, Path.GetFileName(path)).Single();
-            }
-
-            for (string parent = Path.GetDirectoryName(dir)!; parent != null && parent != dir; parent = Path.GetDirectoryName(parent)!)
-            {
-                var p = Directory.GetDirectories(parent!, Path.GetFileName(dir)).FirstOrDefault();
-
-                if (p != null && (!path.StartsWith(p, StringComparison.Ordinal) || path[p.Length] == Path.DirectorySeparatorChar))
-                {
 #if !NETFRAMEWORK
-                    path = string.Concat(p, path.AsSpan(dir.Length));
+                path = string.Concat(p, path.AsSpan(dir.Length));
 #else
-                    path = p + path.Substring(dir.Length);
+                path = p + path.Substring(dir.Length);
 #endif
-                }
             }
-
-            if (path.Length > 2 && path[1] == ':' && char.IsLower(path, 0))
-                path = char.ToUpperInvariant(path[0]) + path.Substring(1);
-
-            return path;
         }
 
-        public static string FirstLine(string? message)
+        if (path.Length > 2 && path[1] == ':' && char.IsLower(path, 0))
+            path = char.ToUpperInvariant(path[0]) + path.Substring(1);
+
+        return path;
+    }
+
+    public static string FirstLine(string? message)
+    {
+        if (message is null)
+            return "";
+
+        return message.Split('\n', 2)[0].Trim();
+    }
+
+    internal static string CreateSummary(string message)
+    {
+        if (message is null)
+            return message!; // = null
+
+        if (message.Contains('\r', StringComparison.Ordinal))
+            message = message.Replace("\r", "", StringComparison.Ordinal);
+
+        var lines = message.Split('\n', 5);
+
+        int st;
+        for (st = 0; st < Math.Min(4, lines.Length); st++)
         {
-            if (message is null)
-                return "";
-
-            return message.Split('\n', 2)[0].Trim();
+            if (string.IsNullOrWhiteSpace(lines[st]))
+                break;
         }
 
-        internal static string CreateSummary(string message)
-        {
-            if (message is null)
-                return message!; // = null
-
-            if (message.Contains('\r', StringComparison.Ordinal))
-                message = message.Replace("\r", "", StringComparison.Ordinal);
-
-            var lines = message.Split('\n', 5);
-
-            int st;
-            for (st = 0; st < Math.Min(4, lines.Length); st++)
-            {
-                if (string.IsNullOrWhiteSpace(lines[st]))
-                    break;
-            }
-
-            return string.Join("\n", lines.Take(st));
-        }
+        return string.Join("\n", lines.Take(st));
     }
 }

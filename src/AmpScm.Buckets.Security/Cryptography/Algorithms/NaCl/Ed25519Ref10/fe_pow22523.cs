@@ -1,7 +1,7 @@
 ﻿using System;
 
-namespace Chaos.NaCl.Internal.Ed25519Ref10
-{
+namespace Chaos.NaCl.Internal.Ed25519Ref10;
+
 	internal static partial class FieldOperations
 	{
 		internal static void fe_pow22523(out FieldElement result, ref FieldElement z)
@@ -122,4 +122,3 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 			/* qhasm: return */
 		}
 	}
-}

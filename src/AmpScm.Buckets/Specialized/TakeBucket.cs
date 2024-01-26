@@ -2,129 +2,128 @@
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 
-namespace AmpScm.Buckets.Specialized
+namespace AmpScm.Buckets.Specialized;
+
+internal sealed class TakeBucket : PositionBucket, IBucketTake
 {
-    internal sealed class TakeBucket : PositionBucket, IBucketTake
+    public long Limit { get; private set; }
+
+    private bool _ensure;
+
+    public TakeBucket(Bucket source, long limit, bool ensure)
+        : base(source)
     {
-        public long Limit { get; private set; }
+        if (limit < 0)
+            throw new ArgumentOutOfRangeException(nameof(limit), limit, message: null);
 
-        private bool _ensure;
+        Limit = limit;
+        _ensure = ensure;
+    }
 
-        public TakeBucket(Bucket source, long limit, bool ensure)
-            : base(source)
+    public Bucket Take(long limit, bool ensure = true)
+    {
+        if (limit < 0)
+            throw new ArgumentOutOfRangeException(nameof(limit), limit, message: null);
+
+        if (ensure)
         {
-            if (limit < 0)
-                throw new ArgumentOutOfRangeException(nameof(limit), limit, message: null);
+            if (limit > Limit)
+                throw new BucketException($"Can't read {limit} bytes from a bucket that is limited to {Limit}");
 
             Limit = limit;
-            _ensure = ensure;
         }
-
-        public Bucket Take(long limit, bool ensure = true)
+        else
         {
-            if (limit < 0)
-                throw new ArgumentOutOfRangeException(nameof(limit), limit, message: null);
-
-            if (ensure)
-            {
-                if (limit > Limit)
-                    throw new BucketException($"Can't read {limit} bytes from a bucket that is limited to {Limit}");
-
+            if (limit < Limit)
                 Limit = limit;
-            }
-            else
-            {
-                if (limit < Limit)
-                    Limit = limit;
-            }
-            _ensure = ensure;
-
-            return this;
         }
+        _ensure = ensure;
 
-        public override BucketBytes Peek()
-        {
-            var peek = Source.Peek();
+        return this;
+    }
 
-            if (peek.Length <= 0)
-                return peek;
+    public override BucketBytes Peek()
+    {
+        var peek = Source.Peek();
 
-            long pos = Position!.Value;
-
-            if (Limit - pos < peek.Length)
-                return peek.Slice(0, (int)(Limit - pos));
-
+        if (peek.Length <= 0)
             return peek;
-        }
 
-        public override async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
-        {
-            var poll = await Source.PollAsync().ConfigureAwait(false);
+        long pos = Position!.Value;
 
-            if (poll.Length <= 0)
-                return poll;
+        if (Limit - pos < peek.Length)
+            return peek.Slice(0, (int)(Limit - pos));
 
-            long pos = Position!.Value;
+        return peek;
+    }
 
-            if (Limit - pos < poll.Length)
-                return poll.Slice(0, (int)(Limit - pos));
+    public override async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
+    {
+        var poll = await Source.PollAsync().ConfigureAwait(false);
 
+        if (poll.Length <= 0)
             return poll;
-        }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
-        {
-            long pos = Position!.Value;
+        long pos = Position!.Value;
 
-            if (pos >= Limit)
-                return BucketBytes.Eof;
+        if (Limit - pos < poll.Length)
+            return poll.Slice(0, (int)(Limit - pos));
 
-            if (Limit - pos < requested)
-                requested = (int)(Limit - pos);
+        return poll;
+    }
 
-            var bb = await base.ReadAsync(requested).ConfigureAwait(false); // Position updated in base
+    public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
+    {
+        long pos = Position!.Value;
 
-            if (bb.IsEof && _ensure)
-                throw new BucketEofException(Source);
+        if (pos >= Limit)
+            return BucketBytes.Eof;
 
-            return bb;
-        }
+        if (Limit - pos < requested)
+            requested = (int)(Limit - pos);
 
-        public override ValueTask<long> ReadSkipAsync(long requested)
-        {
-            long pos = Position!.Value;
+        var bb = await base.ReadAsync(requested).ConfigureAwait(false); // Position updated in base
 
-            if (pos >= Limit) return new (0);
+        if (bb.IsEof && _ensure)
+            throw new BucketEofException(Source);
 
-            if (Limit - pos < requested)
-                requested = (long)(Limit - pos);
+        return bb;
+    }
 
-            return base.ReadSkipAsync(requested);
-        }
+    public override ValueTask<long> ReadSkipAsync(long requested)
+    {
+        long pos = Position!.Value;
 
-        public override async ValueTask<long?> ReadRemainingBytesAsync()
-        {
-            long pos = Position!.Value;
+        if (pos >= Limit) return new (0);
 
-            if (pos >= Limit)
-                return 0L;
+        if (Limit - pos < requested)
+            requested = (long)(Limit - pos);
 
-            long limit = Limit - pos;
+        return base.ReadSkipAsync(requested);
+    }
 
-            if (_ensure)
-                return limit;
+    public override async ValueTask<long?> ReadRemainingBytesAsync()
+    {
+        long pos = Position!.Value;
 
-            long? l = await base.ReadRemainingBytesAsync().ConfigureAwait(false);
+        if (pos >= Limit)
+            return 0L;
 
-            if (!l.HasValue)
-                return null;
+        long limit = Limit - pos;
 
-            return Math.Min(limit, l.Value);
-        }
+        if (_ensure)
+            return limit;
 
-        protected override PositionBucket NewPositionBucket(Bucket duplicatedInner)
-        {
-            return new TakeBucket(duplicatedInner, Limit, _ensure);
-        }
+        long? l = await base.ReadRemainingBytesAsync().ConfigureAwait(false);
+
+        if (!l.HasValue)
+            return null;
+
+        return Math.Min(limit, l.Value);
+    }
+
+    protected override PositionBucket NewPositionBucket(Bucket duplicatedInner)
+    {
+        return new TakeBucket(duplicatedInner, Limit, _ensure);
     }
 }

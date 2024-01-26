@@ -18,15 +18,15 @@ using AmpScm.Git.Objects;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
 
-namespace GitBucketTests
-{
-    [TestClass]
-    public class SignatureTests
-    {
-        public TestContext TestContext { get; set; } = default!;
+namespace GitBucketTests;
 
-        // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
-        private const string SshSig =
+[TestClass]
+public class SignatureTests
+{
+    public TestContext TestContext { get; set; } = default!;
+
+    // https://superuser.com/questions/308126/is-it-possible-to-sign-a-file-using-an-ssh-key
+    private const string SshSig =
 @"-----BEGIN SSH SIGNATURE-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAP5ogvLJzK+1q2cwJ7K5y6
 tIKRc9y4wv9uAk4cULCN4UDwIBcGU4QiAxuWPsgjxKko/qaQMQWBdBcAUXqLTRQC7z80ER
@@ -46,7 +46,7 @@ zMVsThr0xjYrEpCy7Mk+v6B94DsJFvSpycppXmfnYX+H2Umi1qw9hp7d/wb2txmqFStM8g
 9JDwomS99jM88rMEhZWi6dRjXlEG4q/OoTKnTmT30Aib71Ill+sFxEtmGesS8eeJ+js6B7
 GtAh3JPRDOlZUZM=
 -----END SSH SIGNATURE-----";
-        private const string MergeTag =
+    private const string MergeTag =
 @"tree 31b100c21e7d04fab9a2ce69b192f40798f2f260
 parent 233087ca063686964a53c829d547c7571e3f67bf
 parent ba7542eb2dd5dfc75c457198b88986642e602065
@@ -99,42 +99,42 @@ Pull MTD fixes from Miquel Raynal:
   mtd: rawnand: fix ecc parameters for mt7622
 ";
 
-        [TestMethod]
-        public async Task ReadMergeTag()
+    [TestMethod]
+    public async Task ReadMergeTag()
+    {
+        var src = Bucket.Create.FromASCII(MergeTag.Replace("\r", ""));
+        bool readTag = false;
+        bool readSig = false;
+
+        using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
+
+        await commitReader.ReadUntilEofAsync();
+
+        Assert.IsTrue(readTag, "Read tag");
+        Assert.IsTrue(readSig, "Read signature");
+
+        async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
         {
-            var src = Bucket.Create.FromASCII(MergeTag.Replace("\r", ""));
-            bool readTag = false;
-            bool readSig = false;
-
-            using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
-
-            await commitReader.ReadUntilEofAsync();
-
-            Assert.IsTrue(readTag, "Read tag");
-            Assert.IsTrue(readSig, "Read signature");
-
-            async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
+            if (subBucket == GitSubBucketType.MergeTag)
             {
-                if (subBucket == GitSubBucketType.MergeTag)
-                {
-                    using var gto = new GitTagObjectBucket(bucket, handleSubBucket);
+                using var gto = new GitTagObjectBucket(bucket, handleSubBucket);
 
-                    await gto.ReadUntilEofAsync();
-                    readTag = true;
-                }
-                else if (subBucket == GitSubBucketType.Signature)
-                {
-                    using var gto = new Radix64ArmorBucket(bucket);
-
-                    await gto.ReadUntilEofAsync();
-                    readSig = true;
-                }
-                else
-                    await bucket.ReadUntilEofAndCloseAsync();
+                await gto.ReadUntilEofAsync();
+                readTag = true;
             }
-        }
+            else if (subBucket == GitSubBucketType.Signature)
+            {
+                using var gto = new Radix64ArmorBucket(bucket);
 
-        private const string SignedCommit =
+                await gto.ReadUntilEofAsync();
+                readSig = true;
+            }
+            else
+                await bucket.ReadUntilEofAndCloseAsync();
+        }
+    }
+
+    private const string SignedCommit =
 @"tree d6b79075cd65b101cec0b38f9e4eb86de5b850a7
 parent 660e6bd5cd277296aa8b3aadc1383995b6c00e87
 parent 0f5944459beb952fd49461dfb3c2867de7df314b
@@ -155,39 +155,39 @@ gpgsig -----BEGIN PGP SIGNATURE-----
 Merge pull request #6288 from libgit2/cmn/mwindow-simplifications
 
 A couple of simplications around mwindow";
-        [TestMethod]
-        public async Task ReadPgpSignedCommit()
+    [TestMethod]
+    public async Task ReadPgpSignedCommit()
+    {
+        var src = Bucket.Create.FromASCII(SignedCommit.Replace("\r", ""));
+        bool readGpg = false;
+
+        var verifySrcReader = GitCommitObjectBucket.ForSignature(src.Duplicate()).Buffer();
+        using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
+
+        await commitReader.ReadUntilEofAsync();
+
+        Assert.IsTrue(readGpg);
+
+        async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
         {
-            var src = Bucket.Create.FromASCII(SignedCommit.Replace("\r", ""));
-            bool readGpg = false;
+            if (subBucket != GitSubBucketType.Signature)
+                await bucket.ReadUntilEofAndCloseAsync();
 
-            var verifySrcReader = GitCommitObjectBucket.ForSignature(src.Duplicate()).Buffer();
-            using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
+            var rdx = new Radix64ArmorBucket(bucket);
+            using var gpg = new SignatureBucket(rdx);
 
-            await commitReader.ReadUntilEofAsync();
+            var ok1 = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null, unknownSignerOk: true);
+            Assert.IsTrue(ok1, "Verify as signature from 'someone'");
 
-            Assert.IsTrue(readGpg);
+            verifySrcReader.Reset();
 
-            async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
-            {
-                if (subBucket != GitSubBucketType.Signature)
-                    await bucket.ReadUntilEofAndCloseAsync();
-
-                var rdx = new Radix64ArmorBucket(bucket);
-                using var gpg = new SignatureBucket(rdx);
-
-                var ok1 = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null, unknownSignerOk: true);
-                Assert.IsTrue(ok1, "Verify as signature from 'someone'");
-
-                verifySrcReader.Reset();
-
-                var ok = await gpg.VerifyAsync(verifySrcReader, await GetGitHubWebFlowKey(), unknownSignerOk: true);
-                Assert.IsTrue(ok, "Valid sigature");
-                readGpg = true;
-            }
+            var ok = await gpg.VerifyAsync(verifySrcReader, await GetGitHubWebFlowKey(), unknownSignerOk: true);
+            Assert.IsTrue(ok, "Valid sigature");
+            readGpg = true;
         }
+    }
 
-        private const string SignedTag =
+    private const string SignedTag =
 @"object ba7542eb2dd5dfc75c457198b88986642e602065
 type commit
 tag mtd/fixes-for-5.18-rc5
@@ -212,7 +212,7 @@ grze+yeq0AqntS2gaiIsmRHShd/gpTfd4OAYkifpvclUYMGlfy2i038eTsuLLMfA
 =gnxP
 -----END PGP SIGNATURE-----
 ";
-        private const string PublicKeyOfSignedTag =
+    private const string PublicKeyOfSignedTag =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQENBFk/j/ABCADBrAWnqPpax2so2sQFrihYOy2AebXaq/o3NBtd62v2q+HspQj0
@@ -268,17 +268,17 @@ JxO3KnIuzaErVNtCw3AZ+JSQbGvOxVpOImtTtp+mJ1tDmQ==
 -----END PGP PUBLIC KEY BLOCK-----
 ";
 
-        private static async ValueTask<PublicKeySignature> GetKey(string keyData = PublicKeyOfSignedTag)
-        {
-            var key = Bucket.Create.FromASCII(keyData.Replace("\r", ""));
+    private static async ValueTask<PublicKeySignature> GetKey(string keyData = PublicKeyOfSignedTag)
+    {
+        var key = Bucket.Create.FromASCII(keyData.Replace("\r", ""));
 
-            var radix = new Radix64ArmorBucket(key);
-            var kb = new SignatureBucket(radix);
+        var radix = new Radix64ArmorBucket(key);
+        var kb = new SignatureBucket(radix);
 
-            return await kb.ReadKeyAsync();
-        }
+        return await kb.ReadKeyAsync();
+    }
 
-        private const string WebFlowKey =
+    private const string WebFlowKey =
 @"-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 xsBNBFmUaEEBCACzXTDt6ZnyaVtueZASBzgnAmK13q9Urgch+sKYeIhdymjuMQta
@@ -297,184 +297,184 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 =HXDP
 -----END PGP PUBLIC KEY BLOCK-----";
 
-        private static async ValueTask<PublicKeySignature> GetGitHubWebFlowKey()
+    private static async ValueTask<PublicKeySignature> GetGitHubWebFlowKey()
+    {
+        var key = Bucket.Create.FromASCII(WebFlowKey.Replace("\r", ""));
+
+        var radix = new Radix64ArmorBucket(key);
+        var kb = new SignatureBucket(radix);
+
+        await kb.ReadUntilEofAndCloseAsync();
+        return await kb.ReadKeyAsync();
+    }
+
+    [TestMethod]
+    public async Task ReadSignedTag()
+    {
+        var key = await GetKey();
+
+        var src = Bucket.Create.FromASCII(SignedTag.Replace("\r", ""));
+        bool readGpg = false;
+
+        var verifySrcReader = GitTagObjectBucket.ForSignature(src.Duplicate()).Buffer();
+        using var tagReader = new GitTagObjectBucket(src, handleSubBucket);
+
+        await tagReader.ReadUntilEofAsync();
+
+        Assert.IsTrue(readGpg);
+
+
+        async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
         {
-            var key = Bucket.Create.FromASCII(WebFlowKey.Replace("\r", ""));
+            if (subBucket != GitSubBucketType.Signature)
+                await bucket.ReadUntilEofAndCloseAsync();
 
-            var radix = new Radix64ArmorBucket(key);
-            var kb = new SignatureBucket(radix);
+            var rdx = new Radix64ArmorBucket(bucket);
+            using var gpg = new SignatureBucket(rdx);
 
-            await kb.ReadUntilEofAndCloseAsync();
-            return await kb.ReadKeyAsync();
+            var ok = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null, unknownSignerOk: true);
+            Assert.IsTrue(ok, "Signature appears ok");
+
+            verifySrcReader.Reset();
+            ok = await gpg.VerifyAsync(verifySrcReader, key, unknownSignerOk: true);
+            Assert.IsTrue(ok, "Signature verified against signer");
+            readGpg = true;
+        }
+    }
+
+    [TestMethod]
+    public async Task ReadPublicKey()
+    {
+        var key = Bucket.Create.FromASCII(PublicKeyOfSignedTag.Replace("\r", ""));
+
+        var radix = new Radix64ArmorBucket(key);
+        var kb = new SignatureBucket(radix);
+
+        await kb.ReadUntilEofAndCloseAsync();
+        await kb.ReadKeyAsync();
+    }
+
+    [TestMethod]
+    [DataRow(GitIdType.Sha1)]
+    [DataRow(GitIdType.Sha256)]
+    public async Task TestGitSign(GitIdType idType)
+    {
+        var dir = TestContext.PerTestDirectory(idType.ToString());
+        string keyFile = Path.Combine(dir, "key");
+        string signersFile = Path.Combine(dir, "signers");
+        var repo = GitRepository.Init(dir, new GitRepositoryInitArgs
+        {
+            IdType = idType,
+            InitialConfiguration = new[]
+            {
+                ("commit.gpgsign", "true"),
+                ("gpg.format", "ssh"),
+                ("user.signingkey", keyFile.Replace('\\', '/')),
+                ("gpg.ssh.allowedSignersFile", signersFile.Replace('\\', '/')),
+                ("user.email", "me@myself.i"),
+                ("user.name", "My Name")
+            }
+        });
+
+        RunSshKeyGen("-f", keyFile, "-N", "");
+
+        await repo.GetPorcelain().Add("key");
+        await repo.GetPorcelain().Commit(new()
+        {
+            All = true,
+            Sign = true,
+            Message = "Signed Commit"
+        });
+
+        var initialCommit = repo.Head.Commit;
+
+        Assert.IsTrue(initialCommit!.IsSigned, "Commit is signed");
+
+        using (var c = repo.References.CreateUpdateTransaction())
+        {
+            c.Create("refs/heads/base", repo.Head.Id!);
+            await c.CommitAsync();
         }
 
-        [TestMethod]
-        public async Task ReadSignedTag()
+        File.WriteAllText(Path.Combine(dir, "newA"), "A");
+        await repo.GetPorcelain().Add("newA");
+        await repo.GetPorcelain().Commit(new()
         {
-            var key = await GetKey();
+            All = true,
+            Sign = true,
+            Message = "Added newA"
+        });
 
-            var src = Bucket.Create.FromASCII(SignedTag.Replace("\r", ""));
-            bool readGpg = false;
+        await repo.GetPorcelain().Tag("a", new()
+        {
+            Sign = true,
+            Message = "Tagged A"
+        });
 
-            var verifySrcReader = GitTagObjectBucket.ForSignature(src.Duplicate()).Buffer();
-            using var tagReader = new GitTagObjectBucket(src, handleSubBucket);
+        await repo.GetPorcelain().CheckOut("base");
 
-            await tagReader.ReadUntilEofAsync();
+        await repo.GetPorcelain().Merge("tags/a", new()
+        {
+            Sign = true,
+            FastForward = AllowAlwaysNever.Never,
+            Message = "Merge a"
+        }); ;
 
-            Assert.IsTrue(readGpg);
+        var theMerge = repo.Head.Commit;
+        Assert.IsNotNull(theMerge, "Have merge");
+        Assert.AreEqual(2, theMerge.ParentCount);
+        Assert.IsTrue(theMerge.IsSigned, "Merge Commit is signed");
+        Assert.IsNull(theMerge.MergeTags[0], "No mergetag on parent 0");
+        Assert.IsNotNull(theMerge.MergeTags[1], "Has mergetag on parent 1");
+        Assert.IsTrue(theMerge.IsSigned, "The merge commit is singed");
+        Assert.IsTrue(theMerge.Parents.All(p => p.IsSigned), "Both parents signed");
+        Assert.IsTrue(theMerge.MergeTags[1]!.IsSigned, "The merge tag is signed");
 
-
-            async ValueTask handleSubBucket(GitSubBucketType subBucket, Bucket bucket)
-            {
-                if (subBucket != GitSubBucketType.Signature)
-                    await bucket.ReadUntilEofAndCloseAsync();
-
-                var rdx = new Radix64ArmorBucket(bucket);
-                using var gpg = new SignatureBucket(rdx);
-
-                var ok = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null, unknownSignerOk: true);
-                Assert.IsTrue(ok, "Signature appears ok");
-
-                verifySrcReader.Reset();
-                ok = await gpg.VerifyAsync(verifySrcReader, key, unknownSignerOk: true);
-                Assert.IsTrue(ok, "Signature verified against signer");
-                readGpg = true;
-            }
+        try
+        {
+            await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
+            Assert.Fail("Should have failed");
         }
-
-        [TestMethod]
-        public async Task ReadPublicKey()
-        {
-            var key = Bucket.Create.FromASCII(PublicKeyOfSignedTag.Replace("\r", ""));
-
-            var radix = new Radix64ArmorBucket(key);
-            var kb = new SignatureBucket(radix);
-
-            await kb.ReadUntilEofAndCloseAsync();
-            await kb.ReadKeyAsync();
-        }
-
-        [TestMethod]
-        [DataRow(GitIdType.Sha1)]
-        [DataRow(GitIdType.Sha256)]
-        public async Task TestGitSign(GitIdType idType)
-        {
-            var dir = TestContext.PerTestDirectory(idType.ToString());
-            string keyFile = Path.Combine(dir, "key");
-            string signersFile = Path.Combine(dir, "signers");
-            var repo = GitRepository.Init(dir, new GitRepositoryInitArgs
-            {
-                IdType = idType,
-                InitialConfiguration = new[]
-                {
-                    ("commit.gpgsign", "true"),
-                    ("gpg.format", "ssh"),
-                    ("user.signingkey", keyFile.Replace('\\', '/')),
-                    ("gpg.ssh.allowedSignersFile", signersFile.Replace('\\', '/')),
-                    ("user.email", "me@myself.i"),
-                    ("user.name", "My Name")
-                }
-            });
-
-            RunSshKeyGen("-f", keyFile, "-N", "");
-
-            await repo.GetPorcelain().Add("key");
-            await repo.GetPorcelain().Commit(new()
-            {
-                All = true,
-                Sign = true,
-                Message = "Signed Commit"
-            });
-
-            var initialCommit = repo.Head.Commit;
-
-            Assert.IsTrue(initialCommit!.IsSigned, "Commit is signed");
-
-            using (var c = repo.References.CreateUpdateTransaction())
-            {
-                c.Create("refs/heads/base", repo.Head.Id!);
-                await c.CommitAsync();
-            }
-
-            File.WriteAllText(Path.Combine(dir, "newA"), "A");
-            await repo.GetPorcelain().Add("newA");
-            await repo.GetPorcelain().Commit(new()
-            {
-                All = true,
-                Sign = true,
-                Message = "Added newA"
-            });
-
-            await repo.GetPorcelain().Tag("a", new()
-            {
-                Sign = true,
-                Message = "Tagged A"
-            });
-
-            await repo.GetPorcelain().CheckOut("base");
-
-            await repo.GetPorcelain().Merge("tags/a", new()
-            {
-                Sign = true,
-                FastForward = AllowAlwaysNever.Never,
-                Message = "Merge a"
-            }); ;
-
-            var theMerge = repo.Head.Commit;
-            Assert.IsNotNull(theMerge, "Have merge");
-            Assert.AreEqual(2, theMerge.ParentCount);
-            Assert.IsTrue(theMerge.IsSigned, "Merge Commit is signed");
-            Assert.IsNull(theMerge.MergeTags[0], "No mergetag on parent 0");
-            Assert.IsNotNull(theMerge.MergeTags[1], "Has mergetag on parent 1");
-            Assert.IsTrue(theMerge.IsSigned, "The merge commit is singed");
-            Assert.IsTrue(theMerge.Parents.All(p => p.IsSigned), "Both parents signed");
-            Assert.IsTrue(theMerge.MergeTags[1]!.IsSigned, "The merge tag is signed");
-
-            try
-            {
-                await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
-                Assert.Fail("Should have failed");
-            }
-            catch (GitException)
-            { }
+        catch (GitException)
+        { }
 
 
-            string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
-            Assert.IsTrue(PublicKeySignature.TryParse(publicKey, out var k));
-            File.WriteAllText(signersFile, "me@me " + k.FingerprintString + " me@my-pc" + Environment.NewLine);
+        string publicKey = File.ReadAllText(keyFile + ".pub").Trim();
+        Assert.IsTrue(PublicKeySignature.TryParse(publicKey, out var k));
+        File.WriteAllText(signersFile, "me@me " + k.FingerprintString + " me@my-pc" + Environment.NewLine);
 
-            // TODO: Verify using our infra
-            Assert.AreEqual(theMerge.MergeTags[1]!.Id, repo.TagObjects.First().Id);
+        // TODO: Verify using our infra
+        Assert.AreEqual(theMerge.MergeTags[1]!.Id, repo.TagObjects.First().Id);
 
-            Assert.IsTrue(await theMerge.VerifySignatureAsync(GetKey), "Commit verified");
-            Assert.IsTrue(await repo.TagObjects.First().VerifySignatureAsync(GetKey), "Merge verified");
+        Assert.IsTrue(await theMerge.VerifySignatureAsync(GetKey), "Commit verified");
+        Assert.IsTrue(await repo.TagObjects.First().VerifySignatureAsync(GetKey), "Merge verified");
 
-            Assert.IsTrue(await theMerge.VerifySignatureAsync(), "Commit verified, loaded key");
-            Assert.IsTrue(await repo.TagObjects.First().VerifySignatureAsync(), "Merge verified, loaded key");
+        Assert.IsTrue(await theMerge.VerifySignatureAsync(), "Commit verified, loaded key");
+        Assert.IsTrue(await repo.TagObjects.First().VerifySignatureAsync(), "Merge verified, loaded key");
 
 
 
-            // And now verify that what we tested is also accepted by git
-            // On GitHub the OpenSSH on MAC/OS doesn't support ssh verify yet
+        // And now verify that what we tested is also accepted by git
+        // On GitHub the OpenSSH on MAC/OS doesn't support ssh verify yet
 #if NET6_0_OR_GREATER
-            if (!OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsMacOS())
 #else
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
 #endif
-            {
-                await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
-            }
-
-            ValueTask<GitPublicKey?> GetKey(ReadOnlyMemory<byte> fingerprint)
-            {
-                if (GitPublicKey.TryParse(File.ReadAllText(keyFile + ".pub"), out var k))
-                    return new(k);
-                else
-                    return default;
-            }
+        {
+            await repo.GetPorcelain().VerifyCommit(theMerge.Id.ToString());
         }
 
-        private const string APrivateKey =
+        ValueTask<GitPublicKey?> GetKey(ReadOnlyMemory<byte> fingerprint)
+        {
+            if (GitPublicKey.TryParse(File.ReadAllText(keyFile + ".pub"), out var k))
+                return new(k);
+            else
+                return default;
+        }
+    }
+
+    private const string APrivateKey =
 @"-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lFgEY+jHGBYJKwYBBAHaRw8BAQdA4LuQh88dckAm8tn5rJS5fIzkbLKtoSRvTlA9
@@ -490,7 +490,7 @@ TLQz69WEUUAtQ1SwiGAaAP9MaVfEDY7GtSZO97Vs5prfBkYhWc3qEknTOhfiZbql
 BA==
 =PIZ4
 -----END PGP PRIVATE KEY BLOCK-----";
-        private const string AMessage =
+    private const string AMessage =
 @"-----BEGIN PGP MESSAGE-----
 
 hF4DxaX2D8f75n0SAQdACeR83BHHiw1jGFVw4TcPcoHqOyZdl/9AHvY8TlkIf38w
@@ -500,28 +500,27 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
 =Y8Z7
 -----END PGP MESSAGE-----";
 
-        [TestMethod]
-        public async Task ParsePrivateKey()
-        {
-            var b = Bucket.Create.FromASCII(APrivateKey);
+    [TestMethod]
+    public async Task ParsePrivateKey()
+    {
+        var b = Bucket.Create.FromASCII(APrivateKey);
 
-            var r = new Radix64ArmorBucket(b);
-            using var sig = new SignatureBucket(r);
+        var r = new Radix64ArmorBucket(b);
+        using var sig = new SignatureBucket(r);
 
-            var key = await sig.ReadKeyAsync();
+        var key = await sig.ReadKeyAsync();
 
-            Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", key.FingerprintString);
-            Assert.AreEqual(CryptoAlgorithm.Ed25519, key.Algorithm);
+        Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", key.FingerprintString);
+        Assert.AreEqual(CryptoAlgorithm.Ed25519, key.Algorithm);
 
-            Assert.IsTrue(PublicKeySignature.TryParse(APrivateKey, out var value));
-            Assert.IsTrue(value.HasPrivateKey);
+        Assert.IsTrue(PublicKeySignature.TryParse(APrivateKey, out var value));
+        Assert.IsTrue(value.HasPrivateKey);
 
-            Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
-        }
+        Assert.AreEqual("053BC975AA8A5954D140AEB2E1639FFECF7FF774", value.FingerprintString);
+    }
 
-        private string RunSshKeyGen(params string[] args)
-        {
-            return TestContext.RunApp("ssh-keygen", args);
-        }
+    private string RunSshKeyGen(params string[] args)
+    {
+        return TestContext.RunApp("ssh-keygen", args);
     }
 }

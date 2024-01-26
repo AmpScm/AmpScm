@@ -6,16 +6,15 @@ using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Git;
 
-namespace AmpScm.Buckets.Git
+namespace AmpScm.Buckets.Git;
+
+public abstract class GitObjectBucket : GitBucket, IBucketSeek
 {
-    public abstract class GitObjectBucket : GitBucket, IBucketSeek
+    protected GitObjectBucket(Bucket source) : base(source)
     {
-        protected GitObjectBucket(Bucket source) : base(source)
-        {
-        }
-
-        public abstract ValueTask<GitObjectType> ReadTypeAsync();
-
-        public abstract ValueTask SeekAsync(long newPosition);
     }
+
+    public abstract ValueTask<GitObjectType> ReadTypeAsync();
+
+    public abstract ValueTask SeekAsync(long newPosition);
 }

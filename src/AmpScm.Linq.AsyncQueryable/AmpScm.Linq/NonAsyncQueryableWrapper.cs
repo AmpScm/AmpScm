@@ -6,120 +6,119 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AmpScm.Linq
+namespace AmpScm.Linq;
+
+internal sealed class NonAsyncQueryableWrapper<T> : IQueryableAndAsyncQueryable<T>, IOrderedQueryableAndAsyncQueryable<T>
 {
-    internal sealed class NonAsyncQueryableWrapper<T> : IQueryableAndAsyncQueryable<T>, IOrderedQueryableAndAsyncQueryable<T>
+    private readonly NonAsyncProviderWrapper _provider;
+    private readonly IAsyncQueryable<T> _queryable;
+
+    public NonAsyncQueryableWrapper(IAsyncQueryable<T> inner, NonAsyncProviderWrapper wrapper)
     {
-        private readonly NonAsyncProviderWrapper _provider;
-        private readonly IAsyncQueryable<T> _queryable;
+        _provider = wrapper ?? throw new ArgumentNullException(nameof(wrapper));
+        _queryable = inner ?? throw new ArgumentNullException(nameof(inner));
+    }
 
-        public NonAsyncQueryableWrapper(IAsyncQueryable<T> inner, NonAsyncProviderWrapper wrapper)
+    public NonAsyncQueryableWrapper(IAsyncQueryable<T> inner)
+        : this(inner, new NonAsyncProviderWrapper(inner?.Provider ?? throw new ArgumentNullException(nameof(inner))))
+    {
+
+    }
+
+    public Type ElementType => typeof(T);
+
+    public Expression Expression => _queryable.Expression;
+
+    public IQueryProvider Provider => _provider;
+
+    IAsyncQueryProvider IAsyncQueryable.Provider => throw new NotSupportedException();
+
+    public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
+    {
+        return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
+            ?? throw new NotSupportedException();
+    }
+
+    public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
+    {
+        return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
+            ?? throw new NotSupportedException();
+    }
+
+    public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
+    {
+        return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
+            ?? throw new NotSupportedException();
+    }
+
+    public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        return _queryable.GetAsyncEnumerator(cancellationToken);
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        var r = _queryable.GetAsyncEnumerator();
+        try
         {
-            _provider = wrapper ?? throw new ArgumentNullException(nameof(wrapper));
-            _queryable = inner ?? throw new ArgumentNullException(nameof(inner));
-        }
-
-        public NonAsyncQueryableWrapper(IAsyncQueryable<T> inner)
-            : this(inner, new NonAsyncProviderWrapper(inner?.Provider ?? throw new ArgumentNullException(nameof(inner))))
-        {
-
-        }
-
-        public Type ElementType => typeof(T);
-
-        public Expression Expression => _queryable.Expression;
-
-        public IQueryProvider Provider => _provider;
-
-        IAsyncQueryProvider IAsyncQueryable.Provider => throw new NotSupportedException();
-
-        public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
-        {
-            return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
-                ?? throw new NotSupportedException();
-        }
-
-        public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
-        {
-            return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
-                ?? throw new NotSupportedException();
-        }
-
-        public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
-        {
-            return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
-                ?? throw new NotSupportedException();
-        }
-
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        {
-            return _queryable.GetAsyncEnumerator(cancellationToken);
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            var r = _queryable.GetAsyncEnumerator();
-            try
+            while (r.MoveNextAsync().AsTask().Result)
             {
-                while (r.MoveNextAsync().AsTask().Result)
-                {
-                    yield return r.Current;
-                }
-            }
-            finally
-            {
-                r.DisposeAsync().AsTask().Wait();
+                yield return r.Current;
             }
         }
-
-        IEnumerator IEnumerable.GetEnumerator()
+        finally
         {
-            var r = _queryable.GetAsyncEnumerator();
-            try
-            {
-                while (r.MoveNextAsync().AsTask().Result)
-                {
-                    yield return r.Current;
-                }
-            }
-            finally
-            {
-                r.DisposeAsync().AsTask().Wait();
-            }
+            r.DisposeAsync().AsTask().Wait();
         }
     }
 
-    internal sealed class NonAsyncProviderWrapper : QueryAndAsyncQueryProvider
+    IEnumerator IEnumerable.GetEnumerator()
     {
-        private IAsyncQueryProvider QueryProvider { get; }
-
-        public NonAsyncProviderWrapper(IAsyncQueryProvider asyncQueryProvider)
+        var r = _queryable.GetAsyncEnumerator();
+        try
         {
-            QueryProvider = asyncQueryProvider;
+            while (r.MoveNextAsync().AsTask().Result)
+            {
+                yield return r.Current;
+            }
         }
-
-        public override IQueryableAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        finally
         {
-            var q = QueryProvider.CreateQuery<TElement>(expression);
-            var p = q.Provider;
-
-            return new NonAsyncQueryableWrapper<TElement>(q,
-                    ReferenceEquals(p, QueryProvider) ? this : new NonAsyncProviderWrapper(p));
+            r.DisposeAsync().AsTask().Wait();
         }
+    }
+}
 
-        public override object? Execute(Expression expression)
-        {
-            return QueryProvider.ExecuteAsync<object>(expression, CancellationToken.None).AsTask().Result;
-        }
+internal sealed class NonAsyncProviderWrapper : QueryAndAsyncQueryProvider
+{
+    private IAsyncQueryProvider QueryProvider { get; }
 
-        public override TResult Execute<TResult>(Expression expression)
-        {
-            return QueryProvider.ExecuteAsync<TResult>(expression, CancellationToken.None).AsTask().Result;
-        }
+    public NonAsyncProviderWrapper(IAsyncQueryProvider asyncQueryProvider)
+    {
+        QueryProvider = asyncQueryProvider;
+    }
 
-        public override ValueTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken token)
-        {
-            return QueryProvider.ExecuteAsync<TResult>(expression, token);
-        }
+    public override IQueryableAndAsyncQueryable<TElement> CreateQuery<TElement>(Expression expression)
+    {
+        var q = QueryProvider.CreateQuery<TElement>(expression);
+        var p = q.Provider;
+
+        return new NonAsyncQueryableWrapper<TElement>(q,
+                ReferenceEquals(p, QueryProvider) ? this : new NonAsyncProviderWrapper(p));
+    }
+
+    public override object? Execute(Expression expression)
+    {
+        return QueryProvider.ExecuteAsync<object>(expression, CancellationToken.None).AsTask().Result;
+    }
+
+    public override TResult Execute<TResult>(Expression expression)
+    {
+        return QueryProvider.ExecuteAsync<TResult>(expression, CancellationToken.None).AsTask().Result;
+    }
+
+    public override ValueTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken token)
+    {
+        return QueryProvider.ExecuteAsync<TResult>(expression, token);
     }
 }

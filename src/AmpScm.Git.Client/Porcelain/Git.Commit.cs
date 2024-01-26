@@ -4,66 +4,65 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Porcelain
-{
-    public class GitCommitArgs : GitPorcelainArgs
-    {
-        public bool All { get; set; }
-        public bool Amend { get; set; }
-        public string? Message { get; set; }
-        public bool Only { get; set; }
-        public bool Sign { get; set; }
+namespace AmpScm.Git.Client.Porcelain;
 
-        public override void Verify()
-        {
-        }
+public class GitCommitArgs : GitPorcelainArgs
+{
+    public bool All { get; set; }
+    public bool Amend { get; set; }
+    public string? Message { get; set; }
+    public bool Only { get; set; }
+    public bool Sign { get; set; }
+
+    public override void Verify()
+    {
+    }
+}
+
+public partial class GitPorcelain
+{
+    [GitCommand("commit")]
+    public static async ValueTask Commit(this GitPorcelainClient c, GitCommitArgs? options)
+    {
+        await Commit(c, Array.Empty<string>(), options);
     }
 
-    public partial class GitPorcelain
+    [GitCommand("commit")]
+    public static async ValueTask Commit(this GitPorcelainClient c, string[] paths, GitCommitArgs? options)
     {
-        [GitCommand("commit")]
-        public static async ValueTask Commit(this GitPorcelainClient c, GitCommitArgs? options)
+        options?.Verify();
+        options ??= new();
+
+        List<string> args = new();
+
+        if (options.All)
+            args.Add("--all");
+        if (options.Amend)
+            args.Add("--amend");
+        if (options.Sign)
+            args.Add("-S");
+
+        // TODO: Allow configuring these
+        args.Add("--no-edit");
+        args.Add("--allow-empty-message");
+
+        if (!string.IsNullOrEmpty(options.Message))
         {
-            await Commit(c, Array.Empty<string>(), options);
+            args.Add("-m");
+            args.Add(options.Message!);
         }
 
-        [GitCommand("commit")]
-        public static async ValueTask Commit(this GitPorcelainClient c, string[] paths, GitCommitArgs? options)
+        if (paths?.Any() ?? false || (options.Only))
         {
-            options?.Verify();
-            options ??= new();
+            args.Add("--only");
 
-            List<string> args = new();
-
-            if (options.All)
-                args.Add("--all");
-            if (options.Amend)
-                args.Add("--amend");
-            if (options.Sign)
-                args.Add("-S");
-
-            // TODO: Allow configuring these
-            args.Add("--no-edit");
-            args.Add("--allow-empty-message");
-
-            if (!string.IsNullOrEmpty(options.Message))
+            if (paths?.Any() ?? false)
             {
-                args.Add("-m");
-                args.Add(options.Message!);
+                args.Add("--");
+                args.AddRange(paths);
             }
-
-            if (paths?.Any() ?? false || (options.Only))
-            {
-                args.Add("--only");
-
-                if (paths?.Any() ?? false)
-                {
-                    args.Add("--");
-                    args.AddRange(paths);
-                }
-            }
-
-            await c.Repository.RunGitCommandAsync("commit", args);
         }
+
+        await c.Repository.RunGitCommandAsync("commit", args);
     }
 }

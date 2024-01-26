@@ -4,28 +4,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Porcelain
+namespace AmpScm.Git.Client.Porcelain;
+
+public class GitPruneArgs : GitPorcelainArgs
 {
-    public class GitPruneArgs : GitPorcelainArgs
+    public override void Verify()
     {
-        public override void Verify()
-        {
-            //throw new NotImplementedException();
-        }
+        //throw new NotImplementedException();
     }
+}
 
-    public partial class GitPorcelain
+public partial class GitPorcelain
+{
+    [GitCommand("prune")]
+    public static async ValueTask Prune(this GitPorcelainClient c, GitPruneArgs? options = null)
     {
-        [GitCommand("prune")]
-        public static async ValueTask Prune(this GitPorcelainClient c, GitPruneArgs? options = null)
-        {
-            options?.Verify();
-            options ??= new();
+        options?.Verify();
+        options ??= new();
 
-            List<string> args = new List<string>();
+        List<string> args = new List<string>();
 
 
-            await c.Repository.RunGitCommandAsync("prune", args);
-        }
+        await c.Repository.RunGitCommandAsync("prune", args);
     }
 }

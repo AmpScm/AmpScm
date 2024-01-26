@@ -9,60 +9,59 @@ using System.Threading.Tasks;
 using AmpScm.Git.Sets;
 using AmpScm.Linq;
 
-namespace AmpScm.Git.Implementation
+namespace AmpScm.Git.Implementation;
+
+internal class GitQuery<T> : IOrderedQueryableAndAsyncQueryable<T>
 {
-    internal class GitQuery<T> : IOrderedQueryableAndAsyncQueryable<T>
+    public GitQuery(GitQueryProvider provider, Expression expression)
     {
-        public GitQuery(GitQueryProvider provider, Expression expression)
+        Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+        Expression = expression ?? throw new ArgumentNullException(nameof(expression));
+    }
+
+    public Type ElementType => typeof(T);
+
+    public Expression Expression { get; }
+
+    public GitQueryProvider Provider { get; }
+
+    IQueryProvider IQueryable.Provider => Provider;
+
+    IAsyncQueryProvider IAsyncQueryable.Provider => Provider;
+
+    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        foreach(var v in this)
         {
-            Provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            Expression = expression ?? throw new ArgumentNullException(nameof(expression));
+            if (v is IGitObject r)
+                await r.ReadAsync().ConfigureAwait(false);
+
+            yield return v;
         }
+    }
 
-        public Type ElementType => typeof(T);
+    public IEnumerator<T> GetEnumerator()
+    {
+        return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
+    }
 
-        public Expression Expression { get; }
+    IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
+    {
+        throw new NotImplementedException();
+    }
 
-        public GitQueryProvider Provider { get; }
+    IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
+    {
+        throw new NotImplementedException();
+    }
 
-        IQueryProvider IQueryable.Provider => Provider;
+    IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
+    {
+        throw new NotImplementedException();
+    }
 
-        IAsyncQueryProvider IAsyncQueryable.Provider => Provider;
-
-        public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        {
-            foreach(var v in this)
-            {
-                if (v is IGitObject r)
-                    await r.ReadAsync().ConfigureAwait(false);
-
-                yield return v;
-            }
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
-        }
-
-        IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
-        {
-            throw new NotImplementedException();
-        }
-
-        IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
-        {
-            throw new NotImplementedException();
-        }
-
-        IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

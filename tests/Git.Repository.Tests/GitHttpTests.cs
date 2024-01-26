@@ -15,149 +15,148 @@ using AmpScm.Buckets.Git;
 using BucketTests;
 using AmpScm;
 
-namespace GitRepositoryTests
+namespace GitRepositoryTests;
+
+[TestClass]
+public class GitHttpTests
 {
-    [TestClass]
-    public class GitHttpTests
+    public TestContext TestContext { get; set; } = null!;
+
+    public BucketWebClient Client { get; } = new();
+
+
+#if !DEBUG
+    [Timeout(20000)]
+#endif
+    [TestMethod]
+    public async Task GetGitInfoV1()
     {
-        public TestContext TestContext { get; set; } = null!;
-
-        public BucketWebClient Client { get; } = new();
-
-
-#if !DEBUG
-        [Timeout(20000)]
-#endif
-        [TestMethod]
-        public async Task GetGitInfoV1()
-        {
 #if NETFRAMEWORK
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                return; // Results not stable on MONO
+        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            return; // Results not stable on MONO
 #endif
 
-            var br = Client.CreateRequest($"https://github.com/rhuijben/putty.git/info/refs?service=git-upload-pack");
+        var br = Client.CreateRequest($"https://github.com/rhuijben/putty.git/info/refs?service=git-upload-pack");
 
-            br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
-            //br.Headers["Git-Protocol"] = "version=2";
-            using var result = await br.GetResponseAsync();
+        br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
+        //br.Headers["Git-Protocol"] = "version=2";
+        using var result = await br.GetResponseAsync();
 
-            BucketBytes bb;
-            string total = "";
-            int len = 0;
+        BucketBytes bb;
+        string total = "";
+        int len = 0;
 
-            await result.ReadHeaders();
-            if (result is HttpResponseBucket hrb)
-            {
-                TestContext.WriteLine($"HTTP/1.1 {hrb.HttpStatus} {hrb.HttpMessage}");
+        await result.ReadHeaders();
+        if (result is HttpResponseBucket hrb)
+        {
+            TestContext.WriteLine($"HTTP/1.1 {hrb.HttpStatus} {hrb.HttpMessage}");
 
-                TestContext.WriteLine(result.Headers.ToString());
-                TestContext.WriteLine();
-            }
-
-            var pkt = new GitPacketBucket(result);
-
-            while (!(bb = await pkt.ReadFullPacket()).IsEof)
-            {
-                TestContext.WriteLine($"-- {pkt.CurrentPacketLength} --");
-
-                var t = bb.ToUTF8String();
-                len += bb.Length;
-                TestContext.Write(t);
-                total += t;
-            }
+            TestContext.WriteLine(result.Headers.ToString());
+            TestContext.WriteLine();
         }
 
-#if !DEBUG
-        [Timeout(20000)]
-#endif
-        [TestMethod]
-        public async Task GetGitInfoV2()
+        var pkt = new GitPacketBucket(result);
+
+        while (!(bb = await pkt.ReadFullPacket()).IsEof)
         {
+            TestContext.WriteLine($"-- {pkt.CurrentPacketLength} --");
+
+            var t = bb.ToUTF8String();
+            len += bb.Length;
+            TestContext.Write(t);
+            total += t;
+        }
+    }
+
+#if !DEBUG
+    [Timeout(20000)]
+#endif
+    [TestMethod]
+    public async Task GetGitInfoV2()
+    {
 #if NETFRAMEWORK
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                return; // Results not stable on MONO
+        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            return; // Results not stable on MONO
 #endif
 
-            var br = Client.CreateRequest($"https://github.com/rhuijben/putty.git/info/refs?service=git-upload-pack");
+        var br = Client.CreateRequest($"https://github.com/rhuijben/putty.git/info/refs?service=git-upload-pack");
 
-            br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
-            br.Headers["Git-Protocol"] = "version=2";
-            using var result = await br.GetResponseAsync();
+        br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
+        br.Headers["Git-Protocol"] = "version=2";
+        using var result = await br.GetResponseAsync();
 
-            BucketBytes bb;
-            string total = "";
-            int len = 0;
+        BucketBytes bb;
+        string total = "";
+        int len = 0;
 
-            await result.ReadHeaders();
-            if (result is HttpResponseBucket hrb)
-            {
-                TestContext.WriteLine($"HTTP/1.1 {hrb.HttpStatus} {hrb.HttpMessage}");
+        await result.ReadHeaders();
+        if (result is HttpResponseBucket hrb)
+        {
+            TestContext.WriteLine($"HTTP/1.1 {hrb.HttpStatus} {hrb.HttpMessage}");
 
-                TestContext.WriteLine(result.Headers.ToString());
-                TestContext.WriteLine();
-            }
-
-            var pkt = new GitPacketBucket(result);
-
-            while (!(bb = await pkt.ReadFullPacket()).IsEof)
-            {
-                TestContext.WriteLine($"-- {pkt.CurrentPacketLength} --");
-
-                var t = bb.ToUTF8String();
-                len += bb.Length;
-                TestContext.Write(t);
-                total += t;
-            }
+            TestContext.WriteLine(result.Headers.ToString());
+            TestContext.WriteLine();
         }
 
-#if !DEBUG
-        [Timeout(20000)]
-#endif
-        [TestMethod]
-        public async Task GetGitInfoV2Auth()
+        var pkt = new GitPacketBucket(result);
+
+        while (!(bb = await pkt.ReadFullPacket()).IsEof)
         {
+            TestContext.WriteLine($"-- {pkt.CurrentPacketLength} --");
+
+            var t = bb.ToUTF8String();
+            len += bb.Length;
+            TestContext.Write(t);
+            total += t;
+        }
+    }
+
+#if !DEBUG
+    [Timeout(20000)]
+#endif
+    [TestMethod]
+    public async Task GetGitInfoV2Auth()
+    {
 #if NETFRAMEWORK
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-                return; // Results not stable on MONO
+        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            return; // Results not stable on MONO
 #endif
 
-            using var rp = GitRepository.Open(Environment.CurrentDirectory);
+        using var rp = GitRepository.Open(Environment.CurrentDirectory);
 
-            var br = Client.CreateRequest($"https://github.com/rhuijben/asd-admin-css.git/info/refs?service=git-upload-pack");
-            //br.PreAuthenticate = true;
+        var br = Client.CreateRequest($"https://github.com/rhuijben/asd-admin-css.git/info/refs?service=git-upload-pack");
+        //br.PreAuthenticate = true;
 
-            br.BasicAuthentication += (sender, e) => { e.Username = $"q-{Guid.NewGuid()}"; e.Password = "123"; e.Handled = true; };
-            //br.BasicAuthentication += rp.Configuration.BasicAuthenticationHandler;
-
-
-            br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
-            br.Headers["Git-Protocol"] = "version=2";
-            using var result = await br.GetResponseAsync();
-
-            BucketBytes bb;
-            string total = "";
-            int len = 0;
+        br.BasicAuthentication += (sender, e) => { e.Username = $"q-{Guid.NewGuid()}"; e.Password = "123"; e.Handled = true; };
+        //br.BasicAuthentication += rp.Configuration.BasicAuthenticationHandler;
 
 
-            await result.ReadHeaders();
-            if (result is HttpResponseBucket hrb)
-            {
-                TestContext.WriteLine($"HTTP/1.1 {hrb.HttpStatus} {hrb.HttpMessage}");
+        br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
+        br.Headers["Git-Protocol"] = "version=2";
+        using var result = await br.GetResponseAsync();
 
-                TestContext.WriteLine(result.Headers.ToString());
-                TestContext.WriteLine();
-            }
+        BucketBytes bb;
+        string total = "";
+        int len = 0;
 
-            var pkt = new GitPacketBucket(result);
 
-            while (!(bb = await result.ReadAsync()).IsEof)
-            {
-                var t = bb.ToUTF8String();
-                len += bb.Length;
-                TestContext.Write(t);
-                total += t;
-            }
+        await result.ReadHeaders();
+        if (result is HttpResponseBucket hrb)
+        {
+            TestContext.WriteLine($"HTTP/1.1 {hrb.HttpStatus} {hrb.HttpMessage}");
+
+            TestContext.WriteLine(result.Headers.ToString());
+            TestContext.WriteLine();
+        }
+
+        var pkt = new GitPacketBucket(result);
+
+        while (!(bb = await result.ReadAsync()).IsEof)
+        {
+            var t = bb.ToUTF8String();
+            len += bb.Length;
+            TestContext.Write(t);
+            total += t;
         }
     }
 }

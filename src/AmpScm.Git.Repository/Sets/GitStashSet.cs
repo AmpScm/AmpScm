@@ -8,33 +8,32 @@ using System.Threading.Tasks;
 using AmpScm.Git.Implementation;
 using AmpScm.Linq;
 
-namespace AmpScm.Git.Sets
+namespace AmpScm.Git.Sets;
+
+public class GitStashSet : GitSet<GitStash>, IQueryableAndAsyncQueryable<GitStash>, IListSource, IReadOnlyList<GitStash>
 {
-    public class GitStashSet : GitSet<GitStash>, IQueryableAndAsyncQueryable<GitStash>, IListSource, IReadOnlyList<GitStash>
+    internal GitStashSet(GitRepository repository, Expression<Func<GitStashSet>> rootExpression) : base(repository)
     {
-        internal GitStashSet(GitRepository repository, Expression<Func<GitStashSet>> rootExpression) : base(repository)
+        Expression = (rootExpression?.Body as MemberExpression) ?? throw new ArgumentNullException(nameof(rootExpression));
+    }
+
+    public GitStash this[int index] => StashChanges.Skip(index >= 0 ? index : throw new ArgumentOutOfRangeException(nameof(index)))
+        .FirstOrDefault() is { } c ? new GitStash(c) : throw new ArgumentOutOfRangeException(nameof(index));
+
+    private IQueryableAndAsyncQueryable<GitReferenceChange> StashChanges => Repository.References["refs/stash"]?.ReferenceChanges ?? AmpAsyncQueryable.Empty<GitReferenceChange>();
+
+    public int Count => StashChanges.Count();
+
+    public async IAsyncEnumerator<GitStash> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        await foreach (var change in StashChanges.ConfigureAwait(false))
         {
-            Expression = (rootExpression?.Body as MemberExpression) ?? throw new ArgumentNullException(nameof(rootExpression));
+            yield return new GitStash(change);
         }
+    }
 
-        public GitStash this[int index] => StashChanges.Skip(index >= 0 ? index : throw new ArgumentOutOfRangeException(nameof(index)))
-            .FirstOrDefault() is { } c ? new GitStash(c) : throw new ArgumentOutOfRangeException(nameof(index));
-
-        private IQueryableAndAsyncQueryable<GitReferenceChange> StashChanges => Repository.References["refs/stash"]?.ReferenceChanges ?? AmpAsyncQueryable.Empty<GitReferenceChange>();
-
-        public int Count => StashChanges.Count();
-
-        public async IAsyncEnumerator<GitStash> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        {
-            await foreach (var change in StashChanges.ConfigureAwait(false))
-            {
-                yield return new GitStash(change);
-            }
-        }
-
-        public override IEnumerator<GitStash> GetEnumerator()
-        {
-            return this.AsNonAsyncEnumerable().GetEnumerator();
-        }
+    public override IEnumerator<GitStash> GetEnumerator()
+    {
+        return this.AsNonAsyncEnumerable().GetEnumerator();
     }
 }

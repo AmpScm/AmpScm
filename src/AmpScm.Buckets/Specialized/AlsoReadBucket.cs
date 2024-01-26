@@ -1,48 +1,47 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Specialized
+namespace AmpScm.Buckets.Specialized;
+
+internal sealed class AlsoReadBucket : WrappingBucket
 {
-    internal sealed class AlsoReadBucket : WrappingBucket
+    private Func<BucketBytes, ValueTask>? _reader;
+
+    public AlsoReadBucket(Bucket source, Func<BucketBytes, ValueTask> reader)
+        : base(source)
     {
-        private Func<BucketBytes, ValueTask>? _reader;
+        _reader = reader;
+    }
 
-        public AlsoReadBucket(Bucket source, Func<BucketBytes, ValueTask> reader)
-            : base(source)
+    public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
+    {
+        var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
+
+        if (!bb.IsEmpty)
         {
-            _reader = reader;
+            if (_reader != null)
+                await _reader(bb).ConfigureAwait(false);
+        }
+        else
+        {
+            if (_reader != null)
+                await _reader(BucketBytes.Eof).ConfigureAwait(false);
+
+            _reader = null;
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
-        {
-            var bb = await Source.ReadAsync(requested).ConfigureAwait(false);
+        return bb;
+    }
 
-            if (!bb.IsEmpty)
-            {
-                if (_reader != null)
-                    await _reader(bb).ConfigureAwait(false);
-            }
-            else
-            {
-                if (_reader != null)
-                    await _reader(BucketBytes.Eof).ConfigureAwait(false);
+    public override long? Position => Source.Position;
 
-                _reader = null;
-            }
+    public override ValueTask<long?> ReadRemainingBytesAsync()
+    {
+        return Source.ReadRemainingBytesAsync();
+    }
 
-            return bb;
-        }
-
-        public override long? Position => Source.Position;
-
-        public override ValueTask<long?> ReadRemainingBytesAsync()
-        {
-            return Source.ReadRemainingBytesAsync();
-        }
-
-        public override BucketBytes Peek()
-        {
-            return Source.Peek();
-        }
+    public override BucketBytes Peek()
+    {
+        return Source.Peek();
     }
 }

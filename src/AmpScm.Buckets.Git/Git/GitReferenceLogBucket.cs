@@ -5,150 +5,149 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git;
 
-namespace AmpScm.Buckets.Git
+namespace AmpScm.Buckets.Git;
+
+public record GitReferenceLogRecord
 {
-    public record GitReferenceLogRecord
+    public GitId Original { get; init; } = default!;
+    public GitId Target { get; init; } = default!;
+    public GitSignatureRecord Signature { get; init; } = default!;
+    public string? Reason { get; init; } = default!;
+
+
+    public override string ToString()
     {
-        public GitId Original { get; init; } = default!;
-        public GitId Target { get; init; } = default!;
-        public GitSignatureRecord Signature { get; init; } = default!;
-        public string? Reason { get; init; } = default!;
+        StringBuilder sb = new StringBuilder();
 
+        sb.Append(Original);
+        sb.Append(' ');
+        sb.Append(Target);
+        sb.Append(' ');
+        sb.Append(Signature);
+        sb.Append('\t');
+        sb.Append(Reason);
+        sb.Append('\n');
 
-        public override string ToString()
+        return sb.ToString();
+    }
+}
+
+public record GitSignatureRecord
+{
+    public string Name { get; init; } = default!;
+    public string Email { get; init; } = default!;
+    public DateTimeOffset When { get; init; }
+
+    public override string ToString()
+    {
+        string offsetMinutes;
+
+        if (When.Offset == TimeSpan.Zero)
+            offsetMinutes = "+0000";
+        else
         {
-            StringBuilder sb = new StringBuilder();
+            int mins = (int)When.Offset.TotalMinutes;
 
-            sb.Append(Original);
-            sb.Append(' ');
-            sb.Append(Target);
-            sb.Append(' ');
-            sb.Append(Signature);
-            sb.Append('\t');
-            sb.Append(Reason);
-            sb.Append('\n');
+            int hours = mins / 60;
 
-            return sb.ToString();
+            offsetMinutes = (mins + (hours * 100) - (hours * 60)).ToString("0000", CultureInfo.InvariantCulture);
+
+            if (offsetMinutes.Length != 5)
+                offsetMinutes = "+" + offsetMinutes;
         }
+
+        return $"{Name} <{Email}> {When.ToUnixTimeSeconds()} {offsetMinutes}";
     }
 
-    public record GitSignatureRecord
+    public static bool TryReadFromBucket(BucketBytes bucketBytes, [NotNullWhen(true)] out GitSignatureRecord? record)
     {
-        public string Name { get; init; } = default!;
-        public string Email { get; init; } = default!;
-        public DateTimeOffset When { get; init; }
-
-        public override string ToString()
+        int n = bucketBytes.IndexOf('<');
+        if (n < 0)
         {
-            string offsetMinutes;
-
-            if (When.Offset == TimeSpan.Zero)
-                offsetMinutes = "+0000";
-            else
-            {
-                int mins = (int)When.Offset.TotalMinutes;
-
-                int hours = mins / 60;
-
-                offsetMinutes = (mins + (hours * 100) - (hours * 60)).ToString("0000", CultureInfo.InvariantCulture);
-
-                if (offsetMinutes.Length != 5)
-                    offsetMinutes = "+" + offsetMinutes;
-            }
-
-            return $"{Name} <{Email}> {When.ToUnixTimeSeconds()} {offsetMinutes}";
+            record = null!;
+            return false;
         }
-
-        public static bool TryReadFromBucket(BucketBytes bucketBytes, [NotNullWhen(true)] out GitSignatureRecord? record)
+        int n2 = bucketBytes.IndexOf('>', n);
+        if (n2 < 0)
         {
-            int n = bucketBytes.IndexOf('<');
-            if (n < 0)
-            {
-                record = null!;
-                return false;
-            }
-            int n2 = bucketBytes.IndexOf('>', n);
-            if (n2 < 0)
-            {
-                record = null!;
-                return false;
-            }
-            record = new GitSignatureRecord
-            {
-                Name = bucketBytes.ToUTF8String(0, n - 1),
-                Email = bucketBytes.ToUTF8String(n + 1, n2 - n - 1),
-                When = ParseWhen(bucketBytes.ToUTF8String(n2 + 2))
-            };
-            return true;
+            record = null!;
+            return false;
         }
-
-        private static DateTimeOffset ParseWhen(string value)
+        record = new GitSignatureRecord
         {
-            string[] time = value.Split(' ', 2);
-            if (int.TryParse(time[0], NumberStyles.None, CultureInfo.InvariantCulture, out var unixtime) && int.TryParse(time[1], NumberStyles.None, CultureInfo.InvariantCulture, out var offset))
-            {
-                return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
-            }
-            return DateTimeOffset.Now;
-        }
+            Name = bucketBytes.ToUTF8String(0, n - 1),
+            Email = bucketBytes.ToUTF8String(n + 1, n2 - n - 1),
+            When = ParseWhen(bucketBytes.ToUTF8String(n2 + 2))
+        };
+        return true;
     }
 
-    public class GitReferenceLogBucket : GitBucket
+    private static DateTimeOffset ParseWhen(string value)
     {
-        private GitId? _lastId;
-        private int? _idLength;
-
-        public GitReferenceLogBucket(Bucket source) : base(source)
+        string[] time = value.Split(' ', 2);
+        if (int.TryParse(time[0], NumberStyles.None, CultureInfo.InvariantCulture, out var unixtime) && int.TryParse(time[1], NumberStyles.None, CultureInfo.InvariantCulture, out var offset))
         {
+            return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
+        }
+        return DateTimeOffset.Now;
+    }
+}
+
+public class GitReferenceLogBucket : GitBucket
+{
+    private GitId? _lastId;
+    private int? _idLength;
+
+    public GitReferenceLogBucket(Bucket source) : base(source)
+    {
+    }
+
+    public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
+    {
+        while (await (ReadGitReferenceLogRecordAsync().ConfigureAwait(false)) != null)
+        {
+
+        }
+        return BucketBytes.Eof;
+    }
+
+    public async ValueTask<GitReferenceLogRecord?> ReadGitReferenceLogRecordAsync()
+    {
+        var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
+
+        if (bb.IsEof)
+            return null;
+
+        int prefix = bb.IndexOf('\t', (2 * _idLength + 2) ?? 0);
+
+        if (!_idLength.HasValue)
+        {
+            _idLength = bb.IndexOf(' ');
+
+            if (prefix < 0 || _idLength < GitId.HashLength(GitIdType.Sha1) * 2 || _idLength * 2 + 2 > prefix)
+                throw new GitBucketException($"Unable to determine reference log format in {Name} Bucket");
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
+        return new GitReferenceLogRecord
         {
-            while (await (ReadGitReferenceLogRecordAsync().ConfigureAwait(false)) != null)
-            {
+            Original = ReadGitId(bb, 0) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Original)} OID in RefLog line from {Source.Name}"),
+            Target = ReadGitId(bb, _idLength.Value + 1) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Target)} OID in RefLog line from {Source.Name}"),
+            Signature = GitSignatureRecord.TryReadFromBucket(bb.Slice(0, prefix).Slice(2 * (_idLength.Value + 1)), out var v) ? v : throw new GitBucketException("Invalid reference log item"),
+            Reason = bb.Slice(prefix + 1).ToUTF8String(eol)
+        };
+    }
 
-            }
-            return BucketBytes.Eof;
-        }
+    private GitId? ReadGitId(BucketBytes bb, int offset)
+    {
+        var s = bb.Slice(offset, _idLength!.Value);
 
-        public async ValueTask<GitReferenceLogRecord?> ReadGitReferenceLogRecordAsync()
+        if (GitId.TryParse(s, out var oid))
         {
-            var (bb, eol) = await Source.ReadExactlyUntilEolAsync(BucketEol.LF, eolState: null).ConfigureAwait(false);
-
-            if (bb.IsEof)
-                return null;
-
-            int prefix = bb.IndexOf('\t', (2 * _idLength + 2) ?? 0);
-
-            if (!_idLength.HasValue)
-            {
-                _idLength = bb.IndexOf(' ');
-
-                if (prefix < 0 || _idLength < GitId.HashLength(GitIdType.Sha1) * 2 || _idLength * 2 + 2 > prefix)
-                    throw new GitBucketException($"Unable to determine reference log format in {Name} Bucket");
-            }
-
-            return new GitReferenceLogRecord
-            {
-                Original = ReadGitId(bb, 0) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Original)} OID in RefLog line from {Source.Name}"),
-                Target = ReadGitId(bb, _idLength.Value + 1) ?? throw new GitBucketException($"Bad {nameof(GitReferenceLogRecord.Target)} OID in RefLog line from {Source.Name}"),
-                Signature = GitSignatureRecord.TryReadFromBucket(bb.Slice(0, prefix).Slice(2 * (_idLength.Value + 1)), out var v) ? v : throw new GitBucketException("Invalid reference log item"),
-                Reason = bb.Slice(prefix + 1).ToUTF8String(eol)
-            };
+            oid = (_lastId == oid) ? _lastId : oid;
+            _lastId = oid;
+            return oid;
         }
-
-        private GitId? ReadGitId(BucketBytes bb, int offset)
-        {
-            var s = bb.Slice(offset, _idLength!.Value);
-
-            if (GitId.TryParse(s, out var oid))
-            {
-                oid = (_lastId == oid) ? _lastId : oid;
-                _lastId = oid;
-                return oid;
-            }
-            else
-                return null;
-        }
+        else
+            return null;
     }
 }

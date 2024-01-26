@@ -4,212 +4,212 @@ using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Wrappers
+namespace AmpScm.Buckets.Wrappers;
+
+internal partial class BucketStream : Stream
 {
-    internal partial class BucketStream : Stream
+    private bool _gotLength;
+    private long _length;
+
+    public BucketStream(Bucket bucket)
     {
-        private bool _gotLength;
-        private long _length;
+        Bucket = bucket ?? throw new ArgumentNullException(nameof(bucket));
+    }
 
-        public BucketStream(Bucket bucket)
+    public Bucket Bucket { get; }
+
+    protected override void Dispose(bool disposing)
+    {
+        try
         {
-            Bucket = bucket ?? throw new ArgumentNullException(nameof(bucket));
+            if (disposing)
+                Bucket.Dispose();
         }
-
-        public Bucket Bucket { get; }
-
-        protected override void Dispose(bool disposing)
+        finally
         {
-            try
-            {
-                if (disposing)
-                    Bucket.Dispose();
-            }
-            finally
-            {
-                base.Dispose(disposing);
-            }
+            base.Dispose(disposing);
         }
+    }
 
 #if !NETFRAMEWORK
-        public override async ValueTask DisposeAsync()
-        {
-            Bucket.Dispose();
-            await base.DisposeAsync().ConfigureAwait(false);
-        }
+    public override async ValueTask DisposeAsync()
+    {
+        Bucket.Dispose();
+        await base.DisposeAsync().ConfigureAwait(false);
+    }
 #endif
 
-        public override bool CanRead => true;
+    public override bool CanRead => true;
 
-        public override bool CanSeek => Bucket.CanReset;
+    public override bool CanSeek => Bucket.CanReset;
 
-        public override bool CanWrite => false;
+    public override bool CanWrite => false;
 
-        public override long Length
+    public override long Length
+    {
+        get
         {
-            get
+            if (!_gotLength)
             {
-                if (!_gotLength)
-                {
-                    _gotLength = true;
+                _gotLength = true;
 
-                    long? p = Bucket.Position;
+                long? p = Bucket.Position;
 
-                    if (!p.HasValue)
-                        return -1L;
+                if (!p.HasValue)
+                    return -1L;
 
-                    long? r = Bucket.ReadRemainingBytesAsync().AsTask().Result; // BAD async
+                long? r = Bucket.ReadRemainingBytesAsync().AsTask().Result; // BAD async
 
-                    if (r.HasValue)
-                        _length = r.Value + p.Value;
-                }
-                return _length;
+                if (r.HasValue)
+                    _length = r.Value + p.Value;
             }
+            return _length;
         }
+    }
 
-        public override long Position { get => Bucket.Position ?? 0L; set => Seek(value, SeekOrigin.Begin); }
+    public override long Position { get => Bucket.Position ?? 0L; set => Seek(value, SeekOrigin.Begin); }
 
-        public override void Flush()
-        {
-        }
+    public override void Flush()
+    {
+    }
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return ReadAsync(buffer, offset, count).Result;
-        }
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        return ReadAsync(buffer, offset, count).Result;
+    }
 
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-        {
-            return await DoReadAsync(new Memory<byte>(buffer, offset, count)).ConfigureAwait(false);
-        }
+    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    {
+        return await DoReadAsync(new Memory<byte>(buffer, offset, count)).ConfigureAwait(false);
+    }
 
-        private async ValueTask<int> DoReadAsync(Memory<byte> buffer)
-        {
-            var r = await Bucket.ReadAsync(buffer.Length).ConfigureAwait(false);
+    private async ValueTask<int> DoReadAsync(Memory<byte> buffer)
+    {
+        var r = await Bucket.ReadAsync(buffer.Length).ConfigureAwait(false);
 
-            if (r.IsEof)
-                return 0;
+        if (r.IsEof)
+            return 0;
 
-            r.CopyTo(buffer.Span);
-            return r.Length;
-        }
+        r.CopyTo(buffer.Span);
+        return r.Length;
+    }
 
-        public override int ReadByte()
-        {
-            return Bucket.ReadByteAsync().AsTask().Result ?? -1;
-        }
+    public override int ReadByte()
+    {
+        return Bucket.ReadByteAsync().AsTask().Result ?? -1;
+    }
 
 #if !NETFRAMEWORK
 #pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads
-        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
 #pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads
-        {
-            return DoReadAsync(buffer);
-        }
+    {
+        return DoReadAsync(buffer);
+    }
 #endif
 
-        public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+    public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+    {
+        if (destination is null)
+            throw new ArgumentNullException(nameof(destination));
+
+        while (true)
         {
-            if (destination is null)
-                throw new ArgumentNullException(nameof(destination));
+            var bb = await Bucket.ReadAsync().ConfigureAwait(false);
 
-            while (true)
-            {
-                var bb = await Bucket.ReadAsync().ConfigureAwait(false);
+            if (bb.IsEof)
+                return;
 
-                if (bb.IsEof)
-                    return;
-
-                await destination.WriteAsync(bb, cancellationToken).ConfigureAwait(false);
-            }
+            await destination.WriteAsync(bb, cancellationToken).ConfigureAwait(false);
         }
+    }
 
 #if !NETFRAMEWORK
-        public override void CopyTo(Stream destination, int bufferSize)
+    public override void CopyTo(Stream destination, int bufferSize)
 #else
-        public new void CopyTo(Stream destination, int bufferSize)
+    public new void CopyTo(Stream destination, int bufferSize)
 #endif
 
+    {
+        CopyToAsync(destination, bufferSize).Wait();
+    }
+
+    public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
+    {
+        var valuetask = DoReadAsync(new Memory<byte>(buffer, offset, count));
+
+        if (valuetask.IsCompletedSuccessfully)
         {
-            CopyToAsync(destination, bufferSize).Wait();
+            var r = new SyncDone { AsyncState = state, Result = valuetask.Result };
+
+            callback?.Invoke(r);
+            return r;
         }
-
-        public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)
+        else
         {
-            var valuetask = DoReadAsync(new Memory<byte>(buffer, offset, count));
+            var task = valuetask.AsTask();
+            var tcs = new TaskCompletionSource<int>(state);
 
-            if (valuetask.IsCompletedSuccessfully)
+            _ = task.ContinueWith(t =>
             {
-                var r = new SyncDone { AsyncState = state, Result = valuetask.Result };
-
-                callback?.Invoke(r);
-                return r;
-            }
-            else
-            {
-                var task = valuetask.AsTask();
-                var tcs = new TaskCompletionSource<int>(state);
-
-                task.ContinueWith(t =>
+                if (t.IsFaulted)
+                    tcs.TrySetException(t.Exception!.InnerExceptions);
+                else if (t.IsCanceled)
+                    tcs.TrySetCanceled();
+                else
                 {
-                    if (t.IsFaulted)
-                        tcs.TrySetException(t.Exception!.InnerExceptions);
-                    else if (t.IsCanceled)
-                        tcs.TrySetCanceled();
-                    else
-                    {
-                        tcs.TrySetResult(t.Result);
-                    }
+                    tcs.TrySetResult(t.Result);
+                }
 
-                    callback?.Invoke(tcs.Task);
-                }, TaskScheduler.Default);
+                callback?.Invoke(tcs.Task);
 
-                return tcs.Task;
-            }
+            }, TaskScheduler.Default);
+
+            return tcs.Task;
         }
+    }
 
-        private sealed class SyncDone : IAsyncResult
+    private sealed class SyncDone : IAsyncResult
+    {
+        public object? AsyncState { get; set; }
+
+        public WaitHandle AsyncWaitHandle => null!;
+
+        public bool CompletedSynchronously => true;
+
+        public bool IsCompleted => true;
+
+        public int Result;
+    }
+
+    public override int EndRead(IAsyncResult asyncResult)
+    {
+        return (asyncResult as SyncDone)?.Result ?? ((Task<int>)asyncResult).Result;
+    }
+
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        switch (origin)
         {
-            public object? AsyncState { get; set; }
-
-            public WaitHandle AsyncWaitHandle => null!;
-
-            public bool CompletedSynchronously => true;
-
-            public bool IsCompleted => true;
-
-            public int Result;
+            case SeekOrigin.Begin:
+                Bucket.SeekAsync(offset).AsTask().Wait();
+                return Position;
+            case SeekOrigin.Current:
+                return Seek(offset + Position, SeekOrigin.Begin);
+            case SeekOrigin.End:
+                return Seek(Length - offset, SeekOrigin.Begin);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(origin), origin, message: null);
         }
+    }
 
-        public override int EndRead(IAsyncResult asyncResult)
-        {
-            return (asyncResult as SyncDone)?.Result ?? ((Task<int>)asyncResult).Result;
-        }
+    public override void SetLength(long value)
+    {
+        throw new InvalidOperationException();
+    }
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            switch (origin)
-            {
-                case SeekOrigin.Begin:
-                    Bucket.SeekAsync(offset).AsTask().Wait();
-                    return Position;
-                case SeekOrigin.Current:
-                    return Seek(offset + Position, SeekOrigin.Begin);
-                case SeekOrigin.End:
-                    return Seek(Length - offset, SeekOrigin.Begin);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(origin), origin, message: null);
-            }
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new InvalidOperationException();
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new InvalidOperationException();
-        }
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        throw new InvalidOperationException();
     }
 }

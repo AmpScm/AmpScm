@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Repository
+namespace AmpScm.Git.Repository;
+
+internal enum GitRootType
 {
-    internal enum GitRootType
-    {
-        None,
-        Normal,
-        Bare,
-        WorkTree
-    }
+    None,
+    Normal,
+    Bare,
+    WorkTree
 }

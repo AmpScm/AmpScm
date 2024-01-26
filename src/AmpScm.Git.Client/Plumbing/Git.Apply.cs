@@ -4,25 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Plumbing;
+
+public class GitApplyArgs : GitPlumbingArgs
 {
-    public class GitApplyArgs : GitPlumbingArgs
+    public override void Verify()
     {
-        public override void Verify()
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
+}
 
-    public partial class GitPlumbing
+public partial class GitPlumbing
+{
+    [GitCommand("apply")]
+    public static async ValueTask Apply(this GitPlumbingClient c, GitApplyArgs options)
     {
-        [GitCommand("apply")]
-        public static async ValueTask Apply(this GitPlumbingClient c, GitApplyArgs options)
-        {
-            options.Verify();
-            //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+        options.Verify();
+        //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
-            await c.ThrowNotImplemented();
-        }
+        await c.ThrowNotImplemented();
     }
 }

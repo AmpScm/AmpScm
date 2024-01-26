@@ -5,53 +5,52 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
-namespace AmpScm.Buckets.Git
+namespace AmpScm.Buckets.Git;
+
+public class GitPacketBucket : GitBucket
 {
-    public class GitPacketBucket : GitBucket
+    private int _packetLength;
+
+    public GitPacketBucket(Bucket source) : base(source)
     {
-        private int _packetLength;
+    }
 
-        public GitPacketBucket(Bucket source) : base(source)
+    public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
+    {
+        while(!(await ReadFullPacket().ConfigureAwait(false)).IsEof)
         {
+
+        }
+        while (await ReadSkipAsync(Bucket.MaxRead).ConfigureAwait(false) > 0)
+        {
+
         }
 
-        public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
-        {
-            while(!(await ReadFullPacket().ConfigureAwait(false)).IsEof)
-            {
-
-            }
-            while (await ReadSkipAsync(Bucket.MaxRead).ConfigureAwait(false) > 0)
-            {
-
-            }
-
-            return BucketBytes.Eof;
-        }
+        return BucketBytes.Eof;
+    }
 
 
-        public int CurrentPacketLength => _packetLength;
+    public int CurrentPacketLength => _packetLength;
 
-        public async ValueTask<BucketBytes> ReadFullPacket()
-        {
-            BucketBytes bb = await Source.ReadExactlyAsync(4).ConfigureAwait(false);
+    public async ValueTask<BucketBytes> ReadFullPacket()
+    {
+        BucketBytes bb = await Source.ReadExactlyAsync(4).ConfigureAwait(false);
 
-            if (bb.IsEof)
-                return bb;
-            else if (bb.Length < 4)
-                throw new BucketEofException(this);
+        if (bb.IsEof)
+            return bb;
+        else if (bb.Length < 4)
+            throw new BucketEofException(this);
 
-            _packetLength = Convert.ToInt32(bb.ToASCIIString(), 16);
+        _packetLength = Convert.ToInt32(bb.ToASCIIString(), 16);
 
-            if (_packetLength <= 4)
-                return BucketBytes.Empty;
+        if (_packetLength <= 4)
+            return BucketBytes.Empty;
 
-            bb = await Source.ReadExactlyAsync(_packetLength - 4).ConfigureAwait(false);
+        bb = await Source.ReadExactlyAsync(_packetLength - 4).ConfigureAwait(false);
 
-            if (bb.Length == _packetLength-4)
-                return bb;
-            else
-                throw new BucketEofException(Source);
-        }
+        if (bb.Length == _packetLength-4)
+            return bb;
+        else
+            throw new BucketEofException(Source);
     }
 }

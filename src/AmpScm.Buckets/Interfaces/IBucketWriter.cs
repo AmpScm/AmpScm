@@ -4,18 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Interfaces
+namespace AmpScm.Buckets.Interfaces;
+
+public interface IBucketWriter
 {
-    public interface IBucketWriter
-    {
-        void Write(Bucket bucket);
+    void Write(Bucket bucket);
 
-        ValueTask ShutdownAsync();
-    }
+    ValueTask ShutdownAsync();
+}
 
 
-    public interface IBucketWriterStats : IBucketWriter
-    {
-        public long BytesWritten { get; }
-    }
+public interface IBucketWriterStats : IBucketWriter
+{
+    public long BytesWritten { get; }
 }

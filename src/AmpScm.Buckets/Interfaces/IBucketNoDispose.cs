@@ -1,9 +1,8 @@
-﻿namespace AmpScm.Buckets.Interfaces
-{
-    public interface IBucketNoDispose
-    {
-        Bucket NoDispose();
+﻿namespace AmpScm.Buckets.Interfaces;
 
-        bool HasMultipleDisposers();
-    }
+public interface IBucketNoDispose
+{
+    Bucket NoDispose();
+
+    bool HasMultipleDisposers();
 }

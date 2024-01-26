@@ -4,25 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Plumbing;
+
+public class GitMakeTagArgs : GitPlumbingArgs
 {
-    public class GitMakeTagArgs : GitPlumbingArgs
+    public override void Verify()
     {
-        public override void Verify()
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
+}
 
-    public partial class GitPlumbing
+public partial class GitPlumbing
+{
+    [GitCommand("mktag")]
+    public static async ValueTask MakeTag(this GitPlumbingClient c, GitMakeTagArgs options)
     {
-        [GitCommand("mktag")]
-        public static async ValueTask MakeTag(this GitPlumbingClient c, GitMakeTagArgs options)
-        {
-            options.Verify();
-            //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+        options.Verify();
+        //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
-            await c.ThrowNotImplemented();
-        }
+        await c.ThrowNotImplemented();
     }
 }

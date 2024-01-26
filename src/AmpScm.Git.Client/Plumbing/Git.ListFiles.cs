@@ -4,25 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Plumbing;
+
+public class GitListFilesArgs : GitPlumbingArgs
 {
-    public class GitListFilesArgs : GitPlumbingArgs
+    public override void Verify()
     {
-        public override void Verify()
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
+}
 
-    public partial class GitPlumbing
+public partial class GitPlumbing
+{
+    [GitCommand("ls-files")]
+    public static async ValueTask<string> ListFiles(this GitPlumbingClient c, GitListFilesArgs options)
     {
-        [GitCommand("ls-files")]
-        public static async ValueTask<string> ListFiles(this GitPlumbingClient c, GitListFilesArgs options)
-        {
-            options.Verify();
-            var (_, txt) = await c.Repository.RunGitCommandOutAsync("ls-files", new string[] { });
+        options.Verify();
+        var (_, txt) = await c.Repository.RunGitCommandOutAsync("ls-files", new string[] { });
 
-            return txt;
-        }
+        return txt;
     }
 }

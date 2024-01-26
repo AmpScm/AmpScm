@@ -7,86 +7,85 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git.Sets;
 
-namespace AmpScm.Git.Implementation
+namespace AmpScm.Git.Implementation;
+
+internal class GitQueryVisitor : ExpressionVisitor
 {
-    internal class GitQueryVisitor : ExpressionVisitor
+    private ConstantExpression? _defaultRoot;
+
+    private static System.Reflection.MethodInfo GetMethod<TOn>(Expression<Func<TOn, object>> callExpression)
     {
-        private ConstantExpression? _defaultRoot;
+        return (callExpression.Body as MethodCallExpression)?.Method ?? throw new ArgumentOutOfRangeException(nameof(callExpression));
+    }
 
-        private static System.Reflection.MethodInfo GetMethod<TOn>(Expression<Func<TOn, object>> callExpression)
+    // Fold all root references to exactly the same value
+    protected override Expression VisitConstant(ConstantExpression node)
+    {
+        if (typeof(IGitQueryRoot).IsAssignableFrom(node.Type))
         {
-            return (callExpression.Body as MethodCallExpression)?.Method ?? throw new ArgumentOutOfRangeException(nameof(callExpression));
-        }
+            if (_defaultRoot != null)
+                return _defaultRoot;
 
-        // Fold all root references to exactly the same value
-        protected override Expression VisitConstant(ConstantExpression node)
-        {
-            if (typeof(IGitQueryRoot).IsAssignableFrom(node.Type))
+            if (node.Value != null)
             {
-                if (_defaultRoot != null)
-                    return _defaultRoot;
+                return _defaultRoot = node;
+            }
+        }
+        return base.VisitConstant(node);
+    }
 
-                if (node.Value != null)
+    protected override Expression VisitMethodCall(MethodCallExpression node)
+    {
+        for (int i = 0; i < node.Arguments.Count; i++)
+        {
+            var arg = node.Arguments[i];
+            if (typeof(GitSet).IsAssignableFrom(arg.Type))
+            {
+                var paramType = node.Method.GetParameters()[0].ParameterType;
+
+                if (IsSafeQueryableType(paramType, out var elementType))
                 {
-                    return _defaultRoot = node;
+                    if (_defaultRoot == null)
+                        base.VisitMethodCall(node);
+
+                    if (_defaultRoot == null)
+                        throw new InvalidOperationException();
+
+                    var newArguments = node.Arguments.ToArray();
+
+                    if (typeof(GitObject).IsAssignableFrom(elementType))
+                        newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAll<GitObject>()).GetGenericMethodDefinition().MakeGenericMethod(elementType!));
+                    else if (typeof(GitRevision).IsAssignableFrom(elementType))
+                        newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetRevisions(null!)), newArguments[i]);
+                    else if (typeof(GitRemote).IsAssignableFrom(elementType))
+                        newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllNamed<GitRemote>()).GetGenericMethodDefinition().MakeGenericMethod(elementType!));
+                    else if (typeof(GitReferenceChange).IsAssignableFrom(elementType))
+                        newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllReferenceChanges(null!)), newArguments[i]);
+                    else if (typeof(IGitNamedObject).IsAssignableFrom(elementType))
+                        newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllNamed<GitReference>()).GetGenericMethodDefinition().MakeGenericMethod(elementType!));
+                    else if (typeof(GitStash).IsAssignableFrom(elementType))
+                        newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllStashes(null!)), newArguments[i]);
+                    else
+                        throw new NotImplementedException($"Can't unwrap type {elementType}");
+
+                    node = node.Update(node.Object!, newArguments);
                 }
             }
-            return base.VisitConstant(node);
         }
 
-        protected override Expression VisitMethodCall(MethodCallExpression node)
+        return base.VisitMethodCall(node);
+    }
+
+    private static bool IsSafeQueryableType(Type paramType, [NotNullWhen(true)] out Type elementType)
+    {
+        if (GitQueryProvider.GetElementType(paramType) is Type elType)
         {
-            for (int i = 0; i < node.Arguments.Count; i++)
-            {
-                var arg = node.Arguments[i];
-                if (typeof(GitSet).IsAssignableFrom(arg.Type))
-                {
-                    var paramType = node.Method.GetParameters()[0].ParameterType;
+            elementType = elType;
+            Type queryableType = typeof(IQueryable<>).MakeGenericType(elType);
 
-                    if (IsSafeQueryableType(paramType, out var elementType))
-                    {
-                        if (_defaultRoot == null)
-                            base.VisitMethodCall(node);
-
-                        if (_defaultRoot == null)
-                            throw new InvalidOperationException();
-
-                        var newArguments = node.Arguments.ToArray();
-
-                        if (typeof(GitObject).IsAssignableFrom(elementType))
-                            newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAll<GitObject>()).GetGenericMethodDefinition().MakeGenericMethod(elementType!));
-                        else if (typeof(GitRevision).IsAssignableFrom(elementType))
-                            newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetRevisions(null!)), newArguments[i]);
-                        else if (typeof(GitRemote).IsAssignableFrom(elementType))
-                            newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllNamed<GitRemote>()).GetGenericMethodDefinition().MakeGenericMethod(elementType!));
-                        else if (typeof(GitReferenceChange).IsAssignableFrom(elementType))
-                            newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllReferenceChanges(null!)), newArguments[i]);
-                        else if (typeof(IGitNamedObject).IsAssignableFrom(elementType))
-                            newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllNamed<GitReference>()).GetGenericMethodDefinition().MakeGenericMethod(elementType!));
-                        else if (typeof(GitStash).IsAssignableFrom(elementType))
-                            newArguments[i] = Expression.Call(_defaultRoot, GetMethod<IGitQueryRoot>(x => x.GetAllStashes(null!)), newArguments[i]);
-                        else
-                            throw new NotImplementedException($"Can't unwrap type {elementType}");
-
-                        node = node.Update(node.Object!, newArguments);
-                    }
-                }
-            }
-
-            return base.VisitMethodCall(node);
+            return paramType.IsAssignableFrom(queryableType);
         }
-
-        private static bool IsSafeQueryableType(Type paramType, [NotNullWhen(true)] out Type elementType)
-        {
-            if (GitQueryProvider.GetElementType(paramType) is Type elType)
-            {
-                elementType = elType;
-                Type queryableType = typeof(IQueryable<>).MakeGenericType(elType);
-
-                return paramType.IsAssignableFrom(queryableType);
-            }
-            elementType = null!;
-            return false;
-        }
+        elementType = null!;
+        return false;
     }
 }

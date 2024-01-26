@@ -6,61 +6,60 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git.Repository;
 
-namespace AmpScm.Git.References
+namespace AmpScm.Git.References;
+
+public abstract class GitReferenceRepository : GitBackendRepository
 {
-    public abstract class GitReferenceRepository : GitBackendRepository
+    public const string Head = "HEAD";
+
+    protected internal string GitDir { get; }
+    protected internal string WorkTreeDir { get; }
+
+    protected GitReferenceRepository(GitRepository repository, string gitDir, string workTreeDir)
+        : base(repository)
     {
-        public const string Head = "HEAD";
+        GitDir = gitDir ?? throw new ArgumentNullException(nameof(gitDir));
+        WorkTreeDir = workTreeDir ?? throw new ArgumentNullException(nameof(gitDir));
+    }
 
-        protected internal string GitDir { get; }
-        protected internal string WorkTreeDir { get; }
+    protected override void Dispose(bool disposing)
+    {
+    }
 
-        protected GitReferenceRepository(GitRepository repository, string gitDir, string workTreeDir)
-            : base(repository)
-        {
-            GitDir = gitDir ?? throw new ArgumentNullException(nameof(gitDir));
-            WorkTreeDir = workTreeDir ?? throw new ArgumentNullException(nameof(gitDir));
-        }
+    public abstract IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned);
 
-        protected override void Dispose(bool disposing)
-        {
-        }
+    internal GitReferenceUpdateTransaction CreateUpdateTransaction()
+    {
+        return new GitReferenceUpdater(this);
+    }
 
-        public abstract IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned);
+    public ValueTask<GitReference?> GetAsync(string name)
+    {
+        if (!GitReference.ValidName(name, allowSpecialSymbols: true))
+            throw new ArgumentOutOfRangeException(nameof(name), name, "Invalid Reference name");
 
-        internal GitReferenceUpdateTransaction CreateUpdateTransaction()
-        {
-            return new GitReferenceUpdater(this);
-        }
+        return GetUnsafeAsync(name);
+    }
 
-        public ValueTask<GitReference?> GetAsync(string name)
-        {
-            if (!GitReference.ValidName(name, allowSpecialSymbols: true))
-                throw new ArgumentOutOfRangeException(nameof(name), name, "Invalid Reference name");
+    protected internal abstract ValueTask<GitReference?> GetUnsafeAsync(string name);
 
-            return GetUnsafeAsync(name);
-        }
+    public virtual IAsyncEnumerable<GitReferenceChange>? GetChanges(GitReference reference)
+    {
+        return default;
+    }
 
-        protected internal abstract ValueTask<GitReference?> GetUnsafeAsync(string name);
+    public virtual ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
+    {
+        return default;
+    }
 
-        public virtual IAsyncEnumerable<GitReferenceChange>? GetChanges(GitReference reference)
-        {
-            return default;
-        }
+    protected internal virtual ValueTask<GitReference?> ResolveAsync(GitReference gitReference)
+    {
+        return default;
+    }
 
-        public virtual ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
-        {
-            return default;
-        }
-
-        protected internal virtual ValueTask<GitReference?> ResolveAsync(GitReference gitReference)
-        {
-            return default;
-        }
-
-        internal GitReference? GetUnsafe(string v)
-        {
-            return GetUnsafeAsync(v).AsTask().Result;
-        }
+    internal GitReference? GetUnsafe(string v)
+    {
+        return GetUnsafeAsync(v).AsTask().Result;
     }
 }

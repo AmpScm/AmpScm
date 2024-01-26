@@ -10,22 +10,21 @@ using System.Threading.Tasks;
 using AmpScm.Git.Implementation;
 using AmpScm.Git.References;
 
-namespace AmpScm.Git.Sets
+namespace AmpScm.Git.Sets;
+
+public class GitReferencesSet : GitNamedSet<GitReference>
 {
-    public class GitReferencesSet : GitNamedSet<GitReference>
+    internal GitReferencesSet(GitRepository repository, Expression<Func<GitNamedSet<GitReference>>> rootExpression)
+        : base(repository, rootExpression)
     {
-        internal GitReferencesSet(GitRepository repository, Expression<Func<GitNamedSet<GitReference>>> rootExpression)
-            : base(repository, rootExpression)
-        {
-        }
+    }
 
-        public GitReference Head => Repository.ReferenceRepository.GetAsync(Git.References.GitReferenceRepository.Head).AsTask().Result!;
+    public GitReference Head => Repository.ReferenceRepository.GetAsync(Git.References.GitReferenceRepository.Head).AsTask().Result!;
 
 
 
-        public GitReferenceUpdateTransaction CreateUpdateTransaction()
-        {
-            return Repository.ReferenceRepository.CreateUpdateTransaction();
-        }
+    public GitReferenceUpdateTransaction CreateUpdateTransaction()
+    {
+        return Repository.ReferenceRepository.CreateUpdateTransaction();
     }
 }

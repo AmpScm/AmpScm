@@ -167,7 +167,7 @@ internal sealed class LeaveBucket : WrappingBucket
                 return BucketBytes.Eof;
             }
             else
-                throw new NotImplementedException("Unhandled case... how?");
+                throw new NotSupportedException("Unhandled case... how?");
         }
     }
 

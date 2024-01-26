@@ -5,12 +5,11 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Sets
+namespace AmpScm.Git.Sets;
+
+internal class GitTagSet : GitNamedSet<GitTag>
 {
-    internal class GitTagSet : GitNamedSet<GitTag>
+    internal GitTagSet(GitRepository repository, Expression<Func<GitNamedSet<GitTag>>> rootExpression) : base(repository, rootExpression)
     {
-        internal GitTagSet(GitRepository repository, Expression<Func<GitNamedSet<GitTag>>> rootExpression) : base(repository, rootExpression)
-        {
-        }
     }
 }

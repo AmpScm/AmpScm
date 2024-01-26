@@ -4,7 +4,7 @@
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <TargetFrameworks>net8.0;net7.0;net47;net48;net6.0</TargetFrameworks>
     <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes' ">$(TargetFrameworks);net8.0</TargetFrameworks>
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>

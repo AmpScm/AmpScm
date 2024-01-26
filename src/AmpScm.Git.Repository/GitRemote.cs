@@ -5,53 +5,52 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git.Sets;
 
-namespace AmpScm.Git
+namespace AmpScm.Git;
+
+public sealed class GitRemote : IGitNamedObject
 {
-    public sealed class GitRemote : IGitNamedObject
+    private GitRepository Repository { get; }
+
+    private object? _rawUrl;
+
+    internal GitRemote(GitRepository repository, string name, string? rawUrl)
     {
-        private GitRepository Repository { get; }
+        Repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+        _rawUrl = rawUrl;
+    }
 
-        private object? _rawUrl;
-
-        internal GitRemote(GitRepository repository, string name, string? rawUrl)
+    public string Name { get; }
+    public Uri? Url
+    {
+        get
         {
-            Repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            _rawUrl = rawUrl;
-        }
-
-        public string Name { get; }
-        public Uri? Url
-        {
-            get
+            if (_rawUrl is Uri uri)
+                return uri;
+            else if (RawUrl is string s && s.Length > 0 && Uri.TryCreate(s, UriKind.Absolute, out var parsed))
             {
-                if (_rawUrl is Uri uri)
-                    return uri;
-                else if (RawUrl is string s && s.Length > 0 && Uri.TryCreate(s, UriKind.Absolute, out var parsed))
-                {
-                    _rawUrl = parsed;
-                    return parsed;
-                }
-                else
-                    return null;
+                _rawUrl = parsed;
+                return parsed;
             }
+            else
+                return null;
         }
+    }
 
-        internal string? RawUrl
-        {
-            get
-            {
-                if (_rawUrl == null)
-                    _rawUrl = Repository.Configuration.GetString("remote." + Name, "url") ?? "";
-
-                return (_rawUrl is string s) ? s : _rawUrl.ToString();
-            }
-        }
-
-        public async ValueTask ReadAsync()
+    internal string? RawUrl
+    {
+        get
         {
             if (_rawUrl == null)
-                _rawUrl = await Repository.Configuration.GetStringAsync("remote." + Name, "url").ConfigureAwait(false) ?? "";
+                _rawUrl = Repository.Configuration.GetString("remote." + Name, "url") ?? "";
+
+            return (_rawUrl is string s) ? s : _rawUrl.ToString();
         }
+    }
+
+    public async ValueTask ReadAsync()
+    {
+        if (_rawUrl == null)
+            _rawUrl = await Repository.Configuration.GetStringAsync("remote." + Name, "url").ConfigureAwait(false) ?? "";
     }
 }

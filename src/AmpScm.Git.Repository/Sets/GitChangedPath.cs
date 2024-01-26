@@ -4,43 +4,42 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Sets
+namespace AmpScm.Git.Sets;
+
+public enum GitChange
 {
-    public enum GitChange
+    None,
+    Added,
+    Modified,
+    Deleted
+}
+
+public sealed class GitChangedPath : IEquatable<GitChangedPath>
+{
+    internal GitChangedPath(string path, GitChange change)
     {
-        None,
-        Added,
-        Modified,
-        Deleted
+        Path = path;
+        Change = change;
     }
 
-    public sealed class GitChangedPath : IEquatable<GitChangedPath>
+    public string Path { get; }
+    public GitChange Change { get; }
+
+    public bool Equals(GitChangedPath? other)
     {
-        internal GitChangedPath(string path, GitChange change)
-        {
-            Path = path;
-            Change = change;
-        }
+        if (other is null)
+            return false;
 
-        public string Path { get; }
-        public GitChange Change { get; }
+        return Path == other.Path && Change == other.Change;
+    }
 
-        public bool Equals(GitChangedPath? other)
-        {
-            if (other is null)
-                return false;
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as GitChangedPath);
+    }
 
-            return Path == other.Path && Change == other.Change;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as GitChangedPath);
-        }
-
-        public override int GetHashCode()
-        {
-            return StringComparer.Ordinal.GetHashCode(Path);
-        }
+    public override int GetHashCode()
+    {
+        return StringComparer.Ordinal.GetHashCode(Path);
     }
 }

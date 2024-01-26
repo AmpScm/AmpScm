@@ -1,7 +1,7 @@
 ﻿using System;
 
-namespace Chaos.NaCl.Internal.Ed25519Ref10
-{
+namespace Chaos.NaCl.Internal.Ed25519Ref10;
+
 	internal static partial class GroupOperations
 	{
 		private static void slide(sbyte[] r, byte[] a)
@@ -9,37 +9,37 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 			for (int i = 0; i < 256; ++i)
 				r[i] = (sbyte)(1 & (a[i >> 3] >> (i & 7)));
 
-            for (int i = 0; i < 256; ++i)
+        for (int i = 0; i < 256; ++i)
+        {
+            if (r[i] != 0)
             {
-                if (r[i] != 0)
+                for (int b = 1; b <= 6 && (i + b) < 256; ++b)
                 {
-                    for (int b = 1; b <= 6 && (i + b) < 256; ++b)
+                    if (r[i + b] != 0)
                     {
-                        if (r[i + b] != 0)
+                        if (r[i] + (r[i + b] << b) <= 15)
                         {
-                            if (r[i] + (r[i + b] << b) <= 15)
-                            {
-                                r[i] += (sbyte)(r[i + b] << b); r[i + b] = 0;
-                            }
-                            else if (r[i] - (r[i + b] << b) >= -15)
-                            {
-                                r[i] -= (sbyte)(r[i + b] << b);
-                                for (int k = i + b; k < 256; ++k)
-                                {
-                                    if (r[k] == 0)
-                                    {
-                                        r[k] = 1;
-                                        break;
-                                    }
-                                    r[k] = 0;
-                                }
-                            }
-                            else
-                                break;
+                            r[i] += (sbyte)(r[i + b] << b); r[i + b] = 0;
                         }
+                        else if (r[i] - (r[i + b] << b) >= -15)
+                        {
+                            r[i] -= (sbyte)(r[i + b] << b);
+                            for (int k = i + b; k < 256; ++k)
+                            {
+                                if (r[k] == 0)
+                                {
+                                    r[k] = 1;
+                                    break;
+                                }
+                                r[k] = 0;
+                            }
+                        }
+                        else
+                            break;
                     }
                 }
             }
+        }
 		}
 
 		/*
@@ -52,7 +52,7 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 		public static void ge_double_scalarmult_vartime(out GroupElementP2 r, byte[] a, ref GroupElementP3 A, byte[] b)
 		{
 			GroupElementPreComp[] Bi = LookupTables.Base2;
-            // todo: Perhaps remove these allocations?
+        // todo: Perhaps remove these allocations?
 			sbyte[] aslide = new sbyte[256];
 			sbyte[] bslide = new sbyte[256];
 			GroupElementCached[] Ai = new GroupElementCached[8]; /* A,3A,5A,7A,9A,11A,13A,15A */
@@ -112,4 +112,3 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 		}
 
 	}
-}

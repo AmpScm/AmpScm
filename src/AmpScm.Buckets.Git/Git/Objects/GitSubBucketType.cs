@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Git.Objects
+namespace AmpScm.Buckets.Git.Objects;
+
+public enum GitSubBucketType
 {
-    public enum GitSubBucketType
-    {
-        MergeTag,
-        Signature,
-        SignatureSha256
-    }
+    MergeTag,
+    Signature,
+    SignatureSha256
 }

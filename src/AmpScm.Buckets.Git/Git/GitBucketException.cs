@@ -6,29 +6,28 @@ using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git;
 
-namespace AmpScm.Buckets.Git
+namespace AmpScm.Buckets.Git;
+
+[Serializable]
+public class GitBucketException : GitException
 {
-    [Serializable]
-    public class GitBucketException : GitException
+    public GitBucketException()
     {
-        public GitBucketException()
-        {
-        }
+    }
 
-        public GitBucketException(string? message)
-            : base(message)
-        {
+    public GitBucketException(string? message)
+        : base(message)
+    {
 
 
-        }
+    }
 
-        public GitBucketException(string? message, Exception? innerException) : base(message, innerException)
-        {
-        }
+    public GitBucketException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
 
-        [Obsolete("Just for legacy .Net compatibilty")]
-        protected GitBucketException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
+    [Obsolete("Just for legacy .Net compatibilty")]
+    protected GitBucketException(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
     }
 }

@@ -4,25 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Plumbing;
+
+public class GitShowReferenceArgs : GitPlumbingArgs
 {
-    public class GitShowReferenceArgs : GitPlumbingArgs
+    public override void Verify()
     {
-        public override void Verify()
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
+}
 
-    public partial class GitPlumbing
+public partial class GitPlumbing
+{
+    [GitCommand("show-ref")]
+    public static async ValueTask ShowReference(this GitPlumbingClient c, GitShowReferenceArgs options)
     {
-        [GitCommand("show-ref")]
-        public static async ValueTask ShowReference(this GitPlumbingClient c, GitShowReferenceArgs options)
-        {
-            options.Verify();
-            //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+        options.Verify();
+        //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
-            await c.ThrowNotImplemented();
-        }
+        await c.ThrowNotImplemented();
     }
 }

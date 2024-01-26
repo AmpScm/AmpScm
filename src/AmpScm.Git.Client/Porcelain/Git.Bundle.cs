@@ -5,65 +5,64 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Porcelain
+namespace AmpScm.Git.Client.Porcelain;
+
+public enum GitBundleCommand
 {
-    public enum GitBundleCommand
+    Create,
+    Verify,
+    ListHeads,
+    Load,
+    Unbundle=Load,
+}
+public class GitBundleArgs : GitPorcelainArgs
+{
+    public GitBundleCommand Command { get; set; }
+    public int? Version { get; set; }
+
+    public override void Verify()
     {
-        Create,
-        Verify,
-        ListHeads,
-        Load,
-        Unbundle=Load,
+        //throw new NotImplementedException();
     }
-    public class GitBundleArgs : GitPorcelainArgs
+}
+
+public partial class GitPorcelain
+{
+    [GitCommand("bundle")]
+    public static async ValueTask Bundle(this GitPorcelainClient c, string bundleFile, GitBundleArgs? options = null)
     {
-        public GitBundleCommand Command { get; set; }
-        public int? Version { get; set; }
+        options?.Verify();
+        options ??= new();
 
-        public override void Verify()
+        List<string> args = new();
+        switch(options.Command)
         {
-            //throw new NotImplementedException();
-        }
-    }
+            case GitBundleCommand.Create:
+                args.Add("create");
+                args.Add("--quiet");
 
-    public partial class GitPorcelain
-    {
-        [GitCommand("bundle")]
-        public static async ValueTask Bundle(this GitPorcelainClient c, string bundleFile, GitBundleArgs? options = null)
+                if (options.Version.HasValue)
+                    args.Add($"--version={options.Version.Value}");
+                break;
+            case GitBundleCommand.Verify:
+                args.Add("verify");
+                args.Add("--quiet");
+                break;
+            case GitBundleCommand.ListHeads:
+                args.Add("list-heads");
+                break;
+            case GitBundleCommand.Load:
+                args.Add("unbundle");
+                break;
+        }
+        args.Add(bundleFile.Replace(Path.DirectorySeparatorChar, '/'));
+
+
+        if (options.Command == GitBundleCommand.Create)
         {
-            options?.Verify();
-            options ??= new();
-
-            List<string> args = new();
-            switch(options.Command)
-            {
-                case GitBundleCommand.Create:
-                    args.Add("create");
-                    args.Add("--quiet");
-
-                    if (options.Version.HasValue)
-                        args.Add($"--version={options.Version.Value}");
-                    break;
-                case GitBundleCommand.Verify:
-                    args.Add("verify");
-                    args.Add("--quiet");
-                    break;
-                case GitBundleCommand.ListHeads:
-                    args.Add("list-heads");
-                    break;
-                case GitBundleCommand.Load:
-                    args.Add("unbundle");
-                    break;
-            }
-            args.Add(bundleFile.Replace(Path.DirectorySeparatorChar, '/'));
-
-
-            if (options.Command == GitBundleCommand.Create)
-            {
-                args.Add("HEAD");
-            }
-
-            await c.Repository.RunGitCommandAsync("bundle", args);
+            args.Add("HEAD");
         }
+
+        await c.Repository.RunGitCommandAsync("bundle", args);
     }
 }

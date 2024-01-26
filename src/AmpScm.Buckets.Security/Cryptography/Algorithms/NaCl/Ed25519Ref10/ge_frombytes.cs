@@ -1,7 +1,7 @@
 ﻿using System;
 
-namespace Chaos.NaCl.Internal.Ed25519Ref10
-{
+namespace Chaos.NaCl.Internal.Ed25519Ref10;
+
 	internal static partial class GroupOperations
 	{
 		public static int ge_frombytes_negate_vartime(out GroupElementP3 h, byte[] data, int offset)
@@ -47,4 +47,3 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 		}
 
 	}
-}

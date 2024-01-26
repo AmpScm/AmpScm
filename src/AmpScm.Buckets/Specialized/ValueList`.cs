@@ -1,181 +1,177 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Specialized
+namespace AmpScm.Buckets.Specialized;
+
+/// <summary>
+/// Very minimalistic array wrapper, stored in struct to allow usage in AggregateBucket
+/// </summary>
+/// <typeparam name="T"></typeparam>
+internal struct ValueList<T> : IEnumerable<T?>, IReadOnlyList<T?>
+    where T : class
 {
-    /// <summary>
-    /// Very minimalistic array wrapper, stored in struct to allow usage in AggregateBucket
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal struct ValueList<T> : IEnumerable<T?>, IReadOnlyList<T?>
-        where T : class
+    private T?[] _items;
+    private int _start;
+    public int Count { get; private set; }
+
+    public ValueList()
     {
-        private T?[] _items;
-        private int _start;
-        public int Count { get; private set; }
+        _items = Array.Empty<T>();
+        _start = Count = 0;
+    }
 
-        public ValueList()
+    public void Add(T? item)
+    {
+        if (Count == 0)
         {
-            _items = Array.Empty<T>();
-            _start = Count = 0;
+            _start = 0;
+            if (_items.Length == 0)
+                _items = new T[8];
+
+            _items[_start + Count++] = item;
         }
-
-        public void Add(T? item)
+        else if (_start + Count < _items.Length)
         {
-            if (Count == 0)
-            {
-                _start = 0;
-                if (_items.Length == 0)
-                    _items = new T[8];
-
-                _items[_start + Count++] = item;
-            }
-            else if (_start + Count < _items.Length)
-            {
-                _items[_start + Count++] = item;
-            }
-            else
-            {
-                var newArr = new T?[Math.Max(Count + Count / 2, Count + 8)];
-                if (Count > 0)
-                    Array.Copy(_items, _start, newArr, 4, Count);
-                _start = 4;
-                newArr[_start + Count++] = item;
-                _items = newArr;
-            }
+            _items[_start + Count++] = item;
         }
-
-        public void AddRange(T?[] items, int skip = 0)
+        else
         {
-            if (items.Length <= skip)
-                return;
-
-            if (Count == 0)
-                _start = 0;
-
-            if (_items.Length - _start - Count > items.Length)
-            {
-                Array.Copy(items, 0, _items, _start + Count, items.Length);
-                Count += items.Length;
-            }
-            else
-            {
-                int c = _items.Length + items.Length;
-                var newArr = new T?[Math.Min((c * 3) / 2, c + 8)];
-
-                Array.Copy(_items, _start, newArr, 0, Count);
-                Array.Copy(items, 0 + skip, newArr, Count - skip, items.Length);
-
-                _items = newArr;
-
-                _start = 0;
-                Count += items.Length - skip;
-            }
+            var newArr = new T?[Math.Max(Count + Count / 2, Count + 8)];
+            if (Count > 0)
+                Array.Copy(_items, _start, newArr, 4, Count);
+            _start = 4;
+            newArr[_start + Count++] = item;
+            _items = newArr;
         }
+    }
 
-        public void Insert(int index, T item)
+    public void AddRange(T?[] items, int skip = 0)
+    {
+        if (items.Length <= skip)
+            return;
+
+        if (Count == 0)
+            _start = 0;
+
+        if (_items.Length - _start - Count > items.Length)
         {
-            if (index >= Count)
-                Add(item);
-            else if (index == 0 && _start > 0)
-            {
-                _items[--_start] = item;
-            }
-            else if (Count + _start < _items.Length)
-            {
-                if (_start == 0 && index == 0)
-                {
-                    Array.Copy(_items, 0, _items, 1, Count);
-                    _items[_start] = item;
-                    Count++;
-                }
-                else
-                {
-                    // Not needed for aggregate bucket, so leave as todo
-                    throw new NotImplementedException("Unused edge case");
-                }
-            }
-            else
-            {
-                var newArr = new T?[Math.Max(_items.Length + _items.Length / 2, _items.Length + 8)];
+            Array.Copy(items, 0, _items, _start + Count, items.Length);
+            Count += items.Length;
+        }
+        else
+        {
+            int c = _items.Length + items.Length;
+            var newArr = new T?[Math.Min((c * 3) / 2, c + 8)];
 
-                if (index == 0)
-                {
-                    Array.Copy(_items, _start, newArr, 4, Count);
-                    newArr[_start = 3] = item;
-                }
-                else
-                {
-                    // Not needed for aggregate bucket, so leave as todo
-                    throw new NotImplementedException("Unused edge case");
-                }
+            Array.Copy(_items, _start, newArr, 0, Count);
+            Array.Copy(items, 0 + skip, newArr, Count - skip, items.Length);
 
+            _items = newArr;
+
+            _start = 0;
+            Count += items.Length - skip;
+        }
+    }
+
+    public void Insert(int index, T item)
+    {
+        if (index >= Count)
+            Add(item);
+        else if (index == 0 && _start > 0)
+        {
+            _items[--_start] = item;
+        }
+        else if (Count + _start < _items.Length)
+        {
+            if (_start == 0 && index == 0)
+            {
+                Array.Copy(_items, 0, _items, 1, Count);
+                _items[_start] = item;
                 Count++;
             }
-        }
-
-        public readonly IEnumerator<T?> GetEnumerator()
-        {
-            for (int i = 0; i < Count; i++)
+            else
             {
-                yield return _items[i + _start];
+                // Not needed for aggregate bucket, so leave as todo
+                throw new NotSupportedException("Unused edge case");
             }
         }
-
-        IEnumerator IEnumerable.GetEnumerator()
+        else
         {
-            return GetEnumerator();
-        }
-
-        public readonly T? this[int index]
-        {
-            get
-            {
-                if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
-                return _items[index + _start];
-            }
-
-            set
-            {
-                if (index < 0 || index >= Count)
-                    throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
-                _items[index + _start] = value;
-            }
-        }
-
-        internal void RemoveAt(int index)
-        {
-            if (Count == 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
+            var newArr = new T?[Math.Max(_items.Length + _items.Length / 2, _items.Length + 8)];
 
             if (index == 0)
             {
-                _items[_start] = null;
-                _start++;
-                Count--;
-            }
-            else if (index == Count - 1)
-            {
-                _items[_start + index] = null;
-                Count--;
+                Array.Copy(_items, _start, newArr, 4, Count);
+                newArr[_start = 3] = item;
             }
             else
-                throw new NotImplementedException("Unused edge case");
+            {
+                // Not needed for aggregate bucket, so leave as todo
+                throw new NotSupportedException("Unused edge case");
+            }
 
-            if (Count == 0)
-                _start = 0;
+            Count++;
         }
+    }
 
-        public void Clear()
+    public readonly IEnumerator<T?> GetEnumerator()
+    {
+        for (int i = 0; i < Count; i++)
         {
-            for (int i = 0; i < Count; i++)
-                _items[i + _start] = null;
-            _start = 0;
+            yield return _items[i + _start];
         }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public readonly T? this[int index]
+    {
+        get
+        {
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
+            return _items[index + _start];
+        }
+
+        set
+        {
+            if (index < 0 || index >= Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
+            _items[index + _start] = value;
+        }
+    }
+
+    internal void RemoveAt(int index)
+    {
+        if (Count == 0)
+            throw new ArgumentOutOfRangeException(nameof(index), index, message: null);
+
+        if (index == 0)
+        {
+            _items[_start] = null;
+            _start++;
+            Count--;
+        }
+        else if (index == Count - 1)
+        {
+            _items[_start + index] = null;
+            Count--;
+        }
+        else
+            throw new NotSupportedException("Unused edge case");
+
+        if (Count == 0)
+            _start = 0;
+    }
+
+    public void Clear()
+    {
+        for (int i = 0; i < Count; i++)
+            _items[i + _start] = null;
+        _start = 0;
     }
 }

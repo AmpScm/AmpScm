@@ -1,10 +1,9 @@
-﻿namespace AmpScm.Buckets.Specialized
+﻿namespace AmpScm.Buckets.Specialized;
+
+public enum BucketCompressionAlgorithm
 {
-    public enum BucketCompressionAlgorithm
-    {
-        Deflate,
-        ZLib,
-        GZip,
-        Brotli
-    }
+    Deflate,
+    ZLib,
+    GZip,
+    Brotli
 }

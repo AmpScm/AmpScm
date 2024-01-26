@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Buckets.Interfaces
+namespace AmpScm.Buckets.Interfaces;
+
+internal interface IBucketTake
 {
-    internal interface IBucketTake
-    {
-        Bucket Take(long limit, bool ensure = true);
-    }
+    Bucket Take(long limit, bool ensure = true);
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 
-namespace Chaos.NaCl.Internal.Ed25519Ref10
-{
+namespace Chaos.NaCl.Internal.Ed25519Ref10;
+
 	internal static partial class GroupOperations
 	{
 		public static void ge_tobytes(byte[] s, int offset, ref  GroupElementP2 h)
@@ -16,4 +16,3 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 			s[offset + 31] ^= (byte)(FieldOperations.fe_isnegative(ref x) << 7);
 		}
 	}
-}

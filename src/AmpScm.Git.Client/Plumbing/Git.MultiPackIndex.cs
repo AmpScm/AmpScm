@@ -4,54 +4,53 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Plumbing;
+
+
+public enum GitMultiPackIndexCommand
 {
+    Write,
+    Verify,
+    Repack,
+}
+public class GitMultiPackIndexArgs : GitPlumbingArgs
+{
+    public GitMultiPackIndexCommand Command { get; set; } // =Write
 
-    public enum GitMultiPackIndexCommand
+    public bool? Bitmap { get; set; }
+    public override void Verify()
     {
-        Write,
-        Verify,
-        Repack,
+
     }
-    public class GitMultiPackIndexArgs : GitPlumbingArgs
+}
+
+public partial class GitPlumbing
+{
+    [GitCommand("multi-pack-index")]
+    public static async ValueTask MultiPackIndex(this GitPlumbingClient c, GitMultiPackIndexArgs? options = null)
     {
-        public GitMultiPackIndexCommand Command { get; set; } // =Write
+        options?.Verify();
 
-        public bool? Bitmap { get; set; }
-        public override void Verify()
+        options ??= new();
+
+        List<string> args = new();
+
+        args.Add(options.Command switch
         {
+            GitMultiPackIndexCommand.Write => "write",
+            GitMultiPackIndexCommand.Verify => "verify",
+            GitMultiPackIndexCommand.Repack => "repack",
+            _ => throw new ArgumentException()
+        });
 
-        }
-    }
+        // Bitmap is nullable. Handle the two explicit states
+        if (options.Bitmap == true)
+            args.Add("--bitmap");
+        else if (options.Bitmap == false)
+            args.Add("--no-bitmap");
 
-    public partial class GitPlumbing
-    {
-        [GitCommand("multi-pack-index")]
-        public static async ValueTask MultiPackIndex(this GitPlumbingClient c, GitMultiPackIndexArgs? options = null)
-        {
-            options?.Verify();
+        await c.Repository.RunGitCommandAsync("multi-pack-index", args);
 
-            options ??= new();
-
-            List<string> args = new();
-
-            args.Add(options.Command switch
-            {
-                GitMultiPackIndexCommand.Write => "write",
-                GitMultiPackIndexCommand.Verify => "verify",
-                GitMultiPackIndexCommand.Repack => "repack",
-                _ => throw new ArgumentException()
-            });
-
-            // Bitmap is nullable. Handle the two explicit states
-            if (options.Bitmap == true)
-                args.Add("--bitmap");
-            else if (options.Bitmap == false)
-                args.Add("--no-bitmap");
-
-            await c.Repository.RunGitCommandAsync("multi-pack-index", args);
-
-            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
-        }
+        Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }
 }

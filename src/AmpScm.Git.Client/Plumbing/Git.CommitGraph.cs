@@ -4,64 +4,63 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Plumbing;
+
+public enum GitCommitGraphSplit
 {
-    public enum GitCommitGraphSplit
+    SingleFile,
+    Split,
+    NoMerge,
+    Replace
+}
+
+
+public class GitCommitGraphArgs : GitPlumbingArgs
+{
+    public GitCommitGraphSplit Split { get; set; }
+    public bool VerifyCommitGraph { get; set; }
+    public override void Verify()
     {
-        SingleFile,
-        Split,
-        NoMerge,
-        Replace
+        //throw new NotImplementedException();
     }
+}
 
-
-    public class GitCommitGraphArgs : GitPlumbingArgs
+public partial class GitPlumbing
+{
+    [GitCommand("commit-graph")]
+    public static async ValueTask CommitGraph(this GitPlumbingClient c, GitCommitGraphArgs options)
     {
-        public GitCommitGraphSplit Split { get; set; }
-        public bool VerifyCommitGraph { get; set; }
-        public override void Verify()
+        var args = new List<string>();
+
+        options?.Verify();
+        options ??= new();
+
+        if (options.VerifyCommitGraph)
         {
-            //throw new NotImplementedException();
+            args.Add("verify");
         }
-    }
-
-    public partial class GitPlumbing
-    {
-        [GitCommand("commit-graph")]
-        public static async ValueTask CommitGraph(this GitPlumbingClient c, GitCommitGraphArgs options)
+        else
         {
-            var args = new List<string>();
+            args.Add("write");
 
-            options?.Verify();
-            options ??= new();
-
-            if (options.VerifyCommitGraph)
+            switch(options.Split)
             {
-                args.Add("verify");
+                case GitCommitGraphSplit.SingleFile:
+                    break;
+                case GitCommitGraphSplit.NoMerge:
+                    args.Add("--split=no-merge");
+                    break;
+                case GitCommitGraphSplit.Replace:
+                    args.Add("--split=replace");
+                    break;
+                default:
+                    args.Add("--split");
+                    break;
             }
-            else
-            {
-                args.Add("write");
-
-                switch(options.Split)
-                {
-                    case GitCommitGraphSplit.SingleFile:
-                        break;
-                    case GitCommitGraphSplit.NoMerge:
-                        args.Add("--split=no-merge");
-                        break;
-                    case GitCommitGraphSplit.Replace:
-                        args.Add("--split=replace");
-                        break;
-                    default:
-                        args.Add("--split");
-                        break;
-                }
-            }
-
-            await c.Repository.RunGitCommandAsync("commit-graph", args);
-
-            Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
         }
+
+        await c.Repository.RunGitCommandAsync("commit-graph", args);
+
+        Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }
 }

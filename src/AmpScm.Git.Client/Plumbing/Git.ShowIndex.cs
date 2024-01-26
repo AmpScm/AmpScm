@@ -4,25 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Git.Client.Plumbing
+namespace AmpScm.Git.Client.Plumbing;
+
+public class GitShowIndexArgs : GitPlumbingArgs
 {
-    public class GitShowIndexArgs : GitPlumbingArgs
+    public override void Verify()
     {
-        public override void Verify()
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
+}
 
-    public partial class GitPlumbing
+public partial class GitPlumbing
+{
+    [GitCommand("show-index")]
+    public static async ValueTask ShowIndex(this GitPlumbingClient c, GitShowIndexArgs options)
     {
-        [GitCommand("show-index")]
-        public static async ValueTask ShowIndex(this GitPlumbingClient c, GitShowIndexArgs options)
-        {
-            options.Verify();
-            //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
+        options.Verify();
+        //var (_, txt) = await c.Repository.RunPlumbingCommandOut("help", new[] { "-i", a.Command! ?? a.Guide! });
 
-            await c.ThrowNotImplemented();
-        }
+        await c.ThrowNotImplemented();
     }
 }

@@ -2,45 +2,44 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace AmpScm.Diff
+namespace AmpScm.Diff;
+
+/// <summary>
+/// Represents the range [Start..End)  (Including Start, but not including End)
+/// </summary>
+[DebuggerDisplay($"{{{nameof(ToString)}(),nq}}")]
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct DiffRange
 {
-    /// <summary>
-    /// Represents the range [Start..End)  (Including Start, but not including End)
-    /// </summary>
-    [DebuggerDisplay($"{{{nameof(ToString)}(),nq}}")]
-    [StructLayout(LayoutKind.Auto)]
-    public readonly record struct DiffRange
+    public int Start { get; }
+    public int Length => End - Start;
+    public int End { get; }
+
+    public bool IsEmpty => Length == 0;
+
+    public DiffRange(int start, int end)
     {
-        public int Start { get; }
-        public int Length => End - Start;
-        public int End { get; }
+        Start = start;
+        End = end;
+    }
 
-        public bool IsEmpty => Length == 0;
+    public static implicit operator Range(DiffRange cr)
+    {
+        return cr.ToRange();
+    }
 
-        public DiffRange(int start, int end)
-        {
-            Start = start;
-            End = end;
-        }
+    public Range ToRange()
+    {
+        return new Range(Start, Start + Length);
+    }
 
-        public static implicit operator Range(DiffRange cr)
-        {
-            return cr.ToRange();
-        }
-
-        public Range ToRange()
-        {
-            return new Range(Start, Start + Length);
-        }
-
-        public override string ToString()
-        {
-            if (Length > 1)
-                return $"[{Start},{End - 1}]";
-            else if (Length == 1)
-                return $"[{Start}]";
-            else
-                return $"({Start})";
-        }
+    public override string ToString()
+    {
+        if (Length > 1)
+            return $"[{Start},{End - 1}]";
+        else if (Length == 1)
+            return $"[{Start}]";
+        else
+            return $"({Start})";
     }
 }

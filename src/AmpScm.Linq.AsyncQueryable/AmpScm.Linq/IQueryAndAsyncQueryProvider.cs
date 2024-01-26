@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AmpScm.Linq
+namespace AmpScm.Linq;
+
+public interface IQueryAndAsyncQueryProvider : IQueryProvider, IAsyncQueryProvider
 {
-    public interface IQueryAndAsyncQueryProvider : IQueryProvider, IAsyncQueryProvider
-    {
-    }
 }
