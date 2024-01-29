@@ -456,7 +456,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 
         // And now verify that what we tested is also accepted by git
         // On GitHub the OpenSSH on MAC/OS doesn't support ssh verify yet
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
         if (!OperatingSystem.IsMacOS())
 #else
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)

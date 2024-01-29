@@ -408,7 +408,7 @@ public class BasicTests
     [DataRow(BucketCompressionAlgorithm.ZLib)]
     [DataRow(BucketCompressionAlgorithm.Deflate)]
     [DataRow(BucketCompressionAlgorithm.GZip)]
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
     [DataRow(BucketCompressionAlgorithm.Brotli)]
 #endif
     [TestMethod]
@@ -433,7 +433,7 @@ public class BasicTests
         switch (alg)
         {
             case BucketCompressionAlgorithm.ZLib:
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
                 compressed = baseData.AsBucket().Compress(alg);
 #else
                 {
@@ -467,7 +467,7 @@ public class BasicTests
                     compressed = ms.ToArray().AsBucket();
                     break;
                 }
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
             case BucketCompressionAlgorithm.Brotli:
                 {
                     var ms = new MemoryStream();
@@ -524,7 +524,7 @@ public class BasicTests
             BucketCompressionAlgorithm.ZLib => r.AsBucket().Decompress(BucketCompressionAlgorithm.ZLib).AsStream(),
             BucketCompressionAlgorithm.GZip => new System.IO.Compression.GZipStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
             BucketCompressionAlgorithm.Deflate => rs = new System.IO.Compression.DeflateStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
             BucketCompressionAlgorithm.Brotli => new System.IO.Compression.BrotliStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
 #endif
             _ => throw new InvalidOperationException()

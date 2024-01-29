@@ -106,7 +106,7 @@ public static partial class GitIndexer
                 await IndexOne(offset, b).ConfigureAwait(false);
             }
 
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
             await Parallel.ForEachAsync(load, callback).ConfigureAwait(false);
 #else
             foreach (var v in load)

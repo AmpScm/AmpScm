@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
@@ -75,7 +73,7 @@ public class SvnDeltaBucket : SvnBucket
 
         await ReadNextWindow().ConfigureAwait(false);
 
-        var bb =  BucketBytes.PartialReturn(ref _remaining, requested);
+        var bb = BucketBytes.PartialReturn(ref _remaining, requested);
 
         if (bb.IsEof)
         {
@@ -271,7 +269,7 @@ public class SvnDeltaBucket : SvnBucket
 
     private static int LengthOfLength(long value)
     {
-        //#if NET6_0_OR_GREATER
+        //#if !NETFRAMEWORK
         //            return (BitOperations.Log2((uint)Math.Min(value, 1)) + 6) / 7;
         //#else
         int n = 1;

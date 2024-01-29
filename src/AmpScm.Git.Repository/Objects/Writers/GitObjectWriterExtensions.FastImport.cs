@@ -239,7 +239,7 @@ public static partial class GitObjectWriterExtensions
                 string name = items[2];
                 var b = repo.Blobs[marks[mark]]!;
 
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
                 if (!Enum.IsDefined<GitTreeElementType>(fileType.Value))
                     fileType = null;
 #else

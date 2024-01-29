@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
 
 [assembly: CLSCompliant(true)]
 
@@ -23,12 +21,12 @@ namespace AmpScm.Buckets;
 [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}")]
 public abstract partial class Bucket : IDisposable
 {
-    protected internal static readonly ValueTask<BucketBytes> EofTask = new (BucketBytes.Eof);
-    protected internal static readonly ValueTask<BucketBytes> EmptyTask = new (BucketBytes.Empty);
+    protected internal static readonly ValueTask<BucketBytes> EofTask = new(BucketBytes.Eof);
+    protected internal static readonly ValueTask<BucketBytes> EmptyTask = new(BucketBytes.Empty);
 
 
 
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
     /// <summary>
     /// Maximum amount of bytes to be read in a single call. Explicitly &lt;=<see cref="Array.MaxLength"/>
     /// </summary>
@@ -258,5 +256,5 @@ public abstract partial class Bucket : IDisposable
             }
 #pragma warning restore CA1031 // Do not catch general exception types
         }
-    }        
+    }
 }

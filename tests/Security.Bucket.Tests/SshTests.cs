@@ -31,7 +31,7 @@ public class SshTests
     [DataRow("ed25519", "")]
     public async Task VerifySshSsh(string type, string ex)
     {
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
         if (type == "ecdsa" && Environment.OSVersion.Platform != PlatformID.Win32NT)
             Assert.Inconclusive("");
 #endif
@@ -72,7 +72,7 @@ public class SshTests
 
         Assert.IsTrue(fp.Span.SequenceEqual(k.Fingerprint.ToArray()), "Fingerprints match");
 
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
         Trace.WriteLine($"Result: SHA256:{Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(fp.ToArray())).TrimEnd('=')}");
 #endif
     }
@@ -91,7 +91,7 @@ public class SshTests
     // ed25519 can't be expressed as PEM
     public void VerifySshPem(string type, string ex)
     {
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
         if (OperatingSystem.IsMacOS())
             Assert.Inconclusive("GitHub's MacOS install's openssh doesn't like this test");
 #else
@@ -143,7 +143,7 @@ public class SshTests
             Assert.IsTrue(k.Fingerprint.SequenceEqual(kPem.Fingerprint), "pem fingerprint");
         Assert.IsTrue(k.Fingerprint.SequenceEqual(kRfc4716.Fingerprint), "4716 fingerprint");
 
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
         Trace.WriteLine($"Result: SHA256:{Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(k.Fingerprint.Span)).TrimEnd('=')}");
 #endif
     }

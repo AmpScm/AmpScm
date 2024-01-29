@@ -369,7 +369,7 @@ public class GitObjectWriteTests
             commitGraphPath += "s";
             Assert.IsTrue(Directory.Exists(commitGraphPath), $"{commitGraphPath} does exist");
 
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
             if (Environment.OSVersion.Platform == PlatformID.Win32NT) // Fails on unix when file has to be re-opened
 #endif
             {

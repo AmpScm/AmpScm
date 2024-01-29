@@ -14,7 +14,7 @@ public partial class FileBucket
 {
     private sealed class FileHolder : IDisposable
     {
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
         private readonly Stack<FileStream> _keep;
 #endif
         private readonly FileStream _primary;
@@ -30,7 +30,7 @@ public partial class FileBucket
             _primary = primary ?? throw new ArgumentNullException(nameof(primary));
             Path = path ?? throw new ArgumentNullException(nameof(path));
 
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
             _keep = new();
 
             if (primary.IsAsync)
@@ -41,7 +41,7 @@ public partial class FileBucket
             _waitHandlers = default!;
             _handle = primary.SafeFileHandle;
 
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
             if (primary.IsAsync)
                 _length = RandomAccess.GetLength(_handle);
 #endif
@@ -68,7 +68,7 @@ public partial class FileBucket
             _disposers = _handle.Dispose;
             _handle = handle;
 
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
             _length = RandomAccess.GetLength(_handle);
 #else
             _length = NativeMethods.GetFileSize(_handle);
@@ -113,7 +113,7 @@ public partial class FileBucket
         {
             try
             {
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
                 while (_keep?.Count > 0)
                 {
                     _keep.Pop().Dispose();
@@ -247,7 +247,7 @@ public partial class FileBucket
 
         public long Length => _length ??= _primary.Length;
 
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
         public async ValueTask<int> TrueReadAtAsync(long offset, byte[] buffer, int readLen)
         {
             bool primary = false;
@@ -476,7 +476,7 @@ public partial class FileBucket
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool GetOverlappedResult(SafeFileHandle hFile, IntPtr lpOverlapped, out uint lpNumberOfBytesTransferred, [MarshalAs(UnmanagedType.Bool)] bool bWait);
 
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
             [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
             [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
             private static extern bool GetFileSizeEx(SafeFileHandle hFile, out ulong size);

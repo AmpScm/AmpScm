@@ -537,7 +537,7 @@ public static partial class BucketExtensions
                 {
                     BucketCompressionLevel.Store => CompressionLevel.NoCompression,
                     BucketCompressionLevel.BestSpeed => CompressionLevel.Fastest,
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
                     BucketCompressionLevel.Maximum => CompressionLevel.SmallestSize,
 #endif
                     _ => CompressionLevel.Optimal,
@@ -549,7 +549,7 @@ public static partial class BucketExtensions
                 {
                     BucketCompressionLevel.Store => CompressionLevel.NoCompression,
                     BucketCompressionLevel.BestSpeed => CompressionLevel.Fastest,
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
                     BucketCompressionLevel.Maximum => CompressionLevel.SmallestSize,
 #endif
                     _ => CompressionLevel.Optimal,

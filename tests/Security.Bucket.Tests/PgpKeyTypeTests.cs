@@ -37,7 +37,7 @@ R74grCkxsuX711oRA0zFfP30qi/UzDM=
     [TestMethod]
     public async Task VerifyPgpBrainPool()
     {
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
         if (OperatingSystem.IsMacOS())
             Assert.Inconclusive("MacOS doesn't appear to support Brainpoool ");
 #else
@@ -240,7 +240,7 @@ izD0ZbH6Qw==
     [TestMethod]
     public async Task VerifyPgpEccNist()
     {
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
                 Assert.Inconclusive("");
 #endif

@@ -101,7 +101,7 @@ public class GitPublicKeyRepository : IDisposable
             if (obj.Length >= 4)
             {
                 var sp = obj.Span;
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
                 return HashCode.Combine(sp[0], sp[1], sp[sp.Length / 2], sp[(sp.Length / 2) + 1], sp.Length);
 #else
                 return (sp[0] << 24 | sp[1] << 16 | sp[sp.Length / 2] << 8 | sp[(sp.Length / 2) + 1]) ^ sp.Length;

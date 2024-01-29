@@ -429,7 +429,7 @@ public static partial class CryptoExtensions
     {
 #pragma warning disable CA5358 // Review cipher mode usage with cryptography experts
         if (algorithm.Mode == CipherMode.CFB
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
             && !OperatingSystem.IsWindows()
 #endif
             )

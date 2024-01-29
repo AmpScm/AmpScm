@@ -41,7 +41,7 @@ public class SocketBucket : Bucket, IBucketWriter, IBucketWriterStats
 
     public async ValueTask ConnectAsync(string host, int port, CancellationToken cancellationToken = default)
     {
-#if !NET6_0_OR_GREATER
+#if NETFRAMEWORK
         await Socket.ConnectAsync(host, port).ConfigureAwait(false);
 
 #else
@@ -133,7 +133,7 @@ public class SocketBucket : Bucket, IBucketWriter, IBucketWriterStats
 
             while (bb.Length > 0)
             {
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
                 int written = await Socket.SendAsync(bb.Memory, SocketFlags.None).ConfigureAwait(false);
 #else
                 var (arr, offs) = bb.ExpandToArray();

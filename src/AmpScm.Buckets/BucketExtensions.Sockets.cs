@@ -94,7 +94,7 @@ public partial class BucketExtensions
 
         using (bucket)
         {
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
             if (stream is FileStream fs && fs.CanSeek && bucket is IBucketReadBuffers rb)
             {
                 var handle = fs.SafeFileHandle;

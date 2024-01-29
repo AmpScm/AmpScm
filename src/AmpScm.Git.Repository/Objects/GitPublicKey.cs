@@ -65,7 +65,7 @@ public sealed class GitPublicKey
         else if (fp.Length <= (32 /* SHA256 */ + 1))
             return fp;
 
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
         return SHA256.HashData(fp.Span);
 #else
         using var sha = SHA256.Create();
