@@ -62,11 +62,11 @@ public partial class Bucket
 {
         Array.Empty<byte>(),
         new byte[] { 0 },
-        new byte[] { (byte)'\n'},
+        "\n"u8.ToArray(),
         new byte[] { 0, (byte)'\n'},
-        new byte[] { (byte)'\r'},
+        "\r"u8.ToArray(),
         new byte[] { 0, (byte)'\r' },
-        new byte[] { (byte)'\n', (byte)'\r'},
+        "\n\r"u8.ToArray(),
         new byte[] { 0, (byte)'\n', (byte)'\r'},
     };
 

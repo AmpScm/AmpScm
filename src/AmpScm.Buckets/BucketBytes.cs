@@ -132,7 +132,7 @@ public readonly partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEo
 
     public static readonly BucketBytes Empty;// = default;
     // Clone to make sure data is not shared
-    public static readonly BucketBytes Eof = new BucketBytes(new ReadOnlyMemory<byte>((byte[])new byte[] { (byte)'e', (byte)'O', (byte)'f' }.Clone(), 3, 0));
+    public static readonly BucketBytes Eof = new BucketBytes(new ReadOnlyMemory<byte>((byte[])"eOf"u8.ToArray().Clone(), 3, 0));
 
 
     public void CopyTo(Memory<byte> destination) => Span.CopyTo(destination.Span);

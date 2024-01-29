@@ -8,11 +8,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
 using AmpScm.BucketTests.Buckets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AmpScm;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
 
@@ -115,7 +115,7 @@ public class BasicTests
         Assert.IsNotNull(hashResult);
         Assert.AreEqual("D9F7CE90FB58072D8A68F69A0CB30C133F9B08CB", TestExtensions.FormatHash(hashResult));
 
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
         {
             var rr = MD5.HashData(Encoding.ASCII.GetBytes(string.Join("", strings)));
 
@@ -519,12 +519,13 @@ public class BasicTests
         Assert.IsTrue(bb.ToArray().SequenceEqual(finishData));
 
         var r = await baseData.AsBucket().Compress(alg).ToArrayAsync();
-        Stream rs = alg switch {
+        Stream rs = alg switch
+        {
             BucketCompressionAlgorithm.ZLib => r.AsBucket().Decompress(BucketCompressionAlgorithm.ZLib).AsStream(),
             BucketCompressionAlgorithm.GZip => new System.IO.Compression.GZipStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
             BucketCompressionAlgorithm.Deflate => rs = new System.IO.Compression.DeflateStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
 #if NET6_0_OR_GREATER
-            BucketCompressionAlgorithm.Brotli =>  new System.IO.Compression.BrotliStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
+            BucketCompressionAlgorithm.Brotli => new System.IO.Compression.BrotliStream(new MemoryStream(r), System.IO.Compression.CompressionMode.Decompress),
 #endif
             _ => throw new InvalidOperationException()
         };
@@ -579,43 +580,9 @@ public class BasicTests
         Assert.IsFalse(bEmpty.IsEof, "Not EOF");
     }
 
-    private static ReadOnlySpan<byte> readOnlyBytesNoTable => new byte[] {
-        (byte)'0',
-        (byte)'1',
-        (byte)'2',
-        (byte)'3',
-        (byte)'4',
-        (byte)'5',
-        (byte)'6',
-        (byte)'7',
-        (byte)'8',
-        (byte)'9',
-        (byte)'A',
-        (byte)'B',
-        (byte)'C',
-        (byte)'D',
-        (byte)'E',
-        (byte)'F',
-    };
+    private static ReadOnlySpan<byte> readOnlyBytesNoTable => "0123456789ABCDEF"u8;
 
-    private static ReadOnlyMemory<byte> readOnlyByteMemNoTable => new byte[] {
-        (byte)'0',
-        (byte)'1',
-        (byte)'2',
-        (byte)'3',
-        (byte)'4',
-        (byte)'5',
-        (byte)'6',
-        (byte)'7',
-        (byte)'8',
-        (byte)'9',
-        (byte)'A',
-        (byte)'B',
-        (byte)'C',
-        (byte)'D',
-        (byte)'E',
-        (byte)'F',
-    };
+    private static ReadOnlyMemory<byte> readOnlyByteMemNoTable => "0123456789ABCDEF"u8.ToArray();
 
 
     [TestMethod]
@@ -662,14 +629,14 @@ public class BasicTests
             bc = new(4);
             bc.Append(51);
 
-            Assert.AreEqual("3456", bc.AsBytes(new byte[] { 52, 53, 54 }).ToASCIIString());
+            Assert.AreEqual("3456", bc.AsBytes("456"u8.ToArray()).ToASCIIString());
         }
 
         {
             bc = new(4);
             bc.Append(51);
 
-            Assert.AreEqual("3456", bc.AsBytes(new BucketBytes(new byte[] { 52, 53, 54 })).ToASCIIString());
+            Assert.AreEqual("3456", bc.AsBytes(new BucketBytes("456"u8.ToArray())).ToASCIIString());
         }
 
         //
@@ -677,7 +644,7 @@ public class BasicTests
         {
             bc = new(4);
             bc.Append(51);
-            bc.Append(new byte[] { 65, 66, 67, 68 });
+            bc.Append("ABCD"u8.ToArray());
 
             Assert.AreEqual("3ABCD", bc.AsBytes().ToASCIIString());
         }
@@ -686,7 +653,7 @@ public class BasicTests
         {
             bc = new(4);
             bc.Append(51);
-            bc.Append(new byte[] { 65, 66, 67, 68 });
+            bc.Append("ABCD"u8.ToArray());
 
             Assert.AreEqual("3ABCD6", bc.AsBytes(54).ToASCIIString());
         }
@@ -695,17 +662,17 @@ public class BasicTests
         {
             bc = new(4);
             bc.Append(51);
-            bc.Append(new byte[] { 65, 66, 67, 68 });
+            bc.Append("ABCD"u8.ToArray());
 
-            Assert.AreEqual("3ABCD456", bc.AsBytes(new byte[] { 52, 53, 54 }).ToASCIIString());
+            Assert.AreEqual("3ABCD456", bc.AsBytes("456"u8.ToArray()).ToASCIIString());
         }
 
         {
             bc = new(4);
             bc.Append(51);
-            bc.Append(new byte[] { 65, 66, 67, 68 });
+            bc.Append("ABCD"u8.ToArray());
 
-            Assert.AreEqual("3ABCD456", bc.AsBytes(new BucketBytes(new byte[] { 52, 53, 54 })).ToASCIIString());
+            Assert.AreEqual("3ABCD456", bc.AsBytes(new BucketBytes("456"u8.ToArray())).ToASCIIString());
         }
 
 
@@ -713,7 +680,7 @@ public class BasicTests
         {
             bc = new(4);
             bc.Append(51);
-            bc.Append(new byte[] { 65, 66 });
+            bc.Append("AB"u8.ToArray());
 
             Assert.AreEqual("3AB", bc.AsBytes().ToASCIIString());
         }
@@ -722,7 +689,7 @@ public class BasicTests
         {
             bc = new(4);
             bc.Append(51);
-            bc.Append(new byte[] { 65, 66 });
+            bc.Append("AB"u8.ToArray());
 
             Assert.AreEqual("3AB6", bc.AsBytes(54).ToASCIIString());
         }
@@ -731,17 +698,17 @@ public class BasicTests
         {
             bc = new(4);
             bc.Append(51);
-            bc.Append(new byte[] { 65, 66 });
+            bc.Append("AB"u8.ToArray());
 
-            Assert.AreEqual("3AB456", bc.AsBytes(new byte[] { 52, 53, 54 }).ToASCIIString());
+            Assert.AreEqual("3AB456", bc.AsBytes("456"u8.ToArray()).ToASCIIString());
         }
 
         {
             bc = new(4);
             bc.Append(51);
-            bc.Append(new byte[] { 65, 66 });
+            bc.Append("AB"u8.ToArray());
 
-            Assert.AreEqual("3AB456", bc.AsBytes(new BucketBytes(new byte[] { 52, 53, 54 })).ToASCIIString());
+            Assert.AreEqual("3AB456", bc.AsBytes(new BucketBytes("456"u8.ToArray())).ToASCIIString());
         }
     }
 
@@ -780,7 +747,7 @@ public class BasicTests
     {
         var b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
         bool touched = false;
-        b = b.Leave(4, (b,s) =>
+        b = b.Leave(4, (b, s) =>
         {
             touched = true;
             Assert.AreEqual("WXYZ", b.ToASCIIString());

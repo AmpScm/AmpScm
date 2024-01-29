@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
@@ -152,7 +150,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
         // This tests a 3072 bit DSA key, while mono and legacy .net
         // only supports the old 1024 bit keys, like those used in SSH.
 
-#if !NET5_0_OR_GREATER
+#if NETFRAMEWORK
         if (Environment.OSVersion.Platform != PlatformID.Win32NT)
             Assert.Inconclusive("DSA hash length issue on mono");
 #else

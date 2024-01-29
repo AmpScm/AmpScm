@@ -6,7 +6,7 @@ namespace AmpScm.Buckets.Git;
 public sealed class GitLineIndentBucket : WrappingBucket
 {
     private readonly BucketEol _acceptableEols;
-    private static readonly ReadOnlyMemory<byte> _indentData = new byte[] { (byte)' ' };
+    private static readonly ReadOnlyMemory<byte> _indentData = " "u8.ToArray();
     private bool _indent;
     private BucketBytes _next;
     private bool _lastWasEol;
@@ -42,7 +42,7 @@ public sealed class GitLineIndentBucket : WrappingBucket
                 if (!_lastWasEol)
                 {
                     if ((_acceptableEols & BucketEol.LF) != 0)
-                        bb = new byte[] { (byte)'\n' };
+                        bb = "\n"u8.ToArray();
                     else
                         throw new InvalidOperationException();
                     _lastWasEol = true;

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using AmpScm.Linq;
@@ -23,7 +21,7 @@ public static partial class AmpAsyncQueryable
     /// </summary>
     /// <param name="enumerable"></param>
     /// <returns></returns>
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
     [RequiresUnreferencedCode("Enumerating in-memory collections as IQueryable can require unreferenced code because expressions referencing IQueryable extension methods can get rebound to IEnumerable extension methods. The IEnumerable extension methods could be trimmed causing the application to fail at runtime.")]
 #endif
     public static IQueryableAndAsyncQueryable<T> AsSyncAndAsyncQueryable<T>(this IEnumerable<T> enumerable)

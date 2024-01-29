@@ -72,7 +72,7 @@ public static partial class BucketExtensions
                 else
                     throw new InvalidOperationException();
             }
-            else if (rq == 1 && (acceptableEols & BucketEol.CRLF) != 0 && result.SequenceEqual(new[] { (byte)'\r' }))
+            else if (rq == 1 && (acceptableEols & BucketEol.CRLF) != 0 && result.SequenceEqual("\r"u8.ToArray()))
             {
                 if (bb[0] == '\n')
                 {
@@ -81,7 +81,7 @@ public static partial class BucketExtensions
                 else if ((acceptableEols & BucketEol.CR) != 0)
                 {
                     eolState!._kept = bb[0];
-                    return new(new[] { (byte)'\r' }, BucketEol.CR);
+                    return new("\r"u8.ToArray(), BucketEol.CR);
                 }
                 else if (eol != BucketEol.None)
                 {

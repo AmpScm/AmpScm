@@ -33,9 +33,9 @@ internal sealed class EolNormalizeBucket : WrappingBucket
 
         _eol = producedEol switch
         {
-            BucketEol.LF => new[] { (byte)'\n' },
-            BucketEol.CRLF => new[] { (byte)'\r', (byte)'\n' },
-            BucketEol.CR => new[] { (byte)'\r' },
+            BucketEol.LF => "\n"u8.ToArray(),
+            BucketEol.CRLF => "\r\n"u8.ToArray(),
+            BucketEol.CR => "\r"u8.ToArray(),
             BucketEol.Zero => new[] { (byte)'\0' },
             _ => throw new ArgumentOutOfRangeException(nameof(producedEol), producedEol, message: null)
         };
@@ -93,7 +93,7 @@ internal sealed class EolNormalizeBucket : WrappingBucket
                     else
                     {
                         _keep = bb[0];
-                        return new[] { (byte)'\r' };
+                        return "\r"u8.ToArray();
                     }
                 }
                 else if (0 != (eol & _acceptedEols))
@@ -170,7 +170,7 @@ internal sealed class EolNormalizeBucket : WrappingBucket
                         else
                         {
                             _keep = bb[0];
-                            return new[] { (byte)'\r' };
+                            return "\r"u8.ToArray();
                         }
                     }
                 }

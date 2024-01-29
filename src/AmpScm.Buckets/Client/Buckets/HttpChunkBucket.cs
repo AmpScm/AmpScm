@@ -15,8 +15,8 @@ internal sealed class HttpChunkBucket : WrappingBucket
 #pragma warning restore CA2213 // Disposable fields should be disposed
     private bool _addEol;
     private bool _eof;
-    private static readonly ReadOnlyMemory<byte> CRLF = new byte[] { 0x0d, 0x0a };
-    private static readonly ReadOnlyMemory<byte> ZeroCRLFCRLF = new byte[] { (byte)'0', 0x0d, 0x0a, 0x0d, 0x0a };
+    private static readonly ReadOnlyMemory<byte> CRLF = "\r\n"u8.ToArray();
+    private static readonly ReadOnlyMemory<byte> ZeroCRLFCRLF = "0\r\n\r\n"u8.ToArray();
     private const int MaxChunkSize = 16 * 1024 * 1024;
 
     public HttpChunkBucket(Bucket source) : base(source)

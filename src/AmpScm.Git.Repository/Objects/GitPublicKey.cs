@@ -18,12 +18,9 @@ public sealed class GitPublicKey
     }
 
 
-    [return: NotNullIfNotNull("k")]
+    [return: NotNullIfNotNull(nameof(k))]
     [CLSCompliant(false)]
-    public static implicit operator PublicKeySignature?(GitPublicKey k)
-    {
-        return k?._key;
-    }
+    public static implicit operator PublicKeySignature?(GitPublicKey k) => k?._key;
 
     [CLSCompliant(false)]
     public PublicKeySignature ToPublicKeySignature()

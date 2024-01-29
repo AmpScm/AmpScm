@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
@@ -560,14 +561,14 @@ public static partial class BucketExtensions
         }
     }
 
-    public static async ValueTask<byte[]> ToArrayAsync(this Bucket bucket)
+    public static async ValueTask<byte[]> ToArrayAsync(this Bucket bucket, CancellationToken cancellationToken = default)
     {
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
 
         using (MemoryStream ms = new MemoryStream())
         {
-            await bucket.WriteToAsync(ms).ConfigureAwait(false);
+            await bucket.WriteToAsync(ms, cancellationToken).ConfigureAwait(false);
 
             return ms.ToArray();
         }
@@ -578,7 +579,7 @@ public static partial class BucketExtensions
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
 
-        return ToArrayAsync(bucket).AsTask().Result;
+        return ToArrayAsync(bucket, cancellationToken: default).AsTask().Result;
     }
 
     internal static byte[] AppendBytes(this byte[] array, BucketBytes bytes)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -406,7 +405,7 @@ public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBuck
 
         if (forAsync)
         {
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
             if (OperatingSystem.IsWindows())
 #else
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)

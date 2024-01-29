@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -54,7 +52,7 @@ internal static class QueryExtensions
         while (next);
     }
 
-#if !NET5_0_OR_GREATER
+#if NETFRAMEWORK
     /// <summary>
     /// Waits asynchronously for the process to exit.
     /// </summary>
@@ -73,9 +71,7 @@ internal static class QueryExtensions
         if (!process.HasExited)
             await tcs.Task.ConfigureAwait(false);
     }
-#endif
 
-#if NETFRAMEWORK
     public static bool TryDequeue<TResult>(this Queue<TResult> queue, out TResult value)
     {
         if (queue?.Count > 0)

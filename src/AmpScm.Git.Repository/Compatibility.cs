@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
-using System.ComponentModel;
+#if NETFRAMEWORK
 
-#if !NET5_0_OR_GREATER
 namespace System.Runtime.CompilerServices
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
     internal static class IsExternalInit { }
 }
-#endif
 
-#if NETFRAMEWORK
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
@@ -37,10 +30,7 @@ namespace System.Diagnostics.CodeAnalysis
         }
     }
 }
-#endif
 
-
-#if NETFRAMEWORK
 namespace System
 {
     internal static class CompatHelpers

@@ -14,7 +14,7 @@ namespace AmpScm.Buckets.Git;
 
 public static partial class GitIndexer
 {
-    public static async ValueTask<GitId> IndexPack(string packFile, bool writeReverseIndex = false, bool writeBitmap = false, GitIdType idType = GitIdType.Sha1)
+    public static async ValueTask<GitId> IndexPack(string packFile, bool writeReverseIndex = false, bool writeBitmap = false, GitIdType idType = GitIdType.Sha1, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(packFile))
             throw new ArgumentNullException(nameof(packFile));
@@ -57,6 +57,8 @@ public static partial class GitIndexer
             int crc = 0;
             long offset = srcFile.Position!.Value;
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             using (var pf = new GitPackObjectBucket(srcFile.NoDispose().Crc32(c => crc = c), idType,
                 id => new(DummyObjectBucket.Instance),
                 ofs => { crcs[ofs].Deps.Add(offset); return new(DummyObjectBucket.Instance); }))
@@ -95,18 +97,20 @@ public static partial class GitIndexer
             List<long> load = new(fixUpLater);
             fixUpLater.Clear();
 
-            Func<long, CancellationToken, ValueTask> cb = async (offset, c) =>
+            cancellationToken.ThrowIfCancellationRequested();
+
+            async ValueTask callback(long offset, CancellationToken c)
             {
                 var b = await SpecializedBucketExtensions.DuplicateSeekedAsync(srcFile, offset).ConfigureAwait(false);
 
                 await IndexOne(offset, b).ConfigureAwait(false);
-            };
+            }
 
 #if NET6_0_OR_GREATER
-            await Parallel.ForEachAsync(load, cb).ConfigureAwait(false);
+            await Parallel.ForEachAsync(load, callback).ConfigureAwait(false);
 #else
             foreach (var v in load)
-                await cb(v, default).ConfigureAwait(false);
+                await callback(v, default).ConfigureAwait(false);
 #endif
         }
 
@@ -144,7 +148,7 @@ public static partial class GitIndexer
             GitId? idxChecksum = null;
             await index.GitHash(idType, x => idxChecksum = x).WriteToAsync(idxFile).ConfigureAwait(false);
 
-            await idxFile.WriteAsync(idxChecksum!.Hash).ConfigureAwait(false);
+            await idxFile.WriteAsync(idxChecksum!.Hash, cancellationToken).ConfigureAwait(false);
         }
 
         if (writeReverseIndex)
@@ -169,9 +173,9 @@ public static partial class GitIndexer
                             + mapBytes.AsBucket()
                             + packChecksum.Hash.AsBucket())
                         .GitHash(idType, r => sha = r)
-                    .WriteToAsync(fs).ConfigureAwait(false);
+                    .WriteToAsync(fs, cancellationToken).ConfigureAwait(false);
 
-                await fs.WriteAsync(sha!.Hash).ConfigureAwait(false);
+                await fs.WriteAsync(sha!.Hash, cancellationToken).ConfigureAwait(false);
             }
         }
 

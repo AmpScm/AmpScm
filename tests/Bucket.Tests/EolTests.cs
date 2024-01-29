@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
-using AmpScm.BucketTests.Buckets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BucketTests;
@@ -621,7 +618,7 @@ public class EolTests
         var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
         var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
 
-        for(int i = 1; i < encodedBytes.Length-1;i++)
+        for (int i = 1; i < encodedBytes.Length - 1; i++)
         {
             var encSpan = encodedBytes.AsMemory();
 
@@ -667,7 +664,7 @@ public class EolTests
     }
 
     private static Encoding ANSI => (Encoding.Default is UTF8Encoding)
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
         ? Encoding.Latin1
 #else
         ? Encoding.GetEncoding("ISO-8859-1")

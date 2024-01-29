@@ -49,7 +49,7 @@ public partial class FileBucket
 
         public string Path { get; }
 
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
 #endif
         public FileHolder(SafeFileHandle handle, string path)
@@ -140,7 +140,7 @@ public partial class FileBucket
 #pragma warning disable CA1416 // Validate platform compatibility
                 return AsyncWinReadAsync(fileOffset, buffer, requested);
 #pragma warning restore CA1416 // Validate platform compatibility
-#if NET6_0_OR_GREATER
+#if !NETFRAMEWORK
             else
                 return RandomAccess.ReadAsync(_handle, buffer.AsMemory(0, requested), fileOffset);
 #else
@@ -163,7 +163,7 @@ public partial class FileBucket
 #endif
         }
 
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
 #endif
         public ValueTask<int> AsyncWinReadAsync(long offset, byte[] buffer, int readLen)
@@ -335,7 +335,7 @@ public partial class FileBucket
         }
 #endif
 
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
         [SupportedOSPlatform("windows")]
 #endif
         private sealed class FileWaitHandler : IDisposable

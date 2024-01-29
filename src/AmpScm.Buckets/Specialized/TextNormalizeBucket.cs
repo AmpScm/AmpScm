@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
@@ -54,11 +52,11 @@ internal sealed class TextNormalizeBucket : WrappingBucket, IBucketPoll
         if (_state == State.Done)
             return _source.PollAsync(minRequested);
         else
-            return new (BucketBytes.Empty);
+            return new(BucketBytes.Empty);
     }
 
     public static Encoding DefaultEncoding { get; } = (Encoding.Default is UTF8Encoding)
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
         ? Encoding.Latin1
 #else
         ? Encoding.GetEncoding("ISO-8859-1")

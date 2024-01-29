@@ -80,7 +80,7 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
         }
         else if (0 > bb.IndexOf((byte)':'))
         {
-            _base64Decode = new StopAtLineStartBucket(bb.AsBucket() + Source.NoDispose(), new byte[] { (byte)'-' }).Base64Decode(lineMode: true);
+            _base64Decode = new StopAtLineStartBucket(bb.AsBucket() + Source.NoDispose(), "-"u8.ToArray()).Base64Decode(lineMode: true);
             _state = SState.Body;
             return BucketBytes.Eof;
         }
@@ -171,7 +171,7 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
 
     private Bucket SetupDecode()
     {
-        return new StopAtLineStartBucket(Source.NoDispose(), new byte[] { (byte)'=', (byte)'-' }).Base64Decode(lineMode: true).Crc24(x => _crc24Result = x);
+        return new StopAtLineStartBucket(Source.NoDispose(), "=-"u8.ToArray()).Base64Decode(lineMode: true).Crc24(x => _crc24Result = x);
     }
 
     public static bool IsHeader(BucketBytes bb, BucketEol eol)

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AmpScm.Git.Client.Plumbing;
@@ -40,7 +38,7 @@ public partial class GitPlumbing
 
         args.Add(path);
 
-#if NET5_0_OR_GREATER
+#if !NETFRAMEWORK
         if (OperatingSystem.IsWindows())
 #else
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)

@@ -167,7 +167,9 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         using (ICryptoTransform xf = aes.CreateEncryptor())
         using (CryptoStream cs = new CryptoStream(ms, xf,
               CryptoStreamMode.Read))
+#pragma warning disable MA0045 // Do not use blocking calls in a sync method (need to make calling method async)
             _ = cs.Read(ciphertext, 0, aes.BlockSize / 8);
+#pragma warning restore MA0045 // Do not use blocking calls in a sync method (need to make calling method async)
 
         return Rfc3394Block.BytesToBlocks(ciphertext);
     }
@@ -198,7 +200,9 @@ internal sealed partial class Rfc3394Algorithm : IDisposable
         using (CryptoStream cs = new CryptoStream(ms, xf,
               CryptoStreamMode.Write))
         {
+#pragma warning disable MA0045 // Do not use blocking calls in a sync method (need to make calling method async)
             cs.Write(ciphertext, 0, aes.BlockSize / 8);
+#pragma warning restore MA0045 // Do not use blocking calls in a sync method (need to make calling method async)
             plaintext = ms.ToArray();
         }
 

@@ -79,7 +79,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     _keys.Add(new PublicKeySignature(CreateSshFingerprint(algId, keyInts), algId, keyInts, _mailAddress));
 
                     ByteCollector signPrefix = new(512);
-                    signPrefix.Append(new byte[] { (byte)'S', (byte)'S', (byte)'H', (byte)'S', (byte)'I', (byte)'G' });
+                    signPrefix.Append("SSHSIG"u8.ToArray());
 
                     // Namespace
                     bb = await ReadSshStringAsync(bucket).ConfigureAwait(false);

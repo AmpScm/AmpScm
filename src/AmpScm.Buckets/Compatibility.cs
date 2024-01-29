@@ -1,14 +1,12 @@
 ﻿using System.ComponentModel;
 
-#if !NET5_0_OR_GREATER
+#if NETFRAMEWORK
 namespace System.Runtime.CompilerServices
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
     internal static class IsExternalInit { }
 }
-#endif
 
-#if NETFRAMEWORK
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
