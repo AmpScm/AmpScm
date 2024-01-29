@@ -82,7 +82,7 @@ public partial class FileBucket
         {
             var d = _disposers;
             _disposers = null!;
-            foreach (Action a in (Action[])d.GetInvocationList())
+            foreach (Action a in d.GetInvocationList())
             {
 #pragma warning disable CA1031 // Do not catch general exception types
                 try

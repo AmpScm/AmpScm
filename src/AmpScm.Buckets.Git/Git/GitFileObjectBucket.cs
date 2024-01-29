@@ -122,12 +122,16 @@ public sealed class GitFileObjectBucket : GitObjectBucket, IBucketPoll
 
             int nSize = bb.IndexOf(' ');
 
+            if (nSize > 0 && long.TryParse(bb.Slice(nSize + 1, eol)
 #if NET8_0_OR_GREATER
-            if (nSize > 0 && long.TryParse(bb.Trim(eol).Span, NumberStyles.None, CultureInfo.InvariantCulture, out var len))
+                .Span
 #else
-            if (nSize > 0 && long.TryParse(bb.ToASCIIString(nSize + 1, eol), NumberStyles.None, CultureInfo.InvariantCulture, out var len))
+                .ToASCIIString()
 #endif
+                , NumberStyles.None, CultureInfo.InvariantCulture, out var len))
+            {
                 _length = len;
+            }
             else
                 throw new BucketException($"Expected length information within header of '{Source.Name}'");
 
