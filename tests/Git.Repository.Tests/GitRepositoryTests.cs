@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Git;
-using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.References;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -225,7 +224,10 @@ public class GitRepositoryTests
             Assert.IsNotNull(c.Reason);
             n++;
         }
+        var v1 = repo.Head.ReferenceChanges.Last().Signature.When;
+        var v2 = repo.Head.Commit!.Committer!.When;
 
+        Assert.IsTrue(v1 >= v2);
         Assert.IsTrue(repo.Head.ReferenceChanges.Last().Signature.When >= repo.Head.Commit!.Committer!.When);
 
         Assert.IsTrue(n > 0);
@@ -249,7 +251,8 @@ public class GitRepositoryTests
             n++;
         }
 
-        Assert.IsTrue(repo.Head.Resolved.ReferenceChanges.Last().Signature.When >= repo.Head.Commit!.Committer!.When);
+        Assert.IsTrue(repo.Head.Resolved.ReferenceChanges.Last().Signature.When >= repo.Head.Commit!.Committer!.When,
+            $"{repo.Head.Resolved.ReferenceChanges.Last().Signature.When} >= {repo.Head.Commit!.Committer!.When}");
 
         Assert.IsTrue(n > 0);
     }
@@ -267,7 +270,7 @@ public class GitRepositoryTests
 
         Assert.IsTrue(repo.Head.Resolved.ReferenceChanges.Last().Signature.When >= repo.Head.Commit!.Committer!.When);
 
-        foreach(var t in repo.Tags)
+        foreach (var t in repo.Tags)
         {
             TestContext.WriteLine($"tag: {t.Name}");
         }

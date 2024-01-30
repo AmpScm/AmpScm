@@ -77,15 +77,28 @@ public record GitSignatureRecord
         {
             Name = bucketBytes.ToUTF8String(0, n - 1),
             Email = bucketBytes.ToUTF8String(n + 1, n2 - n - 1),
-            When = ParseWhen(bucketBytes.ToUTF8String(n2 + 2))
+            When = ParseWhen(bucketBytes.Slice(n2 + 2))
         };
         return true;
     }
 
-    private static DateTimeOffset ParseWhen(string value)
+    private static DateTimeOffset ParseWhen(BucketBytes value)
     {
-        string[] time = value.Split(' ', 2);
-        if (int.TryParse(time[0], NumberStyles.None, CultureInfo.InvariantCulture, out var unixtime) && int.TryParse(time[1], NumberStyles.None, CultureInfo.InvariantCulture, out var offset))
+        var time = value.Split((byte)' ', 2);
+        if (long.TryParse(time[0]
+#if NET8_0_OR_GREATER
+            .Span
+#else
+            .ToUTF8String()
+#endif
+            , NumberStyles.None, CultureInfo.InvariantCulture, out var unixtime)
+            && int.TryParse(time[1]
+#if NET8_0_OR_GREATER
+            .Span
+#else
+            .ToUTF8String()
+#endif
+            , NumberStyles.None | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var offset))
         {
             return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
         }
