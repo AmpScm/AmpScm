@@ -10,6 +10,7 @@
     <RootNamespace></RootNamespace>
     <WarningLevel>6</WarningLevel>
     <VSTestResultsDirectory Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)TestResults\$(Configuration)\$(TargetFramework)\</VSTestResultsDirectory>
+    <IsTestProject>false</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
