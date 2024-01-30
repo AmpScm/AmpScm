@@ -34,7 +34,6 @@ jobs:
           6.0.x
           7.0.x
           8.0.x
-        dotnet-quality: 'preview'
 
     - name: Install NuGet dependencies
       run: dotnet restore -v:m -p:GitHubCI=yes
