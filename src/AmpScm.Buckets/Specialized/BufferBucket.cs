@@ -121,7 +121,7 @@ internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
 
     public async ValueTask SeekAsync(long newPosition)
     {
-        while(newPosition > _buffered && !_readEof)
+        while (newPosition > _buffered && !_readEof)
         {
             await BufferSomeMore((int)(newPosition - _buffered)).ConfigureAwait(false);
         }

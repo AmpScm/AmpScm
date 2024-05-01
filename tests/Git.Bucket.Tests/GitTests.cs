@@ -47,8 +47,8 @@ public class GitTests
 
             var data = await pf.ReadToEnd();
 
-            Assert.AreEqual((long)data.Length, pf.Position);
-            Assert.AreEqual((long)data.Length, len.Value);
+            Assert.AreEqual(data.Length, pf.Position);
+            Assert.AreEqual(data.Length, len.Value);
 
             TestContext.WriteLine("");
         }
@@ -662,7 +662,7 @@ public class GitTests
 
         // Let's assume v2 pack index files
         Bucket index = new byte[] { 255, (byte)'t', (byte)'O', (byte)'c' }.AsBucket();
-        index += NetBitConverter.GetBytes((int)2).AsBucket();
+        index += NetBitConverter.GetBytes(2).AsBucket();
 
         // Fanout table
         index += fanOut.Select(x => NetBitConverter.GetBytes(x)).AsBucket();

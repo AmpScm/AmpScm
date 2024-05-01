@@ -48,7 +48,7 @@ public sealed class MemoryBucket : Bucket, IBucketNoDispose, IBucketReadBuffers
 
     public override ValueTask<long?> ReadRemainingBytesAsync()
     {
-        return new (Data.Length - Offset);
+        return new(Data.Length - Offset);
     }
 
     public override Bucket Duplicate(bool reset = false)

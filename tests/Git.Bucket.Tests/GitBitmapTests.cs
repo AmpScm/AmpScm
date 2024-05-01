@@ -62,7 +62,7 @@ public class GitBitmapTests
 
             Assert.AreEqual(0L, ewah.Position);
 
-            int expectedBytes = (int)(8 * ((bitLengths[i] + 63) / 64));
+            int expectedBytes = 8 * ((bitLengths[i] + 63) / 64);
 
             long? p = await ewah.ReadRemainingBytesAsync();
 

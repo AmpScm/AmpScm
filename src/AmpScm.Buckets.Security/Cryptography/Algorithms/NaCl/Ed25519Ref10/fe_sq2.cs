@@ -1,8 +1,8 @@
 ﻿namespace Chaos.NaCl.Internal.Ed25519Ref10;
 
 internal static partial class FieldOperations
-	{
-		/*
+{
+    /*
 h = 2 * f * f
 Can overlap h with f.
 
@@ -13,11 +13,11 @@ Postconditions:
 |h| bounded by 1.01*2^25,1.01*2^24,1.01*2^25,1.01*2^24,etc.
 */
 
-		/*
-		See fe_mul.c for discussion of implementation strategy.
-		*/
-		internal static void fe_sq2(out FieldElement h, ref FieldElement f)
-		{
+    /*
+    See fe_mul.c for discussion of implementation strategy.
+    */
+    internal static void fe_sq2(out FieldElement h, ref FieldElement f)
+    {
         int f0 = f.x0;
         int f1 = f.x1;
         int f2 = f.x2;
@@ -110,16 +110,16 @@ Postconditions:
         long h8 = f0f8_2 + f1f7_4 + f2f6_2 + f3f5_4 + f4f4 + f9f9_38;
         long h9 = f0f9_2 + f1f8_2 + f2f7_2 + f3f6_2 + f4f5_2;
 
-			h0 += h0;
-			h1 += h1;
-			h2 += h2;
-			h3 += h3;
-			h4 += h4;
-			h5 += h5;
-			h6 += h6;
-			h7 += h7;
-			h8 += h8;
-			h9 += h9;
+        h0 += h0;
+        h1 += h1;
+        h2 += h2;
+        h3 += h3;
+        h4 += h4;
+        h5 += h5;
+        h6 += h6;
+        h7 += h7;
+        h8 += h8;
+        h9 += h9;
 
         long carry0 = (h0 + (1 << 25)) >> 26; h1 += carry0; h0 -= carry0 << 26;
         long carry4 = (h4 + (1 << 25)) >> 26; h5 += carry4; h4 -= carry4 << 26;
@@ -130,22 +130,22 @@ Postconditions:
         long carry3 = (h3 + (1 << 24)) >> 25; h4 += carry3; h3 -= carry3 << 25;
         long carry7 = (h7 + (1 << 24)) >> 25; h8 += carry7; h7 -= carry7 << 25;
 
-			carry4 = (h4 + (1 << 25)) >> 26; h5 += carry4; h4 -= carry4 << 26;
+        carry4 = (h4 + (1 << 25)) >> 26; h5 += carry4; h4 -= carry4 << 26;
 
         long carry8 = (h8 + (1 << 25)) >> 26; h9 += carry8; h8 -= carry8 << 26;
         long carry9 = (h9 + (1 << 24)) >> 25; h0 += carry9 * 19; h9 -= carry9 << 25;
 
-			carry0 = (h0 + (1 << 25)) >> 26; h1 += carry0; h0 -= carry0 << 26;
+        carry0 = (h0 + (1 << 25)) >> 26; h1 += carry0; h0 -= carry0 << 26;
 
-			h.x0 = (int)h0;
-			h.x1 = (int)h1;
-			h.x2 = (int)h2;
-			h.x3 = (int)h3;
-			h.x4 = (int)h4;
-			h.x5 = (int)h5;
-			h.x6 = (int)h6;
-			h.x7 = (int)h7;
-			h.x8 = (int)h8;
-			h.x9 = (int)h9;
-		}
-	}
+        h.x0 = (int)h0;
+        h.x1 = (int)h1;
+        h.x2 = (int)h2;
+        h.x3 = (int)h3;
+        h.x4 = (int)h4;
+        h.x5 = (int)h5;
+        h.x6 = (int)h6;
+        h.x7 = (int)h7;
+        h.x8 = (int)h8;
+        h.x9 = (int)h9;
+    }
+}

@@ -10,7 +10,7 @@ internal sealed class OcbChunkReader : WrappingBucket
     private bool _done;
     private long _position;
 
-    public OcbChunkReader(Bucket source, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional) 
+    public OcbChunkReader(Bucket source, int maxChunkSize, int tagSize, Func<int, Bucket, Bucket> createAdditional)
         : base(source)
     {
         if (maxChunkSize < 16)
@@ -74,7 +74,7 @@ internal sealed class OcbChunkReader : WrappingBucket
             return BucketBytes.Eof;
         else if (_current is not { })
             NewCurrent();
-        
+
         return _current!.Peek();
     }
 

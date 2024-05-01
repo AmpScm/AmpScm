@@ -89,7 +89,7 @@ internal sealed class StreamBucket : Bucket
 
         try
         {
-            return new (_stream.Length - _stream.Position + _remaining.Length);
+            return new(_stream.Length - _stream.Position + _remaining.Length);
         }
         catch (NotSupportedException)
         { }

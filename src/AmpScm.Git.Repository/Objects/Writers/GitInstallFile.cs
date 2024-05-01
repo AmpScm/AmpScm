@@ -42,7 +42,7 @@ internal static class GitInstallFile
         public static bool RenameByHandle(SafeFileHandle handle, string newName)
         {
             ByteCollector bc = new(512);
-            bc.Append(BitConverter.GetBytes((int)0 /* FLAGS */));
+            bc.Append(BitConverter.GetBytes(0 /* FLAGS */));
             if (IntPtr.Size > sizeof(int))
                 bc.Append(new byte[IntPtr.Size - sizeof(int)] /* Align for handle */);
             bc.Append(new byte[IntPtr.Size] /* Root-Handle */);
@@ -56,7 +56,7 @@ internal static class GitInstallFile
         internal static bool SetDeleteInfoByHandle(SafeFileHandle handle, bool deleteFile)
         {
             ByteCollector bc = new(4);
-            bc.Append(BitConverter.GetBytes((int)(deleteFile ? 1 : 0) /* BOOL */));
+            bc.Append(BitConverter.GetBytes(deleteFile ? 1 : 0 /* BOOL */));
 
             return SetFileInformationByHandle(handle, FileInformationClass.FileDispositionInfo, bc.ToArray(), bc.Length);
         }

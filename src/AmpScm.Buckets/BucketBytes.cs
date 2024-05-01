@@ -118,7 +118,7 @@ public readonly partial struct BucketBytes : IEquatable<BucketBytes>, IValueOrEo
     public static implicit operator ValueTask<BucketBytes>(BucketBytes v)
 #pragma warning restore CA2225 // Operator overloads have named alternates
     {
-        return new (v);
+        return new(v);
     }
 
     public static readonly BucketBytes Empty;// = default;

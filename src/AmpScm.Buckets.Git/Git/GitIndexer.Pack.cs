@@ -122,7 +122,7 @@ public static partial class GitIndexer
 
         // Let's assume v2 pack index files
         Bucket index = new byte[] { 255, (byte)'t', (byte)'O', (byte)'c' }.AsBucket();
-        index += NetBitConverter.GetBytes((int)2).AsBucket();
+        index += NetBitConverter.GetBytes(2).AsBucket();
 
         // Fanout table
         index += fanOut.Select(x => NetBitConverter.GetBytes(x)).AsBucket();
@@ -162,7 +162,7 @@ public static partial class GitIndexer
             using (var fs = File.Create(Path.ChangeExtension(packFile, ".rev")))
             {
                 await (Encoding.ASCII.GetBytes("RIDX").AsBucket()
-                            + NetBitConverter.GetBytes((int)1 /* Version 1 */).AsBucket()
+                            + NetBitConverter.GetBytes(1 /* Version 1 */).AsBucket()
                             + NetBitConverter.GetBytes((int)idType).AsBucket()
                             + mapBytes.AsBucket()
                             + packChecksum.Hash.AsBucket())

@@ -92,12 +92,12 @@ public abstract class ConversionBucket : WrappingBucket, IBucketPoll
             }
             else if (final)
                 break;
-        }            
+        }
 
         return BucketBytes.Eof;
     }
 
-    public async ValueTask<BucketBytes> PollAsync(int minRequested=1)
+    public async ValueTask<BucketBytes> PollAsync(int minRequested = 1)
     {
         if (!_remaining.IsEmpty)
             return _remaining;

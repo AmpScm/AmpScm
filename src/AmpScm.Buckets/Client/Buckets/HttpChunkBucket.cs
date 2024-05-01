@@ -44,7 +44,7 @@ internal sealed class HttpChunkBucket : WrappingBucket
             else if (!_eof)
             {
                 // TODO: Perhaps use remaining bytes, and...
-                long ?len = await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
+                long? len = await Source.ReadRemainingBytesAsync().ConfigureAwait(false);
 
                 if (len.HasValue && len.Value > 0)
                 {

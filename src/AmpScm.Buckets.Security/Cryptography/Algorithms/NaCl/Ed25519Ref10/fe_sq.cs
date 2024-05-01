@@ -1,23 +1,23 @@
 ﻿namespace Chaos.NaCl.Internal.Ed25519Ref10;
 
 internal static partial class FieldOperations
-	{
-		/*
-		h = f * f
-		Can overlap h with f.
+{
+    /*
+    h = f * f
+    Can overlap h with f.
 
-		Preconditions:
-		   |f| bounded by 1.65*2^26,1.65*2^25,1.65*2^26,1.65*2^25,etc.
+    Preconditions:
+       |f| bounded by 1.65*2^26,1.65*2^25,1.65*2^26,1.65*2^25,etc.
 
-		Postconditions:
-		   |h| bounded by 1.01*2^25,1.01*2^24,1.01*2^25,1.01*2^24,etc.
-		*/
+    Postconditions:
+       |h| bounded by 1.01*2^25,1.01*2^24,1.01*2^25,1.01*2^24,etc.
+    */
 
-		/*
-		See fe_mul.c for discussion of implementation strategy.
-		*/
-		internal static void fe_sq(out FieldElement h, ref FieldElement f)
-		{
+    /*
+    See fe_mul.c for discussion of implementation strategy.
+    */
+    internal static void fe_sq(out FieldElement h, ref FieldElement f)
+    {
         int f0 = f.x0;
         int f1 = f.x1;
         int f2 = f.x2;
@@ -124,17 +124,17 @@ internal static partial class FieldOperations
         long carry8 = (h8 + (1 << 25)) >> 26; h9 += carry8; h8 -= carry8 << 26;
         long carry9 = (h9 + (1 << 24)) >> 25; h0 += carry9 * 19; h9 -= carry9 << 25;
 
-			carry0 = (h0 + (1 << 25)) >> 26; h1 += carry0; h0 -= carry0 << 26;
+        carry0 = (h0 + (1 << 25)) >> 26; h1 += carry0; h0 -= carry0 << 26;
 
-			h.x0 = (int)h0;
-			h.x1 = (int)h1;
-			h.x2 = (int)h2;
-			h.x3 = (int)h3;
-			h.x4 = (int)h4;
-			h.x5 = (int)h5;
-			h.x6 = (int)h6;
-			h.x7 = (int)h7;
-			h.x8 = (int)h8;
-			h.x9 = (int)h9;
-		}
-	}
+        h.x0 = (int)h0;
+        h.x1 = (int)h1;
+        h.x2 = (int)h2;
+        h.x3 = (int)h3;
+        h.x4 = (int)h4;
+        h.x5 = (int)h5;
+        h.x6 = (int)h6;
+        h.x7 = (int)h7;
+        h.x8 = (int)h8;
+        h.x9 = (int)h9;
+    }
+}

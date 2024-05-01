@@ -595,7 +595,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
         using (var fs = File.Create(tmpName))
         {
             await (Encoding.ASCII.GetBytes("RIDX").AsBucket()
-                        + NetBitConverter.GetBytes((int)1 /* Version 1 */).AsBucket()
+                        + NetBitConverter.GetBytes(1 /* Version 1 */).AsBucket()
                         + NetBitConverter.GetBytes((int)_idType).AsBucket()
                         + mapBytes.AsBucket()
                         + GitId.Parse(Path.GetFileNameWithoutExtension(PackFile).Substring(5)).Hash.AsBucket())

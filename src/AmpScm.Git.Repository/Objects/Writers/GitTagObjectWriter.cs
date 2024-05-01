@@ -59,15 +59,15 @@ public class GitTagObjectWriter : GitObjectWriter<GitTagObject>
 
             var id = await GitObject.WriteToAsync(repository).ConfigureAwait(false);
 
-            sb.Append((string)$"object {id}\n");
+            sb.Append($"object {id}\n");
 #pragma warning disable CA1308 // Normalize strings to uppercase
-            sb.Append((string)$"type {GitObject.Type.ToString().ToLowerInvariant()}\n");
+            sb.Append($"type {GitObject.Type.ToString().ToLowerInvariant()}\n");
 #pragma warning restore CA1308 // Normalize strings to uppercase
-            sb.Append((string)$"tag {Name}\n");
+            sb.Append($"tag {Name}\n");
 
             var tagger = Tagger ?? repository.Configuration.Identity;
 
-            sb.Append((string)$"tagger {tagger.AsRecord()}\n");
+            sb.Append($"tagger {tagger.AsRecord()}\n");
             // -extra headers-
             sb.Append('\n');
 

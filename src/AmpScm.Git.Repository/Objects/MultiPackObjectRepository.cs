@@ -320,7 +320,7 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
 
         GitId? sha = null;
         using (Bucket b = (Encoding.ASCII.GetBytes("RIDX").AsBucket()
-                            + NetBitConverter.GetBytes((int)1 /* Version 1 */).AsBucket()
+                            + NetBitConverter.GetBytes(1 /* Version 1 */).AsBucket()
                             + NetBitConverter.GetBytes((int)Repository.InternalConfig.IdType).AsBucket()
                             + mapBytes.AsBucket()
                             + GitId.Parse(Path.GetFileNameWithoutExtension(_multiPackBitmapPath!).Substring("multi-pack-index-".Length)).Hash.AsBucket())

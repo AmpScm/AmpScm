@@ -41,7 +41,7 @@ public sealed partial class DifferenceSet : IReadOnlyCollection<DiffChunk>
             if (maxDifferent == 0)
                 return 1.0f;
 
-            return (float)same / (float)(same + maxDifferent);
+            return same / (float)(same + maxDifferent);
         }
     }
 

@@ -229,7 +229,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         length -= n * 16; // Remove the tags of these chunks from the total length
 
                         byte[] associatedData = new byte[] { 0xC0 | (int)CryptoTag.OCBEncryptedData, version, (byte)cipherAlgorithm, ocbEncryptionAlgorithm, chunkVal }
-                                .Concat(NetBitConverter.GetBytes((long)n)).Concat(NetBitConverter.GetBytes((long)length)).ToArray();
+                                .Concat(NetBitConverter.GetBytes(n)).Concat(NetBitConverter.GetBytes(length)).ToArray();
 
                         byte[] sv = startingVector.ToArray();
                         OcbDecodeBucket.SpanXor(sv.AsSpan(sv.Length - 4), NetBitConverter.GetBytes((int)n));
@@ -479,7 +479,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
         ushort checksum = NetBitConverter.ToUInt16(data, 1 + dataLen);
 
-        if (checksum == data.Skip(1).Take(dataLen).Sum(x => (ushort)x))
+        if (checksum == data.Skip(1).Take(dataLen).Sum(x => x))
         {
             _sessionAlgorithm = alg;
             _sessionKey = data.AsMemory(1, dataLen); // Minus first byte (session alg) and last two bytes (checksum)

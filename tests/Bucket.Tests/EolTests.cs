@@ -436,7 +436,7 @@ public class EolTests
                 default:
                     if (char.IsControl(c) || char.IsWhiteSpace(c) || c >= 0x80)
                     {
-                        sb.Append((string)$"\\x{(int)c:x2}");
+                        sb.Append($"\\x{(int)c:x2}");
                     }
                     else
                         sb.Append(c);

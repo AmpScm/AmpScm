@@ -120,13 +120,13 @@ public sealed class GitCommitWriter : GitObjectWriter<GitCommit>
 
             var id = await Tree.WriteToAsync(repository).ConfigureAwait(false);
 
-            sb.Append((string)$"tree {id}\n");
+            sb.Append($"tree {id}\n");
 
             HashSet<GitId> parentIds = new();
             foreach (var p in Parents)
             {
                 id = await p.WriteToAsync(repository).ConfigureAwait(false);
-                sb.Append((string)$"parent {id}\n");
+                sb.Append($"parent {id}\n");
 
                 parentIds.Add(id);
             }
@@ -134,8 +134,8 @@ public sealed class GitCommitWriter : GitObjectWriter<GitCommit>
             var committer = Committer ?? repository.Configuration.Identity;
             var author = Author ?? repository.Configuration.Identity;
 
-            sb.Append((string)$"author {author.AsRecord()}\n");
-            sb.Append((string)$"committer {committer.AsRecord()}\n");
+            sb.Append($"author {author.AsRecord()}\n");
+            sb.Append($"committer {committer.AsRecord()}\n");
 
             result = Bucket.Create.FromUTF8(sb.ToString());
 

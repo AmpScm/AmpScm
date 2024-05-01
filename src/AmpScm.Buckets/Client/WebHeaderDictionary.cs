@@ -52,7 +52,7 @@ public sealed class WebHeaderDictionary : WebHeaderCollection, IEnumerable<strin
 
     public new IEnumerator<string> GetEnumerator()
     {
-        foreach(string? s in BaseWhc.Keys)
+        foreach (string? s in BaseWhc.Keys)
         {
             yield return s!;
         }
@@ -103,7 +103,7 @@ public sealed class WebHeaderDictionary : WebHeaderCollection, IEnumerable<strin
 
     void ICollection<KeyValuePair<string, string>>.CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
     {
-        foreach(var kv in (IEnumerable<KeyValuePair<string,string>>)this)
+        foreach (var kv in (IEnumerable<KeyValuePair<string, string>>)this)
         {
             array[arrayIndex++] = kv;
         }
@@ -123,7 +123,7 @@ public sealed class WebHeaderDictionary : WebHeaderCollection, IEnumerable<strin
 
     IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator()
     {
-        foreach(string k in this)
+        foreach (string k in this)
         {
             yield return new KeyValuePair<string, string>(k, base[k]!);
         }
@@ -218,7 +218,7 @@ public sealed class WebHeaderDictionary : WebHeaderCollection, IEnumerable<strin
 
         public void CopyTo(string[] array, int arrayIndex)
         {
-            foreach(string? v in BaseWhc)
+            foreach (string? v in BaseWhc)
             {
                 array[arrayIndex++] = BaseWhc[v!]!;
             }

@@ -39,7 +39,7 @@ public partial struct BucketBytes
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
         public ByteDump[] Items => Enumerable.Range(0, (Bytes.Length + 16 - 1) / 16).Select(
-                (x, n) => new ByteDump(Bytes.Slice(n * 16, Math.Min(16, Bytes.Length - n * 16)), n*16)).ToArray();
+                (x, n) => new ByteDump(Bytes.Slice(n * 16, Math.Min(16, Bytes.Length - n * 16)), n * 16)).ToArray();
 
         [DebuggerDisplay($"{{{nameof(DisplayValue)},nq}}", Name = $"{{{nameof(DisplayKey)},nq}}")]
         public sealed class ByteDump

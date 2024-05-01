@@ -291,7 +291,7 @@ internal sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
                     break;
                 case delta_state.src_copy:
                     // Just skip the source data
-                    r = (int)await Source.ReadSkipAsync(Math.Min(rq, _copySize)).ConfigureAwait(false);
+                    r = await Source.ReadSkipAsync(Math.Min(rq, _copySize)).ConfigureAwait(false);
                     _copySize -= r;
                     _position += r;
                     break;

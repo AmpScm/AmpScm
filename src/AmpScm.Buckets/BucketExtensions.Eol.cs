@@ -32,11 +32,11 @@ public static partial class BucketExtensions
             switch (kept)
             {
                 case (byte)'\n' when (0 != (acceptableEols & BucketEol.LF)):
-                    return new (new BucketBytes(new[] { kept }, 0, 1), BucketEol.LF);
+                    return new(new BucketBytes(new[] { kept }, 0, 1), BucketEol.LF);
                 case (byte)'\r' when (0 != (acceptableEols & BucketEol.CR) && (acceptableEols & BucketEol.CRLF) == 0):
-                    return new (new BucketBytes(new[] { kept }, 0, 1), BucketEol.CR);
+                    return new(new BucketBytes(new[] { kept }, 0, 1), BucketEol.CR);
                 case (byte)'\0' when (0 != (acceptableEols & BucketEol.Zero)):
-                    return new (new BucketBytes(new[] { kept }, 0, 1), BucketEol.Zero);
+                    return new(new BucketBytes(new[] { kept }, 0, 1), BucketEol.Zero);
                 case (byte)'\r' when (0 != (acceptableEols & BucketEol.CRLF)):
                     rq = 1;
                     goto default;
@@ -58,11 +58,11 @@ public static partial class BucketExtensions
             (bb, eol) = await bucket.ReadUntilEolAsync(acceptableEols, rq).ConfigureAwait(false);
 
             if (eol != BucketEol.None && eol != BucketEol.CRSplit && result.IsEmpty)
-                return new (bb, eol);
+                return new(bb, eol);
             else if (bb.IsEmpty)
             {
                 if (bb.IsEof)
-                    return new (result.ToResultOrEof(), eol);
+                    return new(result.ToResultOrEof(), eol);
                 else
                     throw new InvalidOperationException();
             }

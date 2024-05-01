@@ -92,10 +92,10 @@ internal sealed class TakeBucket : PositionBucket, IBucketTake
     {
         long pos = Position!.Value;
 
-        if (pos >= Limit) return new (0);
+        if (pos >= Limit) return new(0);
 
         if (Limit - pos < requested)
-            requested = (long)(Limit - pos);
+            requested = Limit - pos;
 
         return base.ReadSkipAsync(requested);
     }

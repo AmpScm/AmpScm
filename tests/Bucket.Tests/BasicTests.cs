@@ -250,7 +250,7 @@ public class BasicTests
         Assert.AreEqual(26, s.Length);
         Assert.AreEqual(0, s.Position);
 
-        Assert.AreEqual((int)'A', s.ReadByte());
+        Assert.AreEqual('A', s.ReadByte());
 
         Assert.AreEqual(26, s.Length);
         Assert.AreEqual(1, s.Position);

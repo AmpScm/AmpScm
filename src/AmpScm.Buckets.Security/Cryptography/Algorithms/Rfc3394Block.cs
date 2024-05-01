@@ -96,9 +96,9 @@ internal partial class Rfc3394Algorithm
 #else
             for (int i = 0; i < bytes.Length / 2; i++)
             {
-               byte temp = bytes[i];
-               bytes[i] = bytes[(bytes.Length - 1) - i];
-               bytes[(bytes.Length - 1) - i] = temp;
+                byte temp = bytes[i];
+                bytes[i] = bytes[(bytes.Length - 1) - i];
+                bytes[(bytes.Length - 1) - i] = temp;
             }
 #endif
         }

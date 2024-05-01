@@ -210,7 +210,7 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
 
             var bb = await Source.PollAsync(1).ConfigureAwait(false);
 
-            for(int i = 0; i < bb.Length;i++)
+            for (int i = 0; i < bb.Length; i++)
             {
                 if (_stopAt.Contains(bb[i]))
                 {

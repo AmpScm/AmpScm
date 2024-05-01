@@ -33,7 +33,7 @@ public class GitDirectoryTests
     }
 
 
-    public static IEnumerable<object[]> GetIndexFormats => Enumerable.Range(GitDirectoryBucket.LowestSupportedFormat, GitDirectoryBucket.HighestSupportedFormat - GitDirectoryBucket.LowestSupportedFormat + 1).SelectMany(x => Enumerable.Range(0, 4).Select(y => new object[] { x, ((int)y & 1) != 0, ((int)y & 2) != 0 }));
+    public static IEnumerable<object[]> GetIndexFormats => Enumerable.Range(GitDirectoryBucket.LowestSupportedFormat, GitDirectoryBucket.HighestSupportedFormat - GitDirectoryBucket.LowestSupportedFormat + 1).SelectMany(x => Enumerable.Range(0, 4).Select(y => new object[] { x, (y & 1) != 0, (y & 2) != 0 }));
 
     [TestMethod]
     [DynamicData(nameof(GetIndexFormats))]

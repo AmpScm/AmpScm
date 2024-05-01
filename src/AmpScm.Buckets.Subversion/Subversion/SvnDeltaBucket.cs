@@ -188,7 +188,7 @@ public class SvnDeltaBucket : SvnBucket
             else
             {
                 await DeltaBase!.SeekAsync(sview_offset).ConfigureAwait(false);
-                bb = await DeltaBase!.ReadExactlyAsync((int)sview_len).ConfigureAwait(false);
+                bb = await DeltaBase!.ReadExactlyAsync(sview_len).ConfigureAwait(false);
 
                 _srcView = bb;
                 _srcViewoffset = sview_offset;
@@ -205,7 +205,7 @@ public class SvnDeltaBucket : SvnBucket
 
             if (op_len == 0)
             {
-                op_len = checked((int)await ReadLengthAsync(il).ConfigureAwait(false));
+                op_len = checked(await ReadLengthAsync(il).ConfigureAwait(false));
             }
 
             switch (b >> 6)

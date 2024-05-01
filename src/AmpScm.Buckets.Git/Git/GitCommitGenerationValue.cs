@@ -73,9 +73,9 @@ public struct GitCommitGenerationValue : IEquatable<GitCommitGenerationValue>
     public int Generation => (int)(generationV1Value >> 34);
 
 
-    public long CorrectedTimeValue => CommitTimeValue + (HasTimeCorrection ? (long)timeCorrection : 0);
+    public long CorrectedTimeValue => CommitTimeValue + (HasTimeCorrection ? timeCorrection : 0);
 
-    public DateTimeOffset CorrectedTime => CommitTime.AddSeconds((HasTimeCorrection ? (double)timeCorrection : 0.0));
+    public DateTimeOffset CorrectedTime => CommitTime.AddSeconds((HasTimeCorrection ? timeCorrection : 0.0));
 
     public bool HasTimeCorrection => timeCorrection != uint.MaxValue;
 

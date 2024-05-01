@@ -4,7 +4,7 @@ public sealed class BitwiseNotBucket : WrappingBucket
 {
     private readonly byte[] _buffer;
 
-    public BitwiseNotBucket(Bucket source, int bufferSize=4096)
+    public BitwiseNotBucket(Bucket source, int bufferSize = 4096)
         : base(source)
     {
         _buffer = new byte[bufferSize];
@@ -20,7 +20,7 @@ public sealed class BitwiseNotBucket : WrappingBucket
         if (bb.IsEmpty)
             return bb; // Includes EOF
 
-        for(int i = 0; i < bb.Length; i++)
+        for (int i = 0; i < bb.Length; i++)
         {
             _buffer[i] = (byte)~bb[i];
         }

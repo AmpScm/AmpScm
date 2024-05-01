@@ -104,15 +104,15 @@ public partial class GitRepository
 
                     n = group.IndexOf('.', StringComparison.Ordinal);
                     if (n < 0)
-                        configText.Append((string)$"\n[{group}]\n");
+                        configText.Append($"\n[{group}]\n");
                     else
                     {
                         var g = group.Substring(0, n);
                         var s = group.Substring(n + 1);
-                        configText.Append((string)$"\n[{g} \"{s}\"]\n");
+                        configText.Append($"\n[{g} \"{s}\"]\n");
                     }
                 }
-                configText.Append((string)$"\t{key} = {v}\n");
+                configText.Append($"\t{key} = {v}\n");
             }
         }
 

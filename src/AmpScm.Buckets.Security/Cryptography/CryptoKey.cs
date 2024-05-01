@@ -58,7 +58,7 @@ public abstract record class AsymmetricCryptoKey
 
     public bool HasPrivateKey { get; protected set; }
 
-    public abstract IReadOnlyList<BigInteger> GetValues(bool includePrivate=false);
+    public abstract IReadOnlyList<BigInteger> GetValues(bool includePrivate = false);
 
     public abstract ReadOnlyMemory<byte> Fingerprint { get; }
 }
