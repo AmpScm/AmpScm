@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized;
@@ -400,7 +398,7 @@ internal sealed class TextNormalizeBucket : WrappingBucket, IBucketPoll
         base.Reset();
         _state = State.Init;
         _position = 0;
-        _source = base.Source;
+        _source = Source;
     }
 
     public override Bucket Duplicate(bool reset = false)

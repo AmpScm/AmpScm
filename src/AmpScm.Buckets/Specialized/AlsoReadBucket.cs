@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace AmpScm.Buckets.Specialized;
+﻿namespace AmpScm.Buckets.Specialized;
 
 internal sealed class AlsoReadBucket : WrappingBucket
 {

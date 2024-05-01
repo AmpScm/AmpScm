@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
-using AmpScm.Buckets.Git.Objects;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.Objects;
-using AmpScm.Git.References;
-using AmpScm.Git.Repository;
 using AmpScm.Git.Sets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

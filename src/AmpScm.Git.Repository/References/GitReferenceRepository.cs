@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AmpScm.Git.Repository;
+﻿using AmpScm.Git.Repository;
 
 namespace AmpScm.Git.References;
 

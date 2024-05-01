@@ -1,8 +1,6 @@
-﻿using System;
+﻿namespace Chaos.NaCl.Internal.Ed25519Ref10;
 
-namespace Chaos.NaCl.Internal.Ed25519Ref10;
-
-	internal static partial class GroupOperations
+internal static partial class GroupOperations
 	{
 		/*
 		r = p + q

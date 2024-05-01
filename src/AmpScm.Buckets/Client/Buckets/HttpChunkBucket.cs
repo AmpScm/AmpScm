@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace AmpScm.Buckets.Client.Buckets;
 
@@ -60,7 +56,7 @@ internal sealed class HttpChunkBucket : WrappingBucket
                 }
                 else
                 {
-                    _next = await Source.ReadAsync(Bucket.MaxRead).ConfigureAwait(false);
+                    _next = await Source.ReadAsync(MaxRead).ConfigureAwait(false);
 
                     if (_next.IsEof || _next.IsEmpty)
                     {

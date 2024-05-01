@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using AmpScm;
+﻿using AmpScm;
 using AmpScm.Buckets;
-using AmpScm.Buckets.Git.Objects;
-using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;

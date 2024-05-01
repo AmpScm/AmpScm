@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 [assembly: CLSCompliant(true)]
 
@@ -124,7 +122,7 @@ public abstract partial class Bucket : IDisposable
         long skipped = 0;
         while (requested > 0)
         {
-            var v = await ReadAsync((int)Math.Min(requested, Bucket.MaxRead)).ConfigureAwait(false);
+            var v = await ReadAsync((int)Math.Min(requested, MaxRead)).ConfigureAwait(false);
             if (v.Length == 0)
                 break;
 

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AmpScm.Git.Client.Plumbing;
+﻿namespace AmpScm.Git.Client.Plumbing;
 
 public class GitUpdateReferenceArgs : GitPlumbingArgs
 {

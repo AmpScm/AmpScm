@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AmpScm.Git.Client.Porcelain;
+﻿namespace AmpScm.Git.Client.Porcelain;
 
 public class GitGCArgs : GitPorcelainArgs
 {
@@ -41,6 +35,6 @@ public partial class GitPorcelain
             args.Add($"--prune={options.PruneDate.Value.Date.ToString("yyyy-MM-dd")}");
         await c.Repository.RunGitCommandAsync("gc", args);
 
-        Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
+        RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }
 }

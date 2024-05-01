@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
+﻿using System.Linq.Expressions;
 using AmpScm.Git.Implementation;
 using AmpScm.Git.Sets.Walker;
 using AmpScm.Linq;
@@ -47,7 +44,7 @@ public class GitRevisionSet : GitSet<GitRevision>, IQueryableAndAsyncQueryable<G
     {
         var w = new GitRevisionWalker(_options, Repository);
 
-        await foreach (var v in w)
+        await foreach (var v in w.ConfigureAwait(false))
         {
             yield return v;
         }

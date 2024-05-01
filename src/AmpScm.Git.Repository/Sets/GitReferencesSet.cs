@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using AmpScm.Git.Implementation;
+﻿using System.Linq.Expressions;
 using AmpScm.Git.References;
 
 namespace AmpScm.Git.Sets;
@@ -19,7 +10,7 @@ public class GitReferencesSet : GitNamedSet<GitReference>
     {
     }
 
-    public GitReference Head => Repository.ReferenceRepository.GetAsync(Git.References.GitReferenceRepository.Head).AsTask().Result!;
+    public GitReference Head => Repository.ReferenceRepository.GetAsync(GitReferenceRepository.Head).AsTask().Result!;
 
 
 

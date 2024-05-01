@@ -6,6 +6,7 @@
     <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes' ">$(TargetFrameworks);net6.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Unix' ">$(TargetFrameworks);net47</TargetFrameworks>
     <LangVersion>12</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace></RootNamespace>
     <WarningLevel>6</WarningLevel>

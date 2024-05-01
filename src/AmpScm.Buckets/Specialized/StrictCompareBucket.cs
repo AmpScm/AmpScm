@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AmpScm.Buckets.Specialized;
+﻿namespace AmpScm.Buckets.Specialized;
 
 internal sealed class StrictCompareBucket : BlockCombineBucket
 {

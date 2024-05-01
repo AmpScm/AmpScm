@@ -5,6 +5,7 @@
     <TargetFrameworks>net9.0;net8.0;net47</TargetFrameworks>
     <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes'">$(TargetFrameworks);net6.0</TargetFrameworks>
     <LangVersion>12</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>

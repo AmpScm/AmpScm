@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 
 namespace AmpScm.Buckets.Subversion;
 
@@ -68,7 +66,7 @@ internal sealed class SvnHashBucket : SvnBucket
 #if NET8_0_OR_GREATER
         if (!int.TryParse(bb.Slice(2, eol).Span, NumberStyles.None, CultureInfo.InvariantCulture, out len))
 #else
-        if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), System.Globalization.NumberStyles.None, CultureInfo.InvariantCulture, out len))
+        if (!int.TryParse(bb.Slice(2, eol).ToASCIIString(), NumberStyles.None, CultureInfo.InvariantCulture, out len))
 #endif
             throw new BucketException();
 

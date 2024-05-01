@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Git.Sets;
+﻿using AmpScm.Git.Sets;
 
 namespace AmpScm.Git;
 

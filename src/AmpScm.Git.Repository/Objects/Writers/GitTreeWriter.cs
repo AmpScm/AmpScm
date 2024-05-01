@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 using AmpScm.Buckets;
-using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Git.Objects;
 
 namespace AmpScm.Git.Objects;
@@ -74,7 +68,7 @@ public sealed class GitTreeWriter : GitObjectWriter<GitTree>, IEnumerable<KeyVal
                 }
                 else
                 {
-                    var stw = GitTreeWriter.CreateEmpty();
+                    var stw = CreateEmpty();
                     tw.Add(si, stw, setType: null);
                     tw = stw;
                 }
@@ -141,7 +135,7 @@ public sealed class GitTreeWriter : GitObjectWriter<GitTree>, IEnumerable<KeyVal
                 }
                 else
                 {
-                    var stw = GitTreeWriter.CreateEmpty();
+                    var stw = CreateEmpty();
                     tw.Add(si, stw);
                     tw = stw;
                 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AmpScm.Git.References;
+﻿namespace AmpScm.Git.References;
 
 internal class GitRepositoryReferenceRepository : GitReferenceRepository
 {

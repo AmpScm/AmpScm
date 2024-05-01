@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Hashing;
-using System.Linq;
+﻿using System.IO.Hashing;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
 using AmpScm.Buckets.Specialized;

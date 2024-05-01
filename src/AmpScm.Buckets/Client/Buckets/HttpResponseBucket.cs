@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 using BasicHandler = System.EventHandler<AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs>;
 
@@ -67,7 +63,7 @@ public class HttpResponseBucket : ResponseBucket
             if (Request.Channel != null)
             {
                 _reader.Dispose();
-                _reader = Bucket.Empty;
+                _reader = Empty;
 
                 Request.ReleaseChannel(readOneEol ?? false);
             }

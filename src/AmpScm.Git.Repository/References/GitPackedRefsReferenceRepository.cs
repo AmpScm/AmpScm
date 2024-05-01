@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using AmpScm.Buckets;
 
 namespace AmpScm.Git.References;
@@ -15,7 +11,7 @@ internal class GitPackedRefsReferenceRepository : GitReferenceRepository
     {
     }
 
-    [DebuggerDisplay($"{nameof(GitRefPeel.Id)} {nameof(GitRefPeel.Name)} {nameof(GitRefPeel.Peeled)}")]
+    [DebuggerDisplay($"{nameof(Id)} {nameof(Name)} {nameof(Peeled)}")]
     private protected sealed class GitRefPeel
     {
         public string Name { get; set; } = null!;

@@ -1,5 +1,4 @@
-﻿using System;
-using AmpScm.Buckets.Interfaces;
+﻿using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Client;
 

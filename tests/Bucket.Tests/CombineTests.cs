@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets;
+﻿using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
 using AmpScm.BucketTests.Buckets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

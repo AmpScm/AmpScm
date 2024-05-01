@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
@@ -235,7 +229,7 @@ public static partial class GitIndexer
 
     private sealed class DummyObjectBucket : GitObjectBucket
     {
-        private DummyObjectBucket() : base(Bucket.Empty)
+        private DummyObjectBucket() : base(Empty)
         {
         }
 

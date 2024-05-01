@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;

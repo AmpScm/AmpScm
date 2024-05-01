@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using AmpScm.Buckets;
 using AmpScm.Git;
 using AmpScm.Git.Client.Plumbing;
@@ -136,7 +131,7 @@ public sealed class GitTestEnvironment
 
     private static async Task CreateGreekTreeAsync(string v, GitIdType gitIdType = GitIdType.Sha1)
     {
-        using var repo = GitRepository.Init(v, new GitRepositoryInitArgs { Bare = true, IdType= gitIdType });
+        using var repo = GitRepository.Init(v, new GitRepositoryInitArgs { Bare = true, IdType = gitIdType });
 
         GitCommitWriter cw = GitCommitWriter.Create(new GitCommitWriter[0]);
 
@@ -168,7 +163,7 @@ public sealed class GitTestEnvironment
         {
             if (item.Content is not null)
             {
-                cw.Tree.Add(item.Name, GitBlobWriter.CreateFrom(System.Text.Encoding.UTF8.GetBytes(item.Content!).AsBucket()));
+                cw.Tree.Add(item.Name, GitBlobWriter.CreateFrom(Encoding.UTF8.GetBytes(item.Content!).AsBucket()));
             }
             else
             {

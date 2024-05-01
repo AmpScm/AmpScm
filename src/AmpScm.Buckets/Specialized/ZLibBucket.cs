@@ -1,7 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO.Compression;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using Elskom.Generic.Libs;
 
@@ -100,7 +98,7 @@ public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
 
                     if (bb.Length == 0)
                     {
-                        System.Diagnostics.Debug.Assert(bb.IsEof);
+                        Debug.Assert(bb.IsEof);
                         _readEof = true;
                         read_buffer = Array.Empty<byte>();
                     }

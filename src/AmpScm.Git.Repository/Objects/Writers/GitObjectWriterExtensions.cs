@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using AmpScm.Buckets;
+﻿using AmpScm.Buckets;
 
 namespace AmpScm.Git.Objects;
 

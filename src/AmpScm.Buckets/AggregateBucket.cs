@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 
@@ -64,7 +59,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
         if (_keepOpen)
             return new SimpleAggregate(source, this);
         else
-            lock(LockOn)
+            lock (LockOn)
             {
                 _buckets.Insert(0, source);
             }
@@ -104,7 +99,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
         }
     }
 
-    public override async ValueTask<BucketBytes> ReadAsync(int requested = Bucket.MaxRead)
+    public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
     {
         if (!_keepOpen && _n > 0)
         {
@@ -189,7 +184,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
 
     public override BucketBytes Peek()
     {
-        while(true)
+        while (true)
         {
             if (CurrentBucket is Bucket cur)
             {
@@ -242,7 +237,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
 
     protected virtual void InnerDispose()
     {
-        for (int i = _buckets.Count-1; i >= 0; i--)
+        for (int i = _buckets.Count - 1; i >= 0; i--)
         {
             _buckets[i]?.Dispose();
             _buckets.RemoveAt(i);

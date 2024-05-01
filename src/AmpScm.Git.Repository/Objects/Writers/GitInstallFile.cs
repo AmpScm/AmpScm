@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 using AmpScm.Buckets;
 using Microsoft.Win32.SafeHandles;
@@ -66,7 +64,7 @@ internal static class GitInstallFile
         internal static FileStream CreateFile(string path)
         {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            SafeFileHandle handle = NativeMethods.CreateFileW(path,
+            SafeFileHandle handle = CreateFileW(path,
                 access: 0x80000000 /* GENERIC_READ */ | 0x40000000 /* GENERIC_WRITE */ | 0x00010000 /* DELETE */, // We want to read
                 share: 0x00000004 /* FILE_SHARE_DELETE */ | 0x00000001 /* FILE_SHARE_READ */, // Others can read, delete, rename, but we keep our file open
                 securityAttributes: IntPtr.Zero,

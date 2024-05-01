@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AmpScm.Git.Repository.Implementation;
+﻿namespace AmpScm.Git.Repository.Implementation;
 
 internal sealed class GitAsyncLazy<T> : Lazy<T>
 {

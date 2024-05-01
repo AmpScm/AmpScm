@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets;
+﻿using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Interfaces;
 
@@ -18,7 +13,7 @@ internal sealed class LazyGitObjectBucket : GitObjectBucket, IBucketPoll
     private GitObjectType _type;
     private bool _eof;
 
-    public LazyGitObjectBucket(GitRepository repository, GitId id, GitObjectType type=GitObjectType.None) : base(Bucket.Empty)
+    public LazyGitObjectBucket(GitRepository repository, GitId id, GitObjectType type=GitObjectType.None) : base(Empty)
     {
         Repository = repository ?? throw new ArgumentNullException(nameof(repository));
         Id = id ?? throw new ArgumentNullException(nameof(id));

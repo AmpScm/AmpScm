@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace AmpScm.Buckets.Cryptography;
+﻿namespace AmpScm.Buckets.Cryptography;
 
 internal sealed class PgpPartialBodyBucket : WrappingBucket
 {

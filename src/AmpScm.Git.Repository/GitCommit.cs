@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Git.Objects;
-using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git.Objects;
 using AmpScm.Git.Sets;

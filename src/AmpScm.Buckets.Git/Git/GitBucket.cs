@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace AmpScm.Buckets.Git;
+﻿namespace AmpScm.Buckets.Git;
 
 public abstract class GitBucket : WrappingBucket
 {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 using AmpScm.Git.Repository;
 
 // This file contains an internal API to allow exposing the GitRepository as a high level GitClient

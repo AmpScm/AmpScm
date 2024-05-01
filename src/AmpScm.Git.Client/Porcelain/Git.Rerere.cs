@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AmpScm.Git.Client.Porcelain;
+﻿namespace AmpScm.Git.Client.Porcelain;
 
 public class GitRerereArgs : GitPorcelainArgs
 {

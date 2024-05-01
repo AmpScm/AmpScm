@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AmpScm.Git.Objects;
+﻿namespace AmpScm.Git.Objects;
 
 public class GitPublicKeyRepository : IDisposable
 {

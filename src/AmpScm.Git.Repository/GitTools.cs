@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-
-namespace AmpScm.Git;
+﻿namespace AmpScm.Git;
 
 public static class GitTools
 {

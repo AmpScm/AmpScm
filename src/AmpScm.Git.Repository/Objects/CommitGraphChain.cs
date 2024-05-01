@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-namespace AmpScm.Git.Objects;
+﻿namespace AmpScm.Git.Objects;
 
 internal sealed class CommitGraphChain : GitObjectRepository
 {

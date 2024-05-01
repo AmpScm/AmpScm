@@ -1,8 +1,6 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git;

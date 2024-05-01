@@ -1,6 +1,4 @@
-﻿using System;
-using Chaos.NaCl.Internal.Ed25519Ref10;
-using System.Diagnostics.Contracts;
+﻿using Chaos.NaCl.Internal.Ed25519Ref10;
 
 namespace Chaos.NaCl;
 

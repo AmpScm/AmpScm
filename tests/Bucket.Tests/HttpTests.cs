@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Net;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

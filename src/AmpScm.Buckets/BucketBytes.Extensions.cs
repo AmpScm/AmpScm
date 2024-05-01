@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace AmpScm.Buckets;
 
@@ -286,7 +284,7 @@ public partial struct BucketBytes
         else if (requested >= remaining.Length)
         {
             bb = remaining;
-            remaining = BucketBytes.Empty;
+            remaining = Empty;
         }
         else
         {

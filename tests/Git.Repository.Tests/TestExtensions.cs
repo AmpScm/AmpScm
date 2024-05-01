@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm;
+﻿using AmpScm;
 using AmpScm.Git;
-using AmpScm.Git.Client.Plumbing;
 using AmpScm.Git.Client.Porcelain;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

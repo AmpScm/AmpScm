@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace AmpScm.Git.Client.Plumbing;
+﻿namespace AmpScm.Git.Client.Plumbing;
 
 public enum GitRevisionListOrder
 {

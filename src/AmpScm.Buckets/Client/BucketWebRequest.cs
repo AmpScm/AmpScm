@@ -1,7 +1,5 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace AmpScm.Buckets.Client;
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using AmpScm;
+﻿using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Buckets.Subversion;

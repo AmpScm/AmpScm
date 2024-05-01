@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using AmpScm.Linq;
@@ -62,7 +61,7 @@ public static partial class AmpAsyncQueryable
             return new NonAsyncQueryableWrapper<T>(queryable);
     }
 
-    private static MethodInfo _asAsyncQueryable = GetMethod<IQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
+    private static MethodInfo _asAsyncQueryable = GetMethod<IQueryable<string>>(x => AsSyncAndAsyncQueryable(x));
     /// <summary>
     /// Wraps an <see cref="IQueryable"/> as an <see cref="IQueryableAndAsyncQueryable"/>
     /// </summary>
@@ -80,7 +79,7 @@ public static partial class AmpAsyncQueryable
         }
     }
 
-    private static MethodInfo _asAsyncQueryable2 = GetMethod<IAsyncQueryable<string>>(x => AmpAsyncQueryable.AsSyncAndAsyncQueryable(x));
+    private static MethodInfo _asAsyncQueryable2 = GetMethod<IAsyncQueryable<string>>(x => AsSyncAndAsyncQueryable(x));
     /// <summary>
     /// Wraps an <see cref="IQueryable"/> as an <see cref="IQueryableAndAsyncQueryable"/>
     /// </summary>

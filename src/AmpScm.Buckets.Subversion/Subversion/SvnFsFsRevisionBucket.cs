@@ -1,7 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Subversion;

@@ -1,7 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Git.Objects;
 using AmpScm.Git.Implementation;

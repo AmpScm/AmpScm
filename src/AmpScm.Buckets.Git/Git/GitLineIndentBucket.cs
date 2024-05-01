@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace AmpScm.Buckets.Git;
+﻿namespace AmpScm.Buckets.Git;
 
 public sealed class GitLineIndentBucket : WrappingBucket
 {
@@ -17,7 +14,7 @@ public sealed class GitLineIndentBucket : WrappingBucket
         _next = _indentData;
     }
 
-    public override async ValueTask<BucketBytes> ReadAsync(int requested = Bucket.MaxRead)
+    public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
     {
         if (!_next.IsEmpty)
         {

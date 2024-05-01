@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 // From: https://github.com/hanswolff/curve25519/ - Apache 2 Licensed
 

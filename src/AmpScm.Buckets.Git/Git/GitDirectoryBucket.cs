@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 
@@ -609,7 +604,7 @@ public sealed class GitDirectoryBucket : GitBucket
     {
         await ProcessExtensionsAsync().ConfigureAwait(false);
 
-        while (0 != await Source.ReadSkipAsync(Bucket.MaxRead).ConfigureAwait(false))
+        while (0 != await Source.ReadSkipAsync(MaxRead).ConfigureAwait(false))
         {
         }
 

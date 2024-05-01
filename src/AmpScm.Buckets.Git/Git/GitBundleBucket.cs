@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Interfaces;
-using AmpScm.Buckets.Specialized;
+﻿using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
 
 namespace AmpScm.Buckets.Git;
@@ -81,7 +74,7 @@ public class GitBundleBucket : GitBucket
 
             await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
         }
-        
+
         return BucketBytes.Eof;
     }
 
@@ -182,7 +175,7 @@ public class GitBundleBucket : GitBucket
             _state = BState.References;
             return (null, null);
         }
-        
+
         BucketEol eol;
 
         if (!_prefetched.HasValue)
@@ -224,7 +217,7 @@ public class GitBundleBucket : GitBucket
             if (!GitId.TryParse(oidBb, out var id))
                 throw new GitBucketException($"Bad prerequisite '-{bb.TrimEnd(eol).ToASCIIString()}' in '{Name}' bucket");
 
-            return (id, oidLen > oidLen+1 ?  bb.Slice(oidLen + 1, eol).ToUTF8String() : null);
+            return (id, oidLen > oidLen + 1 ? bb.Slice(oidLen + 1, eol).ToUTF8String() : null);
         }
         else
         {
@@ -259,7 +252,7 @@ public class GitBundleBucket : GitBucket
 
         var oidLen = _idType.HashLength() * 2;
         if (line.Length > oidLen)
-        {                
+        {
             var oidBb = line.Slice(0, oidLen + 1);
 
             if (!GitId.TryParse(oidBb, out var id))

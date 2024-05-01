@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using System.Net;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using BaseWhc = System.Net.WebHeaderCollection;
 
 namespace AmpScm.Buckets.Client;
@@ -86,7 +81,7 @@ public sealed class WebHeaderDictionary : WebHeaderCollection, IEnumerable<strin
     bool IDictionary<string, string>.Remove(string key)
     {
         bool removed = Contains(key);
-        base.Remove(key);
+        Remove(key);
         return removed;
     }
 
@@ -119,7 +114,7 @@ public sealed class WebHeaderDictionary : WebHeaderCollection, IEnumerable<strin
         string? v = base[item.Key];
         if (v == item.Value)
         {
-            base.Remove(item.Key);
+            Remove(item.Key);
             return true;
         }
         else

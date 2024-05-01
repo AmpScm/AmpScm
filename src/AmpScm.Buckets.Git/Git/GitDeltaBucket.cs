@@ -1,8 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Threading.Tasks;
-using AmpScm.Buckets;
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
@@ -273,7 +270,7 @@ internal sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
 
             Debug.Assert(state >= delta_state.src_copy && state <= delta_state.eof);
 
-            int rq = (int)Math.Min(requested, Bucket.MaxRead);
+            int rq = (int)Math.Min(requested, MaxRead);
             int r;
             switch (state)
             {

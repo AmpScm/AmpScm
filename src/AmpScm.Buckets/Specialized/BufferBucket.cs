@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Interfaces;
+﻿using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets.Specialized;
 
@@ -104,7 +99,7 @@ internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
             {
                 do
                 {
-                    await BufferSomeMore(Bucket.MaxRead).ConfigureAwait(false);
+                    await BufferSomeMore(MaxRead).ConfigureAwait(false);
                 }
                 while (!_size.HasValue && !_readEof);
 

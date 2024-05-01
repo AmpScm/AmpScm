@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Interfaces;
+﻿using AmpScm.Buckets.Interfaces;
 
 namespace AmpScm.Buckets;
 
@@ -51,7 +46,7 @@ public partial class Bucket
     public static Bucket FromBucketArray(Bucket[] buckets)
     {
         if (buckets is null || buckets.Length == 0)
-            return Bucket.Empty;
+            return Empty;
         else if (buckets.Length == 1)
             return buckets[0];
 
@@ -88,7 +83,7 @@ public partial class Bucket
 #pragma warning restore CA2225 // Operator overloads have named alternates
     {
         if (first is null || first is EmptyBucket)
-            return second ?? Bucket.Empty;
+            return second ?? Empty;
         else if (second is null || second is EmptyBucket)
             return first;
         else

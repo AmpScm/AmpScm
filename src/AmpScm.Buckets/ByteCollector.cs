@@ -1,12 +1,7 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AmpScm.Buckets;
 
@@ -136,7 +131,7 @@ public partial struct ByteCollector : IEnumerable<byte>, IEquatable<ByteCollecto
             }
 
             _expected = 0;
-            
+
             if (Length == 0)
             {
                 _bytes = bytes;
@@ -162,7 +157,7 @@ public partial struct ByteCollector : IEnumerable<byte>, IEquatable<ByteCollecto
         {
             byte[]? bb = (byte[]?)_bytes;
 
-            if (1+ (bb?.Length ?? 0) <= _expected)
+            if (1 + (bb?.Length ?? 0) <= _expected)
             {
                 _bytes = bb ??= new byte[_expected];
 
@@ -182,7 +177,7 @@ public partial struct ByteCollector : IEnumerable<byte>, IEquatable<ByteCollecto
 #if !NETFRAMEWORK || NET48_OR_GREATER
             _bytes = _bytes.Append(b);
 #else
-            _bytes = _bytes.Concat(new byte[]{b});
+            _bytes = _bytes.Concat(new byte[] { b });
 #endif
         Length += 1;
     }
@@ -252,7 +247,7 @@ public partial struct ByteCollector : IEnumerable<byte>, IEquatable<ByteCollecto
 #if !NETFRAMEWORK || NET48_OR_GREATER
         return _bytes!.Append(appendByte).ToArray();
 #else
-        return _bytes!.Concat(new byte[]{appendByte}).ToArray();
+        return _bytes!.Concat(new byte[] { appendByte }).ToArray();
 #endif
     }
 

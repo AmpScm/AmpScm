@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Security;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
 using AmpScm.Buckets.Git;

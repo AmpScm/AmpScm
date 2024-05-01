@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Net.Mail;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;

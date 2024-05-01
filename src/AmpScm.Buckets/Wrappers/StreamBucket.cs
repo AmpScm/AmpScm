@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-
-namespace AmpScm.Buckets.Wrappers;
+﻿namespace AmpScm.Buckets.Wrappers;
 
 internal sealed class StreamBucket : Bucket
 {

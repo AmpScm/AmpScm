@@ -1,12 +1,6 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Git;
 using AmpScm.Git.Implementation;
 using AmpScm.Git.Repository;
 using AmpScm.Git.Sets;
@@ -51,17 +45,17 @@ public partial class GitRepository : IDisposable, IGitQueryRoot, IServiceProvide
         _container = new ServiceContainer();
 
         SetQueryProvider = new GitQueryProvider(this);
-        Objects = new (this, () => this.Objects!);
-        Commits = new (this, () => this.Commits!);
-        Blobs = new (this, () => this.Blobs!);
-        TagObjects = new (this, () => this.TagObjects!);
-        Trees = new (this, () => this.Trees!);
-        References = new (this, () => this.References!);
-        Remotes = new (this, () => this.Remotes!);
-        RevisionSetRoot = new (this);
+        Objects = new(this, () => this.Objects!);
+        Commits = new(this, () => this.Commits!);
+        Blobs = new(this, () => this.Blobs!);
+        TagObjects = new(this, () => this.TagObjects!);
+        Trees = new(this, () => this.Trees!);
+        References = new(this, () => this.References!);
+        Remotes = new(this, () => this.Remotes!);
+        RevisionSetRoot = new(this);
 
-        Branches = new (this, () => this.Branches!);
-        Tags = new (this, () => this.Tags!);
+        Branches = new(this, () => this.Branches!);
+        Tags = new(this, () => this.Tags!);
 
         Stashes = new(this, () => this.Stashes!);
 

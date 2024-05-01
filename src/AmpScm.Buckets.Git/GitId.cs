@@ -1,9 +1,7 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using AmpScm.Buckets;
 
 [assembly: CLSCompliant(true)]
@@ -82,7 +80,7 @@ public sealed class GitId : IEquatable<GitId>, IComparable<GitId>, IFormattable
                     0 => throw new ArgumentNullException(nameof(value)),
                     _ => throw new ArgumentOutOfRangeException(nameof(value), value, message: null)
                 },
-                GitId.TryParse(value!, out var id) ? id._bytes : throw new ArgumentOutOfRangeException(nameof(value), value, message: null))
+                TryParse(value!, out var id) ? id._bytes : throw new ArgumentOutOfRangeException(nameof(value), value, message: null))
     {
 
     }

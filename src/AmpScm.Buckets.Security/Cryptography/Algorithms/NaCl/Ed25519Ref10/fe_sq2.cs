@@ -1,8 +1,6 @@
-﻿using System;
+﻿namespace Chaos.NaCl.Internal.Ed25519Ref10;
 
-namespace Chaos.NaCl.Internal.Ed25519Ref10;
-
-	internal static partial class FieldOperations
+internal static partial class FieldOperations
 	{
 		/*
 h = 2 * f * f

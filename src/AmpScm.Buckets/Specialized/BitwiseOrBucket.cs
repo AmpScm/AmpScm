@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AmpScm.Buckets.Specialized;
+﻿namespace AmpScm.Buckets.Specialized;
 
 public class BitwiseOrBucket : CombineBucket
 {

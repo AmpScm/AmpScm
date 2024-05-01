@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace AmpScm.Buckets.Specialized;
+﻿namespace AmpScm.Buckets.Specialized;
 
 internal class PositionBucket : ProxyBucket<PositionBucket>.WithPoll
 {

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using AmpScm.Buckets.Git;
+﻿using AmpScm.Buckets.Git;
 
 namespace AmpScm.Git.Objects;
 

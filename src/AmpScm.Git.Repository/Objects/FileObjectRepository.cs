@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using AmpScm.Buckets;
+﻿using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 
 namespace AmpScm.Git.Objects;

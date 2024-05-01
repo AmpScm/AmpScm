@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AmpScm.Buckets.Specialized;
-
-namespace AmpScm.Buckets.Git;
+﻿namespace AmpScm.Buckets.Git;
 
 public class GitPacketBucket : GitBucket
 {
@@ -21,7 +14,7 @@ public class GitPacketBucket : GitBucket
         {
 
         }
-        while (await ReadSkipAsync(Bucket.MaxRead).ConfigureAwait(false) > 0)
+        while (await ReadSkipAsync(MaxRead).ConfigureAwait(false) > 0)
         {
 
         }

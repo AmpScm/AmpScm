@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Specialized;
@@ -247,10 +242,10 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
     private async ValueTask<TGitObject> GetOneViaMultiPackOffset<TGitObject>(int v, GitObjectType gitObjectType)
         where TGitObject : GitObject
     {
-        if (base.GetChunkLength("RIDX") > 0)
+        if (GetChunkLength("RIDX") > 0)
         {
             byte[] indexBuffer = new byte[sizeof(uint)];
-            if (await base.ReadFromChunkAsync("RIDX", v * sizeof(uint), indexBuffer).ConfigureAwait(false) == sizeof(uint))
+            if (await ReadFromChunkAsync("RIDX", v * sizeof(uint), indexBuffer).ConfigureAwait(false) == sizeof(uint))
             {
                 var idx = NetBitConverter.ToUInt32(indexBuffer, 0);
 

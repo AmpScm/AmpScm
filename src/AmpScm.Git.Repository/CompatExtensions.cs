@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace AmpScm.Git;
+﻿namespace AmpScm.Git;
 
 internal static class CompatExtensions
 {

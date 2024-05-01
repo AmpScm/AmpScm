@@ -7,7 +7,6 @@
  * worldwide.
  */
 
-using System;
 using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Buckets.Cryptography;

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace AmpScm.Git.Sets;
+﻿namespace AmpScm.Git.Sets;
 
 internal record GitRevisionSetOptions
 {
