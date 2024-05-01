@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Git.Repository;
 
@@ -26,7 +23,7 @@ public abstract class GitReferenceRepository : GitBackendRepository
     {
     }
 
-    public abstract IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned);
+    public abstract IAsyncEnumerable<GitReference> GetAll(ISet<string> alreadyReturned);
 
     internal GitReferenceUpdateTransaction CreateUpdateTransaction()
     {
@@ -48,7 +45,7 @@ public abstract class GitReferenceRepository : GitBackendRepository
         return default;
     }
 
-    public virtual ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
+    public virtual ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, ISet<string> processed)
     {
         return default;
     }

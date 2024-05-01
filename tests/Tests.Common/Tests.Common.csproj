@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-    <TargetFrameworks>net8.0;net48;net6.0</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes' ">$(TargetFrameworks);net7.0</TargetFrameworks>
+    <TargetFrameworks>net9.0;net8.0;net48</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes' ">$(TargetFrameworks);net6.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Unix' ">$(TargetFrameworks);net47</TargetFrameworks>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
@@ -18,7 +18,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MSTest.TestFramework" Version="3.2.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.3.1" />
   </ItemGroup>
 
   <ItemGroup>

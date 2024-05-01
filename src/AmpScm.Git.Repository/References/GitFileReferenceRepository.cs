@@ -16,7 +16,7 @@ internal class GitFileReferenceRepository : GitReferenceRepository
     }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-    public override async IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned)
+    public override async IAsyncEnumerable<GitReference> GetAll(ISet<string> alreadyReturned)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         string baseDir = Path.GetFullPath(GitDir);
@@ -40,11 +40,11 @@ internal class GitFileReferenceRepository : GitReferenceRepository
         }
     }
 
-    public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
+    public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, ISet<string> processed)
     {
         List<GitReference>? refs = null;
 
-        await foreach (var v in GetAll(new(StringComparer.Ordinal)).ConfigureAwait(false))
+        await foreach (var v in GetAll(new HashSet<string>(StringComparer.Ordinal)).ConfigureAwait(false))
         {
             if (v.Id == id)
             {

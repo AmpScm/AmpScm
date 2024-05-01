@@ -61,7 +61,7 @@ internal sealed class CommitGraphChain : GitObjectRepository
         }
     }
 
-    public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
+    public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(ISet<GitId> alreadyReturned)
     {
         if (!typeof(TGitObject).IsAssignableFrom(typeof(GitCommit)))
             yield break;

@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-    <TargetFrameworks>net8.0;net47;net6.0</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes'">$(TargetFrameworks);net7.0</TargetFrameworks>
+    <TargetFrameworks>net9.0;net8.0;net47</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes'">$(TargetFrameworks);net6.0</TargetFrameworks>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>1701;1702;1591;CA1510</NoWarn>
-    <WarningLevel>7</WarningLevel>
+    <WarningLevel>8</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
@@ -32,7 +32,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net47' or '$(TargetFramework)' == 'net48' ">
-    <PackageReference Include="IndexRange" Version="1.0.2" />
+    <PackageReference Include="IndexRange" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' != 'net47' ">
@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.127">
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.150">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

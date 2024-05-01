@@ -419,7 +419,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
             throw new GitBucketException($"Header has {phr.ObjectCount} records, index {_fanOut[255]}, for {Path.GetFileName(PackFile)}");
     }
 
-    public override IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
+    public override IAsyncEnumerable<TGitObject> GetAll<TGitObject>(ISet<GitId> alreadyReturned)
         where TGitObject : class
     {
 #pragma warning disable CA1849 // Call async methods when in an async method
@@ -436,7 +436,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
         }
     }
 
-    private async IAsyncEnumerable<TGitObject> GetAllAll<TGitObject>(HashSet<GitId> alreadyReturned)
+    private async IAsyncEnumerable<TGitObject> GetAllAll<TGitObject>(ISet<GitId> alreadyReturned)
         where TGitObject : class
     {
         await OpenPackIfNecessary().ConfigureAwait(false);
@@ -472,7 +472,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
         }
     }
 
-    private async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(HashSet<GitId> alreadyReturned)
+    private async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(ISet<GitId> alreadyReturned)
         where TGitObject : GitObject
     {
         await OpenPackIfNecessary().ConfigureAwait(false);

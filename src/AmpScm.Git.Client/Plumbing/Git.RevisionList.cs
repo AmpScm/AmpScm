@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AmpScm.Git.Client.Plumbing;
 
@@ -20,7 +18,7 @@ public class GitRevisionListArgs : GitPlumbingArgs
 
     public bool FirstParentOnly { get; set; }
 
-    public List<string> Commits { get; set; } = new List<string>();
+    public IList<string> Commits { get; set; } = new List<string>();
 
     public int? MaxParents { get; set; }
     public int? MinParents { get; set; }
@@ -36,7 +34,7 @@ public class GitRevisionListArgs : GitPlumbingArgs
 
 
     // Ordering
-    public GitRevisionListOrder Order {get;set;}
+    public GitRevisionListOrder Order { get; set; }
     public bool Reverse { get; set; }
 
     public override void Verify()

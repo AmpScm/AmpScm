@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-    <TargetFrameworks>net8.0;net47;net48;net6.0</TargetFrameworks>
-    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes'">$(TargetFrameworks);net7.0</TargetFrameworks>
+    <TargetFrameworks>net9.0;net8.0;net47;net48</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(GitHubCI)' == 'yes'">$(TargetFrameworks);net6.0</TargetFrameworks>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>1701;1702;1591;CA1510</NoWarn>
-    <WarningLevel>7</WarningLevel>
+    <WarningLevel>8</WarningLevel>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
@@ -40,18 +40,18 @@
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.127">
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.150">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="zlib.managed" Version="1.1.4" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' != 'net47' ">
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net47' and '$(TargetFramework)' != 'net48' ">
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

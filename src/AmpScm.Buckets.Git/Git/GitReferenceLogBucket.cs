@@ -73,18 +73,25 @@ public record GitSignatureRecord
             record = null!;
             return false;
         }
+
+        if (!TryParseWhen(bucketBytes.Slice(n2 + 2), out var when))
+        {
+            record = null;
+            return false;
+        }
+
         record = new GitSignatureRecord
         {
             Name = bucketBytes.ToUTF8String(0, n - 1),
             Email = bucketBytes.ToUTF8String(n + 1, n2 - n - 1),
-            When = ParseWhen(bucketBytes.Slice(n2 + 2))
+            When = when
         };
         return true;
     }
 
-    private static DateTimeOffset ParseWhen(BucketBytes value)
+    private static bool TryParseWhen(BucketBytes bb, out DateTimeOffset value)
     {
-        var time = value.Split((byte)' ', 2);
+        var time = bb.Split((byte)' ', 2);
         if (long.TryParse(time[0]
 #if NET8_0_OR_GREATER
             .Span
@@ -100,9 +107,11 @@ public record GitSignatureRecord
 #endif
             , NumberStyles.None | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var offset))
         {
-            return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
+            value = DateTimeOffset.FromUnixTimeSeconds(unixtime).ToOffset(TimeSpan.FromMinutes((offset / 100) * 60 + (offset % 100)));
+            return true;
         }
-        return DateTimeOffset.Now;
+        value = DateTimeOffset.MinValue;
+        return false;
     }
 }
 

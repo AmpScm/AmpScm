@@ -78,7 +78,7 @@ internal class GitPackedRefsReferenceRepository : GitReferenceRepository
         return null;
     }
 
-    public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
+    public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, ISet<string> processed)
     {
         await Read().ConfigureAwait(false);
 
@@ -153,7 +153,7 @@ internal class GitPackedRefsReferenceRepository : GitReferenceRepository
         }
     }
 
-    public override async IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned)
+    public override async IAsyncEnumerable<GitReference> GetAll(ISet<string> alreadyReturned)
     {
         await Read().ConfigureAwait(false);
 

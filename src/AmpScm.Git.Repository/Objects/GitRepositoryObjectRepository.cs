@@ -203,7 +203,7 @@ internal class GitRepositoryObjectRepository : GitObjectRepository
         }
     }
 
-    public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
+    public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(ISet<GitId> alreadyReturned)
         where TGitObject : class
     {
         if (typeof(TGitObject) == typeof(GitTagObject))

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
-using AmpScm.Buckets.Specialized;
 
 namespace AmpScm.Git.Objects;
 
@@ -70,10 +67,10 @@ internal sealed class FileObjectRepository : GitObjectRepository
             return default;
 
         var fileReader = FileBucket.OpenRead(path, forAsync: false);
-        return new (new GitFileObjectBucket(fileReader));
+        return new(new GitFileObjectBucket(fileReader));
     }
 
-    public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
+    public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(ISet<GitId> alreadyReturned)
     {
         foreach (string dir in Directory.EnumerateDirectories(_objectsDir, "??"))
         {

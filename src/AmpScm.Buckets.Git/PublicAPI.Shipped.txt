@@ -190,7 +190,7 @@ static AmpScm.Buckets.Git.GitConfigurationRecord.operator <(AmpScm.Buckets.Git.G
 static AmpScm.Buckets.Git.GitConfigurationRecord.operator <=(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
 static AmpScm.Buckets.Git.GitConfigurationRecord.operator >(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
 static AmpScm.Buckets.Git.GitConfigurationRecord.operator >=(AmpScm.Buckets.Git.GitConfigurationRecord! left, AmpScm.Buckets.Git.GitConfigurationRecord! right) -> bool
-static AmpScm.Buckets.Git.GitIndexer.IndexPack(string! packFile, bool writeReverseIndex = false, bool writeBitmap = false, AmpScm.Git.GitIdType idType = AmpScm.Git.GitIdType.Sha1) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
+static AmpScm.Buckets.Git.GitIndexer.IndexPack(string! packFile, bool writeReverseIndex = false, bool writeBitmap = false, AmpScm.Git.GitIdType idType = AmpScm.Git.GitIdType.Sha1, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitDeltaOffsetAsync(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitDeltaSize(this AmpScm.Buckets.Bucket! bucket) -> System.Threading.Tasks.ValueTask<long>
 static AmpScm.Buckets.Git.GitReadExtensions.ReadGitIdAsync(this AmpScm.Buckets.Bucket! bucket, AmpScm.Git.GitIdType type) -> System.Threading.Tasks.ValueTask<AmpScm.Git.GitId!>

@@ -30,7 +30,7 @@ internal class GitRepositoryReferenceRepository : GitReferenceRepository
             yield return new GitPackedRefsReferenceRepository(this, GitDir, WorkTreeDir);
     }
 
-    public override async IAsyncEnumerable<GitReference> GetAll(HashSet<string> alreadyReturned)
+    public override async IAsyncEnumerable<GitReference> GetAll(ISet<string> alreadyReturned)
     {
         foreach (var v in Sources)
         {
@@ -78,7 +78,7 @@ internal class GitRepositoryReferenceRepository : GitReferenceRepository
         return null;
     }
 
-    public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, HashSet<string> processed)
+    public override async ValueTask<IEnumerable<GitReference>> ResolveByOidAsync(GitId id, ISet<string> processed)
     {
         HashSet<GitReference>? references = null;
         foreach (var v in Sources)

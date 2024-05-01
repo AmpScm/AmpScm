@@ -169,7 +169,7 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
         return TryFindIdAsync(id).AsTask().Result.Success;
     }
 
-    public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(HashSet<GitId> alreadyReturned)
+    public override async IAsyncEnumerable<TGitObject> GetAll<TGitObject>(ISet<GitId> alreadyReturned)
     {
         if (_packs == null)
             yield break; // Not really loaded yet
@@ -194,7 +194,7 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
         }
     }
 
-    private async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(HashSet<GitId> alreadyReturned)
+    private async IAsyncEnumerable<TGitObject> GetAllViaBitmap<TGitObject>(ISet<GitId> alreadyReturned)
         where TGitObject : GitObject
     {
         if (FanOut is null || FanOut[255] == 0 || !HasBitmap.Value)
