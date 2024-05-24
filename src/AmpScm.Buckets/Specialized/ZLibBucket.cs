@@ -47,13 +47,9 @@ public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
             _level = level;
         _algorithm = algorithm;
 
-        switch (algorithm)
+        if (algorithm is not BucketCompressionAlgorithm.Deflate and not BucketCompressionAlgorithm.ZLib)
         {
-            case BucketCompressionAlgorithm.Deflate:
-            case BucketCompressionAlgorithm.ZLib:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, message: null);
+            throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, message: null);
         }
 
         ZSetup();

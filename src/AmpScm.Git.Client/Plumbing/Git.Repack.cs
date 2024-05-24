@@ -56,7 +56,7 @@ public partial class GitPlumbing
         if (options.Threads.HasValue)
             args.Add($"--threads={options.Threads.Value}");
 
-        await c.Repository.RunGitCommandAsync("repack", args);
+        await c.Repository.RunGitCommandAsync("repack", args).ConfigureAwait(false);
 
         Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }

@@ -33,7 +33,7 @@ public partial class GitPorcelain
             args.Add("--keep-largest-pack");
         if (options.PruneDate.HasValue)
             args.Add($"--prune={options.PruneDate.Value.Date.ToString("yyyy-MM-dd")}");
-        await c.Repository.RunGitCommandAsync("gc", args);
+        await c.Repository.RunGitCommandAsync("gc", args).ConfigureAwait(false);
 
         RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }

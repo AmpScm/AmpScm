@@ -56,6 +56,6 @@ public partial class GitPorcelain
             args.Add("HEAD");
         }
 
-        await c.Repository.RunGitCommandAsync("bundle", args);
+        await c.Repository.RunGitCommandAsync("bundle", args).ConfigureAwait(false);
     }
 }

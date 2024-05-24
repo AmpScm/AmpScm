@@ -53,7 +53,7 @@ public partial class GitPorcelain
 
         args.Add(path);
 
-        await c.Repository.RunGitCommandAsync("init", args);
+        await c.Repository.RunGitCommandAsync("init", args).ConfigureAwait(false);
 
     }
 }

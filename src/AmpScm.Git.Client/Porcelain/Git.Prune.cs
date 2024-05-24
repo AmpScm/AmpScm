@@ -19,6 +19,6 @@ public partial class GitPorcelain
         List<string> args = new List<string>();
 
 
-        await c.Repository.RunGitCommandAsync("prune", args);
+        await c.Repository.RunGitCommandAsync("prune", args).ConfigureAwait(false);
     }
 }

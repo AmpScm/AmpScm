@@ -197,11 +197,11 @@ public class HttpResponseBucket : ResponseBucket
                 throw new HttpBucketException($"No HTTP result: {bb.ToASCIIString()}");
 
 #if NET8_0_OR_GREATER
-            if (int.TryParse(parts[1].Span, NumberStyles.None, CultureInfo.InvariantCulture, out int status) 
+            if (int.TryParse(parts[1].Span, NumberStyles.None, CultureInfo.InvariantCulture, out int status)
 #else
             if (int.TryParse(parts[1].ToASCIIString(), NumberStyles.None, CultureInfo.InvariantCulture, out int status)
 #endif
-            && status >= 100 && status < 1000)
+                && status >= 100 && status < 1000)
             {
                 switch (status)
                 {
@@ -225,6 +225,8 @@ public class HttpResponseBucket : ResponseBucket
                         _authFailed = null;
                         if (await HandleAuthorization().ConfigureAwait(false))
                             continue;
+                        break;
+                    default:
                         break;
                 }
 

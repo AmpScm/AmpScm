@@ -45,7 +45,7 @@ public partial class GitPorcelain
             throw new ArgumentOutOfRangeException(nameof(sourceUri));
         else if (sourceUri.Scheme == "file")
         {
-            await Clone(c, sourceUri.AbsolutePath, path, options);
+            await Clone(c, sourceUri.AbsolutePath, path, options).ConfigureAwait(false);
             return;
         }
 
@@ -59,7 +59,7 @@ public partial class GitPorcelain
         args.Add(sourceUri.AbsoluteUri);
         args.Add(path);
 
-        await c.Repository.RunGitCommandAsync("clone", args);
+        await c.Repository.RunGitCommandAsync("clone", args).ConfigureAwait(false);
 
         if (!options.Bare)
             path = Path.Combine(path, ".git");
@@ -76,7 +76,7 @@ public partial class GitPorcelain
             throw new ArgumentNullException(nameof(sourcePath));
         else if (Uri.TryCreate(sourcePath, UriKind.Absolute, out var uri) && uri.Scheme != "file")
         {
-            await Clone(c, uri, path, options);
+            await Clone(c, uri, path, options).ConfigureAwait(false);
             return;
         }
         else if (!Directory.Exists(sourcePath))
@@ -92,7 +92,7 @@ public partial class GitPorcelain
         args.Add(sourcePath);
         args.Add(path);
 
-        await c.Repository.RunGitCommandAsync("clone", args);
+        await c.Repository.RunGitCommandAsync("clone", args).ConfigureAwait(false);
 
         if (!options.Bare)
             path = Path.Combine(path, ".git");

@@ -21,7 +21,7 @@ public partial class GitPlumbing
         if (options.Full)
             args.Add("--full");
 
-        var (_, txt) = await c.Repository.RunGitCommandOutAsync("fsck", args);
+        var (_, txt) = await c.Repository.RunGitCommandOutAsync("fsck", args).ConfigureAwait(false);
         return txt.Replace("\r","", StringComparison.Ordinal).TrimEnd();
     }
 }

@@ -24,6 +24,6 @@ public partial class GitPorcelain
         if (options.All)
             args.Add("--all");
 
-        return await c.Repository.RunGitCommandBucketAsync("fast-export", args);
+        return await c.Repository.RunGitCommandBucketAsync("fast-export", args).ConfigureAwait(false);
     }
 }

@@ -77,14 +77,14 @@ public partial class GitPorcelain
     [GitCommand("status")]
     public static async ValueTask<IAsyncEnumerable<GitStatusEntry>> Status(this GitPorcelainClient c, GitStatusArgs? options = null)
     {
-        return await Status(c, paths: null, options);
+        return await Status(c, paths: null, options).ConfigureAwait(false);
     }
 
     private static async IAsyncEnumerable<GitStatusEntry> WalkStatusResults(GitRepository r, IAsyncEnumerable<string> results)
     {
         int nameOffset = 33 + r.InternalConfig.IdType.HashLength() * 4;
 
-        await foreach (var line in results)
+        await foreach (var line in results.ConfigureAwait(false))
         {
             if (line.Length == 0)
                 continue;

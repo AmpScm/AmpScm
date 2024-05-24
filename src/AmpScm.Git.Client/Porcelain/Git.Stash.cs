@@ -32,6 +32,6 @@ public partial class GitPorcelain
                 break;
         }
 
-        await c.Repository.RunGitCommandAsync("stash", args);
+        await c.Repository.RunGitCommandAsync("stash", args).ConfigureAwait(false);
     }
 }

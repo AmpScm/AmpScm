@@ -2,7 +2,6 @@
 
 internal sealed class FromEnumerableBucket : Bucket
 {
-    private readonly IAsyncEnumerable<BucketBytes> _enumerable;
     private IAsyncEnumerator<BucketBytes>? _enumerator;
     private BucketBytes? _next;
 
@@ -11,7 +10,6 @@ internal sealed class FromEnumerableBucket : Bucket
         if (enumerable is null)
             throw new ArgumentNullException(nameof(enumerable));
 
-        _enumerable = enumerable;
         _enumerator = enumerable.GetAsyncEnumerator();
     }
 

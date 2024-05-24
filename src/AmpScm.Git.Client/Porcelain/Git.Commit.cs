@@ -18,7 +18,7 @@ public partial class GitPorcelain
     [GitCommand("commit")]
     public static async ValueTask Commit(this GitPorcelainClient c, GitCommitArgs? options)
     {
-        await Commit(c, Array.Empty<string>(), options);
+        await Commit(c, Array.Empty<string>(), options).ConfigureAwait(false);
     }
 
     [GitCommand("commit")]
@@ -57,6 +57,6 @@ public partial class GitPorcelain
             }
         }
 
-        await c.Repository.RunGitCommandAsync("commit", args);
+        await c.Repository.RunGitCommandAsync("commit", args).ConfigureAwait(false);
     }
 }

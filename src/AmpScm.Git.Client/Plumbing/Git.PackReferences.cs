@@ -21,6 +21,6 @@ public partial class GitPlumbing
         await c.Repository.RunGitCommandAsync("pack-refs", new [] {
             options.All ? "--all" : "",
             options.NoPrune ? "--no-prune" : ""
-        }.Where(x=>!string.IsNullOrEmpty(x)).ToArray());
+        }.Where(x=>!string.IsNullOrEmpty(x)).ToArray()).ConfigureAwait(false);
     }
 }

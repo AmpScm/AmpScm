@@ -28,7 +28,7 @@ public partial class GitPlumbing
         else
             args = new string[] { "-i", options.Command! ?? options.Guide! };
 
-        var (_, txt) = await c.Repository.RunGitCommandOutAsync("help", args);
+        var (_, txt) = await c.Repository.RunGitCommandOutAsync("help", args).ConfigureAwait(false);
 
         return txt ?? "";
     }
@@ -41,7 +41,7 @@ public partial class GitPlumbing
 
         List<string> results = new List<string>();
         bool gotOne = false;
-        await foreach (var line in c.Repository.WalkPlumbingCommand(name, new[] { "-h" }, expectedResults: new[] { 129, 0 }))
+        await foreach (var line in c.Repository.WalkPlumbingCommand(name, new[] { "-h" }, expectedResults: new[] { 129, 0 }).ConfigureAwait(false))
         {
             results.Add(line);
             if (!gotOne && !string.IsNullOrWhiteSpace(line))
@@ -51,7 +51,7 @@ public partial class GitPlumbing
         if (gotOne)
             return results.ToArray();
 
-        var (_, _, stderr) = await c.Repository.RunGitCommandErrAsync(name, new[] { "-h" }, expectedResults: new[] { 129 });
+        var (_, _, stderr) = await c.Repository.RunGitCommandErrAsync(name, new[] { "-h" }, expectedResults: new[] { 129 }).ConfigureAwait(false);
 
         return stderr.Split('\n').Select(x=>x.TrimEnd()).ToArray();
     }

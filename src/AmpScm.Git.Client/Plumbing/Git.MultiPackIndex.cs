@@ -43,7 +43,7 @@ public partial class GitPlumbing
         else if (options.Bitmap == false)
             args.Add("--no-bitmap");
 
-        await c.Repository.RunGitCommandAsync("multi-pack-index", args);
+        await c.Repository.RunGitCommandAsync("multi-pack-index", args).ConfigureAwait(false);
 
         Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }

@@ -32,6 +32,6 @@ public partial class GitPorcelain
         args.Add("--");
         args.Add(name);
 
-        await c.Repository.RunGitCommandAsync("tag", args);
+        await c.Repository.RunGitCommandAsync("tag", args).ConfigureAwait(false);
     }
 }

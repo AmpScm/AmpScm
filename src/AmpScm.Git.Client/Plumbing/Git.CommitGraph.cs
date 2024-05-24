@@ -53,7 +53,7 @@ public partial class GitPlumbing
             }
         }
 
-        await c.Repository.RunGitCommandAsync("commit-graph", args);
+        await c.Repository.RunGitCommandAsync("commit-graph", args).ConfigureAwait(false);
 
         Porcelain.GitPorcelain.RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }

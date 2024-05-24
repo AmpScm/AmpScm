@@ -27,7 +27,7 @@ public partial class GitPorcelain
         if (string.IsNullOrEmpty(source))
             throw new ArgumentNullException(nameof(source));
 
-        await Merge(c, new[] { source }, options);
+        await Merge(c, new[] { source }, options).ConfigureAwait(false);
     }
 
     [GitCommand("merge")]
@@ -60,6 +60,6 @@ public partial class GitPorcelain
         args.Add("--");
         args.AddRange(source);
 
-        await c.Repository.RunGitCommandAsync("merge", args);
+        await c.Repository.RunGitCommandAsync("merge", args).ConfigureAwait(false);
     }
 }

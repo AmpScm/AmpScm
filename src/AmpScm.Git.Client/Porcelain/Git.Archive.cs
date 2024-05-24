@@ -57,6 +57,6 @@ public partial class GitPorcelain
         if (options.Paths?.Any() ?? false)
             args.AddRange(options.Paths);
 
-        await c.Repository.RunGitCommandAsync("archive", args);
+        await c.Repository.RunGitCommandAsync("archive", args).ConfigureAwait(false);
     }
 }

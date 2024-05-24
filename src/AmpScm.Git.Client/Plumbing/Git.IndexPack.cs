@@ -47,6 +47,6 @@ public partial class GitPlumbing
             }
         }
 
-        await c.Repository.RunGitCommandAsync("index-pack", args);
+        await c.Repository.RunGitCommandAsync("index-pack", args).ConfigureAwait(false);
     }
 }

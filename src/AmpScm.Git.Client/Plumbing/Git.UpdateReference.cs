@@ -88,6 +88,6 @@ public partial class GitPlumbing
     [GitCommand("update-ref")]
     public static async ValueTask UpdateReference(this GitPlumbingClient c, GitUpdateReference update, GitUpdateReferenceArgs? a = null)
     {
-        await UpdateReference(c, new[] { update }, a);
+        await UpdateReference(c, new[] { update }, a).ConfigureAwait(false);
     }
 }

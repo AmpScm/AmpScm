@@ -21,6 +21,6 @@ public partial class GitPorcelain
 
         args.Add(commit);
 
-        await c.Repository.RunGitCommandAsync("verify-commit", args);
+        await c.Repository.RunGitCommandAsync("verify-commit", args).ConfigureAwait(false);
     }
 }

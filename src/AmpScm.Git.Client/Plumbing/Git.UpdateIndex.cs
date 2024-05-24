@@ -66,6 +66,6 @@ public partial class GitPlumbing
             }
         }
 
-        await c.Repository.RunGitCommandAsync("update-index", args);
+        await c.Repository.RunGitCommandAsync("update-index", args).ConfigureAwait(false);
     }
 }

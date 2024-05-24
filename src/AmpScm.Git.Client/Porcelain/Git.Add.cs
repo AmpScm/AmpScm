@@ -27,7 +27,7 @@ public partial class GitPorcelain
         args.Add("--");
         args.AddRange(paths);
 
-        await c.Repository.RunGitCommandAsync("add", args);
+        await c.Repository.RunGitCommandAsync("add", args).ConfigureAwait(false);
 
         RemoveReadOnlyIfNecessary(c.Repository.GitDirectory);
     }

@@ -15,6 +15,6 @@ public static partial class GitPlumbing
 
     public static async ValueTask<(int ExitCode, string OutputText)> RunRawCommand(this GitPlumbingClient c, string command, params string[] args)
     {
-        return await c.Repository.RunGitCommandOutAsync(command, args);
+        return await c.Repository.RunGitCommandOutAsync(command, args).ConfigureAwait(false);
     }
 }

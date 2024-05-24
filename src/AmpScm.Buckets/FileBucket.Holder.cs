@@ -77,12 +77,12 @@ public partial class FileBucket
         {
             var d = _disposers;
             _disposers = null!;
-            foreach (Action a in d.GetInvocationList())
+            foreach (var a in d.GetInvocationList())
             {
 #pragma warning disable CA1031 // Do not catch general exception types
                 try
                 {
-                    a.Invoke(); // But do release memory we allocated explicitly
+                    (a as Action)?.Invoke(); // But do release memory we allocated explicitly
                 }
                 catch
                 { }

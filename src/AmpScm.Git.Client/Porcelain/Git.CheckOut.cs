@@ -40,6 +40,6 @@ public partial class GitPorcelain
         else if (string.IsNullOrEmpty(branchOrCommit))
             throw new ArgumentNullException(nameof(branchOrCommit));
 
-        await c.Repository.RunGitCommandAsync("checkout", args);
+        await c.Repository.RunGitCommandAsync("checkout", args).ConfigureAwait(false);
     }
 }
