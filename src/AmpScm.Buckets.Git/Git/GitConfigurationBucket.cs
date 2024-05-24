@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Text;
+#if NETFRAMEWORK
 using AmpScm.Git;
+#endif
 
 namespace AmpScm.Buckets.Git;
 
@@ -106,7 +108,7 @@ public class GitConfigurationBucket : GitBucket
                     break;
 
                 line += bb.TrimEnd(eol).ToUTF8String();
-            }                
+            }
 
             if (line[0] == '[')
             {

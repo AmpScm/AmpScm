@@ -46,15 +46,16 @@ public class GitPlumbingTests
                 group = command;
             else if (group != null)
             {
-                var cmd = command.Trim().Split(' ')[0];
-                if (group.StartsWith("Low-level") && !group.Contains("Internal") && !group.Contains("Syncing Repositories") && !porcelainCommands.Contains(cmd)
+                var parts = command.Trim().Split(' ');
+                var cmd = parts[0];
+                if (group.StartsWith("Low-level") && !group.Contains("Internal") && !group.Contains("Syncing Repositories") && !porcelainCommands.Contains(cmd) && !parts.Any(x => x == "EXPERIMENTAL:")
                     || plumbingCommands.Contains(cmd))
                 {
 
                     if (ignored.Contains(cmd))
                         continue;
 
-                    var parts = cmd.Split('-');
+                    parts = cmd.Split('-');
 
                     if (parts[0].StartsWith("mk"))
                         parts = new string[] { "make", parts[0].Substring(2) }.Concat(parts.Skip(1)).ToArray();

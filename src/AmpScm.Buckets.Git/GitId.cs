@@ -313,7 +313,7 @@ public sealed class GitId : IEquatable<GitId>, IComparable<GitId>, IFormattable
         return BitConverter.ToInt32(_bytes, _offset) ^ BitConverter.ToInt32(_bytes, _offset + 16);
     }
 
-    private const string hexChars = "0123456789abcdef";
+    private const string HexChars = "0123456789abcdef";
     public override string ToString()
     {
         int byteCount = HashLength(Type);
@@ -322,8 +322,8 @@ public sealed class GitId : IEquatable<GitId>, IComparable<GitId>, IFormattable
         for (int i = 0; i < byteCount; i++)
         {
             var b = _bytes[_offset + i];
-            chars[2 * i] = hexChars[b >> 4];
-            chars[2 * i + 1] = hexChars[b & 0xF];
+            chars[2 * i] = HexChars[b >> 4];
+            chars[2 * i + 1] = HexChars[b & 0xF];
         }
 
         return new string(chars);

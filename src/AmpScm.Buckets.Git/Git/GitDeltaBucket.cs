@@ -58,12 +58,12 @@ internal sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
 
     private static int PopCount(uint value)
     {
-#if NETFRAMEWORK
+#if NET
+        return BitOperations.PopCount(value);
+#else
         value -= ((value >> 1) & 0x55555555);
         value = (value & 0x33333333) + ((value >> 2) & 0x33333333);
         return (int)((((value + (value >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24);
-#else
-        return BitOperations.PopCount(value);
 #endif
     }
 

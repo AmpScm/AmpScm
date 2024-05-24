@@ -140,7 +140,7 @@ public static partial class GitIndexer
             using var idxFile = File.Create(Path.ChangeExtension(packFile, ".idx"));
 
             GitId? idxChecksum = null;
-            await index.GitHash(idType, x => idxChecksum = x).WriteToAsync(idxFile).ConfigureAwait(false);
+            await index.GitHash(idType, x => idxChecksum = x).WriteToAsync(idxFile, cancellationToken).ConfigureAwait(false);
 
             await idxFile.WriteAsync(idxChecksum!.Hash, cancellationToken).ConfigureAwait(false);
         }

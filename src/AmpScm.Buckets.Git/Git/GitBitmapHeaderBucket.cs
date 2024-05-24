@@ -45,4 +45,6 @@ public class GitBitmapHeaderBucket : GitBucket
     public int? Version => _readHeader ? _version : null;
     public int? Flags => _readHeader ? _flags : null;
     public int? ObjectCount => _readHeader ? _objCount : null;
+
+    protected GitId? Checksum => _checksum;
 }
