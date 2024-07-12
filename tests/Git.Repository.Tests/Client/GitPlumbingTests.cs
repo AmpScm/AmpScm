@@ -14,7 +14,7 @@ public class GitPlumbingTests
 {
     public TestContext TestContext { get; set; } = null!;
 
-    private static readonly string[] ignored = new[] { "for-each-repo" }; // Experimental, and 100% unneeded for our usecase
+    private static readonly string[] ignored = new[] { "for-each-repo" }; // Experimental, and 100% unneeded for our use case
 
     [TestMethod]
     public async Task GitHelpToPlumbing()
@@ -102,7 +102,7 @@ public class GitPlumbingTests
                     {
                         if (m.GetCustomAttributes<GitCommandAttribute>().FirstOrDefault() is GitCommandAttribute a)
                         {
-                            Assert.AreEqual(cmd, a.Name, $"Gitcommand properly documented on {m.DeclaringType}.{m.Name}()");
+                            Assert.AreEqual(cmd, a.Name, $"Git command properly documented on {m.DeclaringType}.{m.Name}()");
                         }
                         else
                             Assert.Fail($"GitCommandAttribute not set on {m.DeclaringType}.{m.Name}()");
