@@ -1,5 +1,6 @@
 ﻿#nullable enable
 abstract AmpScm.Buckets.Git.GitObjectBucket.SeekAsync(long newPosition) -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Git.GitBitmapHeaderBucket.Checksum.get -> AmpScm.Git.GitId?
 AmpScm.Buckets.Git.GitBundleBucket
 AmpScm.Buckets.Git.GitBundleBucket.GitBundleBucket(AmpScm.Buckets.Bucket! source) -> void
 AmpScm.Buckets.Git.GitBundleBucket.ReadCapabilityAsync() -> System.Threading.Tasks.ValueTask<(string? Key, string? Value)>
