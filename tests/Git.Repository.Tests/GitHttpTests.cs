@@ -69,8 +69,10 @@ public class GitHttpTests
     public async Task GetGitInfoV2()
     {
 #if NETFRAMEWORK
+#if NET48_OR_GREATER
         if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-            return; // Results not stable on MONO
+#endif
+            return; // Results not stable on MONO, nor .Net 4.7
 #endif
 
         var br = Client.CreateRequest($"https://github.com/rhuijben/putty.git/info/refs?service=git-upload-pack");
@@ -112,8 +114,10 @@ public class GitHttpTests
     public async Task GetGitInfoV2Auth()
     {
 #if NETFRAMEWORK
+#if NET48_OR_GREATER
         if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-            return; // Results not stable on MONO
+#endif
+            return; // Results not stable on MONO, nor .Net 4.7
 #endif
 
         using var rp = GitRepository.Open(Environment.CurrentDirectory);

@@ -9,8 +9,9 @@
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\AmpScm.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <NoWarn>1701;1702;1591;CA1510</NoWarn>
+    <NoWarn>1701;1702;1591;CA1510;$(NoWarn)</NoWarn>
     <WarningLevel>8</WarningLevel>
+    <NoWarn>CA2007;MA0004;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
