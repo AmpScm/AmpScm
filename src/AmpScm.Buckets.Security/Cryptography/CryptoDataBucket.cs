@@ -335,24 +335,19 @@ public abstract class CryptoDataBucket : WrappingBucket
                 case DerType.Null:
                     await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                     break;
+                case DerType.BitString:
+                    {
+                        await b.ReadByteAsync().ConfigureAwait(false);
+
+                        using var bq2 = new DerBucket(b);
+                        await SequenceToList(vals, bq2);
+                        break;
+                    }
                 default:
                     {
                         var bb = await b!.ReadExactlyAsync(32768).ConfigureAwait(false);
 
-                        if (bt == DerType.BitString)
-                        {
-                            // This next check matches for DSA.
-                            // I'm guessing this is some magic
-                            if (bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x81 })
-                                || bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x80 })
-                                || bb.Span.StartsWith(new byte[] { 0, 0x30, 0x82, 0x01 }) // RSA
-                                )
-                                vals.Add(bb.Slice(4).Memory.ToBigInteger());
-                            else
-                                vals.Add(bb.Memory.ToBigInteger());
-                        }
-                        else
-                            vals.Add(bb.Memory.ToBigInteger());
+                        vals.Add(bb.Memory.ToBigInteger());
 
                         await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                         break;

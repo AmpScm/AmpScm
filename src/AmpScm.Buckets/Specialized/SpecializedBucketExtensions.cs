@@ -289,8 +289,29 @@ public static partial class SpecializedBucketExtensions
     {
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
+
         using (bucket)
             await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Reads from the bucket until EOF using <see cref="Bucket.ReadSkipAsync(long)"/>
+    /// </summary>
+    /// <param name="bucket"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static async ValueTask ReadEofAndCloseAsync(this Bucket bucket)
+    {
+        if (bucket is null)
+            throw new ArgumentNullException(nameof(bucket));
+
+        using (bucket)
+        {
+            var n = await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
+
+            if (n > 0)
+                throw new BucketException($"Expected EOF but got {n} bytes from {bucket.Name} Bucket");
+        }
     }
 
     /// <summary>
@@ -311,7 +332,7 @@ public static partial class SpecializedBucketExtensions
 
     /// <summary>
     /// Detects the type of bucket by reading some bytes to check for a byte-order-mark and/or by peeking
-    /// some data for special character patterns and then convering to UTF-8
+    /// some data for special character patterns and then converting to UTF-8
     /// </summary>
     /// <param name="bucket"></param>
     /// <returns></returns>
@@ -326,7 +347,7 @@ public static partial class SpecializedBucketExtensions
 
     /// <summary>
     /// Detects the type of bucket by reading some bytes to check for a byte-order-mark and/or by peeking
-    /// some data for special character patterns and then convering to UTF-8
+    /// some data for special character patterns and then converting to UTF-8
     /// </summary>
     /// <param name="bucket"></param>
     /// <param name="fallbackEncoding">The fallback encoding for per-character encodings. If null the
