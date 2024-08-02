@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net.Mail;
+using System.Numerics;
 using System.Text;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
@@ -332,6 +333,7 @@ cEgAjelaGkn3RJOwXWoJbA==
     {
         Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
         Assert.AreEqual(rsa_key1_fingerprint, key1.FingerprintString);
+        Assert.AreEqual((BigInteger)65537, key1.GetValues()[1]);
         Assert.AreEqual(new MailAddress("test@rsa", "RSA Test"), key1.MailAddress);
         Assert.AreEqual(CryptoAlgorithm.Rsa, key1.Algorithm);
         Assert.IsTrue(key1.HasPrivateKey, "Key1 has secret");
@@ -798,5 +800,6 @@ LQIDAQAB
         Assert.IsTrue(PublicKeySignature.TryParse(k, out var v));
 
         Assert.AreEqual(CryptoAlgorithm.Rsa, v.Algorithm);
+        Assert.AreEqual((BigInteger)65537, v.GetValues()[1]);
     }
 }

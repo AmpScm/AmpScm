@@ -447,6 +447,29 @@ public sealed class SignatureBucket : CryptoDataBucket
                         await SequenceToList(values, der2).ConfigureAwait(false);
                         await SequenceToList(values, der).ConfigureAwait(false);
 
+                        if (cryptoAlg == CryptoAlgorithm.Rsa)
+                        {
+                            // We have bot values encoded as a single value... Fix up here
+
+                            Debug.Assert(values.Count == 1);
+
+                            using var rsaSsh = values[0].ToCryptoValue().AsBucket();
+
+                            await rsaSsh.ReadNetworkInt32Async().ConfigureAwait(false); // And ignore result
+
+                            int lengthOfModulus = await rsaSsh.ReadNetworkUInt16Async().ConfigureAwait(false);
+                            var modulus = (await rsaSsh.ReadExactlyAsync(lengthOfModulus).ConfigureAwait(false)).ToArray().ToBigInteger();
+
+                            int lengthOfExponent = await rsaSsh.ReadNetworkUInt16Async().ConfigureAwait(false);
+                            var exponent = (await rsaSsh.ReadExactlyAsync(lengthOfExponent).ConfigureAwait(false)).ToArray().ToBigInteger();
+
+
+                            values.Clear();
+                            values.Add(modulus);
+                            values.Add(exponent);
+                        }
+
+
                         BigInteger[] keyIntegers = values.ToArray();
 
                         _keys.Add(new PublicKeySignature(CreateSshFingerprint(cryptoAlg, keyIntegers), cryptoAlg, keyIntegers));

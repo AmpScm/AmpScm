@@ -324,28 +324,39 @@ public abstract class CryptoDataBucket : WrappingBucket
             if (b is null)
                 break;
 
-            if (bt == DerType.Sequence)
+            switch (bt)
             {
-                using var bq = new DerBucket(b);
-                await SequenceToList(vals, bq).ConfigureAwait(false);
-            }
-            else
-            {
-                var bb = await b!.ReadExactlyAsync(32768).ConfigureAwait(false);
+                case DerType.Sequence:
+                    {
+                        using var bq = new DerBucket(b);
+                        await SequenceToList(vals, bq).ConfigureAwait(false);
+                        break;
+                    }
+                case DerType.Null:
+                    await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                    break;
+                default:
+                    {
+                        var bb = await b!.ReadExactlyAsync(32768).ConfigureAwait(false);
 
-                if (bt == DerType.BitString)
-                {
-                    // This next check matches for DSA.
-                    // I'm guessing this is some magic
-                    if (bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x81 }) || bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x80 }))
-                        vals.Add(bb.Slice(4).Memory.ToBigInteger());
-                    else
-                        vals.Add(bb.Memory.ToBigInteger());
-                }
-                else
-                    vals.Add(bb.Memory.ToBigInteger());
+                        if (bt == DerType.BitString)
+                        {
+                            // This next check matches for DSA.
+                            // I'm guessing this is some magic
+                            if (bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x81 })
+                                || bb.Span.StartsWith(new byte[] { 0, 0x02, 0x81, 0x80 })
+                                || bb.Span.StartsWith(new byte[] { 0, 0x30, 0x82, 0x01 }) // RSA
+                                )
+                                vals.Add(bb.Slice(4).Memory.ToBigInteger());
+                            else
+                                vals.Add(bb.Memory.ToBigInteger());
+                        }
+                        else
+                            vals.Add(bb.Memory.ToBigInteger());
 
-                await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                        await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
+                        break;
+                    }
             }
         }
     }

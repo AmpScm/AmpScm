@@ -1,11 +1,11 @@
 ﻿using System.Net;
+using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AmpScm.Buckets.Client.Buckets;
-using AmpScm.Git;
 using AmpScm.Buckets.Git;
-using AmpScm;
+using AmpScm.Git;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GitRepositoryTests;
 
@@ -24,8 +24,10 @@ public class GitHttpTests
     public async Task GetGitInfoV1()
     {
 #if NETFRAMEWORK
+#if NET48_OR_GREATER
         if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-            return; // Results not stable on MONO
+#endif
+            return; // Results not stable on MONO, nor .Net 4.7
 #endif
 
         var br = Client.CreateRequest($"https://github.com/rhuijben/putty.git/info/refs?service=git-upload-pack");
