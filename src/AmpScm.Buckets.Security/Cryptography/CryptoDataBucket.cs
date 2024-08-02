@@ -337,10 +337,10 @@ public abstract class CryptoDataBucket : WrappingBucket
                     break;
                 case DerType.BitString:
                     {
-                        await b.ReadByteAsync().ConfigureAwait(false);
+                        var bs = await b.ReadByteAsync().ConfigureAwait(false);
 
-                        using var bq2 = new DerBucket(b);
-                        await SequenceToList(vals, bq2);
+                        using var bq = new DerBucket(b);
+                        await SequenceToList(vals, bq).ConfigureAwait(false);
                         break;
                     }
                 default:
