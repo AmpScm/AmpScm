@@ -1,6 +1,8 @@
 ﻿using System.Buffers;
 using System.Diagnostics;
+#if !NET
 using System.Runtime.InteropServices;
+#endif
 using System.Security.Cryptography;
 
 namespace AmpScm.Buckets.Cryptography;
@@ -116,7 +118,7 @@ internal sealed class CfbMapper : SymmetricAlgorithm
 
         private byte[] Encipher(ReadOnlyMemory<byte> input)
         {
-#if NETCOREAPP
+#if NET
             return Algorithm.EncryptEcb(input.Span, PaddingMode.None);
 #else
             if (!MemoryMarshal.TryGetArray(input, out var seg))

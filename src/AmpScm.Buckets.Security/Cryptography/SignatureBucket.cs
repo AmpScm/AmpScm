@@ -396,19 +396,19 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                     if (publicKeyType.StartsWith("RSA", StringComparison.OrdinalIgnoreCase))
                     {
-                        List<BigInteger> vals = new();
+                        List<BigInteger> values = new();
 
                         while (await der.ReadValueAsync().ConfigureAwait(false) is { } rd && rd.Bucket is { })
                         {
                             var (b, bt) = rd;
 
                             var bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
-                            vals.Add(bb.Memory.ToBigInteger());
+                            values.Add(bb.Memory.ToBigInteger());
                         }
 
-                        var keyInts = vals.ToArray();
+                        var keyIntegers = values.ToArray();
 
-                        _keys.Add(new PublicKeySignature(CreateSshFingerprint(CryptoAlgorithm.Rsa, keyInts), CryptoAlgorithm.Rsa, keyInts));
+                        _keys.Add(new PublicKeySignature(CreateSshFingerprint(CryptoAlgorithm.Rsa, keyIntegers), CryptoAlgorithm.Rsa, keyIntegers));
                     }
                     else if (publicKeyType is { })
                     {
@@ -432,6 +432,8 @@ public sealed class SignatureBucket : CryptoDataBucket
                             cryptoAlg = CryptoAlgorithm.Dsa;
                         else if (bb.Span.SequenceEqual(new byte[] { 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01 }))
                             cryptoAlg = CryptoAlgorithm.Ecdsa;
+                        else if (bb.Span.SequenceEqual(new byte[] { 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01 }))
+                            cryptoAlg = CryptoAlgorithm.Rsa;
                         else
                         {
                             await ob!.ReadUntilEofAsync().ConfigureAwait(false);
@@ -440,14 +442,14 @@ public sealed class SignatureBucket : CryptoDataBucket
                             break;
                         }
 
-                        List<BigInteger> vals = new();
+                        List<BigInteger> values = new();
 
-                        await SequenceToList(vals, der2).ConfigureAwait(false);
-                        await SequenceToList(vals, der).ConfigureAwait(false);
+                        await SequenceToList(values, der2).ConfigureAwait(false);
+                        await SequenceToList(values, der).ConfigureAwait(false);
 
-                        BigInteger[] keyInts = vals.ToArray();
+                        BigInteger[] keyIntegers = values.ToArray();
 
-                        _keys.Add(new PublicKeySignature(CreateSshFingerprint(cryptoAlg, keyInts), cryptoAlg, keyInts));
+                        _keys.Add(new PublicKeySignature(CreateSshFingerprint(cryptoAlg, keyIntegers), cryptoAlg, keyIntegers));
                     }
                     else
                         await der.ReadUntilEofAsync().ConfigureAwait(false);

@@ -562,7 +562,7 @@ public class GitObjectWriteTests
 
         using (var t = repo.References.CreateUpdateTransaction())
         {
-            t.Create("refs/rewritten", rewritten);
+            t.Create("refs/heads/rewritten", rewritten);
             await t.CommitAsync();
         }
 

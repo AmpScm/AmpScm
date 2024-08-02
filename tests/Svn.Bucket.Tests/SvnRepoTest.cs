@@ -18,6 +18,13 @@ public class SvnRepoTest
     [TestInitialize]
     public void EnsureSetup()
     {
+#if !NETFRAMEWORK
+        if (OperatingSystem.IsMacOS())
+            Assert.Inconclusive("MacOS on GitHub doesn't have svn");
+#else
+        if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            Assert.Inconclusive("MacOS on GitHub doesn't have svn");
+#endif
         lock (_setup)
         {
             if (RepositoryUrl is not null)

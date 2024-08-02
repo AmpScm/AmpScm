@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+﻿#if NETFRAMEWORK
+using System.ComponentModel;
 
-#if NETFRAMEWORK
 namespace System.Runtime.CompilerServices
 {
     [EditorBrowsable(EditorBrowsableState.Never)]

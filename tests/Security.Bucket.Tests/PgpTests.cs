@@ -760,7 +760,7 @@ UL6Ey7aK
 
 
     [TestMethod]
-    public async Task DecryptTrippleDes()
+    public async Task DecryptTripleDes()
     {
         // echo "This is (was) triple des" | gpg --batch --passphrase 3des --allow-old-cipher-algo --cipher-algo 3DES --symmetric -a
         const string msg =
@@ -780,5 +780,23 @@ meYB0A6OXDi4z0cpa097TG9MiC3vmRIpUjpPr8WeDJA2r03imw==
             Assert.AreEqual("This is (was) triple des\n", bb.ToUTF8String());
 
         }
+    }
+
+    [TestMethod]
+    public void DecodeRSAKey()
+    {
+        var k = @"-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxpaMTz2NdmNZMoUBgRC+
+/hBNbKoOQWvlN5YKzHRrBl0wd0m8uPmexrqMnhxHxtYXn0zd23/ooW3Jy258tFhz
+gMcjC8Gm0Zo722XEtNP1exN6mUck/ARPrndmvyoQOqfOOiqwerCAWv35d9dtKSPp
+dK3OgtUqZVNBq3tocxbbVw2bjxpBUN9c56tF1044UNX8H1CGSoHh8r7RR+tF1E2E
+TBQtioKCdLcg2BJJrQl75/vzkEnR7Pev15ALbQnXFGGpYKwRzaBoNlQi+VwN5eQ7
+i2JLTIZwfxUGTuoXcMCRiqF1fhCCMgdh1RGnt6CKOn3WyfYBSGKXjRa6ZQikaKKB
+LQIDAQAB
+-----END PUBLIC KEY-----";
+
+        Assert.IsTrue(PublicKeySignature.TryParse(k, out var v));
+
+        Assert.AreEqual(CryptoAlgorithm.Rsa, v.Algorithm);
     }
 }

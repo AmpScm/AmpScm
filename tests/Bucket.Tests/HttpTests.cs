@@ -1,9 +1,10 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
+using AmpScm;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Client;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AmpScm;
 using AmpScm.Buckets.Client.Buckets;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BucketTests;
 
@@ -21,7 +22,7 @@ public class HttpTests
     [TestMethod]
     public async Task GetCloudFlare404()
     {
-        var br = Client.CreateRequest($"https://cloudflare.com/get-404-{Guid.NewGuid()}");
+        var br = Client.CreateRequest(new Uri($"https://cloudflare.com/get-404-{Guid.NewGuid()}"));
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
         using var result = await br.GetResponseAsync();
@@ -53,7 +54,7 @@ public class HttpTests
     [TestMethod]
     public async Task GetGitHub404()
     {
-        var br = Client.CreateRequest($"http://github.com/get-404-{Guid.NewGuid()}");
+        var br = Client.CreateRequest(new Uri($"http://github.com/get-404-{Guid.NewGuid()}"));
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
         using var result = await br.GetResponseAsync();
@@ -93,6 +94,6 @@ public class HttpTests
 
         }
 
-        Assert.AreEqual(13, Convert.ToInt32("13\r")); // Without, no problem
+        Assert.AreEqual(13, Convert.ToInt32("13\r", CultureInfo.InvariantCulture)); // Without, no problem
     }
 }
