@@ -11,6 +11,7 @@
     <WarningLevel>6</WarningLevel>
     <VSTestResultsDirectory Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)TestResults\$(Configuration)\$(TargetFramework)\</VSTestResultsDirectory>
     <IsTestProject>true</IsTestProject>
+    <NoWarn>CA2007;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

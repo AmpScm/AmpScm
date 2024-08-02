@@ -12,7 +12,7 @@ public class SvnDeltaBucket : SvnBucket
     private BucketBytes _remaining;
     private long _position;
     private ReadOnlyMemory<byte> _srcView;
-    private long _srcViewoffset;
+    private long _srcViewOffset;
     private byte[]? _window;
     private Action? _atEof;
 
@@ -166,17 +166,17 @@ public class SvnDeltaBucket : SvnBucket
 
         if (sview_len > 0)
         {
-            if (!_srcView.IsEmpty && _srcViewoffset + _srcView.Length > sview_offset)
+            if (!_srcView.IsEmpty && _srcViewOffset + _srcView.Length > sview_offset)
             {
-                if (sview_len + sview_offset <= _srcViewoffset + _srcView.Length)
+                if (sview_len + sview_offset <= _srcViewOffset + _srcView.Length)
                 {
-                    _srcView = _srcView.Slice((int)(_srcViewoffset + _srcView.Length - (sview_len + sview_offset)));
+                    _srcView = _srcView.Slice((int)(_srcViewOffset + _srcView.Length - (sview_len + sview_offset)));
                 }
                 else
                 {
                     byte[] newView = new byte[sview_len];
 
-                    int moveOver = (int)(_srcViewoffset + _srcView.Length - sview_offset);
+                    int moveOver = (int)(_srcViewOffset + _srcView.Length - sview_offset);
 
                     _srcView.Slice(_srcView.Length - moveOver).CopyTo(newView);
 
@@ -191,7 +191,7 @@ public class SvnDeltaBucket : SvnBucket
                 bb = await DeltaBase!.ReadExactlyAsync(sview_len).ConfigureAwait(false);
 
                 _srcView = bb;
-                _srcViewoffset = sview_offset;
+                _srcViewOffset = sview_offset;
             }
         }
 

@@ -12,6 +12,7 @@
     <VSTestResultsDirectory Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)TestResults\$(Configuration)\$(TargetFramework)\</VSTestResultsDirectory>
     <IsTestProject>true</IsTestProject>
     <AnalysisLevel>latest-All</AnalysisLevel>
+    <NoWarn>CA2007;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
