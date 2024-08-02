@@ -22,7 +22,9 @@ public class GitPorcelainTests
         "version", /* Not separate */
         "scalar", /* Not really a git command */
         /* experimental: */ "restore", "switch",
-        "filter-branch"
+        "filter-branch",
+        /* not implemented yet */
+        "refs", "references", // Somehow available on github
     };
 
     [TestMethod]
@@ -85,7 +87,7 @@ public class GitPorcelainTests
                             "gc" => "GC",
                             "mv" => "Move",
                             "rm" => "Delete",
-                            "am" => "ApplyMailbox", 
+                            "am" => "ApplyMailbox",
                             "whatchanged" => "WhatChanged",
                             "worktree" => "WorkTree",
                             "checkout" => "CheckOut",
@@ -124,8 +126,8 @@ public class GitPorcelainTests
                 }
             }
         }
-            if (sb.Length > 0)
-                Assert.Fail(sb.ToString());
+        if (sb.Length > 0)
+            Assert.Fail(sb.ToString());
     }
 
 
@@ -145,9 +147,9 @@ public class GitPorcelainTests
     {
         var gca = m.GetCustomAttribute<GitCommandAttribute>() ?? throw new AssertFailedException("Attribute not found");
 
-        switch(m.Name)
+        switch (m.Name)
         {
-            case nameof(GitPorcelain.Diagnose) when GitConfiguration.GitProgramVersion < new Version(2,38):
+            case nameof(GitPorcelain.Diagnose) when GitConfiguration.GitProgramVersion < new Version(2, 38):
                 Assert.Inconclusive($"git {m.Name} not supported by git {GitConfiguration.GitProgramVersion}");
                 return;
         }
