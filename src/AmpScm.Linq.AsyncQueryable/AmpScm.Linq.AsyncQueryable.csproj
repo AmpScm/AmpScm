@@ -71,9 +71,7 @@
 
   <ItemGroup Condition=" '$(GitHubCI)' == 'yes' ">
     <PackageReference Include="GitVersion.MsBuild" Version="6.0.0" PrivateAssets="All" />
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
