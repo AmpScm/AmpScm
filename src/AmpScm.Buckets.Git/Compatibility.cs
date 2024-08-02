@@ -1,6 +1,7 @@
-﻿using System.ComponentModel;
+﻿#if NETFRAMEWORK
+using System.ComponentModel;
+using System.Numerics;
 
-#if NETFRAMEWORK
 namespace System.Runtime.CompilerServices
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -69,6 +70,67 @@ namespace System
             else
                 return false;
         }
+
+        internal static string Replace(this string? on, string oldValue, string newValue, StringComparison comparison)
+        {
+            if (on is null)
+                throw new ArgumentNullException(nameof(on));
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+            return on.Replace(oldValue, newValue);
+        }
+
+        internal static int IndexOf(this string on, char value, StringComparison comparison)
+        {
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+
+            return on.IndexOf(value);
+        }
+
+        internal static bool Contains(this string on, char value, StringComparison comparison)
+        {
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+
+            return on.Contains(value);
+        }
+
+        internal static bool Contains(this string on, string value, StringComparison comparison)
+        {
+            if (comparison != StringComparison.Ordinal)
+                throw new ArgumentOutOfRangeException(nameof(comparison));
+
+            return on.Contains(value);
+        }
+
+        internal static int GetHashCode(this string on, StringComparison comparison)
+        {
+            return comparison switch
+            {
+                StringComparison.Ordinal => StringComparer.Ordinal.GetHashCode(on),
+                StringComparison.OrdinalIgnoreCase => StringComparer.OrdinalIgnoreCase.GetHashCode(on),
+                _ => throw new ArgumentOutOfRangeException(nameof(comparison))
+            };
+        }
+
+        internal static byte[] ToByteArray(this BigInteger bi, bool isUnsigned = false, bool isBigEndian = false)
+        {
+            var bytes = bi.ToByteArray();
+            IEnumerable<byte> b = bytes;
+
+            if (isUnsigned)
+            {
+                if (bytes[bytes.Length - 1] == 0)
+                    b = b.Take(bytes.Length - 1);
+            }
+
+            if (isBigEndian)
+                b = b.Reverse();
+
+            return (b as byte[]) ?? b.ToArray();
+        }
+
     }
 }
 #endif

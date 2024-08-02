@@ -7,10 +7,10 @@ internal sealed class GitAsyncLazy<T> : Lazy<T>
     { }
 
     public GitAsyncLazy(T value)
-        #if !NETFRAMEWORK
+#if !NETFRAMEWORK
         : base(value)
 #else
-        : base(() =>value)
+        : base(() => value)
 #endif
     {
 

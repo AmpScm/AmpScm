@@ -345,7 +345,7 @@ public sealed class GitId : IEquatable<GitId>, IComparable<GitId>, IFormattable
         {
             GitIdType.Sha1 => 20,
             GitIdType.Sha256 => 32,
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, message: null)
+            _ or GitIdType.None => throw new ArgumentOutOfRangeException(nameof(type), type, message: null)
         };
 
     public int CompareTo(GitId? other)

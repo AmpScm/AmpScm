@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Git;
 
@@ -120,13 +121,13 @@ public sealed class GitCommitWriter : GitObjectWriter<GitCommit>
 
             var id = await Tree.WriteToAsync(repository).ConfigureAwait(false);
 
-            sb.Append($"tree {id}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"tree {id}\n");
 
             HashSet<GitId> parentIds = new();
             foreach (var p in Parents)
             {
                 id = await p.WriteToAsync(repository).ConfigureAwait(false);
-                sb.Append($"parent {id}\n");
+                sb.Append(CultureInfo.InvariantCulture, $"parent {id}\n");
 
                 parentIds.Add(id);
             }
@@ -134,8 +135,8 @@ public sealed class GitCommitWriter : GitObjectWriter<GitCommit>
             var committer = Committer ?? repository.Configuration.Identity;
             var author = Author ?? repository.Configuration.Identity;
 
-            sb.Append($"author {author.AsRecord()}\n");
-            sb.Append($"committer {committer.AsRecord()}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"author {author.AsRecord()}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"committer {committer.AsRecord()}\n");
 
             result = Bucket.Create.FromUTF8(sb.ToString());
 

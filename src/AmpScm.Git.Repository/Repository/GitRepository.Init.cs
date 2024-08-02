@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace AmpScm.Git;
 
@@ -55,6 +56,7 @@ public partial class GitRepository
 
 
         StringBuilder configText = new StringBuilder("[core]\n");
+#pragma warning disable MA0011 // Use an overload of 'Append' that has a 'System.IFormatProvider' paramete
 
         if (!sha256)
             configText.Append("\trepositoryformatversion = 0\n");
@@ -104,15 +106,15 @@ public partial class GitRepository
 
                     n = group.IndexOf('.', StringComparison.Ordinal);
                     if (n < 0)
-                        configText.Append($"\n[{group}]\n");
+                        configText.Append(CultureInfo.InvariantCulture, $"\n[{group}]\n");
                     else
                     {
                         var g = group.Substring(0, n);
                         var s = group.Substring(n + 1);
-                        configText.Append($"\n[{g} \"{s}\"]\n");
+                        configText.Append(CultureInfo.InvariantCulture, $"\n[{g} \"{s}\"]\n");
                     }
                 }
-                configText.Append($"\t{key} = {v}\n");
+                configText.Append(CultureInfo.InvariantCulture, $"\t{key} = {v}\n");
             }
         }
 

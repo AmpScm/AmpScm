@@ -38,6 +38,7 @@ public abstract class GitObject : IEquatable<GitObject>, IGitObject
             case GitObjectType.Tag:
                 return new GitTagObject(repository, rdr, id);
             default:
+            case GitObjectType.None:
                 throw new ArgumentOutOfRangeException(nameof(type));
         }
     }
@@ -62,7 +63,7 @@ public abstract class GitObject : IEquatable<GitObject>, IGitObject
         return Id.GetHashCode();
     }
 
-    public static bool operator == (GitObject? one, GitObject? other)
+    public static bool operator ==(GitObject? one, GitObject? other)
     {
         return one?.Equals(other) ?? (other is null);
     }

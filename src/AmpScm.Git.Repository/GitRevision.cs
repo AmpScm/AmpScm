@@ -2,7 +2,7 @@
 
 namespace AmpScm.Git;
 
-public class GitRevision :IGitObject
+public class GitRevision : IGitObject
 {
     internal GitRevision(GitCommit commit)
     {

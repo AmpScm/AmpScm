@@ -10,7 +10,7 @@ public class GitPacketBucket : GitBucket
 
     public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)
     {
-        while(!(await ReadFullPacket().ConfigureAwait(false)).IsEof)
+        while (!(await ReadFullPacket().ConfigureAwait(false)).IsEof)
         {
 
         }
@@ -41,7 +41,7 @@ public class GitPacketBucket : GitBucket
 
         bb = await Source.ReadExactlyAsync(_packetLength - 4).ConfigureAwait(false);
 
-        if (bb.Length == _packetLength-4)
+        if (bb.Length == _packetLength - 4)
             return bb;
         else
             throw new BucketEofException(Source);

@@ -27,7 +27,7 @@ public sealed class GitBlob : GitObject, IGitLazy<GitBlob>
         if (repository != Repository && !repository.Blobs.ContainsId(Id))
             return this.AsWriter().WriteToAsync(repository);
         else
-            return new (Id);
+            return new(Id);
     }
 
     public long Size

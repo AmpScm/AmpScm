@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Git;
 using AmpScm.Buckets.Git.Objects;
-using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git.Objects;
 
@@ -210,7 +210,7 @@ public sealed class GitTagObject : GitObject, IGitLazy<GitTagObject>
 
                 if (key is not null)
                 {
-                    if(await gpg.VerifyAsync(src, key).ConfigureAwait(false))
+                    if (await gpg.VerifyAsync(src, key).ConfigureAwait(false))
                         succeeded = true;
                 }
                 else

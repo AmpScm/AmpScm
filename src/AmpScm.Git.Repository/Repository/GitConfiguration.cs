@@ -313,7 +313,7 @@ public class GitConfiguration : GitBackendRepository
 #if NETCOREAPP
                 && int.TryParse(vResult.AsSpan(0, vResult.Length - 1), NumberStyles.None, CultureInfo.InvariantCulture, out r))
 #else
-                && int.TryParse(vResult.Substring(0, vResult.Length-1), NumberStyles.None, CultureInfo.InvariantCulture, out r))
+                && int.TryParse(vResult.Substring(0, vResult.Length - 1), NumberStyles.None, CultureInfo.InvariantCulture, out r))
 #endif
             {
                 return r * SuffixFactor(vResult[vResult.Length - 1]);

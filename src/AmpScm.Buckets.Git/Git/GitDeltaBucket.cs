@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
+#if NET
 using System.Numerics;
+#endif
 using AmpScm.Buckets.Interfaces;
 using AmpScm.Buckets.Specialized;
 using AmpScm.Git;
@@ -298,6 +300,8 @@ internal sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
                 case delta_state.eof:
                     return skipped;
                 default:
+                case delta_state.init:
+                case delta_state.start:
                     throw new InvalidOperationException();
             }
 

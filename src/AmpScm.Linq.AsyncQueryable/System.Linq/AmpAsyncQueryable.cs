@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿#if !NETFRAMEWORK
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Linq.Expressions;
 using System.Reflection;
 using AmpScm.Linq;
@@ -13,7 +15,9 @@ namespace System.Linq;
 public static partial class AmpAsyncQueryable
 {
     internal static MethodInfo GetMethod<T>(Expression<Action<T>> x)
-        => ((MethodCallExpression)x.Body).Method.GetGenericMethodDefinition();
+    {
+        return ((MethodCallExpression)x.Body).Method.GetGenericMethodDefinition();
+    }
 
     /// <summary>
     /// Converts a generic <see cref="IEnumerable{T}"/> to a generic <see cref="IQueryableAndAsyncQueryable{T}"/>

@@ -1,8 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text;
-#if NETFRAMEWORK
-using AmpScm.Git;
-#endif
 
 namespace AmpScm.Buckets.Git;
 

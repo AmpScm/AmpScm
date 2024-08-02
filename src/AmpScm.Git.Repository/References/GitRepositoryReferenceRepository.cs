@@ -38,6 +38,8 @@ internal class GitRepositoryReferenceRepository : GitReferenceRepository
                     {
                         case "refs/stash":
                             continue;
+                        default:
+                            break;
                     }
 
                     yield return r;

@@ -13,7 +13,7 @@ internal sealed class LazyGitObjectBucket : GitObjectBucket, IBucketPoll
     private GitObjectType _type;
     private bool _eof;
 
-    public LazyGitObjectBucket(GitRepository repository, GitId id, GitObjectType type=GitObjectType.None) : base(Empty)
+    public LazyGitObjectBucket(GitRepository repository, GitId id, GitObjectType type = GitObjectType.None) : base(Empty)
     {
         Repository = repository ?? throw new ArgumentNullException(nameof(repository));
         Id = id ?? throw new ArgumentNullException(nameof(id));
@@ -28,8 +28,8 @@ internal sealed class LazyGitObjectBucket : GitObjectBucket, IBucketPoll
         if (_inner == null)
             _inner = await Repository.ObjectRepository.ResolveById(Id).ConfigureAwait(false) ?? throw new InvalidOperationException($"Can't fetch {Id}");
 
-        var bb =  await _inner.ReadAsync(requested).ConfigureAwait(false);
-        
+        var bb = await _inner.ReadAsync(requested).ConfigureAwait(false);
+
         if (bb.IsEof)
             _eof = true;
 
@@ -101,7 +101,7 @@ internal sealed class LazyGitObjectBucket : GitObjectBucket, IBucketPoll
         if (_inner != null)
             return _inner.PollAsync(minRequested);
 
-        return new (Peek());
+        return new(Peek());
     }
 
     public override string Name => _inner?.Name ?? base.Name;

@@ -47,9 +47,12 @@ public static partial class CryptoExtensions
 
     internal static BigInteger ToBigInteger(this ReadOnlyMemory<byte> value)
     {
-#if NETCOREAPP
+#if NET
         return new BigInteger(value.Span, isUnsigned: true, isBigEndian: true);
 #else
+        if (value.Length == 0)
+            return new();
+
         byte[] v;
         if ((value.Span[0] & 0x80) != 0)
         {

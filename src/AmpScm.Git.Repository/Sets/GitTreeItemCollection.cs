@@ -93,7 +93,7 @@ public class GitTreeItemCollection : GitSet, IEnumerable<GitTreeItem>, IAsyncEnu
 
             string sp = path.Substring(start, n - start);
             bool found = false;
-            foreach(var i in tree)
+            foreach (var i in tree)
             {
                 if (i.Name == sp)
                 {

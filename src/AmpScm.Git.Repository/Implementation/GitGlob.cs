@@ -22,6 +22,7 @@ internal class GitGlob
 
         StringBuilder sb = new StringBuilder("^");
 
+#pragma warning disable MA0011 // Use an overload of 'Append' that has a 'System.IFormatProvider' paramete
         for (int i = 0; i < pattern.Length; i++)
         {
             switch (pattern[i])

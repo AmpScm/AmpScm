@@ -20,8 +20,10 @@ public static partial class GitObjectWriterExtensions
                 case GitTreeElementType.Directory:
                     gtw.Add(v.Name, v.GitObject.AsLazy());
                     break;
+                default:
                 case GitTreeElementType.SymbolicLink:
                 case GitTreeElementType.GitCommitLink:
+                case GitTreeElementType.None:
                     throw new NotSupportedException();
             }
         }
@@ -102,6 +104,7 @@ public static partial class GitObjectWriterExtensions
             case GitObjectType.Tag:
                 return typeof(GitTag);
             default:
+            case GitObjectType.None:
                 throw new ArgumentOutOfRangeException(nameof(type));
         }
     }

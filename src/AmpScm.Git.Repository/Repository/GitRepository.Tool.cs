@@ -44,7 +44,7 @@ public partial class GitRepository
                 version = version.Substring(n);
 
                 n = version.Length;
-                for(int i = 0; i < version.Length; i++)
+                for (int i = 0; i < version.Length; i++)
                 {
                     if (!char.IsDigit(version, i) && version[i] != '.')
                     {
@@ -270,9 +270,7 @@ public partial class GitRepository
         if (!await Configuration.HookExistsAsync(hook).ConfigureAwait(false))
             return (0, "", "");
 
-        List<string> aa = new List<string>();
-        aa.AddRange(new[] { "run", hook, "--" });
-        aa.AddRange(args ?? Enumerable.Empty<string>());
+        List<string> aa = [.. new[] { "run", hook, "--" }, .. args ?? Enumerable.Empty<string>()];
         return await RunGitCommandErrAsync("hook", aa, stdinText, expectedResults).ConfigureAwait(false);
     }
 
@@ -478,6 +476,8 @@ public partial class GitRepository
             {
                 case '\"':
                     sb.Append('\\');
+                    break;
+                default:
                     break;
             }
 

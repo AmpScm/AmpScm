@@ -239,7 +239,7 @@ public static partial class GitObjectWriterExtensions
                 if (!Enum.IsDefined<GitTreeElementType>(fileType.Value))
                     fileType = null;
 #else
-                if (!Enum.IsDefined(typeof(GitTreeElementType),fileType))
+                if (!Enum.IsDefined(typeof(GitTreeElementType), fileType))
                     fileType = null;
 #endif
 

@@ -4,7 +4,7 @@ public abstract class GitReferenceUpdateTransaction : IDisposable
 {
     private protected GitReferenceUpdateTransaction(GitRepository repository)
     {
-        Repository = repository?? throw new ArgumentNullException(nameof(repository));
+        Repository = repository ?? throw new ArgumentNullException(nameof(repository));
     }
 
     private protected List<GitReferenceUpdateItem> Updates { get; } = new();
@@ -22,7 +22,7 @@ public abstract class GitReferenceUpdateTransaction : IDisposable
         else if (newValue is null)
             throw new ArgumentNullException(nameof(newValue));
 
-        var r = Updates.LastOrDefault(x=>x.Name == referenceName);
+        var r = Updates.LastOrDefault(x => x.Name == referenceName);
 
         if (r is not null && r.Type > UpdateType.Verify)
             throw new GitException($"Can only update '{referenceName}' once inside a transaction");
@@ -30,7 +30,7 @@ public abstract class GitReferenceUpdateTransaction : IDisposable
         if (oldValue is not null)
             Updates.Insert(0, new() { Name = referenceName, Type = UpdateType.Verify, Id = oldValue });
 
-        Updates.Add(new() { Name=referenceName, Type=UpdateType.Update, Id=newValue });
+        Updates.Add(new() { Name = referenceName, Type = UpdateType.Update, Id = newValue });
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public abstract class GitReferenceUpdateTransaction : IDisposable
         Verify,
         Create,
         Update,
-        Delete,            
+        Delete,
     }
     private protected record class GitReferenceUpdateItem
     {

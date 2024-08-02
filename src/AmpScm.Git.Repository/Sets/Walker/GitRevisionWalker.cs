@@ -7,7 +7,7 @@ internal class GitRevisionWalker : IAsyncEnumerable<GitRevision>
     private GitRevisionSetOptions options;
 
     private Dictionary<GitId, GitCommitInfo> Commits { get; } = new Dictionary<GitId, GitCommitInfo>();
-    private GitRepository Repository {get;}
+    private GitRepository Repository { get; }
 
     public GitRevisionWalker(GitRevisionSetOptions options, GitRepository repository)
     {
@@ -36,12 +36,12 @@ internal class GitRevisionWalker : IAsyncEnumerable<GitRevision>
     {
         Stack<GitCommitInfo> stack = new Stack<GitCommitInfo>();
 
-        foreach(var v in Commits.Values)
+        foreach (var v in Commits.Values)
         {
             stack.Push(v);
         }
 
-        while(stack.TryPeek(out var c))
+        while (stack.TryPeek(out var c))
         {
             if (c.ChainInfo.HasValue)
             {
@@ -49,25 +49,25 @@ internal class GitRevisionWalker : IAsyncEnumerable<GitRevision>
                 continue;
             }
 
-            bool gotall = true;
+            bool gotAll = true;
             List<GitCommitInfo>? parents = null;
-            foreach(var p in c.ParentIds)
+            foreach (var p in c.ParentIds)
             {
                 var pc = EnsureCommit(p);
 
                 if (!pc.ChainInfo.HasValue)
                 {
-                    gotall = false;
+                    gotAll = false;
                     stack.Push(pc);
                 }
-                else if (gotall)
+                else if (gotAll)
                 {
                     parents ??= new List<GitCommitInfo>();
                     parents.Add(pc);
                 }
             }
 
-            if (gotall)
+            if (gotAll)
             {
                 c = stack.Pop();
 
@@ -87,7 +87,7 @@ internal class GitRevisionWalker : IAsyncEnumerable<GitRevision>
                         correctedTimestamp = timestamp;
                     }
 
-                    c.SetChainInfo(new GitCommitGenerationValue(generation, timestamp, correctedTimestamp-timestamp));
+                    c.SetChainInfo(new GitCommitGenerationValue(generation, timestamp, correctedTimestamp - timestamp));
                 }
             }
         }

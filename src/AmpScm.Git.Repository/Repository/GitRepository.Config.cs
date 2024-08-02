@@ -15,7 +15,7 @@ public partial class GitRepository
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    internal GitInternalConfigAccess InternalConfig { get; private set;  } = new GitInternalConfigAccess(GitIdType.Sha1);
+    internal GitInternalConfigAccess InternalConfig { get; private set; } = new GitInternalConfigAccess(GitIdType.Sha1);
 
     internal void SetSHA256() // Called from repository object store on config verify
     {

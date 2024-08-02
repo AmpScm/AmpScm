@@ -258,7 +258,7 @@ public sealed class GitTreeWriter : GitObjectWriter<GitTree>, IEnumerable<KeyVal
                     GitObjectType.Blob => GitTreeElementType.File,
                     GitObjectType.Tree => GitTreeElementType.Directory,
                     GitObjectType.Commit => GitTreeElementType.GitCommitLink,
-                    _ => GitTreeElementType.None
+                    _ or GitObjectType.None or GitObjectType.Tag => GitTreeElementType.None
                 };
             }
             else if (lazy is GitObjectWriter writer)
@@ -269,7 +269,7 @@ public sealed class GitTreeWriter : GitObjectWriter<GitTree>, IEnumerable<KeyVal
                     GitObjectType.Blob => GitTreeElementType.File,
                     GitObjectType.Tree => GitTreeElementType.Directory,
                     GitObjectType.Commit => GitTreeElementType.GitCommitLink,
-                    _ => GitTreeElementType.None
+                    _ or GitObjectType.None or GitObjectType.Tag => GitTreeElementType.None
                 };
             }
             else
@@ -288,6 +288,9 @@ public sealed class GitTreeWriter : GitObjectWriter<GitTree>, IEnumerable<KeyVal
                             throw new ArgumentOutOfRangeException(nameof(setType));
                         break;
                     default:
+                    case GitTreeElementType.None:
+                    case GitTreeElementType.Directory:
+                    case GitTreeElementType.GitCommitLink:
                         if (Type != setType.Value)
                             throw new ArgumentOutOfRangeException(nameof(setType));
                         break;

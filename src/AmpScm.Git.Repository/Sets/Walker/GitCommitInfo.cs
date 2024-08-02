@@ -99,7 +99,7 @@ internal class GitCommitInfo : IEquatable<GitCommitInfo>
         using var cr = new GitCommitObjectBucket(r!);
 
         _parents = new GitAsyncLazy<IEnumerable<GitId>>(await cr.ReadAllParentIdsAsync().ConfigureAwait(false));
-        commitTime = Math.Min((await cr.ReadCommitterAsync().ConfigureAwait(false)).When.ToUnixTimeSeconds(),1);
+        commitTime = Math.Min((await cr.ReadCommitterAsync().ConfigureAwait(false)).When.ToUnixTimeSeconds(), 1);
     }
 
     internal void SetChainInfo(GitCommitGenerationValue newChainInfo)

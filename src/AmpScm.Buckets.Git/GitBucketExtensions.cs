@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using System.Text;
+﻿using System.Text;
 using AmpScm.Buckets;
 using AmpScm.Buckets.Specialized;
 
@@ -24,13 +23,15 @@ public static class GitBucketExtensions
     /// <param name="elementType"></param>
     /// <returns></returns>
     public static bool IsFile(this GitTreeElementType elementType)
-        => elementType switch
+    {
+        return elementType switch
         {
             GitTreeElementType.File => true,
             GitTreeElementType.FileExecutable => true,
             GitTreeElementType.SymbolicLink => true,
-            _ => false,
+            _ or GitTreeElementType.Directory or GitTreeElementType.GitCommitLink or GitTreeElementType.None => false,
         };
+    }
 
     /// <summary>
     /// Returns true if the element represents a directory on disk, otherwise false
@@ -38,12 +39,14 @@ public static class GitBucketExtensions
     /// <param name="elementType"></param>
     /// <returns></returns>
     public static bool IsDirectory(this GitTreeElementType elementType)
-        => elementType switch
+    {
+        return elementType switch
         {
             GitTreeElementType.Directory => true,
             GitTreeElementType.GitCommitLink => true,
-            _ => false,
+            _ or GitTreeElementType.File or GitTreeElementType.FileExecutable or GitTreeElementType.SymbolicLink or GitTreeElementType.None => false,
         };
+    }
 
     public static Bucket CreateHeader(this GitObjectType type, long length)
     {
@@ -63,6 +66,7 @@ public static class GitBucketExtensions
                 txt = $"tag {length}\0";
                 break;
             default:
+            case GitObjectType.None:
                 throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
         }
 
@@ -73,6 +77,7 @@ public static class GitBucketExtensions
     {
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
+
         switch (type)
         {
             case GitIdType.Sha1:
@@ -80,67 +85,8 @@ public static class GitBucketExtensions
             case GitIdType.Sha256:
                 return bucket.SHA256(x => created(new GitId(type, x)));
             default:
+            case GitIdType.None:
                 throw new ArgumentOutOfRangeException(nameof(type), type, message: null);
         }
     }
-
-#if NETFRAMEWORK
-    internal static string Replace(this string? on, string oldValue, string newValue, StringComparison comparison)
-    {
-        if (on is null)
-            throw new ArgumentNullException(nameof(on));
-        if (comparison != StringComparison.Ordinal)
-            throw new ArgumentOutOfRangeException(nameof(comparison));
-        return on.Replace(oldValue, newValue);
-    }
-
-    internal static int IndexOf(this string on, char value, StringComparison comparison)
-    {
-        if (comparison != StringComparison.Ordinal)
-            throw new ArgumentOutOfRangeException(nameof(comparison));
-
-        return on.IndexOf(value);
-    }
-
-    internal static bool Contains(this string on, char value, StringComparison comparison)
-    {
-        if (comparison != StringComparison.Ordinal)
-            throw new ArgumentOutOfRangeException(nameof(comparison));
-
-        return on.Contains(value);
-    }
-
-    internal static bool Contains(this string on, string value, StringComparison comparison)
-    {
-        if (comparison != StringComparison.Ordinal)
-            throw new ArgumentOutOfRangeException(nameof(comparison));
-
-        return on.Contains(value);
-    }
-
-    internal static int GetHashCode(this string on, StringComparison comparison)
-        => comparison switch {
-            StringComparison.Ordinal => StringComparer.Ordinal.GetHashCode(on),
-            StringComparison.OrdinalIgnoreCase => StringComparer.OrdinalIgnoreCase.GetHashCode(on),
-            _ => throw new ArgumentOutOfRangeException(nameof(comparison))
-        };
-
-    internal static byte[] ToByteArray(this BigInteger bi, bool isUnsigned=false, bool isBigEndian=false)
-    {
-        var bytes = bi.ToByteArray();
-        IEnumerable<byte> b = bytes;
-
-        if (isUnsigned)
-        {
-            if (bytes[bytes.Length - 1] == 0)
-                b = b.Take(bytes.Length - 1);
-        }
-
-        if (isBigEndian)
-            b = b.Reverse();
-
-        return (b as byte[]) ?? b.ToArray();
-    }
-#endif
-
 }

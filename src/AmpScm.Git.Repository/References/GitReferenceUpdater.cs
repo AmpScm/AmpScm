@@ -73,6 +73,7 @@ internal sealed class GitReferenceUpdater : GitReferenceUpdateTransaction
                 && await Repository.Configuration.HookExistsAsync("reference-transaction").ConfigureAwait(false))
             {
                 StringBuilder sb = new StringBuilder();
+#pragma warning disable MA0011 // Use an overload of 'Append' that has a 'System.IFormatProvider' paramete
 
                 foreach (var v in Updates)
                 {
@@ -111,6 +112,10 @@ internal sealed class GitReferenceUpdater : GitReferenceUpdateTransaction
                                 sb.Append('\n');
                             }
                             break;
+                        case UpdateType.Verify:
+                            break;
+                        default:
+                            throw new NotImplementedException();
                     }
                 }
 
@@ -172,8 +177,10 @@ internal sealed class GitReferenceUpdater : GitReferenceUpdateTransaction
                             File.Delete(Path.Combine(Repository.GitDirectory, v.TargetName));
                             // If failed here, we need to cleanup packed references!!
                             break;
-                        default:
+                        case UpdateType.Verify:
                             continue;
+                        default:
+                            throw new NotImplementedException();
                     }
 
                     logRefUpdates ??= await Repository.Configuration.GetBoolAsync("core", "logallrefupdates").ConfigureAwait(false) ?? false;
@@ -245,7 +252,7 @@ internal sealed class GitReferenceUpdater : GitReferenceUpdateTransaction
 
         if (names.Length == 0)
             return;
-
+#pragma warning disable MA011
         if (names.Length == 1)
         {
             if (Updates.Count <= 2 && Updates.Last().Type == UpdateType.Update)
@@ -305,6 +312,8 @@ internal sealed class GitReferenceUpdater : GitReferenceUpdateTransaction
                         sb.Append('\0');
                         sb.Append('\0');
                         break;
+                    default:
+                        throw new InvalidOperationException();
                 }
             }
             sb.Append("prepare\0");

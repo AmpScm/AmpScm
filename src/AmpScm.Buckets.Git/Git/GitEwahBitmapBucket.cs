@@ -184,6 +184,7 @@ public sealed class GitEwahBitmapBucket : GitBucket
                 await Source.ReadNetworkUInt32Async().ConfigureAwait(false);
                 _state = ewah_state.done;
                 goto case ewah_state.done;
+            case ewah_state.init:
             case ewah_state.done:
             default:
                 return false;

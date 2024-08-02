@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using AmpScm.Buckets;
 
 namespace AmpScm.Git.Objects;
@@ -59,15 +60,15 @@ public class GitTagObjectWriter : GitObjectWriter<GitTagObject>
 
             var id = await GitObject.WriteToAsync(repository).ConfigureAwait(false);
 
-            sb.Append($"object {id}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"object {id}\n");
 #pragma warning disable CA1308 // Normalize strings to uppercase
-            sb.Append($"type {GitObject.Type.ToString().ToLowerInvariant()}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"type {GitObject.Type.ToString().ToLowerInvariant()}\n");
 #pragma warning restore CA1308 // Normalize strings to uppercase
-            sb.Append($"tag {Name}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"tag {Name}\n");
 
             var tagger = Tagger ?? repository.Configuration.Identity;
 
-            sb.Append($"tagger {tagger.AsRecord()}\n");
+            sb.Append(CultureInfo.InvariantCulture, $"tagger {tagger.AsRecord()}\n");
             // -extra headers-
             sb.Append('\n');
 

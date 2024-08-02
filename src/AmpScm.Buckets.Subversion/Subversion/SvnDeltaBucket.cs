@@ -238,6 +238,7 @@ public class SvnDeltaBucket : SvnBucket
                     d_offset += op_len;
                     break;
                 case 0x03:
+                default:
                     throw new InvalidOperationException();
             }
 
