@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
-using AmpScm;
-using AmpScm.Buckets;
+﻿using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AmpScm;
+using System.Diagnostics;
 
 namespace SecurityBucketTests;
 
@@ -76,10 +76,10 @@ public class SshTests
     [DataRow("rsa", "-b1024")]
     [DataRow("rsa", "-b4096")]
     [DataRow("dsa", "")]
-#if DEBUG
     [DataRow("ecdsa", "")]
     [DataRow("ecdsa", "-b256")]
     [DataRow("ecdsa", "-b384")]
+#if DEBUG
     [DataRow("ecdsa", "-b521")]
 #endif
     // ed25519 can't be expressed as PEM
