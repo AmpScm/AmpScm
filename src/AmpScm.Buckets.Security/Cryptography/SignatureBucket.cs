@@ -461,7 +461,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                     string name = bb.ToUTF8String();
 
-#if NETCOREAPP
+#if NET
                     if (MailAddress.TryCreate(name, out var result))
                         _mailAddress = result;
                     else

@@ -310,7 +310,7 @@ public class GitConfiguration : GitBackendRepository
             vResult = vResult.TrimEnd();
 
             if ((vResult.EndsWith('k') || vResult.EndsWith('K') || vResult.EndsWith('m') || vResult.EndsWith('M') || vResult.EndsWith('g') || vResult.EndsWith('G'))
-#if NETCOREAPP
+#if NET
                 && int.TryParse(vResult.AsSpan(0, vResult.Length - 1), NumberStyles.None, CultureInfo.InvariantCulture, out r))
 #else
                 && int.TryParse(vResult.Substring(0, vResult.Length - 1), NumberStyles.None, CultureInfo.InvariantCulture, out r))

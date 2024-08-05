@@ -23,8 +23,6 @@ public class GitPorcelainTests
         "scalar", /* Not really a git command */
         /* experimental: */ "restore", "switch",
         "filter-branch",
-        /* not implemented yet */
-        "refs", "references", // Somehow available on github
     };
 
     [TestMethod]
@@ -150,6 +148,7 @@ public class GitPorcelainTests
         switch (m.Name)
         {
             case nameof(GitPorcelain.Diagnose) when GitConfiguration.GitProgramVersion < new Version(2, 38):
+            case nameof(GitPorcelain.References) when GitConfiguration.GitProgramVersion < new Version(2, 46):
                 Assert.Inconclusive($"git {m.Name} not supported by git {GitConfiguration.GitProgramVersion}");
                 return;
         }

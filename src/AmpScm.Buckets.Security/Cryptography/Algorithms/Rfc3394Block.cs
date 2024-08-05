@@ -91,7 +91,7 @@ internal partial class Rfc3394Algorithm
         {
             if (bytes is null)
                 throw new ArgumentNullException(nameof(bytes));
-#if NETCOREAPP
+#if NET
             Array.Reverse(bytes);
 #else
             for (int i = 0; i < bytes.Length / 2; i++)

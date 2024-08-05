@@ -93,7 +93,7 @@ public abstract class CryptoDataBucket : WrappingBucket
         {
             var vals = ParseSshStrings(fingerprint);
 
-#if NETCOREAPP
+#if NET
             string b64 = Convert.ToBase64String(fingerprint.Span);
 #else
             string b64 = Convert.ToBase64String(fingerprint.ToArray());

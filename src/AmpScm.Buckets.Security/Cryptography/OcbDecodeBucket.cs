@@ -155,7 +155,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
 
     private static int TrailingZeros(int n)
     {
-#if NETCOREAPP
+#if NET
         return BitOperations.TrailingZeroCount(n);
 #else
         var ntz = 0;
@@ -169,7 +169,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
 
     private byte[] Encipher(ReadOnlyMemory<byte> input)
     {
-#if NETCOREAPP
+#if NET
         return _aes.EncryptEcb(input.Span, PaddingMode.None);
 #else
         if (!MemoryMarshal.TryGetArray(input, out var seg))
@@ -182,7 +182,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
 
     private byte[] Decrypt(ReadOnlyMemory<byte> input)
     {
-#if NETCOREAPP
+#if NET
         return _aes.DecryptEcb(input.Span, PaddingMode.None);
 #else
         if (!MemoryMarshal.TryGetArray(input, out var seg))
