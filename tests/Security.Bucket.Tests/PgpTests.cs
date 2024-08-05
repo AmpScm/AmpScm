@@ -800,6 +800,7 @@ LQIDAQAB
         Assert.IsTrue(PublicKeySignature.TryParse(k, out var v));
 
         Assert.AreEqual(CryptoAlgorithm.Rsa, v.Algorithm);
+        Assert.AreEqual(2, v.GetValues().Count);
         Assert.AreEqual((BigInteger)65537, v.GetValues()[1]);
     }
 }

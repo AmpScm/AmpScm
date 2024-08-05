@@ -444,8 +444,8 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                         List<BigInteger> values = new();
 
-                        await SequenceToList(values, der2).ConfigureAwait(false);
-                        await SequenceToList(values, der).ConfigureAwait(false);
+                        await SequenceToList(values, der2, cryptoAlg).ConfigureAwait(false);
+                        await SequenceToList(values, der, cryptoAlg).ConfigureAwait(false);
 
                         BigInteger[] keyIntegers = values.ToArray();
 

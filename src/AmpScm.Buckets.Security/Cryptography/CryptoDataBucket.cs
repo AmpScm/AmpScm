@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
@@ -315,7 +316,7 @@ public abstract class CryptoDataBucket : WrappingBucket
         return signaturePublicKeyType == PgpPublicKeyType.ECDSA && index == 0;
     }
 
-    private protected static async ValueTask SequenceToList(List<BigInteger> vals, DerBucket der2)
+    private protected static async ValueTask SequenceToList(List<BigInteger> values, DerBucket der2, CryptoAlgorithm cryptoAlgorithm)
     {
         while (true)
         {
@@ -329,27 +330,34 @@ public abstract class CryptoDataBucket : WrappingBucket
                 case DerType.Sequence:
                     {
                         using var bq = new DerBucket(b);
-                        await SequenceToList(vals, bq).ConfigureAwait(false);
+                        await SequenceToList(values, bq, cryptoAlgorithm).ConfigureAwait(false);
                         break;
                     }
                 case DerType.Null:
                     await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                     break;
-                case DerType.BitString:
+                case DerType.BitString when cryptoAlgorithm is CryptoAlgorithm.Rsa or CryptoAlgorithm.Dsa:
                     {
                         var bs = await b.ReadByteAsync().ConfigureAwait(false);
 
+                        Debug.Assert(bs == 0);
+
                         using var bq = new DerBucket(b);
-                        await SequenceToList(vals, bq).ConfigureAwait(false);
+                        await SequenceToList(values, bq, cryptoAlgorithm).ConfigureAwait(false);
                         break;
                     }
+                case DerType.ObjectIdentifier:
+                    {
+                        var bb = await b!.ReadExactlyAsync(32768).ConfigureAwait(false);
+                        values.Add(bb.Memory.ToBigInteger());
+                    }
+                    break;
                 default:
                     {
                         var bb = await b!.ReadExactlyAsync(32768).ConfigureAwait(false);
 
-                        vals.Add(bb.Memory.ToBigInteger());
+                        values.Add(bb.Memory.ToBigInteger());
 
-                        await b.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
                         break;
                     }
             }
