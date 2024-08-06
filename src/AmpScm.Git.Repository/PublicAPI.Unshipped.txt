@@ -55,6 +55,9 @@ AmpScm.Git.GitReferenceChange.Reason.get -> string!
 AmpScm.Git.GitReferenceChange.Signature.get -> AmpScm.Git.GitSignature!
 AmpScm.Git.GitReferenceChange.TargetId.get -> AmpScm.Git.GitId!
 AmpScm.Git.GitReferenceChange.TargetObject.get -> AmpScm.Git.GitObject?
+AmpScm.Git.GitReferenceFormatType
+AmpScm.Git.GitReferenceFormatType.Files = 0 -> AmpScm.Git.GitReferenceFormatType
+AmpScm.Git.GitReferenceFormatType.ReferenceTable = 1 -> AmpScm.Git.GitReferenceFormatType
 AmpScm.Git.GitRemote
 AmpScm.Git.GitRemote.Name.get -> string!
 AmpScm.Git.GitRemote.ReadAsync() -> System.Threading.Tasks.ValueTask
@@ -98,6 +101,7 @@ AmpScm.Git.GitRepositoryInitArgs.InitialBranchName.get -> string?
 AmpScm.Git.GitRepositoryInitArgs.InitialBranchName.set -> void
 AmpScm.Git.GitRepositoryInitArgs.InitialConfiguration.get -> System.Collections.Generic.IEnumerable<(string!, string!)>?
 AmpScm.Git.GitRepositoryInitArgs.InitialConfiguration.set -> void
+AmpScm.Git.GitRepositoryInitArgs.ReferenceFormatType.get -> AmpScm.Git.GitReferenceFormatType?
 AmpScm.Git.GitRevision
 AmpScm.Git.GitRevision.Author.get -> AmpScm.Git.GitSignature!
 AmpScm.Git.GitRevision.ChangedPaths.get -> System.Collections.Generic.IEnumerable<AmpScm.Git.Sets.GitChangedPath!>!

@@ -7,6 +7,7 @@ internal class GitRepositoryObjectRepository : GitObjectRepository
     public string ObjectsDir { get; }
     public string? PromisorRemote { get; private set; }
     public GitIdType _idType;
+    public GitReferenceFormatType _refereneFormatType;
 
 
     public GitRepositoryObjectRepository(GitRepository repository, string objectsDir)
@@ -127,6 +128,12 @@ internal class GitRepositoryObjectRepository : GitObjectRepository
                             throw new GitException($"Found unsupported objectFormat {value} in repository {Repository.FullPath}");
                         break;
                     case "worktreeconfig":
+                        break;
+                    case "refstorage":
+                        if (value is "reftable")
+                            _refereneFormatType = GitReferenceFormatType.ReferenceTable;
+                        else
+                            throw new GitException($"Found unsupported refstorage type {value} in repository {Repository.FullPath}");
                         break;
                     default:
                         throw new GitException($"Found unsupported extension {key} in repository {Repository.FullPath}");

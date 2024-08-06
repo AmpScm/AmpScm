@@ -1,7 +1,15 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace AmpScm.Git;
+
+public enum GitReferenceFormatType
+{
+    None = 0,
+    Files,
+    ReferenceTable,
+}
 
 public sealed class GitRepositoryInitArgs
 {
@@ -14,6 +22,8 @@ public sealed class GitRepositoryInitArgs
 
     public IEnumerable<(string, string)>? InitialConfiguration { get; set; }
     public GitIdType? IdType { get; set; }
+
+    public GitReferenceFormatType? ReferenceFormatType { get; set; }
 }
 
 public partial class GitRepository
@@ -43,22 +53,30 @@ public partial class GitRepository
         if (string.IsNullOrEmpty(branchName) || !branchName.Any(char.IsLetterOrDigit))
             branchName = GitRepositoryInitArgs.DefaultInitialBranchName;
 
+        bool sha256 = (init.IdType == GitIdType.Sha256);
+        bool refTable = (init.ReferenceFormatType == GitReferenceFormatType.ReferenceTable);
+
         Directory.CreateDirectory(Path.Combine(gitDir, "hooks"));
         Directory.CreateDirectory(Path.Combine(gitDir, "info"));
         Directory.CreateDirectory(Path.Combine(gitDir, "objects/info"));
         Directory.CreateDirectory(Path.Combine(gitDir, "objects/pack"));
-        Directory.CreateDirectory(Path.Combine(gitDir, "refs/heads"));
         Directory.CreateDirectory(Path.Combine(gitDir, "refs/tags"));
-
+        if (refTable)
+        {
+            Directory.CreateDirectory(Path.Combine(gitDir, "reftable"));
+            File.WriteAllText(Path.Combine(gitDir, "refs/heads"), "this repository uses the reftable format\n");
+        }
+        else
+        {
+            Directory.CreateDirectory(Path.Combine(gitDir, "refs/heads"));
+        }
         File.WriteAllText(Path.Combine(gitDir, "description"), "Unnamed repository; edit this file 'description' to name the repository." + Environment.NewLine);
-
-        bool sha256 = (init.IdType == GitIdType.Sha256);
 
 
         StringBuilder configText = new StringBuilder("[core]\n");
 #pragma warning disable MA0011 // Use an overload of 'Append' that has a 'System.IFormatProvider' paramete
 
-        if (!sha256)
+        if (!sha256 && !refTable)
             configText.Append("\trepositoryformatversion = 0\n");
         else
             configText.Append("\trepositoryformatversion = 1\n");
@@ -81,9 +99,14 @@ public partial class GitRepository
             configText.Append("\tsymlinks = false\n");
         }
 
-        if (sha256)
+        if (sha256 || refTable)
         {
-            configText.Append("[extensions]\n\tobjectformat = sha256\n");
+            configText.Append("[extensions]\n");
+
+            if (sha256)
+                configText.Append("\tobjectformat = sha256\n");
+            if (refTable)
+                configText.Append("\trefstorage = reftable\n");
         }
 
         if (init.InitialConfiguration?.Any() ?? false)
@@ -143,7 +166,17 @@ public partial class GitRepository
 
         branchName ??= r.Configuration.GetString("init", "defaultbranch") ?? GitRepositoryInitArgs.DefaultInitialBranchName;
 
-        File.WriteAllText(Path.Combine(gitDir, "HEAD"), $"ref: refs/heads/{branchName}\n");
+        if (!refTable)
+        {
+            File.WriteAllText(Path.Combine(gitDir, "HEAD"), $"ref: refs/heads/{branchName}\n");
+        }
+        else
+        {
+            File.WriteAllText(Path.Combine(gitDir, "HEAD"), $"ref: refs/heads/.invalid\n");
+            var exitCode = r.RunGitCommandAsync("symbolic-ref", ["HEAD", $"refs/heads/{branchName}"]).AsTask().GetAwaiter().GetResult();
+
+            Debug.Assert(exitCode == 0);
+        }
 
         return r;
     }
