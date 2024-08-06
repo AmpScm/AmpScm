@@ -697,7 +697,7 @@ public abstract class CryptoDataBucket : WrappingBucket
 
                 using (var rsa = RSA.Create())
                 {
-                    rsa.ImportParametersFromCryptoInts(keyValues);
+                    rsa.ImportParametersFromCryptoValues(keyValues);
 
                     var SignaturePublicKey = signatureInfo.SignatureInts![0];
 
@@ -708,7 +708,7 @@ public abstract class CryptoDataBucket : WrappingBucket
                 {
                     var SignaturePublicKey = signatureInfo.SignatureInts![0];
 
-                    dsa.ImportParametersFromCryptoInts(keyValues);
+                    dsa.ImportParametersFromCryptoValues(keyValues);
 
                     return dsa.VerifySignature(hashValue, SignaturePublicKey.ToCryptoValue());
                 }

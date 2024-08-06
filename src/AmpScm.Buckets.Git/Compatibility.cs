@@ -113,24 +113,6 @@ namespace System
                 _ => throw new ArgumentOutOfRangeException(nameof(comparison))
             };
         }
-
-        internal static byte[] ToByteArray(this BigInteger bi, bool isUnsigned = false, bool isBigEndian = false)
-        {
-            var bytes = bi.ToByteArray();
-            IEnumerable<byte> b = bytes;
-
-            if (isUnsigned)
-            {
-                if (bytes[bytes.Length - 1] == 0)
-                    b = b.Take(bytes.Length - 1);
-            }
-
-            if (isBigEndian)
-                b = b.Reverse();
-
-            return (b as byte[]) ?? b.ToArray();
-        }
-
     }
 }
 #endif

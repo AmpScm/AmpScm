@@ -91,7 +91,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         case CryptoAlgorithm.Rsa:
                             using (var rsa = RSA.Create())
                             {
-                                rsa.ImportParametersFromCryptoInts(keyValues);
+                                rsa.ImportParametersFromCryptoValues(keyValues);
 
                                 var bi = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false);
 
@@ -109,7 +109,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         case CryptoAlgorithm.Ecdh:
                             using (var ecdh = ECDiffieHellman.Create())
                             {
-                                ecdh.ImportParametersFromCryptoInts(keyValues);
+                                ecdh.ImportParametersFromCryptoValues(keyValues);
 
                                 var scalar = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket);
 
@@ -140,7 +140,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         case CryptoAlgorithm.Elgamal:
                             using (var elgamal = Elgamal.Create())
                             {
-                                elgamal.ImportParametersFromCryptoInts(keyValues);
+                                elgamal.ImportParametersFromCryptoValues(keyValues);
 
 
                                 var b1 = await ReadPgpMultiPrecisionInteger(bucket).ConfigureAwait(false) ?? throw new BucketEofException(bucket); // g**k mod p.

@@ -119,7 +119,7 @@ public class GitPorcelainTests
                         else
                             Assert.Fail($"GitCommandAttribute not set on {m.DeclaringType}.{m.Name}()");
 
-                        Assert.AreEqual($"Git{name}Args", m.GetParameters()[1].ParameterType.Name, "Parameter on {m.DeclaringType}.{m.Name}() as expected");
+                        Assert.AreEqual($"Git{name}Args", m.GetParameters()[1].ParameterType.Name, $"Parameter on {m.DeclaringType}.{m.Name}() as expected");
                     }
                 }
             }

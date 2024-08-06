@@ -11,22 +11,19 @@ public static partial class CryptoExtensions
 #if NETFRAMEWORK
     internal static byte[] ToByteArray(this BigInteger value, bool isUnsigned = false, bool isBigEndian = false)
     {
-        var r = value.ToByteArray();
+        var bytes = value.ToByteArray();
+        IEnumerable<byte> b = bytes;
+
+        if (isUnsigned)
+        {
+            if (bytes[bytes.Length - 1] == 0)
+                b = b.Take(bytes.Length - 1);
+        }
 
         if (isBigEndian)
-        {
-            Array.Reverse(r);
-        }
+            b = b.Reverse();
 
-        if (isUnsigned && r[0] == 0)
-        {
-            byte[] r2 = new byte[r.Length - 1];
-
-            r.AsSpan(1).CopyTo(r2);
-            r = r2;
-        }
-
-        return r;
+        return (b as byte[]) ?? b.ToArray();
     }
 #endif
 
@@ -134,7 +131,7 @@ public static partial class CryptoExtensions
         }
 
         if (r > 1)
-            throw new ArgumentOutOfRangeException(nameof(a), a, "not convertable");
+            throw new ArgumentOutOfRangeException(nameof(a), a, "Not convertible");
 
         if (t < 0)
             t += n;
@@ -142,28 +139,28 @@ public static partial class CryptoExtensions
         return t;
     }
 
-    internal static void ImportParametersFromCryptoInts(this RSA rsa, IReadOnlyList<BigInteger> ints)
+    internal static void ImportParametersFromCryptoValues(this RSA rsa, IReadOnlyList<BigInteger> integers)
     {
         if (rsa is null)
             throw new ArgumentNullException(nameof(rsa));
-        else if (ints is null)
-            throw new ArgumentNullException(nameof(ints));
-        else if (ints.Count is not 2 and not 6)
-            throw new ArgumentOutOfRangeException(nameof(ints), ints.Count, message: null);
+        else if (integers is null)
+            throw new ArgumentNullException(nameof(integers));
+        else if (integers.Count is not 2 and not 6)
+            throw new ArgumentOutOfRangeException(nameof(integers), integers.Count, message: null);
 
         var p = new RSAParameters()
         {
-            Modulus = ints[0].ToCryptoValue().AlignUp(),
-            Exponent = ints[1].ToCryptoValue().AlignUp(),
+            Modulus = integers[0].ToCryptoValue().AlignUp(),
+            Exponent = integers[1].ToCryptoValue().AlignUp(),
         };
 
         rsa.KeySize = p.Modulus.Length * 8;
 
-        if (ints.Count > 2)
+        if (integers.Count > 2)
         {
-            BigInteger D = ints[2];
-            BigInteger P = ints[3];
-            BigInteger Q = ints[4];
+            BigInteger D = integers[2];
+            BigInteger P = integers[3];
+            BigInteger Q = integers[4];
             // ints[5] is ignored. This is NOT InverseQ
 
             BigInteger DP = D % (P - 1);
@@ -180,17 +177,17 @@ public static partial class CryptoExtensions
         rsa.ImportParameters(p);
     }
 
-    internal static void ImportParametersFromCryptoInts(this ECDiffieHellman ecdh, IReadOnlyList<BigInteger> ints)
+    internal static void ImportParametersFromCryptoValues(this ECDiffieHellman ecdh, IReadOnlyList<BigInteger> integers)
     {
         if (ecdh is null)
             throw new ArgumentNullException(nameof(ecdh));
-        else if (ints is null)
-            throw new ArgumentNullException(nameof(ints));
-        else if (ints.Count is not 2 and not 4)
-            throw new ArgumentOutOfRangeException(nameof(ints), ints.Count, message: null);
+        else if (integers is null)
+            throw new ArgumentNullException(nameof(integers));
+        else if (integers.Count is not 2 and not 4)
+            throw new ArgumentOutOfRangeException(nameof(integers), integers.Count, message: null);
 
-        var oidValue = ints[0].ToCryptoValue();
-        var x = ints[1].ToCryptoValue();
+        var oidValue = integers[0].ToCryptoValue();
+        var x = integers[1].ToCryptoValue();
         byte[] y;
 
         var curveOid = ParseOid(oidValue);
@@ -218,18 +215,18 @@ public static partial class CryptoExtensions
 
         //ECParameters.De
 
-        if (ints.Count == 4)
-            p.D = ints[3].ToCryptoValue().AlignUp();
+        if (integers.Count == 4)
+            p.D = integers[3].ToCryptoValue().AlignUp();
 
         ecdh.ImportParameters(p);
     }
 
-    internal static void ImportParametersFromCryptoInts(this Elgamal elgamal, IReadOnlyList<BigInteger> ints)
+    internal static void ImportParametersFromCryptoValues(this Elgamal elgamal, IReadOnlyList<BigInteger> integers)
     {
-        elgamal.P = ints[0]; // Elgamal prime p
-        elgamal.G = ints[1]; // Elgamal group generator g;
-        elgamal.Y = ints[2]; // Elgamal public key value y (= g**x mod p where x is secret).
-        elgamal.X = ints[3]; // Elgamal secret exponent x.
+        elgamal.P = integers[0]; // Elgamal prime p
+        elgamal.G = integers[1]; // Elgamal group generator g;
+        elgamal.Y = integers[2]; // Elgamal public key value y (= g**x mod p where x is secret).
+        elgamal.X = integers[3]; // Elgamal secret exponent x.
     }
 
     internal static void ImportParametersFromCryptoInts(this Curve25519 curve25519, IReadOnlyList<BigInteger> ints)
@@ -360,21 +357,21 @@ public static partial class CryptoExtensions
         return sb.ToString();
     }
 
-    internal static void ImportParametersFromCryptoInts(this DSA dsa, IReadOnlyList<BigInteger> ints)
+    internal static void ImportParametersFromCryptoValues(this DSA dsa, IReadOnlyList<BigInteger> integers)
     {
         if (dsa is null)
             throw new ArgumentNullException(nameof(dsa));
-        else if (ints is null)
-            throw new ArgumentNullException(nameof(ints));
-        else if (ints.Count is not 4)
-            throw new ArgumentOutOfRangeException(nameof(ints), ints.Count, message: null);
+        else if (integers is null)
+            throw new ArgumentNullException(nameof(integers));
+        else if (integers.Count is not 4)
+            throw new ArgumentOutOfRangeException(nameof(integers), integers.Count, message: null);
 
         var p = new DSAParameters()
         {
-            P = ints[0].ToCryptoValue().AlignUp(),
-            Q = ints[1].ToCryptoValue().AlignUp(),
-            G = ints[2].ToCryptoValue().AlignUp(),
-            Y = ints[3].ToCryptoValue().AlignUp()
+            P = integers[0].ToCryptoValue().AlignUp(),
+            Q = integers[1].ToCryptoValue().AlignUp(),
+            G = integers[2].ToCryptoValue().AlignUp(),
+            Y = integers[3].ToCryptoValue().AlignUp()
         };
 
         dsa.ImportParameters(p);
