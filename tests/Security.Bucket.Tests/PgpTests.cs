@@ -87,7 +87,7 @@ GtAh3JPRDOlZUZM=
                 break;
         }
 
-        var dt = await sr.ReadExactlyAsync(Bucket.MaxRead);
+        var dt = await sr.ReadAtLeastAsync(Bucket.MaxRead, throwOnEndOfStream: false);
     }
 
     [TestMethod]
@@ -108,9 +108,9 @@ GtAh3JPRDOlZUZM=
                 break;
         }
 
-        var dt = await sr.ReadExactlyAsync(Bucket.MaxRead);
+        var dt = await sr.ReadAtLeastAsync(Bucket.MaxRead, throwOnEndOfStream: false);
 
-        var bt = await b.ReadExactlyAsync(1024);
+        var bt = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("TAIL!", bt.ToASCIIString());
     }
 
@@ -126,9 +126,9 @@ GtAh3JPRDOlZUZM=
         var sr = new Radix64ArmorBucket(b);
         using var rr = new SignatureBucket(sr);
 
-        var bb = await rr.ReadExactlyAsync(8192);
+        var bb = await rr.ReadAtLeastAsync(8192, throwOnEndOfStream: false);
 
-        var bt = await b.ReadExactlyAsync(1024);
+        var bt = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("TAIL!", bt.ToASCIIString());
     }
 
@@ -349,7 +349,7 @@ cEgAjelaGkn3RJOwXWoJbA==
         using var dec = new DecryptBucket(decr) { KeyChain = key2 };
 
 
-        var bb = await dec.ReadExactlyAsync(1024);
+        var bb = await dec.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("This is the plaintext.\n", bb.ToUTF8String());
     }
@@ -374,7 +374,7 @@ cEgAjelaGkn3RJOwXWoJbA==
         using var dec = new DecryptBucket(decr) { KeyChain = key1 + key2 };
 
 
-        var bb = await dec.ReadExactlyAsync(1024);
+        var bb = await dec.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
     }
@@ -399,7 +399,7 @@ cEgAjelaGkn3RJOwXWoJbA==
         using var dec = new DecryptBucket(decr) { KeyChain = key1 + key2 };
 
 
-        var bb = await dec.ReadExactlyAsync(1024);
+        var bb = await dec.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
     }
@@ -474,7 +474,7 @@ cEgAjelaGkn3RJOwXWoJbA==
             nonce: nonce, associatedData: authenticated,
             verifyResult: x => ok = x);
 
-        var r = await d.ReadExactlyAsync(1024);
+        var r = await d.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual(16, r.Length);
         Assert.IsTrue(new byte[] { 0xd1, 0xf0, 0x1b, 0xa3, 0x0e, 0x13, 0x0a, 0xa7, 0xd2, 0x58, 0x2c, 0x16, 0xe0, 0x50, 0xae, 0x44 }
@@ -501,7 +501,7 @@ cEgAjelaGkn3RJOwXWoJbA==
             nonce: new byte[] { 0xBB, 0xAA, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x0F },
             verifyResult: x => ok = x);
 
-        var r = await d.ReadExactlyAsync(1024);
+        var r = await d.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual(40, r.Length);
         Assert.IsTrue(new byte[] {
@@ -618,7 +618,7 @@ f9nwhs2r0FA7IKmrcLiL2sClVAAl
             KeyChain = key1 + key2
         };
 
-        var bb = await dc.ReadExactlyAsync(1024);
+        var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("This is the plaintext.", bb.ToUTF8String());
     }
@@ -640,7 +640,7 @@ jA0EBwMCQi+5GH+oZubQ0koB9PWodsCh7cj0Eayi8bNBF5KxVwBt/TgEEosQPAX5
             GetPassword = (_) => "PW"
         };
 
-        var bb = await dc.ReadExactlyAsync(1024);
+        var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("Password encrypted.\r\n", bb.ToUTF8String());
     }
@@ -662,7 +662,7 @@ twLUuM6VyHcewSpuu2Lv06liNCE5Kn+TsTmgR/PmD8yLow==
             GetPassword = (_) => "PW"
         };
 
-        var bb = await dc.ReadExactlyAsync(1024);
+        var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("Some text \r\n", bb.ToUTF8String());
     }
@@ -693,7 +693,7 @@ UL6Ey7aK
         {
 
             // Decrypt using password
-            var bb = await dc.ReadExactlyAsync(1024);
+            var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
             Assert.AreEqual("Some more text \r\n", bb.ToUTF8String());
 
         }
@@ -706,7 +706,7 @@ UL6Ey7aK
         {
 
             // Decrypt using key
-            var bb = await dc2.ReadExactlyAsync(1024);
+            var bb = await dc2.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
             Assert.AreEqual("Some more text \r\n", bb.ToUTF8String());
         }
     }
@@ -747,14 +747,14 @@ UL6Ey7aK
         using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
         {
 
-            var bb = await dc.ReadExactlyAsync(5);
+            var bb = await dc.ReadAtLeastAsync(5, throwOnEndOfStream: false);
 
             Assert.AreEqual(5, bb.Length);
 
             await dc.SeekAsync(0);
 
 
-            bb = await dc.ReadExactlyAsync(1024);
+            bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
             Assert.AreEqual("Some more text \r\n", bb.ToUTF8String());
         }
@@ -778,7 +778,7 @@ meYB0A6OXDi4z0cpa097TG9MiC3vmRIpUjpPr8WeDJA2r03imw==
         {
 
             // Decrypt using password
-            var bb = await dc.ReadExactlyAsync(1024);
+            var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
             Assert.AreEqual("This is (was) triple des\n", bb.ToUTF8String());
 
         }

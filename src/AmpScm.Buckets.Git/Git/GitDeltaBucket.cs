@@ -124,7 +124,7 @@ internal sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
 
                 if (want > 0)
                 {
-                    data = await Source.ReadExactlyAsync(want).ConfigureAwait(false);
+                    data = await Source.ReadAtLeastAsync(want, throwOnEndOfStream: false).ConfigureAwait(false);
 
                     if (data.Length < want)
                         throw new BucketEofException(Source);

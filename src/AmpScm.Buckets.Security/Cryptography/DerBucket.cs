@@ -133,7 +133,7 @@ internal sealed class DerBucket : WrappingBucket
         {
             long len = 0;
 
-            bb = await Source.ReadExactlyAsync(b - 128).ConfigureAwait(false);
+            bb = await Source.ReadAtLeastAsync(b - 128, throwOnEndOfStream: false).ConfigureAwait(false);
             if (bb.Length != b - 0x80)
                 throw new BucketEofException(Source);
 

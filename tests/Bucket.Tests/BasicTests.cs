@@ -501,7 +501,7 @@ public class BasicTests
 
 
         var inner = compressedData.AsBucket();
-        var bb = await inner.Decompress(alg).ReadExactlyAsync(4096);
+        var bb = await inner.Decompress(alg).ReadAtLeastAsync(4096, throwOnEndOfStream: false);
 
         Assert.AreEqual(baseData.Length, bb.Length);
 
@@ -509,7 +509,7 @@ public class BasicTests
 
         Assert.IsTrue(decompressed.SequenceEqual(baseData), "Same data after decompression");
 
-        bb = await inner.ReadExactlyAsync(4096);
+        bb = await inner.ReadAtLeastAsync(4096, throwOnEndOfStream: false);
         Assert.AreEqual(finishData.Length, bb.Length);
         Assert.IsTrue(bb.ToArray().SequenceEqual(finishData));
 
@@ -748,7 +748,7 @@ public class BasicTests
             Assert.AreEqual("WXYZ", b.ToASCIIString());
         });
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.IsTrue(touched);
 
 
@@ -760,7 +760,7 @@ public class BasicTests
             Assert.AreEqual("QRST", b.ToASCIIString());
         });
 
-        r = await b.ReadExactlyAsync(1024);
+        r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.IsTrue(touched);
 
 
@@ -772,7 +772,7 @@ public class BasicTests
             Assert.AreEqual("QRST", b.ToASCIIString());
         });
 
-        r = await b.ReadExactlyAsync(1024);
+        r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.IsTrue(touched);
 
         b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
@@ -783,7 +783,7 @@ public class BasicTests
             Assert.AreEqual("QRST", b.ToASCIIString());
         });
 
-        r = await b.ReadExactlyAsync(1024);
+        r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.IsTrue(touched);
 
 
@@ -795,7 +795,7 @@ public class BasicTests
             Assert.AreEqual("PQRS", b.ToASCIIString());
         });
 
-        r = await b.ReadExactlyAsync(1024);
+        r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.IsTrue(touched);
 
         b = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ").AsBucket();
@@ -806,7 +806,7 @@ public class BasicTests
             Assert.AreEqual("RSTU", b.ToASCIIString());
         });
 
-        r = await b.ReadExactlyAsync(1024);
+        r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.IsTrue(touched);
 
     }

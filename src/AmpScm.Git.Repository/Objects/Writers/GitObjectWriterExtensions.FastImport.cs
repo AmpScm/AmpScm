@@ -124,7 +124,7 @@ public static partial class GitObjectWriterExtensions
                         case "commit":
                             using (body)
                             {
-                                string message = (await body.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToUTF8String();
+                                string message = (await body.ReadAtLeastAsync((int)len, throwOnEndOfStream: false).ConfigureAwait(false)).ToUTF8String();
 
                                 var cw = await FillCommit(message, source, marks, repository).ConfigureAwait(false);
 
@@ -148,7 +148,7 @@ public static partial class GitObjectWriterExtensions
                         case "tag":
                             using (body)
                             {
-                                string message = (await body.ReadExactlyAsync((int)len).ConfigureAwait(false)).ToUTF8String();
+                                string message = (await body.ReadAtLeastAsync((int)len, throwOnEndOfStream: false).ConfigureAwait(false)).ToUTF8String();
 
                                 string from = headers.Single(x => x.StartsWith("from ", StringComparison.Ordinal)).Substring(5);
                                 string tagger = headers.Single(x => x.StartsWith("tagger ", StringComparison.Ordinal)).Substring(7);

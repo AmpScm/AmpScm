@@ -477,14 +477,6 @@ public static partial class SpecializedBucketExtensions
             throw new ArgumentNullException(nameof(bucket));
         var bb = await bucket.ReadExactlyAsync(sizeof(int)).ConfigureAwait(false);
 
-        if (bb.Length != sizeof(short))
-        {
-            if (bb.IsEof)
-                throw new BucketEofException(bucket);
-            else
-                throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
-        }
-
         return BinaryPrimitives.ReadInt16BigEndian(bb.Span);
     }
 
@@ -500,14 +492,6 @@ public static partial class SpecializedBucketExtensions
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
         var bb = await bucket.ReadExactlyAsync(sizeof(int)).ConfigureAwait(false);
-
-        if (bb.Length != sizeof(int))
-        {
-            if (bb.IsEof)
-                throw new BucketEofException(bucket);
-            else
-                throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
-        }
 
         return BinaryPrimitives.ReadInt32BigEndian(bb.Span);
     }
@@ -551,14 +535,6 @@ public static partial class SpecializedBucketExtensions
             throw new ArgumentNullException(nameof(bucket));
         var bb = await bucket.ReadExactlyAsync(sizeof(ushort)).ConfigureAwait(false);
 
-        if (bb.Length != sizeof(ushort))
-        {
-            if (bb.IsEof)
-                throw new BucketEofException(bucket);
-            else
-                throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
-        }
-
         return BinaryPrimitives.ReadUInt16BigEndian(bb.Span);
     }
 
@@ -600,14 +576,6 @@ public static partial class SpecializedBucketExtensions
             throw new ArgumentNullException(nameof(bucket));
         var bb = await bucket.ReadExactlyAsync(sizeof(long)).ConfigureAwait(false);
 
-        if (bb.Length != sizeof(long))
-        {
-            if (bb.IsEof)
-                throw new BucketEofException(bucket);
-            else
-                throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
-        }
-
         return BinaryPrimitives.ReadInt64BigEndian(bb.Span);
     }
 
@@ -624,14 +592,6 @@ public static partial class SpecializedBucketExtensions
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
         var bb = await bucket.ReadExactlyAsync(sizeof(ulong)).ConfigureAwait(false);
-
-        if (bb.Length != sizeof(ulong))
-        {
-            if (bb.IsEof)
-                throw new BucketEofException(bucket);
-            else
-                throw new BucketException($"Bad read of length {bb.Length} from {bucket.Name} Bucket");
-        }
 
         return BinaryPrimitives.ReadUInt64BigEndian(bb.Span);
     }

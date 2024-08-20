@@ -11,7 +11,7 @@ public static class GitReadExtensions
             throw new ArgumentNullException(nameof(bucket));
 
         int hl = type.HashLength();
-        var bb = await bucket.ReadExactlyAsync(hl).ConfigureAwait(false);
+        var bb = await bucket.ReadAtLeastAsync(hl, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.Length == hl)
             return new GitId(type, bb.ToArray());

@@ -70,7 +70,8 @@ public static partial class BucketExtensions
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public static async ValueTask<BucketBytes> ReadExactlyAsync(this Bucket bucket, int requested)
+    /// <param name="throwOnEndOfStream"></param>
+    public static async ValueTask<BucketBytes> ReadAtLeastAsync(this Bucket bucket, int requested, bool throwOnEndOfStream = true)
     {
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
@@ -82,15 +83,15 @@ public static partial class BucketExtensions
         {
             var bb = await bucket.ReadAsync(requested).ConfigureAwait(false);
 
-            if (result.IsEmpty)
-            {
-                if (bb.Length == requested || bb.IsEof)
-                    return bb;
-            }
-            else if (bb.IsEof)
-                return result.AsBytes();
-            else if (bb.Length == requested)
+            if (bb.Length == requested)
                 return result.AsBytes(bb);
+            else if (bb.IsEof)
+            {
+                if (result.IsEmpty || throwOnEndOfStream)
+                    return throwOnEndOfStream ? throw new BucketEofException(bucket) : BucketBytes.Eof;
+                else
+                    return result.AsBytes();
+            }
             else if (bb.IsEmpty)
                 throw new BucketException($"Bucket {bucket} returns 0-byte read");
 
@@ -104,45 +105,10 @@ public static partial class BucketExtensions
     /// </summary>
     /// <param name="bucket"></param>
     /// <param name="requested"></param>
-    /// <param name="throwOnEof"></param>
     /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
-    /// <exception cref="BucketEofException"></exception>
-    public static async ValueTask<BucketBytes> ReadExactlyAsync(this Bucket bucket, int requested, bool throwOnEof)
+    public static ValueTask<BucketBytes> ReadExactlyAsync(this Bucket bucket, int requested)
     {
-        if (bucket is null)
-            throw new ArgumentNullException(nameof(bucket));
-        else if (requested <= 0 || requested > Bucket.MaxRead)
-            throw new ArgumentOutOfRangeException(nameof(requested), requested, message: null);
-
-        ByteCollector result = new(requested);
-        while (true)
-        {
-            var bb = await bucket.ReadAsync(requested).ConfigureAwait(false);
-
-            if (result.IsEmpty)
-            {
-                if (bb.Length == requested || (bb.IsEof && !throwOnEof))
-                    return bb;
-                else if (bb.IsEof)
-                    throw new BucketEofException(bucket);
-            }
-            else if (bb.IsEof)
-            {
-                if (throwOnEof)
-                    throw new BucketEofException(bucket);
-
-                return result.AsBytes();
-            }
-            else if (bb.Length == requested)
-                return result.AsBytes(bb);
-            else if (bb.IsEmpty)
-                throw new BucketException($"Bucket {bucket} returns 0-byte read");
-
-            result.Append(bb);
-            requested -= bb.Length;
-        }
+        return ReadAtLeastAsync(bucket, requested, throwOnEndOfStream: true);
     }
 
     /// <summary>
@@ -180,7 +146,7 @@ public static partial class BucketExtensions
         }
         else
         {
-            bb = await bucket.ReadExactlyAsync(blockSize).ConfigureAwait(false);
+            bb = await bucket.ReadAtLeastAsync(blockSize, throwOnEndOfStream: false).ConfigureAwait(false);
 
             if (bb.Length % blockSize != 0 && failOnPartial)
                 throw new BucketException();

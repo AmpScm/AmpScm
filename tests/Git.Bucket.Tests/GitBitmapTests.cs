@@ -20,7 +20,7 @@ public class GitBitmapTests
         var fb = FileBucket.OpenRead(bmpFile);
 
 
-        var headers = await fb.ReadExactlyAsync(32); // Skip headers
+        var headers = await fb.ReadAtLeastAsync(32, throwOnEndOfStream: false); // Skip headers
 
         uint count = NetBitConverter.ToUInt32(headers, 8);
 
@@ -72,7 +72,7 @@ public class GitBitmapTests
 
             Assert.AreEqual(expectedBytes, (int)p, "ReadRemaining returned expected value");
 
-            var bb = await ewah.ReadExactlyAsync(65536);
+            var bb = await ewah.ReadAtLeastAsync(65536, throwOnEndOfStream: false);
 
             Assert.AreEqual(expectedBytes, bb.Length, $"Read {bb.Length}, expected {bitLengths[i]} bits, what would be {(bitLengths[i] + 7) / 8} bytes, or {expectedBytes} bytes when reading longs");
 
@@ -98,7 +98,7 @@ public class GitBitmapTests
         var fb = FileBucket.OpenRead(bmpFile);
 
 
-        var headers = await fb.ReadExactlyAsync(32); // Skip headers
+        var headers = await fb.ReadAtLeastAsync(32, throwOnEndOfStream: false); // Skip headers
 
         uint count = NetBitConverter.ToUInt32(headers, 8);
 
@@ -124,7 +124,7 @@ public class GitBitmapTests
         int maxBits = buckets.Max(x => x.ReadBitLengthAsync().AsTask().Result);
 
         Assert.AreEqual(2369, maxBits);
-        var bb = await allXor.ReadExactlyAsync((maxBits + 7) / 8);
+        var bb = await allXor.ReadAtLeastAsync((maxBits + 7) / 8, throwOnEndOfStream: false);
 
         for (int i = 0; i < bb.Length - 1; i++)
         {

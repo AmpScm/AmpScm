@@ -65,7 +65,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     byte version = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
                     // Read the public key, for who the file is encrypted
-                    var bb = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false));
+                    var bb = (await bucket.ReadAtLeastAsync(8, throwOnEndOfStream: false).ConfigureAwait(false));
 
                     if (!_sessionKey.IsEmpty)
                     {
@@ -127,7 +127,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 byte len = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 if (len > 0)
                                 {
-                                    var srcData = await bucket.ReadExactlyAsync(len, throwOnEof: true).ConfigureAwait(false);
+                                    var srcData = await bucket.ReadExactlyAsync(len).ConfigureAwait(false);
 
                                     if (new Rfc3394Algorithm(kek).TryUnwrapKey(srcData.ToArray(), out var data))
                                     {
@@ -172,7 +172,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                                 byte len = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
                                 if (len > 0)
                                 {
-                                    var srcData = await bucket.ReadExactlyAsync(len, throwOnEof: true).ConfigureAwait(false);
+                                    var srcData = await bucket.ReadExactlyAsync(len).ConfigureAwait(false);
 
                                     if (new Rfc3394Algorithm(kek).TryUnwrapKey(srcData.ToArray(), out var data))
                                     {
@@ -194,7 +194,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     var hashAlgorithm = (PgpHashAlgorithm)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
                     var pkt = (PgpPublicKeyType)(await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0);
 
-                    byte[] signer = (await bucket.ReadExactlyAsync(8).ConfigureAwait(false)).ToArray();
+                    byte[] signer = (await bucket.ReadAtLeastAsync(8, throwOnEndOfStream: false).ConfigureAwait(false)).ToArray();
 
                     byte flag = await bucket.ReadByteAsync().ConfigureAwait(false) ?? 0;
 
@@ -218,7 +218,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         throw new BucketException("Session key is for different algorithm");
 
                     // Starting vector (OCB specific)
-                    byte[] startingVector = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray();
+                    byte[] startingVector = (await bucket.ReadAtLeastAsync(OcbDecodeBucket.MaxNonceLength, throwOnEndOfStream: false).ConfigureAwait(false)).ToArray();
                     var sessionKey = _sessionKey.ToArray();
 
                     // Encrypted data
@@ -273,7 +273,7 @@ public sealed class DecryptBucket : CryptoDataBucket
             case CryptoTag.UserID:
 #if DEBUG
                 {
-                    var bb = await bucket.ReadExactlyAsync(MaxRead).ConfigureAwait(false);
+                    var bb = await bucket.ReadAtLeastAsync(MaxRead, throwOnEndOfStream: false).ConfigureAwait(false);
 
                     Trace.WriteLine(bb.ToUTF8String());
                 }
@@ -286,13 +286,13 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                     if (fileNameLen > 0)
                     {
-                        var fn = await bucket.ReadExactlyAsync(fileNameLen).ConfigureAwait(false);
+                        var fn = await bucket.ReadAtLeastAsync(fileNameLen, throwOnEndOfStream: false).ConfigureAwait(false);
                         _fileName = fn.ToASCIIString();
                     }
                     else
                         _fileName = "";
 
-                    var dt = await bucket.ReadExactlyAsync(4).ConfigureAwait(false); // Date
+                    var dt = await bucket.ReadAtLeastAsync(4, throwOnEndOfStream: false).ConfigureAwait(false); // Date
                     _fileDate = DateTimeOffset.FromUnixTimeSeconds(NetBitConverter.ToUInt32(dt, 0)).DateTime;
 
                     foreach (var s in _sigs)
@@ -341,7 +341,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     {
                         case 5:
                             {
-                                byte[] nonce = (await bucket.ReadExactlyAsync(OcbDecodeBucket.MaxNonceLength).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
+                                byte[] nonce = (await bucket.ReadAtLeastAsync(OcbDecodeBucket.MaxNonceLength, throwOnEndOfStream: false).ConfigureAwait(false)).ToArray(); // always 15, as OCB length
 
                                 bool? verified_as_ok = null;
 
@@ -349,7 +349,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                                     associatedData: new byte[] { (byte)(0xc0 | (int)tag), version, (byte)cipherAlgorithm, 0x02 /* s2k type */ },
                                     verifyResult: (result) => verified_as_ok = result);
 
-                                var k = await ocb.ReadExactlyAsync(symmetricKeyLength + 1).ConfigureAwait(false);
+                                var k = await ocb.ReadAtLeastAsync(symmetricKeyLength + 1, throwOnEndOfStream: false).ConfigureAwait(false);
 
 #pragma warning disable CA1508 // Avoid dead conditional code // Bad diagnostic, as used in lambda.
                                 Debug.Assert(verified_as_ok != null, "Verify not called");
@@ -373,7 +373,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                             {
                                 using var keySrc = CreateDecryptBucket(bucket, s2k.CipherAlgorithm, key, iv: new byte[key.Length]);
 
-                                var k = await keySrc.ReadExactlyAsync(key.Length + 2).ConfigureAwait(false);
+                                var k = await keySrc.ReadAtLeastAsync(key.Length + 2, throwOnEndOfStream: false).ConfigureAwait(false);
 
                                 if (k.Length == key.Length - 1)
                                 {
@@ -423,7 +423,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                     }
                     _literalSha = null;
 
-                    var bb = await bucket.ReadExactlyAsync(20).ConfigureAwait(false);
+                    var bb = await bucket.ReadAtLeastAsync(20, throwOnEndOfStream: false).ConfigureAwait(false);
 
                     if (_shaResult is { } && !bb.Memory.SequenceEqual(_shaResult))
                         throw new BucketDecryptionException($"Modification detected in {nameof(CryptoTag.SymetricEncryptedIntegrity)} packet of {bucket} bucket");
@@ -531,7 +531,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
         _literalSha = dcb.SHA1((value) => _shaResult = value);
 
-        var bb = await _literalSha.ReadExactlyAsync(dcb.BlockBytes + 2).ConfigureAwait(false);
+        var bb = await _literalSha.ReadAtLeastAsync(dcb.BlockBytes + 2, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.Length != dcb.BlockBytes + 2 || bb[bb.Length - 1] != bb[bb.Length - 3] || bb[bb.Length - 2] != bb[bb.Length - 4])
             throw new InvalidOperationException("Decrypt failed. Wrong session key");

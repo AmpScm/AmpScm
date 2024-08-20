@@ -23,7 +23,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -41,7 +41,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("0001020304050607", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -59,7 +59,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -77,7 +77,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("0001020304050607", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -95,7 +95,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("000102030405060708090A0B0C0D0E0F", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -113,7 +113,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -131,7 +131,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("000102030405060708090A0B0C0D0E0F", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -149,7 +149,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("000102030405060708090A0B0C0D0E0F1011121314151617", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -167,7 +167,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -185,7 +185,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("000102030405060708090A0B0C0D0E0F1011121314151617", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -203,7 +203,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -221,7 +221,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -239,7 +239,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -257,7 +257,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F2021222324252627", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -275,7 +275,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }
@@ -293,7 +293,7 @@ public class OCBTests
             verifyResult: r => ok = r);
 
 
-        var r = await b.ReadExactlyAsync(1024);
+        var r = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F2021222324252627", GetHex(r));
         Assert.AreEqual(true, ok, "Got verified");
     }

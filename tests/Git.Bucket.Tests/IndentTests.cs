@@ -16,11 +16,11 @@ public class IndentTests
 
         long l = (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false)).Value;
 
-        var bb = await bucket.ReadExactlyAsync(8192);
+        var bb = await bucket.ReadAtLeastAsync(8192, throwOnEndOfStream: false);
 
         Assert.AreEqual(bb.Length, (int)l);
 
-        bb = await innerBucket.ReadExactlyAsync(8192);
+        bb = await innerBucket.ReadAtLeastAsync(8192, throwOnEndOfStream: false);
 
         Assert.AreEqual(4, bb.Length);
     }

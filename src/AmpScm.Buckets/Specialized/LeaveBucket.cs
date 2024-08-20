@@ -51,7 +51,7 @@ internal sealed class LeaveBucket : WrappingBucket
                 if (requested <= 0)
                 {
                     _done = true;
-                    var left = await Source.ReadExactlyAsync(LeaveBytes).ConfigureAwait(false);
+                    var left = await Source.ReadAtLeastAsync(LeaveBytes, throwOnEndOfStream: false).ConfigureAwait(false);
 
                     if (_leftHandler is { })
                         await _leftHandler.Invoke(left, CurrentPosition).ConfigureAwait(false);

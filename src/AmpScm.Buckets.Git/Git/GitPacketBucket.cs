@@ -27,7 +27,7 @@ public class GitPacketBucket : GitBucket
 
     public async ValueTask<BucketBytes> ReadFullPacket()
     {
-        BucketBytes bb = await Source.ReadExactlyAsync(4).ConfigureAwait(false);
+        BucketBytes bb = await Source.ReadAtLeastAsync(4, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.IsEof)
             return bb;
@@ -39,7 +39,7 @@ public class GitPacketBucket : GitBucket
         if (_packetLength <= 4)
             return BucketBytes.Empty;
 
-        bb = await Source.ReadExactlyAsync(_packetLength - 4).ConfigureAwait(false);
+        bb = await Source.ReadAtLeastAsync(_packetLength - 4, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.Length == _packetLength - 4)
             return bb;

@@ -49,7 +49,7 @@ internal sealed class SvnHashBucket : SvnBucket
 #endif
             throw new BucketException();
 
-        bb = await Source.ReadExactlyAsync(len).ConfigureAwait(false);
+        bb = await Source.ReadAtLeastAsync(len, throwOnEndOfStream: false).ConfigureAwait(false);
 
         string key = bb.ToUTF8String();
 
@@ -70,7 +70,7 @@ internal sealed class SvnHashBucket : SvnBucket
 #endif
             throw new BucketException();
 
-        bb = await Source.ReadExactlyAsync(len).ConfigureAwait(false);
+        bb = await Source.ReadAtLeastAsync(len, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.Length == len)
         {

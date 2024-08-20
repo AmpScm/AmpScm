@@ -41,7 +41,7 @@ internal sealed class CryptoChunkBucket : WrappingBucket
 
             if (bb.Length < 6)
             {
-                bb = await Source.ReadExactlyAsync(6).ConfigureAwait(false);
+                bb = await Source.ReadAtLeastAsync(6, throwOnEndOfStream: false).ConfigureAwait(false);
                 didRead = true;
             }
 
@@ -49,7 +49,7 @@ internal sealed class CryptoChunkBucket : WrappingBucket
             {
                 _isSsh = true;
                 if (!didRead)
-                    bb = await Source.ReadExactlyAsync(6).ConfigureAwait(false);
+                    bb = await Source.ReadAtLeastAsync(6, throwOnEndOfStream: false).ConfigureAwait(false);
             }
             else if (bb.Span.StartsWith(new byte[] { 0x00, 0x00, 0x00 }))
             {

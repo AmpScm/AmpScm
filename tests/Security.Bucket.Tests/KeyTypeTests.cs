@@ -381,7 +381,7 @@ jq9wBCVghbQ1zr8WUZAH6jutdEU8xyvlp4WoY7kl7A==
         var dc = new DecryptBucket(ar) { KeyChain = r2 };
 
 
-        var bb = await dc.ReadExactlyAsync(1024);
+        var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("This is it!\r\n", bb.ToUTF8String());
     }
@@ -456,7 +456,7 @@ pRpHxU+Ml3pmAeFqHjYtxw==
         var dc = new DecryptBucket(ar) { KeyChain = k1 + k2 };
 
 
-        var bb = await dc.ReadExactlyAsync(1024);
+        var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("\"Wow!\" \r\n", bb.ToUTF8String());
 
@@ -490,7 +490,7 @@ yg==
             dc = new DecryptBucket(ar) { KeyChain = k1 + k2, VerifySignature = true };
 
 
-            bb = await dc.ReadExactlyAsync(1024);
+            bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
             Assert.AreEqual("This is it!\r\n", bb.ToUTF8String());
         }
@@ -550,7 +550,7 @@ Pts=
         var dc = new DecryptBucket(ar) { KeyChain = key };
 
 
-        var bb = await dc.ReadExactlyAsync(1024);
+        var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("This is it! \r\n", bb.ToUTF8String());
     }
@@ -605,7 +605,7 @@ BFuZ
         var dc = new DecryptBucket(ar) { KeyChain = key };
 
 
-        var bb = await dc.ReadExactlyAsync(1024);
+        var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("Without-PW\r\n", bb.ToUTF8String());
     }
@@ -651,7 +651,7 @@ bv+LjLMogTCQlrJoGgN9Hc0gllsIhpT67/iAXcDtxEO6xsMW97/Xr4mAWejuvC5+
         var dc = new DecryptBucket(ar) { KeyChain = key };
 
 
-        var bb = await dc.ReadExactlyAsync(1024);
+        var bb = await dc.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
         Assert.AreEqual("Without-PW\r\n", bb.ToUTF8String());
     }

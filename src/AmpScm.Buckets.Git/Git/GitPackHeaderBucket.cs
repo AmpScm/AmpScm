@@ -16,7 +16,7 @@ public class GitPackHeaderBucket : GitBucket
     {
         if (!_header.HasValue)
         {
-            var bb = await Source.ReadExactlyAsync(12).ConfigureAwait(false);
+            var bb = await Source.ReadAtLeastAsync(12, throwOnEndOfStream: false).ConfigureAwait(false);
 
             if (bb.Length != 12)
                 throw new BucketEofException(Source);

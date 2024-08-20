@@ -290,7 +290,7 @@ public class GitRepositoryWalks
 
                     using (var b = ((GitBlob)item.GitObject).AsBucket())
                     {
-                        var bb = await b.ReadExactlyAsync(1024);
+                        var bb = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 
                         var target = bb.ToUTF8String();
 

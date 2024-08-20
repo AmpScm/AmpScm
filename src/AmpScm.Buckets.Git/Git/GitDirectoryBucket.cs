@@ -155,7 +155,7 @@ public sealed class GitDirectoryBucket : GitBucket
     {
         if (_version > 0)
             return;
-        var bb = await Source.ReadExactlyAsync(12).ConfigureAwait(false);
+        var bb = await Source.ReadAtLeastAsync(12, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (!bb.StartsWithASCII("DIRC"))
             throw new GitBucketException($"No Directory cache in {Name} bucket");
@@ -241,7 +241,7 @@ public sealed class GitDirectoryBucket : GitBucket
 
         int hashLen = _idType.HashLength();
         int readLen = 40 + 2 + hashLen;
-        var bb = await Source.ReadExactlyAsync(readLen).ConfigureAwait(false);
+        var bb = await Source.ReadAtLeastAsync(readLen, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.Length != readLen)
             throw new BucketEofException(Source);
@@ -273,7 +273,7 @@ public sealed class GitDirectoryBucket : GitBucket
         int FullFlags = src.Flags;
         if ((src.Flags & 0x4000) != 0 && _version >= 3) // Must be 0 in version 2
         {
-            bb = await Source.ReadExactlyAsync(2).ConfigureAwait(false);
+            bb = await Source.ReadAtLeastAsync(2, throwOnEndOfStream: false).ConfigureAwait(false);
 
             if (bb.Length != 2)
                 throw new BucketEofException(Source);
@@ -509,7 +509,7 @@ public sealed class GitDirectoryBucket : GitBucket
 
             while (reader.Position < bucketEnd)
             {
-                var bb = await reader.ReadExactlyAsync(4 + 4).ConfigureAwait(false);
+                var bb = await reader.ReadAtLeastAsync(4 + 4, throwOnEndOfStream: false).ConfigureAwait(false);
 
                 if (bb.Length != 4 + 4)
                     throw new BucketEofException(Source);

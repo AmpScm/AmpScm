@@ -493,7 +493,7 @@ public class EolTests
         string Apply(string tst, BucketEol acceptedEols = BucketEol.AnyEol)
         {
             var r = MakeBucket(tst).NormalizeEols(acceptedEols);
-            var bb = r.ReadExactlyAsync(256).AsTask().Result;
+            var bb = r.ReadAtLeastAsync(256, throwOnEndOfStream: false).AsTask().Result;
 
             return bb.ToUTF8String();
         }
@@ -501,7 +501,7 @@ public class EolTests
         string Apply2(string[] tst, BucketEol acceptedEols = BucketEol.AnyEol)
         {
             var r = MakeBucket(tst).NormalizeEols(acceptedEols);
-            var bb = r.ReadExactlyAsync(256).AsTask().Result;
+            var bb = r.ReadAtLeastAsync(256, throwOnEndOfStream: false).AsTask().Result;
 
             return bb.ToUTF8String();
         }
@@ -582,7 +582,7 @@ public class EolTests
         using var b = encodedBytes.AsBucket();
 
         // This wil test the peaking
-        var bb = await b.NormalizeToUtf8().ReadExactlyAsync(1024);
+        var bb = await b.NormalizeToUtf8().ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
 
         if (enc is UnicodeEncoding u && !u.GetPreamble().Any())
@@ -590,7 +590,7 @@ public class EolTests
 
         // This will check the byte reading
         BucketBytes ec = encodedBytes;
-        bb = await (ec.Slice(0, 1).ToArray().AsBucket() + ec.Slice(1).ToArray().AsBucket()).NormalizeToUtf8().ReadExactlyAsync(1024);
+        bb = await (ec.Slice(0, 1).ToArray().AsBucket() + ec.Slice(1).ToArray().AsBucket()).NormalizeToUtf8().ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
     }
 
@@ -602,7 +602,7 @@ public class EolTests
         var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
         using var b = encodedBytes.AsBucket();
 
-        var bb = await b.ConvertToUtf8(enc).ReadExactlyAsync(1024);
+        var bb = await b.ConvertToUtf8(enc).ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));
     }
 
@@ -620,14 +620,14 @@ public class EolTests
 
             var b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
 
-            BucketBytes bb = await b.ConvertToUtf8(enc).ReadExactlyAsync(1024);
+            BucketBytes bb = await b.ConvertToUtf8(enc).ReadAtLeastAsync(1024, throwOnEndOfStream: false);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Convert Iteration {i}");
 
             if (enc is UnicodeEncoding u && !u.GetPreamble().Any())
                 continue; // Unicode without preamble not detectable without scan via .Peek()
 
             b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
-            bb = await b.NormalizeToUtf8().ReadExactlyAsync(1024);
+            bb = await b.NormalizeToUtf8().ReadAtLeastAsync(1024, throwOnEndOfStream: false);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Normalize Iteration {i}");
         }
     }
@@ -645,11 +645,11 @@ public class EolTests
 
             var b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
 
-            BucketBytes bb = await b.ConvertToUtf8(enc).ReadExactlyAsync(1024);
+            BucketBytes bb = await b.ConvertToUtf8(enc).ReadAtLeastAsync(1024, throwOnEndOfStream: false);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Convert Iteration {i}");
 
             b = encSpan.Slice(0, i).ToArray().AsBucket() + encSpan.Slice(i).ToArray().AsBucket();
-            bb = await b.NormalizeToUtf8().ReadExactlyAsync(1024);
+            bb = await b.NormalizeToUtf8().ReadAtLeastAsync(1024, throwOnEndOfStream: false);
             Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), $"Normalize Iteration {i}");
         }
     }

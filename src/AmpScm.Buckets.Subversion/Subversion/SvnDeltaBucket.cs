@@ -46,7 +46,7 @@ public class SvnDeltaBucket : SvnBucket
         if (_version != 0xFF)
             return _version;
 
-        var bb = await Source.ReadExactlyAsync(4).ConfigureAwait(false);
+        var bb = await Source.ReadAtLeastAsync(4, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.Length != 4)
             throw new BucketEofException(Source);
@@ -131,7 +131,7 @@ public class SvnDeltaBucket : SvnBucket
 
         Memory<byte> instructions;
         if (ilen > 0)
-            instructions = (await Source.ReadExactlyAsync(ilen).ConfigureAwait(false)).ToArray();
+            instructions = (await Source.ReadAtLeastAsync(ilen, throwOnEndOfStream: false).ConfigureAwait(false)).ToArray();
         else
             instructions = new();
 
@@ -147,7 +147,7 @@ public class SvnDeltaBucket : SvnBucket
         Memory<byte> data;
         if (dlen > 0)
         {
-            data = (await Source.ReadExactlyAsync(dlen).ConfigureAwait(false)).ToArray();
+            data = (await Source.ReadAtLeastAsync(dlen, throwOnEndOfStream: false).ConfigureAwait(false)).ToArray();
         }
         else
             data = new();
@@ -180,7 +180,7 @@ public class SvnDeltaBucket : SvnBucket
 
                     _srcView.Slice(_srcView.Length - moveOver).CopyTo(newView);
 
-                    bb = await DeltaBase!.ReadExactlyAsync(newView.Length - moveOver).ConfigureAwait(false);
+                    bb = await DeltaBase!.ReadAtLeastAsync(newView.Length - moveOver, throwOnEndOfStream: false).ConfigureAwait(false);
 
                     bb.CopyTo(newView, moveOver);
                 }
@@ -188,7 +188,7 @@ public class SvnDeltaBucket : SvnBucket
             else
             {
                 await DeltaBase!.SeekAsync(sview_offset).ConfigureAwait(false);
-                bb = await DeltaBase!.ReadExactlyAsync(sview_len).ConfigureAwait(false);
+                bb = await DeltaBase!.ReadAtLeastAsync(sview_len, throwOnEndOfStream: false).ConfigureAwait(false);
 
                 _srcView = bb;
                 _srcViewOffset = sview_offset;

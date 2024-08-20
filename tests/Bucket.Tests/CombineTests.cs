@@ -102,12 +102,12 @@ public class CombineTests
     [TestMethod]
     public async Task TakeSkipTests()
     {
-        var bb = await new byte[128].AsBucket().Take(130).ReadExactlyAsync(200);
+        var bb = await new byte[128].AsBucket().Take(130).ReadAtLeastAsync(200, throwOnEndOfStream: false);
         Assert.AreEqual(128, bb.Length);
 
         try
         {
-            bb = await new byte[128].AsBucket().TakeExactly(130).ReadExactlyAsync(200);
+            bb = await new byte[128].AsBucket().TakeExactly(130).ReadAtLeastAsync(200, throwOnEndOfStream: false);
             Assert.Fail("Expected eof exception");
         }
         catch(BucketEofException)
@@ -115,14 +115,14 @@ public class CombineTests
         }
 
 
-        bb = await new byte[128].AsBucket().Skip(130).ReadExactlyAsync(200);
+        bb = await new byte[128].AsBucket().Skip(130).ReadAtLeastAsync(200, throwOnEndOfStream: false);
         Assert.AreEqual(0, bb.Length);
         Assert.IsTrue(bb.IsEof);
         Assert.IsTrue(bb.IsEmpty);
 
         try
         {
-            bb = await new byte[128].AsBucket().SkipExactly(130).ReadExactlyAsync(200);
+            bb = await new byte[128].AsBucket().SkipExactly(130).ReadAtLeastAsync(200, throwOnEndOfStream: false);
             Assert.Fail("Expected eof exception");
         }
         catch (BucketEofException)

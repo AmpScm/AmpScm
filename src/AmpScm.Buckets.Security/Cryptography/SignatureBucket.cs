@@ -177,9 +177,6 @@ public sealed class SignatureBucket : CryptoDataBucket
                     {
                         var bb = await csum.ReadExactlyAsync(5).ConfigureAwait(false);
 
-                        if (bb.Length != 5)
-                            throw new BucketEofException(bucket);
-
                         keyTime = DateTimeOffset.FromUnixTimeSeconds(NetBitConverter.ToUInt32(bb, 0)).DateTime;
                         keyPublicKeyType = (PgpPublicKeyType)bb[4];
 
@@ -215,8 +212,6 @@ public sealed class SignatureBucket : CryptoDataBucket
                             throw new NotSupportedException("Reserved value");
 
                         var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
-                        if (bb.Length != b)
-                            throw new BucketEofException(bucket);
 
                         bigInts.Add(bb.Memory.ToBigInteger()); // [0] = OID
                     }
@@ -233,8 +228,6 @@ public sealed class SignatureBucket : CryptoDataBucket
                             throw new NotSupportedException("Reserved value");
 
                         var bb = await csum.ReadExactlyAsync(b).ConfigureAwait(false);
-                        if (bb.Length != b)
-                            throw new BucketEofException(bucket);
 
                         bigInts.Add(bb.Memory.ToBigInteger()); // [2] = KDF
 
@@ -307,9 +300,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                                 else
                                 {
                                     // OCB
-
                                     throw new NotSupportedException("OCB Encrypted key");
-
                                 }
                             }
 
@@ -357,7 +348,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                             }
                             else if (sku is 254)
                             {
-                                var sha1 = await bucket.ReadExactlyAsync(20).ConfigureAwait(false);
+                                var sha1 = await bucket.ReadAtLeastAsync(20, throwOnEndOfStream: false).ConfigureAwait(false);
                             }
                         }
                     }
@@ -402,7 +393,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                         {
                             var (b, bt) = rd;
 
-                            var bb = await b.ReadExactlyAsync(8192).ConfigureAwait(false);
+                            var bb = await b.ReadAtLeastAsync(8192, throwOnEndOfStream: false).ConfigureAwait(false);
                             values.Add(bb.Memory.ToBigInteger());
                         }
 
@@ -424,7 +415,7 @@ public sealed class SignatureBucket : CryptoDataBucket
 
                         (ob, obt) = await der2.ReadValueAsync().ConfigureAwait(false);
 
-                        var bb = await ob!.ReadExactlyAsync(32).ConfigureAwait(false);
+                        var bb = await ob!.ReadAtLeastAsync(32, throwOnEndOfStream: false).ConfigureAwait(false);
 
                         CryptoAlgorithm cryptoAlg;
 
@@ -457,7 +448,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                 break;
             case CryptoTag.UserID:
                 {
-                    var bb = await bucket.ReadExactlyAsync(MaxRead).ConfigureAwait(false);
+                    var bb = await bucket.ReadAtLeastAsync(MaxRead, throwOnEndOfStream: false).ConfigureAwait(false);
 
                     string name = bb.ToUTF8String();
 

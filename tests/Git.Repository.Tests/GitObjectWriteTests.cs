@@ -490,7 +490,7 @@ public class GitObjectWriteTests
 
                 await b.SeekAsync(r.Next(sz));
 
-                await b.ReadExactlyAsync(Bucket.MaxRead);
+                await b.ReadAtLeastAsync(Bucket.MaxRead, throwOnEndOfStream: false);
             }
         }
     }

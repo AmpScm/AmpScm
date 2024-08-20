@@ -178,7 +178,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
                 {
                     using var sig = new Radix64ArmorBucket(src);
 
-                    bb = await sig.ReadExactlyAsync(8192).ConfigureAwait(false);
+                    bb = await sig.ReadAtLeastAsync(8192, throwOnEndOfStream: false).ConfigureAwait(false);
 
                     _signature = bb.ToArray();
                 }

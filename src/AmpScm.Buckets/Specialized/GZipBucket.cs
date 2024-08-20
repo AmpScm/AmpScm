@@ -41,7 +41,7 @@ internal sealed class GZipBucket : WrappingBucket, IBucketPoll, IBucketSeek
         if (!bb.IsEof)
             return bb;
 
-        bb = await ((ZLibBucket)Source).GetSourceBucket().ReadExactlyAsync(8).ConfigureAwait(false);
+        bb = await ((ZLibBucket)Source).GetSourceBucket().ReadAtLeastAsync(8, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.Length != 8)
             throw new BucketEofException(this);
@@ -58,7 +58,7 @@ internal sealed class GZipBucket : WrappingBucket, IBucketPoll, IBucketSeek
 
     private async ValueTask ReadHeader()
     {
-        var bb = await ((ZLibBucket)Source).GetSourceBucket().ReadExactlyAsync(10).ConfigureAwait(false);
+        var bb = await ((ZLibBucket)Source).GetSourceBucket().ReadAtLeastAsync(10, throwOnEndOfStream: false).ConfigureAwait(false);
 
         if (bb.Length == 0)
         {
