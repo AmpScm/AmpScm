@@ -108,8 +108,7 @@ public sealed record class PublicKeySignature : AsymmetricCryptoKey
         var b = Bucket.Create.FromASCII(line);
 
         var r = new Radix64ArmorBucket(b);
-        using var sig = new SignatureBucket(r) { GetPassword = getPassPhrase };
-
+        var sig = new SignatureBucket(r) { GetPassword = getPassPhrase };
         try
         {
             value = sig.ReadKeyAsync().AsTask().GetAwaiter().GetResult();

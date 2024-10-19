@@ -52,7 +52,7 @@ internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
         {
             _size = _buffered;
             _readEof = true;
-            Dispose(disposing: true);
+            await DisposeAsync(disposing: true);
         }
     }
 
@@ -76,12 +76,12 @@ internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
         return await _readBucket.PollAsync(minRequested).ConfigureAwait(false);
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         if (!_disposed)
         {
             _disposed = true;
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

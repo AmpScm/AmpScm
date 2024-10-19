@@ -22,7 +22,7 @@ internal abstract class ChunkFileBasedObjectRepository : GitObjectRepository
         {
             if (disposing)
             {
-                ChunkReader?.Dispose();
+                ChunkReader?.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
         }
         finally
@@ -67,7 +67,7 @@ internal abstract class ChunkFileBasedObjectRepository : GitObjectRepository
 
         if (chunkCount == 0)
         {
-            ChunkReader.Dispose();
+            await ChunkReader.DisposeAsync();
             ChunkReader = null;
             return;
         }

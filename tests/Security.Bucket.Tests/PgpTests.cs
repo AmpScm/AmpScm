@@ -78,7 +78,7 @@ GtAh3JPRDOlZUZM=
     {
         var b = Bucket.Create.FromASCII(SignaturePublicKey);
 
-        using var sr = new Radix64ArmorBucket(b);
+        await using var sr = new Radix64ArmorBucket(b);
 
         while (true)
         {
@@ -99,7 +99,7 @@ GtAh3JPRDOlZUZM=
     {
         var b = Bucket.Create.FromASCII(SignaturePublicKey + Environment.NewLine + "TAIL!");
 
-        using var sr = new Radix64ArmorBucket(b);
+        await using var sr = new Radix64ArmorBucket(b);
 
         while (true)
         {
@@ -124,7 +124,7 @@ GtAh3JPRDOlZUZM=
         var b = Bucket.Create.FromASCII(SignaturePublicKey + Environment.NewLine + "TAIL!");
 
         var sr = new Radix64ArmorBucket(b);
-        using var rr = new SignatureBucket(sr);
+        await using var rr = new SignatureBucket(sr);
 
         var bb = await rr.ReadAtLeastAsync(8192, throwOnEndOfStream: false);
 
@@ -344,9 +344,9 @@ cEgAjelaGkn3RJOwXWoJbA==
         Assert.AreEqual(CryptoAlgorithm.Rsa, key2.Algorithm);
         Assert.IsTrue(key1.HasPrivateKey, "Key2 has secret");
 
-        using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2).AsBucket());
+        await using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2).AsBucket());
 
-        using var dec = new DecryptBucket(decr) { KeyChain = key2 };
+        await using var dec = new DecryptBucket(decr) { KeyChain = key2 };
 
 
         var bb = await dec.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
@@ -369,9 +369,9 @@ cEgAjelaGkn3RJOwXWoJbA==
         Assert.AreEqual(CryptoAlgorithm.Rsa, key2.Algorithm);
         Assert.IsTrue(key1.HasPrivateKey, "Key2 has secret");
 
-        using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2_2).AsBucket());
+        await using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2_2).AsBucket());
 
-        using var dec = new DecryptBucket(decr) { KeyChain = key1 + key2 };
+        await using var dec = new DecryptBucket(decr) { KeyChain = key1 + key2 };
 
 
         var bb = await dec.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
@@ -394,9 +394,9 @@ cEgAjelaGkn3RJOwXWoJbA==
         Assert.AreEqual(CryptoAlgorithm.Rsa, key2.Algorithm);
         Assert.IsTrue(key1.HasPrivateKey, "Key2 has secret");
 
-        using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2_3).AsBucket());
+        await using var decr = new Radix64ArmorBucket(Encoding.ASCII.GetBytes(msg_from_rsa1_to_rsa2_3).AsBucket());
 
-        using var dec = new DecryptBucket(decr) { KeyChain = key1 + key2 };
+        await using var dec = new DecryptBucket(decr) { KeyChain = key1 + key2 };
 
 
         var bb = await dec.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
@@ -544,7 +544,7 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
         var b = Bucket.Create.FromASCII(APrivateKey);
 
         var r = new Radix64ArmorBucket(b);
-        using var sig = new SignatureBucket(r);
+        await using var sig = new SignatureBucket(r);
 
         var key = await sig.ReadKeyAsync();
 
@@ -613,7 +613,7 @@ f9nwhs2r0FA7IKmrcLiL2sClVAAl
 
         var raw_msg = Bucket.Create.FromASCII(msg_from_rsa1_to_rsa2_3);
 
-        using var dc = new DecryptBucket(new Radix64ArmorBucket(raw_msg))
+        await using var dc = new DecryptBucket(new Radix64ArmorBucket(raw_msg))
         {
             KeyChain = key1 + key2
         };
@@ -635,7 +635,7 @@ jA0EBwMCQi+5GH+oZubQ0koB9PWodsCh7cj0Eayi8bNBF5KxVwBt/TgEEosQPAX5
 -----END PGP MESSAGE-----";
 
         // Message is AES encrypted, so needs one pass through S2k
-        using var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
+        await using var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
         {
             GetPassword = (_) => "PW"
         };
@@ -657,7 +657,7 @@ twLUuM6VyHcewSpuu2Lv06liNCE5Kn+TsTmgR/PmD8yLow==
 -----END PGP MESSAGE-----";
 
         // Message is AES256 encrypted, so needs two passes through S2k
-        using var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
+        await using var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
         {
             GetPassword = (_) => "PW"
         };
@@ -689,7 +689,7 @@ UL6Ey7aK
 =WHnI
 -----END PGP MESSAGE-----";
 
-        using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
+        await using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
         {
 
             // Decrypt using password
@@ -699,7 +699,7 @@ UL6Ey7aK
         }
 
         Assert.IsTrue(PublicKeySignature.TryParse(rsa_key1, out var key1));
-        using (var dc2 = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
+        await using (var dc2 = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg)))
         {
             KeyChain = key1
         })
@@ -731,7 +731,7 @@ UL6Ey7aK
 =WHnI
 -----END PGP MESSAGE-----";
 
-        using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
+        await using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
         {
             var s = dc.NoDispose().AsStream();
 
@@ -744,7 +744,7 @@ UL6Ey7aK
         }
 
 
-        using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
+        await using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "PW" })
         {
 
             var bb = await dc.ReadAtLeastAsync(5, throwOnEndOfStream: false);
@@ -774,7 +774,7 @@ meYB0A6OXDi4z0cpa097TG9MiC3vmRIpUjpPr8WeDJA2r03imw==
 -----END PGP MESSAGE-----
 ";
 
-        using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "3des" })
+        await using (var dc = new DecryptBucket(new Radix64ArmorBucket(Bucket.Create.FromASCII(msg))) { GetPassword = (_) => "3des" })
         {
 
             // Decrypt using password

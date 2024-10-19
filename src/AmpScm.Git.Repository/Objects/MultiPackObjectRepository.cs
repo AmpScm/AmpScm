@@ -34,8 +34,10 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
                     foreach (var p in _packs)
                         p.Dispose();
                 }
-                _bitmapBucket?.Dispose();
-                _revIdxBucket?.Dispose();
+                if (_bitmapBucket is { })
+                    _bitmapBucket.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                if (_revIdxBucket is { })
+                    _revIdxBucket.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
         }
         finally
@@ -319,7 +321,7 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
         }
 
         GitId? sha = null;
-        using (Bucket b = (Encoding.ASCII.GetBytes("RIDX").AsBucket()
+        await using (Bucket b = (Encoding.ASCII.GetBytes("RIDX").AsBucket()
                             + NetBitConverter.GetBytes(1 /* Version 1 */).AsBucket()
                             + NetBitConverter.GetBytes((int)Repository.InternalConfig.IdType).AsBucket()
                             + mapBytes.AsBucket()
@@ -339,7 +341,7 @@ internal class MultiPackObjectRepository : ChunkFileBasedObjectRepository
 
     private async ValueTask VerifyBitmap(FileBucket bmp)
     {
-        using var bhr = new GitBitmapHeaderBucket(bmp.NoDispose(), Repository.InternalConfig.IdType);
+        await using var bhr = new GitBitmapHeaderBucket(bmp.NoDispose(), Repository.InternalConfig.IdType);
 
         var bb = await bhr.ReadAsync().ConfigureAwait(false);
 

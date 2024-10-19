@@ -26,7 +26,7 @@ public class SvnDeltaBucket : SvnBucket
         _atEof = atEof;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         if (disposing)
         {
@@ -38,7 +38,7 @@ public class SvnDeltaBucket : SvnBucket
                 ArrayPool<byte>.Shared.Return(rw);
             }
         }
-        base.Dispose(disposing);
+        await base.DisposeAsync(disposing);
     }
 
     private async ValueTask<int> ReadVersionAsync()

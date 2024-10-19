@@ -1,8 +1,8 @@
-﻿using AmpScm.Buckets;
+﻿using System.Diagnostics;
+using AmpScm;
+using AmpScm.Buckets;
 using AmpScm.Buckets.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AmpScm;
-using System.Diagnostics;
 
 namespace SecurityBucketTests;
 
@@ -56,7 +56,7 @@ public class SshTests
 
         var src = Bucket.Create.FromASCII(testData);
         var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(signature));
-        using var gpg = new SignatureBucket(rdx);
+        await using var gpg = new SignatureBucket(rdx);
 
         var fp = await gpg.ReadFingerprintAsync();
 

@@ -11,12 +11,9 @@ public static class GitReadExtensions
             throw new ArgumentNullException(nameof(bucket));
 
         int hl = type.HashLength();
-        var bb = await bucket.ReadAtLeastAsync(hl, throwOnEndOfStream: false).ConfigureAwait(false);
+        var bb = await bucket.ReadAtLeastAsync(hl).ConfigureAwait(false);
 
-        if (bb.Length == hl)
-            return new GitId(type, bb.ToArray());
-        else
-            throw new BucketEofException(bucket);
+        return new GitId(type, bb.ToArray());
     }
 
     /// <summary>
@@ -27,7 +24,7 @@ public static class GitReadExtensions
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="BucketEofException"></exception>
     /// <exception cref="GitBucketException"></exception>
-    /// <remarks>This enconding is similar, but different than <see cref="ReadGitDeltaSize(Bucket)"/>, which
+    /// <remarks>This encoding is similar, but different than <see cref="ReadGitDeltaSize(Bucket)"/>, which
     /// is also used by the delta decoding, as it encodes one additional value per additional bytes</remarks>
     public static async ValueTask<long> ReadGitDeltaOffsetAsync(this Bucket bucket)
     {

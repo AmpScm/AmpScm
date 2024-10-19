@@ -33,13 +33,13 @@ internal sealed class FileObjectRepository : GitObjectRepository
             if (ob is TGitObject tg)
                 return tg;
 
-            rdr.Dispose();
+            await rdr.DisposeAsync();
 
             return null;
         }
         catch
         {
-            fileReader.Dispose();
+            await fileReader.DisposeAsync();
             throw;
         }
     }
@@ -88,7 +88,7 @@ internal sealed class FileObjectRepository : GitObjectRepository
                 if (ob is TGitObject tg)
                     yield return tg;
                 else
-                    rdr.Dispose();
+                    await rdr.DisposeAsync();
             }
         }
     }

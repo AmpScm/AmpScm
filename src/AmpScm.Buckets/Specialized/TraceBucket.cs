@@ -29,21 +29,21 @@ internal sealed class TraceBucket : Bucket, IBucketPoll, IBucketNoDispose
 
     private string Ident => _indent ??= $"{new string(' ', Source.Name.Count(x => x == '>'))}{_name}/0x{Id:x3}:";
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
             if (_nDispose-- == 0)
             {
                 Trace.WriteLine($"{Ident} disposing");
-                Source.Dispose();
+                await Source.DisposeAsync();
             }
             else
                 Trace.WriteLine($"{Ident} ignoring dispose {Source.Name}");
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

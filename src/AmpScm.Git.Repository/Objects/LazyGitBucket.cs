@@ -106,13 +106,14 @@ internal sealed class LazyGitObjectBucket : GitObjectBucket, IBucketPoll
 
     public override string Name => _inner?.Name ?? base.Name;
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
             if (disposing)
             {
-                _inner?.Dispose();
+                if (_inner is { })
+                    await _inner.DisposeAsync();
 
                 _inner = null;
                 _eof = true;
@@ -120,7 +121,7 @@ internal sealed class LazyGitObjectBucket : GitObjectBucket, IBucketPoll
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

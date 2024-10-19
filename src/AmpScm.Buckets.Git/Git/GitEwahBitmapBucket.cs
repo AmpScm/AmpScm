@@ -98,7 +98,7 @@ public sealed class GitEwahBitmapBucket : GitBucket
 
         if (_lengthBits is null)
         {
-            var bb = await Source.ReadAtLeastAsync(4 + 4, throwOnEndOfStream: false).ConfigureAwait(false);
+            var bb = await Source.ReadAtLeastAsync(4 + 4).ConfigureAwait(false);
             _lengthBits = NetBitConverter.ToUInt32(bb, 0);
             _compressedSize = NetBitConverter.ToInt32(bb, 4);
 
@@ -156,10 +156,7 @@ public sealed class GitEwahBitmapBucket : GitBucket
                         return true;
                     }
 
-                    var bb = await Source.ReadAtLeastAsync(sizeof(ulong), throwOnEndOfStream: false).ConfigureAwait(false);
-
-                    if (bb.Length != sizeof(ulong))
-                        throw new BucketEofException(Source);
+                    var bb = await Source.ReadAtLeastAsync(sizeof(ulong)).ConfigureAwait(false);
 
                     peekLength--;
                     _left--;

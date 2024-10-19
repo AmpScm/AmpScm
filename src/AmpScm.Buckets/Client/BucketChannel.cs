@@ -2,7 +2,7 @@
 
 namespace AmpScm.Buckets.Client;
 
-internal sealed class BucketClientChannel : IDisposable
+internal sealed class BucketClientChannel : IAsyncDisposable
 {
     private bool disposedValue;
 
@@ -27,13 +27,13 @@ internal sealed class BucketClientChannel : IDisposable
 
     internal bool ReadOneEol { get; set; }
 
-    private void Dispose(bool disposing)
+    private async ValueTask DisposeAsync(bool disposing)
     {
         if (!disposedValue)
         {
             if (disposing)
             {
-                Reader.Dispose();
+                await Reader.DisposeAsync();
             }
 
             disposedValue = true;
@@ -46,10 +46,10 @@ internal sealed class BucketClientChannel : IDisposable
     //     Dispose(disposing: false);
     // }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
+        await DisposeAsync(disposing: true);
         GC.SuppressFinalize(this);
     }
 }

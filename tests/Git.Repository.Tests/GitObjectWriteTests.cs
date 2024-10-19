@@ -462,7 +462,7 @@ public class GitObjectWriteTests
 
         foreach (var blob in repo.Blobs)
         {
-            using var b = blob.AsBucket();
+            await using var b = blob.AsBucket();
 
             if (b is GitPackObjectBucket gob)
             {
@@ -479,14 +479,14 @@ public class GitObjectWriteTests
                 var b = repo.Blobs[id]!.AsBucket();
                 sz = (int)await b.ReadRemainingBytesAsync();
 
-                using var q = (GitObjectType.Blob.CreateHeader(sz) + b).GitHash(GitIdType.Sha1, x => { if (x != id) throw new InvalidOperationException("Id mismatch"); });
+                await using var q = (GitObjectType.Blob.CreateHeader(sz) + b).GitHash(GitIdType.Sha1, x => { if (x != id) throw new InvalidOperationException("Id mismatch"); });
 
                 await q.ReadSkipAsync(long.MaxValue);
             }
 
             for (int i = 0; i < 10; i++)
             {
-                using var b = repo.Blobs[id]!.AsBucket();
+                await using var b = repo.Blobs[id]!.AsBucket();
 
                 await b.SeekAsync(r.Next(sz));
 

@@ -244,7 +244,7 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
 
     private static async IAsyncEnumerable<BucketBytes> WalkSignature(Bucket src)
     {
-        using (src)
+        await using (src)
         {
             while (true)
             {

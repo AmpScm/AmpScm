@@ -166,7 +166,7 @@ public sealed class GitTagObject : GitObject, IGitLazy<GitTagObject>
         if (!(await _rb.ReadSignatureBytesAsync().ConfigureAwait(false)).IsEmpty)
             _signed = true;
 
-        _rb.Dispose();
+        await _rb.DisposeAsync();
         _rb = null;
     }
 
@@ -184,7 +184,7 @@ public sealed class GitTagObject : GitObject, IGitLazy<GitTagObject>
         GitObjectBucket b = (await Repository.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false))!;
         var src = GitTagObjectBucket.ForSignature(b);
 
-        using (var gob = new GitTagObjectBucket(b.Duplicate(), HandleSubBucket))
+        await using (var gob = new GitTagObjectBucket(b.Duplicate(), HandleSubBucket))
         {
             await gob.ReadUntilEofAsync().ConfigureAwait(false);
         }
@@ -196,7 +196,7 @@ public sealed class GitTagObject : GitObject, IGitLazy<GitTagObject>
             if (arg1 == GitSubBucketType.Signature || arg1 == GitSubBucketType.SignatureSha256)
             {
                 var rdx = new Radix64ArmorBucket(bucket);
-                using var gpg = new SignatureBucket(rdx);
+                await using var gpg = new SignatureBucket(rdx);
 
                 var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
 

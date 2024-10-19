@@ -48,7 +48,7 @@ public sealed class GitBlob : GitObject, IGitLazy<GitBlob>
 
         _length ??= await _rdr.ReadRemainingBytesAsync().ConfigureAwait(false);
 
-        _rdr.Dispose();
+        await _rdr.DisposeAsync();
         _rdr = null;
     }
 

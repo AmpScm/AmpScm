@@ -35,7 +35,7 @@ internal sealed class StreamBucket : Bucket
         return _remaining;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -44,7 +44,7 @@ internal sealed class StreamBucket : Bucket
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

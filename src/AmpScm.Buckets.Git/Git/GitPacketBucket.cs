@@ -39,11 +39,6 @@ public class GitPacketBucket : GitBucket
         if (_packetLength <= 4)
             return BucketBytes.Empty;
 
-        bb = await Source.ReadAtLeastAsync(_packetLength - 4, throwOnEndOfStream: false).ConfigureAwait(false);
-
-        if (bb.Length == _packetLength - 4)
-            return bb;
-        else
-            throw new BucketEofException(Source);
+        return await Source.ReadAtLeastAsync(_packetLength - 4).ConfigureAwait(false);
     }
 }

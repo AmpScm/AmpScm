@@ -656,8 +656,8 @@ public static partial class BucketExtensions
         else if (right is null)
             throw new ArgumentNullException(nameof(right));
 
-        using (left)
-        using (right)
+        await using (left)
+        await using (right)
 
             while (true)
             {

@@ -42,7 +42,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     byte[] keyFingerprint = bb.ToArray();
                     BigInteger[]? keyInts;
 
-                    using (var ib = keyFingerprint.AsBucket())
+                    await using (var ib = keyFingerprint.AsBucket())
                     {
                         bb = await ReadSshStringAsync(ib).ConfigureAwait(false);
                         string alg = bb.ToASCIIString();
@@ -105,7 +105,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     var signature = bb.ToArray();
                     var signBlob = signPrefix.ToArray();
 
-                    using var b = signature.AsBucket();
+                    await using var b = signature.AsBucket();
 
                     var tp = await ReadSshStringAsync(b).ConfigureAwait(false);
 
@@ -383,7 +383,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                     if (t != DerType.Sequence || (_outer as Radix64ArmorBucket)?.PublicKeyType is not { } publicKeyType)
                         throw new BucketException("Unexpected DER value");
 
-                    using var der = new DerBucket(derRoot!);
+                    await using var der = new DerBucket(derRoot!);
 
                     if (publicKeyType.StartsWith("RSA", StringComparison.OrdinalIgnoreCase))
                     {
@@ -411,7 +411,7 @@ public sealed class SignatureBucket : CryptoDataBucket
                             break;
                         }
 
-                        using var der2 = new DerBucket(ob!);
+                        await using var der2 = new DerBucket(ob!);
 
                         (ob, obt) = await der2.ReadValueAsync().ConfigureAwait(false);
 

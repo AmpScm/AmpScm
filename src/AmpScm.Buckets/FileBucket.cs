@@ -54,7 +54,7 @@ public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBuck
     {
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -85,7 +85,7 @@ public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBuck
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 
@@ -189,7 +189,7 @@ public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBuck
         {
             var b = (FileBucket)Duplicate();
             b._resetPosition = Position!.Value;
-            this.Dispose();
+            this.DisposeAsync().AsTask().GetAwaiter().GetResult();
 
             return b;
         }

@@ -93,7 +93,7 @@ internal sealed class RawDecryptBucket : ConversionBucket
             return requested;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -105,7 +105,7 @@ internal sealed class RawDecryptBucket : ConversionBucket
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

@@ -67,7 +67,7 @@ public sealed class GitCommit : GitObject, IGitLazy<GitCommit>
             case GitSubBucketType.Signature:
             case GitSubBucketType.SignatureSha256:
 #if DEBUG
-                using (var sig = new Radix64ArmorBucket(bucket))
+                await using (var sig = new Radix64ArmorBucket(bucket))
                     await sig.ReadUntilEofAsync().ConfigureAwait(false);
 #else
                 await bucket.ReadUntilEofAndCloseAsync().ConfigureAwait(false);
@@ -277,7 +277,7 @@ public sealed class GitCommit : GitObject, IGitLazy<GitCommit>
             _message += bb.ToUTF8String(); // Includes EOL
         }
 
-        _rb.Dispose();
+        await _rb.DisposeAsync();
         _rb = null;
     }
 
@@ -297,12 +297,12 @@ public sealed class GitCommit : GitObject, IGitLazy<GitCommit>
         GitObjectBucket b = (await Repository.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false))!;
         var src = GitCommitObjectBucket.ForSignature(b);
 
-        using (var gob = new GitCommitObjectBucket(b.Duplicate(), HandleSubBucket))
+        await using (var gob = new GitCommitObjectBucket(b.Duplicate(), HandleSubBucket))
         {
             await gob.ReadUntilEofAsync().ConfigureAwait(false);
         }
         if (!disposeSrc)
-            src.Dispose();
+            await src.DisposeAsync();
 
         return allSucceeded && foundSignature;
 
@@ -311,7 +311,7 @@ public sealed class GitCommit : GitObject, IGitLazy<GitCommit>
             if (allSucceeded && sbType == GitSubBucketType.Signature || sbType == GitSubBucketType.SignatureSha256)
             {
                 var rdx = new Radix64ArmorBucket(commitBucket);
-                using var gpg = new SignatureBucket(rdx);
+                await using var gpg = new SignatureBucket(rdx);
 
                 var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
 
@@ -353,7 +353,7 @@ public sealed class GitCommit : GitObject, IGitLazy<GitCommit>
                 if (allSucceeded && sbType == GitSubBucketType.Signature)
                 {
                     var rdx = new Radix64ArmorBucket(tagBucket);
-                    using var gpg = new SignatureBucket(rdx);
+                    await using var gpg = new SignatureBucket(rdx);
 
                     var fingerprint = await gpg.ReadFingerprintAsync().ConfigureAwait(false);
 

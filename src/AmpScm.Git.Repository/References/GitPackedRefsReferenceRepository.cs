@@ -40,7 +40,7 @@ internal class GitPackedRefsReferenceRepository : GitReferenceRepository
 
         try
         {
-            using var sr = FileBucket.OpenRead(fileName, forAsync: false);
+            await using var sr = FileBucket.OpenRead(fileName, forAsync: false);
 
             var idLength = GitId.HashLength(Repository.InternalConfig.IdType) * 2;
 

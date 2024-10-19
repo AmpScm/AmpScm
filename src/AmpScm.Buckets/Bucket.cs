@@ -13,11 +13,11 @@ namespace AmpScm.Buckets;
 ///
 /// <para>While .Net guaranteers that there is still data referenced, the data might have been replaced by the next
 /// call. So in general, once you hand over a bucket to some other user you shouldn't access the bucket until
-/// the other user is done. Most users will call <see cref="Dispose()"/> on buckets that are handed over, so
+/// the other user is done. Most users will call <see cref="DisposeAsync()"/> on buckets that are handed over, so
 /// wrapping a bucket using <see cref="BucketExtensions.NoDispose"/> might be useful.</para>
 /// </remarks>
 [DebuggerDisplay($"{{{nameof(SafeName)},nq}}: Position={{{nameof(Position)}}}")]
-public abstract partial class Bucket : IDisposable
+public abstract partial class Bucket : IAsyncDisposable
 {
     protected internal static readonly ValueTask<BucketBytes> EofTask = new(BucketBytes.Eof);
     protected internal static readonly ValueTask<BucketBytes> EmptyTask = new(BucketBytes.Empty);
@@ -199,21 +199,22 @@ public abstract partial class Bucket : IDisposable
     /// Cleans up resources hold by the bucket, including possibly hold inner buckets
     /// </summary>
     /// <param name="disposing"></param>
-    protected virtual void Dispose(bool disposing)
+    protected virtual ValueTask DisposeAsync(bool disposing)
     {
+        return new();
     }
 
     /// <summary>
     /// Cleans up resources hold by the bucket, including possibly hold inner buckets
     /// </summary>
 #pragma warning disable CA1063 // Implement IDisposable Correctly
-    public void Dispose()
+    public async ValueTask DisposeAsync()
 #pragma warning restore CA1063 // Implement IDisposable Correctly
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         if (AcceptDisposing())
         {
-            Dispose(disposing: true);
+            await DisposeAsync(disposing: true).ConfigureAwait(false);
             GC.SuppressFinalize(this);
         }
     }

@@ -13,15 +13,20 @@ internal sealed class FromEnumerableBucket : Bucket
         _enumerator = enumerable.GetAsyncEnumerator();
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
-        base.Dispose(disposing);
-
-        if (disposing && _enumerator is not null)
+        try
         {
-            _enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            if (disposing && _enumerator is not null)
+            {
+                await _enumerator.DisposeAsync();
+            }
+            _enumerator = null;
         }
-        _enumerator = null;
+        finally
+        {
+            await base.DisposeAsync(disposing);
+        }
     }
 
     public override async ValueTask<BucketBytes> ReadAsync(int requested = MaxRead)

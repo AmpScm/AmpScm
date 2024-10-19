@@ -23,7 +23,7 @@ public class BasicTests
     {
         byte[] buffer = Enumerable.Range(0, 256).Select(x => (byte)x).ToArray();
 
-        using var mb = new MemoryBucket(buffer);
+        await using var mb = new MemoryBucket(buffer);
 
         BucketBytes bb;
 
@@ -134,7 +134,7 @@ public class BasicTests
     [TestMethod]
     public async Task BasicDecompress()
     {
-        using var b = git_blob_ABCDEFGHIJKLMNOPQRSTUVWXYZ.AsBucket();
+        await using var b = git_blob_ABCDEFGHIJKLMNOPQRSTUVWXYZ.AsBucket();
 
         var r = b.Decompress(BucketCompressionAlgorithm.ZLib);
 
@@ -715,7 +715,7 @@ public class BasicTests
 
         File.WriteAllText(p, "blub");
 
-        using (FileBucket fb = FileBucket.OpenRead(p))
+        await using (FileBucket fb = FileBucket.OpenRead(p))
         {
             Assert.AreEqual(4, await fb.ReadAtAsync(0, new byte[25]));
         }
@@ -725,11 +725,11 @@ public class BasicTests
 
         File.WriteAllText(p, "blub2");
 
-        using (FileBucket fb = FileBucket.OpenRead(p))
+        await using (FileBucket fb = FileBucket.OpenRead(p))
         {
             Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
 
-            using var fb2 = fb.Duplicate(true);
+            await using var fb2 = fb.Duplicate(true);
 
             Assert.AreEqual(5, await fb.ReadAtAsync(0, new byte[25]));
         }

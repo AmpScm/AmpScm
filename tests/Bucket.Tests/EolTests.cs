@@ -383,7 +383,7 @@ public class EolTests
                         for (int n1 = 1; n1 < tst.Length - 2; n1++)
                             for (int n2 = n1 + 1; n2 < tst.Length - 1; n2++)
                             {
-                                using var r = MakeBucket(tst.Substring(0, n1), tst.Substring(n1, n2 - n1), tst.Substring(n2));
+                                await using var r = MakeBucket(tst.Substring(0, n1), tst.Substring(n1, n2 - n1), tst.Substring(n2));
                                 var state = new BucketEolState();
                                 var total = "";
                                 var expected = Escape(tst.Insert(n2, "|").Insert(n1, "|"));
@@ -461,7 +461,7 @@ public class EolTests
                         for (int n1 = 1; n1 < tst.Length - 2; n1++)
                             for (int n2 = n1 + 1; n2 < tst.Length - 1; n2++)
                             {
-                                using var r = MakeBucket(tst.Substring(0, n1), tst.Substring(n1, n2 - n1), tst.Substring(n2));
+                                await using var r = MakeBucket(tst.Substring(0, n1), tst.Substring(n1, n2 - n1), tst.Substring(n2));
                                 var total = "";
 
                                 while (true)
@@ -476,7 +476,7 @@ public class EolTests
 
                                 Assert.AreEqual(Escape(tst.Insert(n2, "|").Insert(n1, "|")), Escape(total.Insert(n2, "|").Insert(n1, "|")));
 
-                                using (var r2 = MakeBucket(tst.Substring(0, n1)))
+                                await using (var r2 = MakeBucket(tst.Substring(0, n1)))
                                 {
                                     var (bb, eol) = await r.ReadUntilEolAsync(acceptableEols, n2 - n1);
 
@@ -538,7 +538,7 @@ public class EolTests
                         for (int n1 = 1; n1 < tst.Length - 2; n1++)
                             for (int n2 = n1 + 1; n2 < tst.Length - 1; n2++)
                             {
-                                using var r = MakeBucket(tst.Substring(0, n1), tst.Substring(n1, n2 - n1), tst.Substring(n2)).NormalizeEols(acceptableEols);
+                                await using var r = MakeBucket(tst.Substring(0, n1), tst.Substring(n1, n2 - n1), tst.Substring(n2)).NormalizeEols(acceptableEols);
                                 var total = "";
 
                                 while (true)
@@ -561,7 +561,7 @@ public class EolTests
                                     exp = exp.Replace("\0", "\n");
                                 Assert.AreEqual(Escape(exp), Escape(total), $"In case {Escape(c1)}, {Escape(c2)}, {Escape(c3)}, {Escape(c4)}, n1={n1}, n2={n2}");
 
-                                using (var r2 = MakeBucket(tst.Substring(0, n1)))
+                                await using (var r2 = MakeBucket(tst.Substring(0, n1)))
                                 {
                                     var (bb, eol) = await r.ReadUntilEolAsync(acceptableEols, n2 - n1);
 
@@ -579,7 +579,7 @@ public class EolTests
     {
         var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
         var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
-        using var b = encodedBytes.AsBucket();
+        await using var b = encodedBytes.AsBucket();
 
         // This wil test the peaking
         var bb = await b.NormalizeToUtf8().ReadAtLeastAsync(1024, throwOnEndOfStream: false);
@@ -600,7 +600,7 @@ public class EolTests
     {
         var data = Enumerable.Range(0, byte.MaxValue).Select(x => ANSI.GetChars(new byte[] { (byte)x })[0]).ToArray();
         var encodedBytes = (enc.GetPreamble().AsBucket() + enc.GetBytes(data).AsBucket()).ToArray();
-        using var b = encodedBytes.AsBucket();
+        await using var b = encodedBytes.AsBucket();
 
         var bb = await b.ConvertToUtf8(enc).ReadAtLeastAsync(1024, throwOnEndOfStream: false);
         Assert.AreEqual(Escape(new String(data)), Escape(bb.ToUTF8String()), Escape(new String(encodedBytes.Select(x => (char)x).ToArray())));

@@ -20,7 +20,7 @@ public class GitDirectoryTests
         using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Packed));
 
         var index = FileBucket.OpenRead(Path.Combine(repo.WorkTreeDirectory, "index"));
-        using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1 });
+        await using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1 });
 
         await dc.ReadHeaderAsync();
 
@@ -61,7 +61,7 @@ public class GitDirectoryTests
         using var repo = GitRepository.Open(path);
 
         var index = FileBucket.OpenRead(Path.Combine(repo.FullPath, ".git", "index"));
-        using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1, LookForEndOfIndex = optimize });
+        await using var dc = new GitDirectoryBucket(index, new() { IdType = GitIdType.Sha1, LookForEndOfIndex = optimize });
 
         await dc.ReadHeaderAsync();
 
@@ -99,7 +99,7 @@ public class GitDirectoryTests
         using var repo = GitRepository.Open(path);
         Trace.WriteLine(path);
 
-        using var dc = new GitDirectoryBucket(repo.WorkTreeDirectory);
+        await using var dc = new GitDirectoryBucket(repo.WorkTreeDirectory);
 
         await dc.ReadHeaderAsync();
 
@@ -142,7 +142,7 @@ public class GitDirectoryTests
 
         Assert.AreEqual(path, repo.FullPath);
         List<GitDirectoryEntry> entries = new List<GitDirectoryEntry>();
-        using (var dc2 = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
+        await using (var dc2 = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
         {
             while (await dc2.ReadEntryAsync() is GitDirectoryEntry q)
             {
@@ -186,7 +186,7 @@ public class GitDirectoryTests
         Assert.IsTrue(File.Exists(Path.Combine(repo.WorkTreeDirectory, "index")), "After add has index");
         Assert.IsTrue(Directory.EnumerateFiles(repo.WorkTreeDirectory, "sharedindex.*").Any(), "After add has shared index");
 
-        using (var dc = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
+        await using (var dc = new GitDirectoryBucket(repo.WorkTreeDirectory, new GitDirectoryOptions { LookForEndOfIndex = lookFor }))
         {
             await dc.ReadHeaderAsync();
 
@@ -234,7 +234,7 @@ public class GitDirectoryTests
         using var repo = GitRepository.Open(path);
         await repo.GetPlumbing().UpdateIndex();
 
-        using var dc = new GitDirectoryBucket(repo.WorkTreeDirectory);
+        await using var dc = new GitDirectoryBucket(repo.WorkTreeDirectory);
 
         await dc.ReadHeaderAsync();
 
@@ -277,7 +277,7 @@ public class GitDirectoryTests
         try
         {
             var idx = FileBucket.OpenRead(Path.Combine(repo.WorkTreeDirectory, "index"));
-            using var dc = new GitDirectoryBucket(idx);
+            await using var dc = new GitDirectoryBucket(idx);
 
             while (await dc.ReadEntryAsync() is GitDirectoryEntry entry)
             {

@@ -11,18 +11,18 @@ public abstract class CombineBucket : WrappingBucket
         RightSource = rightSource ?? throw new ArgumentNullException(nameof(rightSource));
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
             if (disposing)
             {
-                RightSource.Dispose();
+                await RightSource.DisposeAsync();
             }
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

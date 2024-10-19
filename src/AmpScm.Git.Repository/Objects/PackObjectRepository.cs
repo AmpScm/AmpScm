@@ -32,10 +32,10 @@ internal sealed class PackObjectRepository : GitObjectRepository
         {
             if (disposing)
             {
-                _fIdx?.Dispose();
-                _packBucket?.Dispose();
-                _bitmapBucket?.Dispose();
-                _revIdxBucket?.Dispose();
+                _fIdx?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                _packBucket?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                _bitmapBucket?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                _revIdxBucket?.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
         }
         finally
@@ -66,7 +66,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
                 {
                     // We have an unsupported future header
                     _ver = -1;
-                    _fIdx.Dispose();
+                    await _fIdx.DisposeAsync();
                     _fIdx = null;
                     return;
                 }
@@ -320,7 +320,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
         if (ob is TGitObject tg)
             return tg;
         else
-            pf.Dispose();
+            await pf.DisposeAsync();
         return null;
     }
 
@@ -377,7 +377,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
             if (ob is TGitObject tg)
                 return (tg, true); // Success
             else
-                pf.Dispose();
+                await pf.DisposeAsync();
 
             return (null, false); // We had a match. No singular good result
         }
@@ -400,7 +400,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
 
     private async ValueTask VerifyPack(FileBucket fb)
     {
-        using var phr = new GitPackHeaderBucket(fb.NoDispose());
+        await using var phr = new GitPackHeaderBucket(fb.NoDispose());
 
         var bb = await phr.ReadAsync().ConfigureAwait(false);
 
@@ -463,7 +463,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
             if (ob is TGitObject one)
                 yield return one;
             else
-                pf.Dispose();
+                await pf.DisposeAsync();
         }
     }
 
@@ -613,7 +613,7 @@ internal sealed class PackObjectRepository : GitObjectRepository
 
     private async ValueTask VerifyBitmap(FileBucket bmp)
     {
-        using var bhr = new GitBitmapHeaderBucket(bmp.NoDispose(), Repository.InternalConfig.IdType);
+        await using var bhr = new GitBitmapHeaderBucket(bmp.NoDispose(), Repository.InternalConfig.IdType);
 
         var bb = await bhr.ReadAsync().ConfigureAwait(false);
 

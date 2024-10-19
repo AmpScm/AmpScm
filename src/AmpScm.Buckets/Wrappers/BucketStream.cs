@@ -19,7 +19,7 @@ internal partial class BucketStream : Stream
         try
         {
             if (disposing)
-                Bucket.Dispose();
+                Bucket.DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
         finally
         {
@@ -30,7 +30,7 @@ internal partial class BucketStream : Stream
 #if !NETFRAMEWORK
     public override async ValueTask DisposeAsync()
     {
-        Bucket.Dispose();
+        await Bucket.DisposeAsync();
         await base.DisposeAsync().ConfigureAwait(false);
     }
 #endif

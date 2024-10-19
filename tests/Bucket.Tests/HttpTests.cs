@@ -25,7 +25,7 @@ public class HttpTests
         var br = Client.CreateRequest(new Uri($"https://cloudflare.com/get-404-{Guid.NewGuid()}"));
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
-        using var result = await br.GetResponseAsync();
+        await using var result = await br.GetResponseAsync();
 
         BucketBytes bb;
         string total = "";
@@ -57,7 +57,7 @@ public class HttpTests
         var br = Client.CreateRequest(new Uri($"http://github.com/get-404-{Guid.NewGuid()}"));
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
-        using var result = await br.GetResponseAsync();
+        await using var result = await br.GetResponseAsync();
 
         BucketBytes bb;
         string total = "";

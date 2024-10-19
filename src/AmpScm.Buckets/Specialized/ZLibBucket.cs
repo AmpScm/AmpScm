@@ -301,7 +301,7 @@ public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
         ZSetup();
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -319,7 +319,7 @@ public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

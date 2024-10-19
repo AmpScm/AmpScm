@@ -77,7 +77,7 @@ public class SvnRepoTest
 
         var r2 = FileBucket.OpenRead(Path.Combine(fsDir, "revs/0/2"));
 
-        using var rr = new SvnFsFsRevisionBucket(r2);
+        await using var rr = new SvnFsFsRevisionBucket(r2);
 
         await rr.ReadUntilEofAsync();
     }
@@ -89,7 +89,7 @@ public class SvnRepoTest
 
         var r3 = FileBucket.OpenRead(Path.Combine(fsDir, "revs/0/4"));
 
-        using var rr = new SvnFsFsRevisionBucket(r3);
+        await using var rr = new SvnFsFsRevisionBucket(r3);
 
         await rr.ReadUntilEofAsync();
     }

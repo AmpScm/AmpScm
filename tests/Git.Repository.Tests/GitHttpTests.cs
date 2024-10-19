@@ -34,7 +34,7 @@ public class GitHttpTests
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
         //br.Headers["Git-Protocol"] = "version=2";
-        using var result = await br.GetResponseAsync();
+        await using var result = await br.GetResponseAsync();
 
         BucketBytes bb;
         string total = "";
@@ -79,7 +79,7 @@ public class GitHttpTests
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
         br.Headers["Git-Protocol"] = "version=2";
-        using var result = await br.GetResponseAsync();
+        await using var result = await br.GetResponseAsync();
 
         BucketBytes bb;
         string total = "";
@@ -131,7 +131,7 @@ public class GitHttpTests
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
         br.Headers["Git-Protocol"] = "version=2";
-        using var result = await br.GetResponseAsync();
+        await using var result = await br.GetResponseAsync();
 
         BucketBytes bb;
         string total = "";

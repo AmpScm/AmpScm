@@ -45,7 +45,7 @@ R74grCkxsuX711oRA0zFfP30qi/UzDM=
         var src = Bucket.Create.FromASCII("test");
 
         var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(BrainPoolSignature));
-        using var gpg = new SignatureBucket(rdx);
+        await using var gpg = new SignatureBucket(rdx);
 
 
         Assert.IsTrue(PublicKeySignature.TryParse(BrainPoolPublicKey, out var key));
@@ -132,7 +132,7 @@ uVSFjzSWAUjZAvjV9ig9a9f6bFNOtZQ=
         var src = Bucket.Create.FromASCII("test");
 
         var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(DsaAlgamelSignature));
-        using var gpg = new SignatureBucket(rdx);
+        await using var gpg = new SignatureBucket(rdx);
 
         Assert.IsTrue(PublicKeySignature.TryParse(DsaAlgamelPublicKey, out var key));
 
@@ -189,7 +189,7 @@ Zt5h6i/BNNX9AiqbRo/ep/RrPpU71Qo=
         var src = Bucket.Create.FromASCII("test");
 
         var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(Ecc25519Signature));
-        using var gpg = new SignatureBucket(rdx);
+        await using var gpg = new SignatureBucket(rdx);
 
         Assert.IsTrue(PublicKeySignature.TryParse(Ecc25519PublicKey, out var key));
 
@@ -245,7 +245,7 @@ izD0ZbH6Qw==
         var src = Bucket.Create.FromASCII("test");
 
         var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(EccNistSignature));
-        using var gpg = new SignatureBucket(rdx);
+        await using var gpg = new SignatureBucket(rdx);
 
         Assert.IsTrue(PublicKeySignature.TryParse(EccNistPublicKey, out var key));
 
@@ -289,7 +289,7 @@ GtAh3JPRDOlZUZM=
         var src = Bucket.Create.FromASCII("test");
 
         var rdx = new Radix64ArmorBucket(Bucket.Create.FromASCII(SshSig));
-        using var gpg = new SignatureBucket(rdx);
+        await using var gpg = new SignatureBucket(rdx);
 
         Assert.IsTrue(PublicKeySignature.TryParse("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQD+aILyycyvtatnMCeyucurSCkXPcuML/bgJOHFCwjeFA8CAXBlOEIgMblj7II8SpKP6mkDEFgXQXAFF6i00UAu8/NBEcW1xdLh0/12X2wlbZIPacMbGI/JbaYD5kznyDhsdyMmMfpbiZIOXPomoVbqcXh8wRqENqu1OTL5zIQBJBflEeZVG4X6oRDquklhrAcna9yPzgqwGHAQTtXpV4n//6bVzus9mTskCNFi+cKvmqifFVAwiG328VkGIrKj/EkB4MB37mIZKYn6Od+0vvzwH+1B5iW66Tjo/A2fx65spqolPLhFR2bmRSxP4Lxsg4R+TBmMDMsDPgeJfD6Iu0efs1s2rqL9VGbVC0Fgw4ds9qCfv2rLO2a+9/U5oopXbgUBlRDXiiX/zer3AFuyieWI3jevrFbRQqhlm08aWM/CP3wrpYikemXydHuxv5YUwJRaCmedOIsz5tVftfD3E+cEOIoLUTkoZwt9Ygywo+pccbTjRFouOcCT1Ib0g+6zgE0= me@pc", out var pk));
 

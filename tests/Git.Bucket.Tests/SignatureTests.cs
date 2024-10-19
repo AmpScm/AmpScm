@@ -1,12 +1,12 @@
 ﻿using AmpScm;
 using AmpScm.Buckets;
+using AmpScm.Buckets.Cryptography;
 using AmpScm.Buckets.Git.Objects;
 using AmpScm.Buckets.Specialized;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AmpScm.Buckets.Cryptography;
 using AmpScm.Git;
 using AmpScm.Git.Client.Porcelain;
 using AmpScm.Git.Objects;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
 
@@ -98,7 +98,7 @@ Pull MTD fixes from Miquel Raynal:
         bool readTag = false;
         bool readSig = false;
 
-        using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
+        await using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
 
         await commitReader.ReadUntilEofAsync();
 
@@ -109,14 +109,14 @@ Pull MTD fixes from Miquel Raynal:
         {
             if (subBucket == GitSubBucketType.MergeTag)
             {
-                using var gto = new GitTagObjectBucket(bucket, handleSubBucket);
+                await using var gto = new GitTagObjectBucket(bucket, handleSubBucket);
 
                 await gto.ReadUntilEofAsync();
                 readTag = true;
             }
             else if (subBucket == GitSubBucketType.Signature)
             {
-                using var gto = new Radix64ArmorBucket(bucket);
+                await using var gto = new Radix64ArmorBucket(bucket);
 
                 await gto.ReadUntilEofAsync();
                 readSig = true;
@@ -154,7 +154,7 @@ A couple of simplications around mwindow";
         bool readGpg = false;
 
         var verifySrcReader = GitCommitObjectBucket.ForSignature(src.Duplicate()).Buffer();
-        using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
+        await using var commitReader = new GitCommitObjectBucket(src, handleSubBucket);
 
         await commitReader.ReadUntilEofAsync();
 
@@ -166,7 +166,7 @@ A couple of simplications around mwindow";
                 await bucket.ReadUntilEofAndCloseAsync();
 
             var rdx = new Radix64ArmorBucket(bucket);
-            using var gpg = new SignatureBucket(rdx);
+            await using var gpg = new SignatureBucket(rdx);
 
             var ok1 = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null, unknownSignerOk: true);
             Assert.IsTrue(ok1, "Verify as signature from 'someone'");
@@ -309,7 +309,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
         bool readGpg = false;
 
         var verifySrcReader = GitTagObjectBucket.ForSignature(src.Duplicate()).Buffer();
-        using var tagReader = new GitTagObjectBucket(src, handleSubBucket);
+        await using var tagReader = new GitTagObjectBucket(src, handleSubBucket);
 
         await tagReader.ReadUntilEofAsync();
 
@@ -322,7 +322,7 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
                 await bucket.ReadUntilEofAndCloseAsync();
 
             var rdx = new Radix64ArmorBucket(bucket);
-            using var gpg = new SignatureBucket(rdx);
+            await using var gpg = new SignatureBucket(rdx);
 
             var ok = await gpg.VerifyAsync(verifySrcReader.NoDispose(), null, unknownSignerOk: true);
             Assert.IsTrue(ok, "Signature appears ok");
@@ -498,7 +498,7 @@ sVx2nlctyiV9c8zOnUfmZkqI1QjzinfHbpuNi80ah4eIGQ/YY+lo5Bpnbfs=
         var b = Bucket.Create.FromASCII(APrivateKey);
 
         var r = new Radix64ArmorBucket(b);
-        using var sig = new SignatureBucket(r);
+        await using var sig = new SignatureBucket(r);
 
         var key = await sig.ReadKeyAsync();
 

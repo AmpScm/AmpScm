@@ -288,7 +288,7 @@ public class GitRepositoryWalks
                     break;
                 case GitTreeElementType.SymbolicLink:
 
-                    using (var b = ((GitBlob)item.GitObject).AsBucket())
+                    await using (var b = ((GitBlob)item.GitObject).AsBucket())
                     {
                         var bb = await b.ReadAtLeastAsync(1024, throwOnEndOfStream: false);
 

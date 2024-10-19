@@ -2,7 +2,7 @@
 
 namespace AmpScm.Buckets.Client;
 
-public class BucketWebClient : IDisposable
+public class BucketWebClient : IAsyncDisposable
 {
     private bool disposedValue;
 
@@ -30,7 +30,7 @@ public class BucketWebClient : IDisposable
             throw new ArgumentOutOfRangeException(nameof(url), url, message: null);
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected virtual async ValueTask DisposeAsync(bool disposing)
     {
         if (!disposedValue)
         {
@@ -38,7 +38,7 @@ public class BucketWebClient : IDisposable
             {
                 foreach (var c in _channels.Values)
                 {
-                    c.Dispose();
+                    await c.DisposeAsync();
                 }
                 _channels.Clear();
             }
@@ -77,10 +77,10 @@ public class BucketWebClient : IDisposable
     //     Dispose(disposing: false);
     // }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
+        await DisposeAsync(disposing: true);
         GC.SuppressFinalize(this);
     }
 

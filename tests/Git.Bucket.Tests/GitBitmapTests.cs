@@ -58,7 +58,7 @@ public class GitBitmapTests
 
         for (int i = 0; i < 4; i++)
         {
-            using var ewah = new GitEwahBitmapBucket(fb.NoDispose(true));
+            await using var ewah = new GitEwahBitmapBucket(fb.NoDispose(true));
 
             Assert.AreEqual(0L, ewah.Position);
 

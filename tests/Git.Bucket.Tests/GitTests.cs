@@ -31,7 +31,7 @@ public class GitTests
         for (int i = 0; i < gh.ObjectCount; i++)
         {
             long? offset = b.Position;
-            using var pf = new GitPackObjectBucket(b.NoDispose(), GitIdType.Sha1, null);
+            await using var pf = new GitPackObjectBucket(b.NoDispose(), GitIdType.Sha1, null);
 
             GitObjectType type = await pf.ReadTypeAsync();
 
@@ -583,11 +583,11 @@ public class GitTests
     [DynamicData(nameof(LocalPacks))]
     public async Task WalkLocalPacks(string packFile)
     {
-        using var srcFile = FileBucket.OpenRead(packFile, false);
+        await using var srcFile = FileBucket.OpenRead(packFile, false);
 
         long srcLen = (await srcFile.ReadRemainingBytesAsync()).Value;
 
-        using var gh = new GitPackHeaderBucket(srcFile.NoDispose());
+        await using var gh = new GitPackHeaderBucket(srcFile.NoDispose());
 
         var r = await gh.ReadAsync();
         Assert.IsTrue(r.IsEof);
@@ -605,7 +605,7 @@ public class GitTests
             var crcr = srcFile.NoDispose().Crc32(c => crc = c);
             GitId? checksum = null;
 
-            using (var pf = new GitPackObjectBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
+            await using (var pf = new GitPackObjectBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
             {
                 var type = await pf.ReadTypeAsync();
 
@@ -677,7 +677,7 @@ public class GitTests
 
         byte[]? fileChecksum = null;
         {
-            using var b = srcFile.Duplicate(true).TakeExactly(srcLen - 20).SHA1(x => fileChecksum = x);
+            await using var b = srcFile.Duplicate(true).TakeExactly(srcLen - 20).SHA1(x => fileChecksum = x);
 
             await b.ReadUntilEofAsync();
             Assert.IsNotNull(fileChecksum);
@@ -689,7 +689,7 @@ public class GitTests
         long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
 
         byte[]? idxChecksum = null;
-        using var idxData = indexFile.TakeExactly(lIdx - 20).SHA1(x => idxChecksum = x);
+        await using var idxData = indexFile.TakeExactly(lIdx - 20).SHA1(x => idxChecksum = x);
 
         Assert.IsTrue(await idxData.NoDispose().HasSameContentsAsync(index.NoDispose()));
     }
@@ -737,7 +737,7 @@ public class GitTests
         var r = new Random();
         var allData = File.ReadAllBytes(packFile);
 
-        using (FileBucket fb = FileBucket.OpenRead(packFile, false))
+        await using (FileBucket fb = FileBucket.OpenRead(packFile, false))
         {
             for (int i = 0; i < 32768; i++)
             {
@@ -761,7 +761,7 @@ public class GitTests
     [DynamicData(nameof(LocalPacks))]
     public async Task ReadMany(string packFile)
     {
-        using var srcFile = FileBucket.OpenRead(packFile);
+        await using var srcFile = FileBucket.OpenRead(packFile);
         var b = new List<Bucket>();
         for (int i = 0; i < 1000; i++)
             b.Add(srcFile.Duplicate().SkipExactly(i * 1024));

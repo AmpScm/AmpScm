@@ -97,7 +97,7 @@ internal sealed class CreateHashBucket : WrappingBucket, IBucketPoll, IBucketPro
         _hasher?.Initialize();
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -112,7 +112,7 @@ internal sealed class CreateHashBucket : WrappingBucket, IBucketPoll, IBucketPro
         finally
         {
             _hasher = null;
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

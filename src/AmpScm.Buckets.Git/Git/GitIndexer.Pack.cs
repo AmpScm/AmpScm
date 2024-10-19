@@ -18,7 +18,7 @@ public static partial class GitIndexer
         if (writeBitmap)
             throw new NotSupportedException();
 
-        using var srcFile = FileBucket.OpenRead(packFile, forAsync: false);
+        await using var srcFile = FileBucket.OpenRead(packFile, forAsync: false);
         var hashes = new SortedList<GitId, long>();
         var crcs = new SortedList<long, (int CRC, List<long> Deps)>();
 
@@ -37,7 +37,7 @@ public static partial class GitIndexer
         }
 
         long objectCount;
-        using (var gh = new GitPackHeaderBucket(srcFile.NoDispose()))
+        await using (var gh = new GitPackHeaderBucket(srcFile.NoDispose()))
         {
             var r = await gh.ReadAsync().ConfigureAwait(false);
             objectCount = (int)gh.ObjectCount!.Value;
@@ -53,7 +53,7 @@ public static partial class GitIndexer
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (var pf = new GitPackObjectBucket(srcFile.NoDispose().Crc32(c => crc = c), idType,
+            await using (var pf = new GitPackObjectBucket(srcFile.NoDispose().Crc32(c => crc = c), idType,
                 id => new(DummyObjectBucket.Instance),
                 ofs => { crcs[ofs].Deps.Add(offset); return new(DummyObjectBucket.Instance); }))
             {
@@ -65,7 +65,7 @@ public static partial class GitIndexer
                     var type = await pf.ReadTypeAsync().ConfigureAwait(false);
                     var len = await pf.ReadRemainingBytesAsync().ConfigureAwait(false);
 
-                    using var csum = (type.CreateHeader(len.Value) + pf.NoDispose()).GitHash(idType, s => oid = s);
+                    await using var csum = (type.CreateHeader(len.Value) + pf.NoDispose()).GitHash(idType, s => oid = s);
 
                     await csum.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
                 }
@@ -202,7 +202,7 @@ public static partial class GitIndexer
 
             if (skipNoHash)
             {
-                pf.Dispose();
+                await pf.DisposeAsync();
                 lock (hashes)
                 {
                     fixUpLater.Add(offset);
@@ -214,7 +214,7 @@ public static partial class GitIndexer
             {
                 var len = await pf.ReadRemainingBytesAsync().ConfigureAwait(false);
 
-                using var csum = (type.CreateHeader(len.Value) + pf).GitHash(idType, s => checksum = s);
+                await using var csum = (type.CreateHeader(len.Value) + pf).GitHash(idType, s => checksum = s);
 
                 await csum.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
 
@@ -236,7 +236,7 @@ public static partial class GitIndexer
         public static DummyObjectBucket Instance { get; } = new();
 
 #pragma warning disable CA2215 // Dispose methods should call base class dispose
-        protected override void Dispose(bool disposing)
+        protected override async ValueTask DisposeAsync(bool disposing)
 #pragma warning restore CA2215 // Dispose methods should call base class dispose
         {
             //base.Dispose(disposing);

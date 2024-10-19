@@ -36,7 +36,7 @@ public class BundleTests
 
         Assert.IsTrue(File.Exists(bundle));
 
-        using var gbr = new GitBundleBucket(FileBucket.OpenRead(bundle));
+        await using var gbr = new GitBundleBucket(FileBucket.OpenRead(bundle));
 
         Assert.AreEqual(version, await gbr.ReadVersionAsync());
 
@@ -73,7 +73,7 @@ public class BundleTests
 
         Assert.AreEqual(idType, idType2);
 
-        using var pb = new GitPackHeaderBucket(bucket);
+        await using var pb = new GitPackHeaderBucket(bucket);
 
         await pb.ReadUntilEofAsync();
 

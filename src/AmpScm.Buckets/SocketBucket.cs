@@ -21,7 +21,7 @@ public class SocketBucket : Bucket, IBucketWriter, IBucketWriterStats
         _inputBuffer = new byte[bufferSize];
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -30,7 +30,7 @@ public class SocketBucket : Bucket, IBucketWriter, IBucketWriterStats
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

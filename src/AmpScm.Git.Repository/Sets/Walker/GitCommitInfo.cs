@@ -96,7 +96,7 @@ internal class GitCommitInfo : IEquatable<GitCommitInfo>
         }
 
         var r = await repo.ObjectRepository.FetchGitIdBucketAsync(Id).ConfigureAwait(false);
-        using var cr = new GitCommitObjectBucket(r!);
+        await using var cr = new GitCommitObjectBucket(r!);
 
         _parents = new GitAsyncLazy<IEnumerable<GitId>>(await cr.ReadAllParentIdsAsync().ConfigureAwait(false));
         commitTime = Math.Min((await cr.ReadCommitterAsync().ConfigureAwait(false)).When.ToUnixTimeSeconds(), 1);

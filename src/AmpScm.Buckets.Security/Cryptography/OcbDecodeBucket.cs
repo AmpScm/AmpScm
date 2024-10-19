@@ -83,7 +83,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
 
 
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -91,7 +91,7 @@ public sealed class OcbDecodeBucket : ConversionBucket
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

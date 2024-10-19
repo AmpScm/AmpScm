@@ -23,7 +23,7 @@ public class GitTests
 
         long l = (await srcFile.ReadRemainingBytesAsync()).Value;
 
-        using var b = srcFile.TakeExactly(l - 20).SHA1(x => fileChecksum = x);
+        await using var b = srcFile.TakeExactly(l - 20).SHA1(x => fileChecksum = x);
 
         var gh = new GitPackHeaderBucket(b.NoDispose());
 
@@ -42,7 +42,7 @@ public class GitTests
             GitId? checksum = null;
             int crc = 0;
             var crcr = b.NoDispose().Crc32(c => crc = c);
-            using (var pf = new GitPackObjectBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
+            await using (var pf = new GitPackObjectBucket(crcr, GitIdType.Sha1, id => GetDeltaSource(packFile, id)))
             {
 
                 var type = await pf.ReadTypeAsync();
@@ -120,7 +120,7 @@ public class GitTests
         long lIdx = (await indexFile.ReadRemainingBytesAsync()).Value;
 
         byte[]? idxChecksum = null;
-        using var idxData = indexFile.TakeExactly(lIdx - 20).SHA1(x => idxChecksum = x);
+        await using var idxData = indexFile.TakeExactly(lIdx - 20).SHA1(x => idxChecksum = x);
 
         Trace.WriteLine(packFile);
         await Assert.That.BucketsEqual(idxData, index);

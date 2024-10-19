@@ -143,7 +143,7 @@ internal class GitFileReferenceRepository : GitReferenceRepository
     private async IAsyncEnumerable<GitReferenceChange>? GetChangesFromRefLogFile(string fileName)
     {
         var fb = FileBucket.OpenRead(fileName);
-        using var gr = new GitReferenceLogBucket(fb);
+        await using var gr = new GitReferenceLogBucket(fb);
 
         while (await gr.ReadGitReferenceLogRecordAsync().ConfigureAwait(false) is GitReferenceLogRecord lr)
         {

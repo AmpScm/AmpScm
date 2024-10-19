@@ -44,16 +44,16 @@ public abstract class WrappingBucket : Bucket, IBucketNoDispose
         return false;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
             if (disposing)
-                Source.Dispose();
+                await Source.DisposeAsync().ConfigureAwait(false);
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

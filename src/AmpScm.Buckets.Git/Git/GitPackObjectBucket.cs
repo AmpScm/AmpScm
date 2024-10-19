@@ -49,12 +49,12 @@ public sealed class GitPackObjectBucket : GitObjectBucket, IBucketPoll, IBucketS
         _fetchBucketByOffset = fetchBucketByOffset;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         if (_reader != null)
-            _reader.Dispose();
+            await _reader.DisposeAsync();
         else
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
     }
 
     public override BucketBytes Peek()

@@ -106,7 +106,7 @@ public class GitConfiguration : GitBackendRepository
     private async ValueTask LoadConfigAsync(string path)
     {
         var b = FileBucket.OpenRead(path, forAsync: false);
-        using var cr = new GitConfigurationBucket(b);
+        await using var cr = new GitConfigurationBucket(b);
 
         while (await cr.ReadRecord().ConfigureAwait(false) is GitConfigurationRecord item)
         {

@@ -10,9 +10,9 @@ public class IndentTests
     [TestMethod]
     public async Task VerifyUnindentLength()
     {
-        using var innerBucket = Bucket.Create.FromASCII(" i\n dent\n test\n more\nNext");
+        await using var innerBucket = Bucket.Create.FromASCII(" i\n dent\n test\n more\nNext");
 
-        using var bucket = new GitLineUnindentBucket(innerBucket.NoDispose());
+        await using var bucket = new GitLineUnindentBucket(innerBucket.NoDispose());
 
         long l = (await bucket.ReadRemainingBytesAsync().ConfigureAwait(false)).Value;
 

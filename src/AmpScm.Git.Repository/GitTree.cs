@@ -40,7 +40,7 @@ public sealed class GitTree : GitObject, IEnumerable<GitTreeEntry>, IAsyncEnumer
         if (el is null)
         {
             _rdr = null;
-            rdr.Dispose();
+            await rdr.DisposeAsync();
             return;
         }
 

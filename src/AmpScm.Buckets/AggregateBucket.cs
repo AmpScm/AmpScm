@@ -103,6 +103,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
     {
         if (!_keepOpen && _n > 0)
         {
+            List<IAsyncDisposable>? disposables = null;
             lock (LockOn)
             {
                 while (_n > 0)
@@ -110,10 +111,23 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
                     var del = _buckets[0];
                     _buckets.RemoveAt(0);
                     _n--;
-                    del?.Dispose();
+                    if (del != null)
+                    {
+                        disposables ??= new();
+                        disposables.Add(del);
+                    }
+                }
+            }
+
+            if (disposables is { })
+            {
+                foreach (var d in disposables)
+                {
+                    await d.DisposeAsync();
                 }
             }
         }
+
 
         while (CurrentBucket is Bucket cur)
         {
@@ -156,7 +170,8 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
             _n++;
         }
 
-        del?.Dispose();
+        if (del != null)
+            del.DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
 
     public override ValueTask<long> ReadSkipAsync(long requested)
@@ -200,7 +215,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
         }
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -212,7 +227,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
                 {
                     try
                     {
-                        InnerDispose();
+                        await InnerDisposeAsync();
                     }
                     catch (ObjectDisposedException oe)
                     {
@@ -231,15 +246,16 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 
-    protected virtual void InnerDispose()
+    protected virtual async ValueTask InnerDisposeAsync()
     {
         for (int i = _buckets.Count - 1; i >= 0; i--)
         {
-            _buckets[i]?.Dispose();
+            if (_buckets[i] is Bucket cur)
+                await cur.DisposeAsync();
             _buckets.RemoveAt(i);
         }
         _n = 0;
@@ -281,7 +297,8 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
                 var del = _buckets[0];
                 _buckets.RemoveAt(0);
                 _n--;
-                del?.Dispose();
+                if (del is { })
+                    await del.DisposeAsync();
             }
         }
 

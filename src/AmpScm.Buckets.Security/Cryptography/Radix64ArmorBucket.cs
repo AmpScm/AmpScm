@@ -127,7 +127,7 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
             if (!bb.IsEof)
                 return bb;
 
-            _base64Decode.Dispose();
+            await _base64Decode.DisposeAsync();
             _base64Decode = null;
             _state = SState.Crc;
         }

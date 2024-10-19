@@ -176,7 +176,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
                 }
                 else
                 {
-                    using var sig = new Radix64ArmorBucket(src);
+                    await using var sig = new Radix64ArmorBucket(src);
 
                     bb = await sig.ReadAtLeastAsync(8192, throwOnEndOfStream: false).ConfigureAwait(false);
 
@@ -217,7 +217,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
 
     private static async IAsyncEnumerable<BucketBytes> WalkSignature(Bucket src)
     {
-        using (src)
+        await using (src)
         {
             while (true)
             {

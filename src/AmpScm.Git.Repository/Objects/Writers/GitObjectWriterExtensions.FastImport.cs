@@ -21,7 +21,7 @@ public static partial class GitObjectWriterExtensions
         else if (source is null)
             throw new ArgumentNullException(nameof(source));
 
-        using (source)
+        await using (source)
         {
             var marks = new Dictionary<string, GitId>(StringComparer.Ordinal);
             var refs = new Dictionary<string, GitId>(StringComparer.Ordinal);
@@ -122,7 +122,7 @@ public static partial class GitObjectWriterExtensions
                                 break;
                             }
                         case "commit":
-                            using (body)
+                            await using (body)
                             {
                                 string message = (await body.ReadAtLeastAsync((int)len, throwOnEndOfStream: false).ConfigureAwait(false)).ToUTF8String();
 
@@ -146,7 +146,7 @@ public static partial class GitObjectWriterExtensions
                                 break;
                             }
                         case "tag":
-                            using (body)
+                            await using (body)
                             {
                                 string message = (await body.ReadAtLeastAsync((int)len, throwOnEndOfStream: false).ConfigureAwait(false)).ToUTF8String();
 
@@ -166,7 +166,7 @@ public static partial class GitObjectWriterExtensions
                                 break;
                             }
                         default:
-                            body.Dispose();
+                            await body.DisposeAsync();
                             throw new BucketException($"Unexpected object type {type}");
                     }
 

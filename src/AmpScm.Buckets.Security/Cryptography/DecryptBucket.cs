@@ -234,7 +234,7 @@ public sealed class DecryptBucket : CryptoDataBucket
                         byte[] sv = startingVector.ToArray();
                         OcbDecodeBucket.SpanXor(sv.AsSpan(sv.Length - 4), NetBitConverter.GetBytes((int)n));
 
-                        using var ocd = new OcbDecodeBucket(bb.Memory.AsBucket(), sessionKey, 128, sv, associatedData, verifyResult: x =>
+                        await using var ocd = new OcbDecodeBucket(bb.Memory.AsBucket(), sessionKey, 128, sv, associatedData, verifyResult: x =>
                         {
                             if (!x)
                                 throw new BucketDecryptionException($"Verification of final chunk in {bucket} bucket failed");
@@ -371,7 +371,7 @@ public sealed class DecryptBucket : CryptoDataBucket
 
                         case 4:
                             {
-                                using var keySrc = CreateDecryptBucket(bucket, s2k.CipherAlgorithm, key, iv: new byte[key.Length]);
+                                await using var keySrc = CreateDecryptBucket(bucket, s2k.CipherAlgorithm, key, iv: new byte[key.Length]);
 
                                 var k = await keySrc.ReadAtLeastAsync(key.Length + 2, throwOnEndOfStream: false).ConfigureAwait(false);
 

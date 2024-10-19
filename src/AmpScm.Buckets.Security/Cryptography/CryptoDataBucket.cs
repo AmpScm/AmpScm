@@ -207,7 +207,7 @@ public abstract class CryptoDataBucket : WrappingBucket
     private protected static async ValueTask<byte[]> CalculateHash(Bucket sourceData, PgpHashAlgorithm hashAlgorithm)
     {
         byte[]? result = null;
-        using var sd = sourceData.Hash(CreatePgpHashAlgorithm(hashAlgorithm), x => result = x);
+        await using var sd = sourceData.Hash(CreatePgpHashAlgorithm(hashAlgorithm), x => result = x);
 
         await sd.ReadUntilEofAsync().ConfigureAwait(false);
 
@@ -272,12 +272,7 @@ public abstract class CryptoDataBucket : WrappingBucket
 
     private protected static async ValueTask<BucketBytes> ReadSshStringAsync(Bucket bucket)
     {
-        var bb = await bucket.ReadAtLeastAsync(sizeof(int), throwOnEndOfStream: false).ConfigureAwait(false);
-
-        if (bb.IsEof)
-            return BucketBytes.Eof;
-        else if (bb.Length < sizeof(int))
-            throw new BucketEofException(bucket);
+        var bb = await bucket.ReadAtLeastAsync(sizeof(int)).ConfigureAwait(false);
 
         int len = NetBitConverter.ToInt32(bb, 0);
 
@@ -289,11 +284,7 @@ public abstract class CryptoDataBucket : WrappingBucket
 
     private protected static async ValueTask<BigInteger?> ReadPgpMultiPrecisionInteger(Bucket sourceData)
     {
-        var bb = await sourceData.ReadAtLeastAsync(2, throwOnEndOfStream: false).ConfigureAwait(false);
-        if (bb.IsEof)
-            return null;
-        else if (bb.Length != 2)
-            throw new BucketEofException(sourceData);
+        var bb = await sourceData.ReadAtLeastAsync(2).ConfigureAwait(false);
 
         ushort bitLen = NetBitConverter.ToUInt16(bb, 0);
 
@@ -302,10 +293,7 @@ public abstract class CryptoDataBucket : WrappingBucket
         else
         {
             int byteLen = (bitLen + 7) / 8;
-            bb = await sourceData.ReadAtLeastAsync(byteLen, throwOnEndOfStream: false).ConfigureAwait(false);
-
-            if (bb.Length != byteLen)
-                throw new BucketEofException(sourceData);
+            bb = await sourceData.ReadAtLeastAsync(byteLen).ConfigureAwait(false);
 
             return bb.Memory.ToBigInteger();
         }
@@ -329,7 +317,7 @@ public abstract class CryptoDataBucket : WrappingBucket
             {
                 case DerType.Sequence:
                     {
-                        using var bq = new DerBucket(b);
+                        await using var bq = new DerBucket(b);
                         await SequenceToList(values, bq, cryptoAlgorithm).ConfigureAwait(false);
                         break;
                     }
@@ -342,7 +330,7 @@ public abstract class CryptoDataBucket : WrappingBucket
 
                         Debug.Assert(bs == 0);
 
-                        using var bq = new DerBucket(b);
+                        await using var bq = new DerBucket(b);
                         await SequenceToList(values, bq, cryptoAlgorithm).ConfigureAwait(false);
                         break;
                     }
@@ -408,7 +396,7 @@ public abstract class CryptoDataBucket : WrappingBucket
                 }
                 else
                 {
-                    _reader.Dispose();
+                    await _reader.DisposeAsync();
                     _reader = null;
                 }
             }
@@ -433,7 +421,7 @@ public abstract class CryptoDataBucket : WrappingBucket
             if (bucket is { })
             {
                 if (await HandleChunk(bucket, type).ConfigureAwait(false))
-                    bucket.Dispose();
+                    await bucket.DisposeAsync();
 
                 if (_reader != null)
                     break; // Jump to returning actual data
@@ -442,7 +430,7 @@ public abstract class CryptoDataBucket : WrappingBucket
             {
                 _stack.Pop();
                 if (rdr != Source)
-                    rdr.Dispose();
+                    await rdr.DisposeAsync();
             }
         }
     }

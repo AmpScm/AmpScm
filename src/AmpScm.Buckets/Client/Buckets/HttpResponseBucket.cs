@@ -62,7 +62,7 @@ public class HttpResponseBucket : ResponseBucket
 
             if (Request.Channel != null)
             {
-                _reader.Dispose();
+                await _reader.DisposeAsync();
                 _reader = Empty;
 
                 Request.ReleaseChannel(readOneEol ?? false);

@@ -26,7 +26,7 @@ internal sealed class CompressionBucket : WrappingBucket
             _written = new AggregateBucket.SimpleAggregate();
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -42,7 +42,7 @@ internal sealed class CompressionBucket : WrappingBucket
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

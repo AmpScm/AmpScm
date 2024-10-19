@@ -128,16 +128,20 @@ public sealed class GitDirectoryBucket : GitBucket
 
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
             if (disposing)
             {
-                _deleted?.Dispose();
-                _replaced?.Dispose();
-                _shared?.Dispose();
-                _remaining?.Dispose();
+                if (_deleted is { })
+                    await _deleted.DisposeAsync().ConfigureAwait(false);
+                if (_replaced is { })
+                    await _replaced.DisposeAsync().ConfigureAwait(false);
+                if (_shared is { })
+                    await _shared.DisposeAsync().ConfigureAwait(false);
+                if (_remaining is { })
+                    await _remaining.DisposeAsync();
             }
         }
         finally
@@ -147,7 +151,7 @@ public sealed class GitDirectoryBucket : GitBucket
             _shared = null;
             _remaining = null;
 
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 
@@ -155,7 +159,7 @@ public sealed class GitDirectoryBucket : GitBucket
     {
         if (_version > 0)
             return;
-        var bb = await Source.ReadAtLeastAsync(12, throwOnEndOfStream: false).ConfigureAwait(false);
+        var bb = await Source.ReadAtLeastAsync(12).ConfigureAwait(false);
 
         if (!bb.StartsWithASCII("DIRC"))
             throw new GitBucketException($"No Directory cache in {Name} bucket");
@@ -241,10 +245,7 @@ public sealed class GitDirectoryBucket : GitBucket
 
         int hashLen = _idType.HashLength();
         int readLen = 40 + 2 + hashLen;
-        var bb = await Source.ReadAtLeastAsync(readLen, throwOnEndOfStream: false).ConfigureAwait(false);
-
-        if (bb.Length != readLen)
-            throw new BucketEofException(Source);
+        var bb = await Source.ReadAtLeastAsync(readLen).ConfigureAwait(false);
 
         GitDirectoryEntry src = new()
         {
@@ -273,10 +274,7 @@ public sealed class GitDirectoryBucket : GitBucket
         int FullFlags = src.Flags;
         if ((src.Flags & 0x4000) != 0 && _version >= 3) // Must be 0 in version 2
         {
-            bb = await Source.ReadAtLeastAsync(2, throwOnEndOfStream: false).ConfigureAwait(false);
-
-            if (bb.Length != 2)
-                throw new BucketEofException(Source);
+            bb = await Source.ReadAtLeastAsync(2).ConfigureAwait(false);
 
             FullFlags |= NetBitConverter.ToInt16(bb, 0) << 16;
         }
@@ -503,16 +501,13 @@ public sealed class GitDirectoryBucket : GitBucket
             reader = await Source.DuplicateSeekedAsync(_endOfIndex.Value).ConfigureAwait(false);
         }
 
-        using (reader)
+        await using (reader)
         {
             long bucketEnd = _length - _idType.HashLength();
 
             while (reader.Position < bucketEnd)
             {
-                var bb = await reader.ReadAtLeastAsync(4 + 4, throwOnEndOfStream: false).ConfigureAwait(false);
-
-                if (bb.Length != 4 + 4)
-                    throw new BucketEofException(Source);
+                var bb = await reader.ReadAtLeastAsync(4 + 4).ConfigureAwait(false);
 
                 string extensionName = bb.ToUTF8String(0, 4);
 

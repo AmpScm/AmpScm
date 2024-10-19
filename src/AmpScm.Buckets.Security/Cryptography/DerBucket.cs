@@ -44,7 +44,7 @@ internal sealed class DerBucket : WrappingBucket
         {
             var d = bb.AsBucket();
 
-            using var der = new DerBucket(d);
+            await using var der = new DerBucket(d);
 
             var r = await der.ReadValueAsync().ConfigureAwait(false);
 

@@ -44,7 +44,7 @@ public sealed class TlsBucket : WrappingBucket, IBucketWriter, IBucketWriterStat
         _targetHost = targetHost;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
@@ -52,7 +52,7 @@ public sealed class TlsBucket : WrappingBucket, IBucketWriter, IBucketWriterStat
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 

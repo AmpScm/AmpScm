@@ -44,15 +44,15 @@ internal sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
         BaseBucket = baseBucket ?? throw new ArgumentNullException(nameof(baseBucket));
     }
 
-    protected override void Dispose(bool disposing)
+    protected override async ValueTask DisposeAsync(bool disposing)
     {
         try
         {
-            BaseBucket.Dispose();
+            await BaseBucket.DisposeAsync();
         }
         finally
         {
-            base.Dispose(disposing);
+            await base.DisposeAsync(disposing);
         }
     }
 
@@ -124,10 +124,7 @@ internal sealed class GitDeltaBucket : GitObjectBucket, IBucketPoll, IBucketSeek
 
                 if (want > 0)
                 {
-                    data = await Source.ReadAtLeastAsync(want, throwOnEndOfStream: false).ConfigureAwait(false);
-
-                    if (data.Length < want)
-                        throw new BucketEofException(Source);
+                    data = await Source.ReadAtLeastAsync(want).ConfigureAwait(false);
 
                     int i = 0;
 
