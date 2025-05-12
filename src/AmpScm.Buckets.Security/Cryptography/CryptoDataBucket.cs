@@ -284,7 +284,10 @@ public abstract class CryptoDataBucket : WrappingBucket
 
     private protected static async ValueTask<BigInteger?> ReadPgpMultiPrecisionInteger(Bucket sourceData)
     {
-        var bb = await sourceData.ReadAtLeastAsync(2).ConfigureAwait(false);
+        var bb = await sourceData.ReadAtLeastAsync(2, false).ConfigureAwait(false);
+
+        if (bb.IsEof)
+            return null;
 
         ushort bitLen = NetBitConverter.ToUInt16(bb, 0);
 
