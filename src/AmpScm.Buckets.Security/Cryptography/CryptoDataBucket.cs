@@ -272,7 +272,12 @@ public abstract class CryptoDataBucket : WrappingBucket
 
     private protected static async ValueTask<BucketBytes> ReadSshStringAsync(Bucket bucket)
     {
-        var bb = await bucket.ReadAtLeastAsync(sizeof(int)).ConfigureAwait(false);
+        var bb = await bucket.ReadAtLeastAsync(sizeof(int), throwOnEndOfStream: false).ConfigureAwait(false);
+
+        if (bb.IsEof)
+            return BucketBytes.Eof;
+        else if (bb.Length < sizeof(int))
+            throw new BucketEofException(bucket);
 
         int len = NetBitConverter.ToInt32(bb, 0);
 
