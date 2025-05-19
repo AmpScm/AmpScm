@@ -54,7 +54,7 @@ jobs:
 
     - name: Package nupkg files
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: nupkg-files
         path: nupkg/Release/*nupkg
