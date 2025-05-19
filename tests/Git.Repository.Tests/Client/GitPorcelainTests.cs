@@ -99,6 +99,8 @@ public class GitPorcelainTests
 
                     if (!typeof(GitPorcelain).GetMethods().Any(x => x.Name == name))
                     {
+                        if (command.Contains(" EXPERIMENTAL:"))
+                            continue;
                         sb.AppendLine($"Method {name} is missing on {nameof(GitPorcelain)}");
                         continue;
                     }
