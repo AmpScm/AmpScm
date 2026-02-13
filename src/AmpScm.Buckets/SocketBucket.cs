@@ -30,7 +30,7 @@ public class SocketBucket : Bucket, IBucketWriter, IBucketWriterStats
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

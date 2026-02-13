@@ -85,7 +85,7 @@ public sealed partial class FileBucket : Bucket, IBucketPoll, IBucketSeek, IBuck
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

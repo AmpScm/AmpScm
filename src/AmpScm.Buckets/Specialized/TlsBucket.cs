@@ -52,7 +52,7 @@ public sealed class TlsBucket : WrappingBucket, IBucketWriter, IBucketWriterStat
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

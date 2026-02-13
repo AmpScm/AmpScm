@@ -229,6 +229,11 @@ public partial struct BucketBytes
         return true;
     }
 
+    public bool StartsWith(ReadOnlySpan<byte> value)
+    {
+        return Span.StartsWith(value);
+    }
+
     public bool EndsWithASCII(string value)
     {
         if (string.IsNullOrEmpty(value))
@@ -245,6 +250,11 @@ public partial struct BucketBytes
         }
 
         return true;
+    }
+
+    public bool EndsWith(ReadOnlySpan<byte> value)
+    {
+        return Span.EndsWith(value);
     }
 
     public bool EqualsASCII(string value)

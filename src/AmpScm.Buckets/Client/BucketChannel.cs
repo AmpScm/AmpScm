@@ -33,7 +33,7 @@ internal sealed class BucketClientChannel : IAsyncDisposable
         {
             if (disposing)
             {
-                await Reader.DisposeAsync();
+                await Reader.DisposeAsync().ConfigureAwait(false);
             }
 
             disposedValue = true;
@@ -49,7 +49,7 @@ internal sealed class BucketClientChannel : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        await DisposeAsync(disposing: true);
+        await DisposeAsync(disposing: true).ConfigureAwait(false);
         GC.SuppressFinalize(this);
     }
 }

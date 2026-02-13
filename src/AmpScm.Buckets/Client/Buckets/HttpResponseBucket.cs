@@ -62,7 +62,7 @@ public class HttpResponseBucket : ResponseBucket
 
             if (Request.Channel != null)
             {
-                await _reader.DisposeAsync();
+                await _reader.DisposeAsync().ConfigureAwait(false);
                 _reader = Empty;
 
                 Request.ReleaseChannel(readOneEol ?? false);
@@ -191,7 +191,7 @@ public class HttpResponseBucket : ResponseBucket
 
             var parts = bb.Split((byte)' ', 3);
 
-            if (parts[0].StartsWithASCII("HTTP/") && parts.Length == 3)
+            if (parts[0].StartsWith("HTTP/"u8) && parts.Length == 3)
                 HttpVersion = parts[0].ToASCIIString("HTTP/".Length);
             else
                 throw new HttpBucketException($"No HTTP result: {bb.ToASCIIString()}");

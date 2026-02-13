@@ -84,7 +84,7 @@ public partial class BucketExtensions
         else if (stream is null)
             throw new ArgumentNullException(nameof(stream));
 
-        await using (bucket)
+        await using (bucket.ConfigureAwait(false))
         {
 #if !NETFRAMEWORK
             if (stream is FileStream fs && fs.CanSeek && bucket is IBucketReadBuffers rb)

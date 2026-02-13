@@ -2,7 +2,6 @@
 abstract AmpScm.Buckets.Client.BucketWebRequest.GetResponseAsync() -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.Client.ResponseBucket!>
 abstract AmpScm.Buckets.Specialized.BlockCombineBucket.ProcessAsync(AmpScm.Buckets.BucketBytes left, AmpScm.Buckets.BucketBytes right) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 abstract AmpScm.Buckets.Specialized.ConversionBucket.ConvertData(ref AmpScm.Buckets.BucketBytes sourceData, bool final) -> AmpScm.Buckets.BucketBytes
-AmpScm.Buckets.Bucket.DisposeAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.BucketDecodeException
 AmpScm.Buckets.BucketDecodeException.BucketDecodeException() -> void
 AmpScm.Buckets.BucketDecodeException.BucketDecodeException(string! message) -> void

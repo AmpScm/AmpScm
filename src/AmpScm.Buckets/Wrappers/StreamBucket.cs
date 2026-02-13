@@ -44,7 +44,7 @@ internal sealed class StreamBucket : Bucket
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

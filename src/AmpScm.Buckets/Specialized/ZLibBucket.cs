@@ -319,7 +319,7 @@ public sealed class ZLibBucket : WrappingBucket, IBucketPoll, IBucketSeek
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

@@ -112,7 +112,7 @@ internal sealed class CreateHashBucket : WrappingBucket, IBucketPoll, IBucketPro
         finally
         {
             _hasher = null;
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

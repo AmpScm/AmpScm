@@ -41,7 +41,7 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
 
         var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "tree " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, eolState: null).ConfigureAwait(false);
 
-        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tree "))
+        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWith("tree "u8))
             throw new GitBucketException($"Expected 'tree' record at start of commit in '{Source.Name}'");
 
         if (GitId.TryParse(bb.Slice(5, eol), out var id))
@@ -68,9 +68,9 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
         // Typically every commit has a parent, so optimize for that case
         var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, requested: ParentLineReadLength).ConfigureAwait(false);
 
-        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("parent "))
+        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWith("parent "u8))
         {
-            if (bb.IsEof || !bb.StartsWithASCII("author "))
+            if (bb.IsEof || !bb.StartsWith("author "u8))
                 throw new GitBucketException($"Expected 'parent' or 'author', but got neither in commit {Name} Bucket");
 
             _parents = Array.Empty<GitId>();
@@ -119,7 +119,7 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
 
             if (bb.IsEof)
                 return _parents = parents.Count > 0 ? parents.AsReadOnly() : Array.Empty<GitId>();
-            else if (bb.StartsWithASCII("parent ")
+            else if (bb.StartsWith("parent "u8)
                 && GitId.TryParse(bb.Slice("parent ".Length, eol), out var id))
             {
                 parents.Add(id);
@@ -133,7 +133,7 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
 
                 continue;
             }
-            else if (bb.StartsWithASCII("author "))
+            else if (bb.StartsWith("author "u8))
             {
                 // Auch. We overread.
                 if (eol == BucketEol.None)
@@ -164,7 +164,7 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
 
             var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
-            if (bb.StartsWithASCII("author ")
+            if (bb.StartsWith("author "u8)
                 && GitSignatureRecord.TryReadFromBucket(bb.Slice("author ".Length, eol), out var author))
             {
                 _author = author;
@@ -187,7 +187,7 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
 
         if (bb.IsEof
             || eol == BucketEol.None
-            || !bb.StartsWithASCII("committer ")
+            || !bb.StartsWith("committer "u8)
             || !GitSignatureRecord.TryReadFromBucket(bb.Slice("committer ".Length, eol), out var cm))
         {
             throw new GitBucketException($"Unable to read committer header from '{Source.Name}'");
@@ -253,7 +253,7 @@ public sealed class GitCommitObjectBucket : GitBucket, IBucketPoll
                 if (bb.IsEof)
                     yield break;
 
-                if (bb.StartsWithASCII("gpgsig ") || bb.StartsWithASCII("gpgsig-sha256 "))
+                if (bb.StartsWith("gpgsig "u8) || bb.StartsWith("gpgsig-sha256 "u8))
                 {
                     while (true)
                     {

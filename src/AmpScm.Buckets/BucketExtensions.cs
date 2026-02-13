@@ -289,11 +289,11 @@ public static partial class BucketExtensions
         else if (left is null)
             throw new ArgumentNullException(nameof(left));
 
-        return new LeaveBucket(bucket, leave, (lft, length) => { left(lft, length); return new(); });
+        return new LeaveBucket(bucket, leave, (lft, length) => { left(lft, length); return default; });
     }
 
     /// <summary>
-    /// Returns an optimized bucket that doesn't dispose bucket when calling <see cref="Bucket.Dispose()"/> on it.
+    /// Returns an optimized bucket that doesn't dispose bucket when calling <see cref="Bucket.DisposeAsync()"/> on it.
     /// </summary>
     /// <param name="bucket"></param>
     /// <param name="alwaysWrap"></param>
@@ -656,8 +656,8 @@ public static partial class BucketExtensions
         else if (right is null)
             throw new ArgumentNullException(nameof(right));
 
-        await using (left)
-        await using (right)
+        await using (left.ConfigureAwait(false))
+        await using (right.ConfigureAwait(false))
 
             while (true)
             {

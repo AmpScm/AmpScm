@@ -42,7 +42,7 @@ internal sealed class CompressionBucket : WrappingBucket
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

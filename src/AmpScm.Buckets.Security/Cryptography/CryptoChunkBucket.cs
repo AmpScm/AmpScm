@@ -11,6 +11,7 @@ internal sealed class CryptoChunkBucket : WrappingBucket
 
     public CryptoChunkBucket(Bucket source) : base(source)
     {
+        Source = base.Source;
     }
 
     public bool IsSsh => _isSsh;
@@ -26,13 +27,19 @@ internal sealed class CryptoChunkBucket : WrappingBucket
         }
     }
 
+    public override BucketBytes Peek()
+    {
+        return BucketBytes.Empty;
+    }
+
+    public new Bucket Source { get; private set; }
+
     public async ValueTask<(Bucket? Bucket, CryptoTag Type)> ReadChunkAsync()
     {
         if (_reading)
             throw new BucketException("Can't obtain new packet, when the last one is not completely read");
 
         bool first = false;
-        var inner = Source;
         bool sshPublicKey = false;
         if (!_notFirst)
         {
@@ -45,30 +52,37 @@ internal sealed class CryptoChunkBucket : WrappingBucket
                 didRead = true;
             }
 
-            if (bb.StartsWithASCII("SSHSIG"))
+            if (bb.TrimStart().StartsWith("---"u8))
+            {
+                Source = new Radix64ArmorBucket(didRead ? bb.AsBucket() + Source : Source);
+
+                bb = await Source.ReadAtLeastAsync(6, throwOnEndOfStream: false).ConfigureAwait(false);
+                didRead = true;
+            }
+
+            if (bb.StartsWith("SSHSIG"u8))
             {
                 _isSsh = true;
                 if (!didRead)
+                {
+                    // Make sure we skip the "SSHSIG"
                     bb = await Source.ReadAtLeastAsync(6, throwOnEndOfStream: false).ConfigureAwait(false);
+                }
+                didRead = false;
             }
             else if (bb.Span.StartsWith(new byte[] { 0x00, 0x00, 0x00 }))
             {
-                if (didRead)
-                    inner = bb.AsBucket() + Source;
-
                 _isSsh = true;
                 sshPublicKey = true;
             }
             else if (await DerBucket.BytesMayBeDerAsync(bb).ConfigureAwait(false))
             {
                 _isDer = true;
-                if (didRead)
-                    inner = bb.AsBucket() + Source;
             }
-            else
+            
+            if (didRead)
             {
-                if (didRead)
-                    inner = bb.AsBucket() + Source;
+                Source = bb.AsBucket() + Source;
             }
             _notFirst = true;
             first = true;
@@ -78,7 +92,7 @@ internal sealed class CryptoChunkBucket : WrappingBucket
         {
             if (first)
             {
-                return (inner.NoDispose(), sshPublicKey ? CryptoTag.SshPublicKey : CryptoTag.SshSignaturePublicKey);
+                return (Source.NoDispose(), sshPublicKey ? CryptoTag.SshPublicKey : CryptoTag.SshSignaturePublicKey);
             }
             else
             {
@@ -100,7 +114,7 @@ internal sealed class CryptoChunkBucket : WrappingBucket
         }
         else
         {
-            byte? bq = await inner.ReadByteAsync().ConfigureAwait(false);
+            byte? bq = await Source.ReadByteAsync().ConfigureAwait(false);
 
             if (bq is null)
                 return (null, default);
@@ -122,14 +136,16 @@ internal sealed class CryptoChunkBucket : WrappingBucket
             else
                 tag = (CryptoTag)(b & 0x3F);
 
+            Console.WriteLine(tag);
+
             if (!oldFormat)
             {
-                var r = await ReadLengthAsync(inner).ConfigureAwait(false);
+                var r = await ReadLengthAsync(Source).ConfigureAwait(false);
 
                 if (r.PartialResult)
                 {
                     _reading = true;
-                    return (new PgpPartialBodyBucket(inner.NoDispose(), r.Length!.Value).AtEof(() => _reading = false), tag);
+                    return (new PgpPartialBodyBucket(Source.NoDispose(), r.Length!.Value).AtEof(() => _reading = false), tag);
                 }
 
                 remaining = r.Length ?? throw new BucketEofException(Source);
@@ -137,22 +153,22 @@ internal sealed class CryptoChunkBucket : WrappingBucket
             else if (remaining == 3)
             {
                 // Indetermined size, upto end
-                return (inner.NoDispose().AtEof(() => _reading = false), tag);
+                return (Source.NoDispose().AtEof(() => _reading = false), tag);
             }
             else
             {
                 remaining = remaining switch
                 {
-                    0 => await inner.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Source),
-                    1 => await inner.ReadNetworkUInt16Async().ConfigureAwait(false),
-                    2 => await inner.ReadNetworkUInt32Async().ConfigureAwait(false),
-                    _ when (await inner.ReadRemainingBytesAsync().ConfigureAwait(false)) is { } size => checked((uint)size), // Old definition: until end of stream
+                    0 => await Source.ReadByteAsync().ConfigureAwait(false) ?? throw new BucketEofException(Source),
+                    1 => await Source.ReadNetworkUInt16Async().ConfigureAwait(false),
+                    2 => await Source.ReadNetworkUInt32Async().ConfigureAwait(false),
+                    _ when (await Source.ReadRemainingBytesAsync().ConfigureAwait(false)) is { } size => checked((uint)size), // Old definition: until end of stream
                     _ => throw new NotSupportedException("Indetermined size"),
                 };
             }
 
             _reading = true;
-            return (inner.NoDispose().TakeExactly(remaining).AtEof(() => _reading = false), tag);
+            return (Source.NoDispose().TakeExactly(remaining).AtEof(() => _reading = false), tag);
         }
     }
 

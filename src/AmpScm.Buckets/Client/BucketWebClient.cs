@@ -38,7 +38,7 @@ public class BucketWebClient : IAsyncDisposable
             {
                 foreach (var c in _channels.Values)
                 {
-                    await c.DisposeAsync();
+                    await c.DisposeAsync().ConfigureAwait(false);
                 }
                 _channels.Clear();
             }
@@ -80,7 +80,7 @@ public class BucketWebClient : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        await DisposeAsync(disposing: true);
+        await DisposeAsync(disposing: true).ConfigureAwait(false);
         GC.SuppressFinalize(this);
     }
 

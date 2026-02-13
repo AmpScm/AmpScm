@@ -9,7 +9,8 @@ AmpScm.Buckets.AggregateBucket.NoDispose() -> void
 AmpScm.Buckets.AggregateBucket.Prepend(AmpScm.Buckets.Bucket! source) -> AmpScm.Buckets.Bucket!
 AmpScm.Buckets.Bucket
 AmpScm.Buckets.Bucket.Bucket() -> void
-AmpScm.Buckets.Bucket.Dispose() -> void
+AmpScm.Buckets.Bucket.DisposeAsync() -> System.Threading.Tasks.ValueTask
+AmpScm.Buckets.Bucket.DisposeAsync(bool disposing) -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Bucket.ReadSkipAsync(int requested) -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.BucketBytes
 AmpScm.Buckets.BucketBytes.All(System.Func<byte, bool>! predicate) -> bool

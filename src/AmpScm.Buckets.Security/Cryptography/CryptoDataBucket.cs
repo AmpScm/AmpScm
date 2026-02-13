@@ -532,7 +532,7 @@ public abstract class CryptoDataBucket : WrappingBucket
                         if (!bb.IsEmpty)
                             bc.Append(bb);
 
-                        return new();
+                        return default;
                     });
 
                 (signTime, signer, signKeyFingerprint) = await ParseSubPacketsAsync(subRead, hashed: true, signTime, signer, signKeyFingerprint).ConfigureAwait(false);

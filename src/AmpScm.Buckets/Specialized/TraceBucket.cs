@@ -36,14 +36,14 @@ internal sealed class TraceBucket : Bucket, IBucketPoll, IBucketNoDispose
             if (_nDispose-- == 0)
             {
                 Trace.WriteLine($"{Ident} disposing");
-                await Source.DisposeAsync();
+                await Source.DisposeAsync().ConfigureAwait(false);
             }
             else
                 Trace.WriteLine($"{Ident} ignoring dispose {Source.Name}");
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

@@ -290,7 +290,7 @@ public static partial class SpecializedBucketExtensions
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
 
-        await using (bucket)
+        await using (bucket.ConfigureAwait(false))
             await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
     }
 
@@ -305,7 +305,7 @@ public static partial class SpecializedBucketExtensions
         if (bucket is null)
             throw new ArgumentNullException(nameof(bucket));
 
-        await using (bucket)
+        await using (bucket.ConfigureAwait(false))
         {
             var n = await bucket.ReadSkipAsync(long.MaxValue).ConfigureAwait(false);
 
@@ -450,7 +450,7 @@ public static partial class SpecializedBucketExtensions
             }
             catch
             {
-                await b.DisposeAsync();
+                await b.DisposeAsync().ConfigureAwait(false);
                 throw;
             }
         }

@@ -185,6 +185,8 @@ public sealed class DecryptBucket : CryptoDataBucket
                         default:
                             throw new NotSupportedException($"Algorithm {matchedKey.Algorithm} not implemented yet");
                     }
+
+                    await bucket.ReadUntilEofAsync().ConfigureAwait(false);
                 }
                 break;
             case CryptoTag.OnePassSignature:

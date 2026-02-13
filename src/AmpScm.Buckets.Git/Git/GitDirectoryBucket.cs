@@ -161,7 +161,7 @@ public sealed class GitDirectoryBucket : GitBucket
             return;
         var bb = await Source.ReadAtLeastAsync(12).ConfigureAwait(false);
 
-        if (!bb.StartsWithASCII("DIRC"))
+        if (!bb.StartsWith("DIRC"u8))
             throw new GitBucketException($"No Directory cache in {Name} bucket");
 
         _version = NetBitConverter.ToInt32(bb, 4);
@@ -181,7 +181,7 @@ public sealed class GitDirectoryBucket : GitBucket
                 long pos = _length - _idType.HashLength() - endOfIndex.Length;
 
                 if (pos > 0 && endOfIndex.Length == await fb.ReadAtAsync(pos, endOfIndex).ConfigureAwait(false)
-                    && (bb = endOfIndex).StartsWithASCII("EOIE")
+                    && (bb = endOfIndex).StartsWith("EOIE"u8)
                     && NetBitConverter.ToInt32(bb, 4) == endOfIndex.Length - 8)
                 {
                     _endOfIndex = NetBitConverter.ToInt32(bb, 8);

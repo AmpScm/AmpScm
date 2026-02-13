@@ -52,7 +52,7 @@ internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
         {
             _size = _buffered;
             _readEof = true;
-            await DisposeAsync(disposing: true);
+            await DisposeAsync(disposing: true).ConfigureAwait(false);
         }
     }
 
@@ -81,7 +81,7 @@ internal sealed class BufferBucket : WrappingBucket, IBucketSeek, IBucketPoll
         if (!_disposed)
         {
             _disposed = true;
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

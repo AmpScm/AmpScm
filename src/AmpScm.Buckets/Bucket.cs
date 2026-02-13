@@ -159,7 +159,7 @@ public abstract partial class Bucket : IAsyncDisposable
     /// <returns>A new bucket</returns>
     /// <exception cref="InvalidOperationException">Reset is not supported on bucket</exception>
     /// <exception cref="NotSupportedException">Duplicating this bucket is not supported</exception>
-    /// <remarks>Caller should take care of calling <see cref="Dispose()"/> on the returned bucket</remarks>
+    /// <remarks>Caller should take care of calling <see cref="DisposeAsync()"/> on the returned bucket</remarks>
     public virtual Bucket Duplicate(bool reset = false)
     {
         if (reset && !CanReset)
@@ -201,7 +201,7 @@ public abstract partial class Bucket : IAsyncDisposable
     /// <param name="disposing"></param>
     protected virtual ValueTask DisposeAsync(bool disposing)
     {
-        return new();
+        return default;
     }
 
     /// <summary>

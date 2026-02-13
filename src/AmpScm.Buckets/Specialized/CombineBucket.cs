@@ -17,12 +17,12 @@ public abstract class CombineBucket : WrappingBucket
         {
             if (disposing)
             {
-                await RightSource.DisposeAsync();
+                await RightSource.DisposeAsync().ConfigureAwait(false);
             }
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

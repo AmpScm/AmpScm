@@ -73,7 +73,7 @@ public static partial class GitObjectWriterExtensions
                 {
                     (bb, eol) = await source.ReadUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
-                    if (!bb.StartsWithASCII("mark "))
+                    if (!bb.StartsWith("mark "u8))
                         throw new BucketException($"Missing mark: {bb.ToUTF8String()}");
                     mark = bb.Slice(5).ToASCIIString(eol);
                 }
@@ -86,7 +86,7 @@ public static partial class GitObjectWriterExtensions
                 {
                     (bb, eol) = await source.ReadUntilEolAsync(BucketEol.LF).ConfigureAwait(false);
 
-                    if (bb.StartsWithASCII("data "))
+                    if (bb.StartsWith("data "u8))
                     {
                         break;
                     }
@@ -209,7 +209,7 @@ public static partial class GitObjectWriterExtensions
             if (bb.IsEmpty)
                 break;
 
-            if (bb.StartsWithASCII("from "))
+            if (bb.StartsWith("from "u8))
             {
                 string mark = bb.Slice(5).ToUTF8String();
 
@@ -219,14 +219,14 @@ public static partial class GitObjectWriterExtensions
                 tree = c.Tree;
                 gcw.Tree = c.Tree.AsWriter();
             }
-            else if (bb.StartsWithASCII("merge "))
+            else if (bb.StartsWith("merge "u8))
             {
                 string mark = bb.Slice(6).ToUTF8String();
 
                 parents ??= new();
                 parents.Add(repo.Commits[marks[mark]]!);
             }
-            else if (bb.StartsWithASCII("M "))
+            else if (bb.StartsWith("M "u8))
             {
                 var items = bb.Slice(2).ToUTF8String().Split(' ', 3);
 
@@ -251,7 +251,7 @@ public static partial class GitObjectWriterExtensions
                     gcw.Tree.Add(name, b, fileType);
 
             }
-            else if (bb.StartsWithASCII("D "))
+            else if (bb.StartsWith("D "u8))
             {
                 string name = bb.Slice(2).ToUTF8String();
                 gcw.Tree.Remove(name);

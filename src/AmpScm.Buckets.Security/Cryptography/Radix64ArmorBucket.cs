@@ -38,7 +38,7 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
         {
             bb = bb.TrimStart().TrimEnd(eol);
 
-            if (!bb.StartsWithASCII("-----BEGIN "))
+            if (!bb.StartsWith("-----BEGIN "u8))
             {
                 if (!bb.StartsWithASCII("---- BEGIN "))
                     throw new BucketException("Expected '-----BEGIN '");
@@ -47,17 +47,17 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
             }
             int sl = "-----BEGIN ".Length;
 
-            if (bb.Slice(sl).StartsWithASCII("SSH "))
+            if (bb.Slice(sl).StartsWith("SSH "u8))
             {
                 _base64Decode = SetupDecode();
                 _state = SState.Body;
                 return BucketBytes.Eof;
             }
-            else if (bb.EndsWithASCII(" PUBLIC KEY-----"))
+            else if (bb.EndsWith(" PUBLIC KEY-----"u8))
             {
                 PublicKeyType = bb.Slice(sl, bb.Length - sl - 15).Trim().ToUTF8String();
             }
-            else if (bb.EndsWithASCII(" SignaturePublicKey-----"))
+            else if (bb.EndsWith(" SignaturePublicKey-----"u8))
             {
                 // PGP key
             }
@@ -139,7 +139,7 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
             if (bb.IsEof)
                 throw new BucketEofException(Source);
 
-            if (_state == SState.Crc && bb.TrimStart().StartsWithASCII("="))
+            if (_state == SState.Crc && bb.TrimStart().StartsWith("="u8))
             {
                 string crc = bb.Trim(eol).ToASCIIString(1);
 
@@ -154,7 +154,7 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
 
                 _state = SState.Trailer;
             }
-            else if (bb.TrimStart().StartsWithASCII(_sshBegin ? "---- END " : "-----END "))
+            else if (bb.TrimStart().StartsWith(_sshBegin ? "---- END "u8 : "-----END "u8))
             {
                 _state = SState.Eof;
                 return BucketBytes.Eof;
@@ -171,13 +171,13 @@ public sealed class Radix64ArmorBucket : WrappingBucket, IBucketPoll
 
     public static bool IsHeader(BucketBytes bb, BucketEol eol)
     {
-        if (!bb.StartsWithASCII("-----BEGIN ") || !bb.Slice(eol).EndsWithASCII("-----"))
+        if (!bb.StartsWith("-----BEGIN "u8) || !bb.Slice(eol).EndsWith("-----"u8))
             return false;
 
         bb = bb.Slice(11, bb.Length - 11 - 5 - eol.CharCount());
 
-        if (!bb.EndsWithASCII(" SIGNATURE")
-            && !bb.EndsWithASCII(" MESSAGE"))
+        if (!bb.EndsWith(" SIGNATURE"u8)
+            && !bb.EndsWith(" MESSAGE"u8))
         {
             return false;
         }

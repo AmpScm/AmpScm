@@ -19,13 +19,13 @@ internal sealed class FromEnumerableBucket : Bucket
         {
             if (disposing && _enumerator is not null)
             {
-                await _enumerator.DisposeAsync();
+                await _enumerator.DisposeAsync().ConfigureAwait(false);
             }
             _enumerator = null;
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 

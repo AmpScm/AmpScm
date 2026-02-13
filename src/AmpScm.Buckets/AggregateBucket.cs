@@ -123,7 +123,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
             {
                 foreach (var d in disposables)
                 {
-                    await d.DisposeAsync();
+                    await d.DisposeAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -227,7 +227,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
                 {
                     try
                     {
-                        await InnerDisposeAsync();
+                        await InnerDisposeAsync().ConfigureAwait(false);
                     }
                     catch (ObjectDisposedException oe)
                     {
@@ -246,7 +246,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
         }
         finally
         {
-            await base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
     }
 
@@ -255,7 +255,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
         for (int i = _buckets.Count - 1; i >= 0; i--)
         {
             if (_buckets[i] is Bucket cur)
-                await cur.DisposeAsync();
+                await cur.DisposeAsync().ConfigureAwait(false);
             _buckets.RemoveAt(i);
         }
         _n = 0;
@@ -298,7 +298,7 @@ public partial class AggregateBucket : Bucket, IBucketAggregation, IBucketReadBu
                 _buckets.RemoveAt(0);
                 _n--;
                 if (del is { })
-                    await del.DisposeAsync();
+                    await del.DisposeAsync().ConfigureAwait(false);
             }
         }
 

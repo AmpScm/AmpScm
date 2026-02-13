@@ -43,7 +43,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
 
         var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 7 /* "object " */ + GitId.MaxHashLength * 2 + 2 /* ALL EOL */, eolState: null).ConfigureAwait(false);
 
-        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("object "))
+        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWith("object "u8))
             throw new GitBucketException($"Expected 'object' record at start of tag in '{Source.Name}'");
 
         if (GitId.TryParse(bb.Slice(7, eol), out var id))
@@ -53,7 +53,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
 
         (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, 5 /* "type " */ + 6 /* "commit" */ + 2 /* ALL EOL */, eolState: null).ConfigureAwait(false);
 
-        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("type "))
+        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWith("type "u8))
         {
             _objectId = null;
             throw new GitBucketException($"Expected 'type' record of tag in '{Source.Name}'");
@@ -85,7 +85,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
 
         var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, MaxHeader, eolState: null).ConfigureAwait(false);
 
-        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWithASCII("tag "))
+        if (bb.IsEof || eol == BucketEol.None || !bb.StartsWith("tag "u8))
             throw new GitBucketException($"Expected 'tag' record in '{Source.Name}'");
 
         return _tagName = bb.ToUTF8String("tag ".Length, eol);
@@ -100,7 +100,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
 
             var (bb, eol) = await Source.ReadExactlyUntilEolAsync(AcceptedEols, requested: MaxHeader).ConfigureAwait(false);
 
-            if (bb.StartsWithASCII("tagger ")
+            if (bb.StartsWith("tagger "u8)
                 && GitSignatureRecord.TryReadFromBucket(bb.Slice("tagger ".Length, eol), out var author))
             {
                 _author = author;
@@ -169,7 +169,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
 
             if (Radix64ArmorBucket.IsHeader(bb, eol))
             {
-                var src = bb.Memory.AsBucket() + Source.NoDispose();
+                var src = bb.AsBucket() + Source.NoDispose();
                 if (_handleSubBucket != null)
                 {
                     await _handleSubBucket(GitSubBucketType.Signature, src).ConfigureAwait(false);
@@ -226,7 +226,7 @@ public sealed class GitTagObjectBucket : GitBucket, IBucketPoll
                 if (bb.IsEof)
                     yield break;
 
-                if (bb.StartsWithASCII("-----BEGIN "))
+                if (bb.StartsWith("-----BEGIN "u8))
                 {
                     yield break;
                 }

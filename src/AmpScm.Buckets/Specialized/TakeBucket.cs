@@ -40,6 +40,11 @@ internal sealed class TakeBucket : PositionBucket, IBucketTake
         return this;
     }
 
+    protected override ValueTask DisposeAsync(bool disposing)
+    {
+        return base.DisposeAsync(disposing);
+    }
+
     public override BucketBytes Peek()
     {
         var peek = Source.Peek();
