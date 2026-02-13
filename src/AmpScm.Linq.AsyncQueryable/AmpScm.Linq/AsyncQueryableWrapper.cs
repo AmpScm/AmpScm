@@ -47,17 +47,12 @@ internal sealed class AsyncQueryableWrapper<T> : IQueryableAndAsyncQueryable<T>,
         return GetEnumerator();
     }
 
-    IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
+    IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedAsyncEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
     {
         throw new NotSupportedException();
     }
 
-    IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
-    {
-        throw new NotSupportedException();
-    }
-
-    IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
+    IOrderedAsyncEnumerable<T> IOrderedAsyncEnumerable<T>.CreateOrderedAsyncEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
     {
         throw new NotSupportedException();
     }

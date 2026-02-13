@@ -28,21 +28,15 @@ internal sealed class NonAsyncQueryableWrapper<T> : IQueryableAndAsyncQueryable<
 
     IAsyncQueryProvider IAsyncQueryable.Provider => throw new NotSupportedException();
 
-    public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
+    public IOrderedAsyncEnumerable<T> CreateOrderedAsyncEnumerable<TKey>(Func<T, TKey> keySelector, IComparer<TKey>? comparer, bool descending)
     {
-        return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
+        return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedAsyncEnumerable(keySelector, comparer, descending)
             ?? throw new NotSupportedException();
     }
 
-    public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
+    public IOrderedAsyncEnumerable<T> CreateOrderedAsyncEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
     {
-        return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
-            ?? throw new NotSupportedException();
-    }
-
-    public IOrderedAsyncEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, CancellationToken, ValueTask<TKey>> keySelector, IComparer<TKey>? comparer, bool descending)
-    {
-        return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedEnumerable(keySelector, comparer, descending)
+        return (_queryable as IOrderedQueryableAndAsyncQueryable<T>)?.CreateOrderedAsyncEnumerable(keySelector, comparer, descending)
             ?? throw new NotSupportedException();
     }
 
