@@ -32,6 +32,9 @@ jobs:
       with:
         versionSpec: '6.3.x'
 
+    - name: Setup Subversion
+      uses: ampscm/setup-subversion@v1
+
     - name: Setup .NET Core Versions
       uses: actions/setup-dotnet@v4
       with:

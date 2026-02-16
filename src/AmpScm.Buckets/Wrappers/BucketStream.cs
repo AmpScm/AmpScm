@@ -27,10 +27,10 @@ internal partial class BucketStream : Stream
         }
     }
 
-#if !NETFRAMEWORK
+#if NET
     public override async ValueTask DisposeAsync()
     {
-        await Bucket.DisposeAsync();
+        await Bucket.DisposeAsync().ConfigureAwait(false);
         await base.DisposeAsync().ConfigureAwait(false);
     }
 #endif
