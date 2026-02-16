@@ -39,7 +39,7 @@ internal static class Ed25519
             throw new ArgumentNullException(nameof(publicKey));
 
         if (SignaturePublicKey.Length != SignatureSize || publicKey.Length != PublicKeySize)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException($"Key size invalid: {SignaturePublicKey.Length} != SignatureSize || {publicKey.Length} != PublicKeySize");
 
         return Ed25519Operations.crypto_sign_verify(SignaturePublicKey, message, publicKey);
     }

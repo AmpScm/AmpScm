@@ -127,6 +127,7 @@ public class GitRepositoryWalks
     }
 
     public static IEnumerable<object[]> GitIdTypes => Enum.GetValues(typeof(GitIdType)).Cast<GitIdType>().Where(x => x != GitIdType.None).Select(x => new object[] { x });
+    public static IEnumerable<object[]> GitReferenceTypes => Enum.GetValues(typeof(GitReferenceFormatType)).Cast<GitReferenceFormatType>().Select(x => new object[] { x });
 
     [TestMethod]
     [DynamicData(nameof(GitIdTypes))]
@@ -164,6 +165,41 @@ public class GitRepositoryWalks
     }
 
     [TestMethod]
+    [DynamicData(nameof(GitReferenceTypes))]
+    public async Task CanReadType(GitReferenceFormatType referenceFormatType)
+    {
+        string p = TestContext.PerTestDirectory(referenceFormatType.ToString());
+        {
+            using var repo = GitRepository.Open(GitTestEnvironment.GetRepository(GitTestDir.Bare));
+
+            await repo.GetPorcelain().Init(p, new GitInitArgs { ReferenceFormatType = referenceFormatType });
+        }
+
+        var r = GitRepository.Open(p);
+
+        Assert.IsFalse(r.Commits.Any(), "No commits");
+        Assert.IsFalse(r.Blobs.Any(), "No blobs");
+        Assert.IsFalse(r.Remotes.Any(), "No remotes");
+
+        var cw = GitCommitWriter.Create();
+        cw.Author = cw.Committer = new GitSignature("A A", "A@A", new DateTime(2020, 2, 2, 0, 0, 0, DateTimeKind.Utc));
+
+        var c = await cw.WriteAndFetchAsync(r);
+
+        //Assert.AreEqual(idType, c.Id.Type);
+
+        using (var t = r.References.CreateUpdateTransaction())
+        {
+            t.UpdateHead(c.Id);
+            await t.CommitAsync();
+        }
+
+        Assert.AreEqual("", await r.GetPlumbing().ConsistencyCheck(new() { Full = true }));
+        //Assert.AreEqual(referenceFormatType, r.);
+        Assert.AreEqual(c.Id, r.Head?.Id);
+    }
+
+    [TestMethod]
     [DynamicData(nameof(GitIdTypes))]
     public async Task CanCreateType(GitIdType idType)
     {
@@ -189,6 +225,34 @@ public class GitRepositoryWalks
 
         Assert.AreEqual("", await r.GetPlumbing().ConsistencyCheck(new() { Full = true }));
         Assert.AreEqual(idType, r.Head.Id!.Type);
+        Assert.AreEqual(c.Id, r.Head.Id);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(GitReferenceTypes))]
+    public async Task CanCreateType(GitReferenceFormatType referenceType)
+    {
+        string p = TestContext.PerTestDirectory(referenceType.ToString());
+        var r = GitRepository.Init(p, new GitRepositoryInitArgs { ReferenceFormatType = referenceType });
+        Assert.IsFalse(r.Commits.Any(), "No commits");
+        Assert.IsFalse(r.Blobs.Any(), "No blobs");
+        Assert.IsFalse(r.Remotes.Any(), "No remotes");
+
+        var cw = GitCommitWriter.Create();
+        cw.Author = cw.Committer = new GitSignature("A A", "A@A", new DateTime(2020, 2, 2, 0, 0, 0, DateTimeKind.Utc));
+
+        var c = await cw.WriteAndFetchAsync(r);
+
+        //Assert.AreEqual(idType, c.Id.Type);
+
+        using (var t = r.References.CreateUpdateTransaction())
+        {
+            t.UpdateHead(c.Id);
+            await t.CommitAsync();
+        }
+
+        Assert.AreEqual("", await r.GetPlumbing().ConsistencyCheck(new() { Full = true }));
+        //Assert.AreEqual(idType, r.Head.Id!.Type);
         Assert.AreEqual(c.Id, r.Head.Id);
     }
 
