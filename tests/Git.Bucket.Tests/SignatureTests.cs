@@ -348,7 +348,9 @@ j7wDwvuH5dCrLuLwtwXaQh0onG4583p0LGms2Mf5F+Ick6o/4peOlBoZz48=
 
     [TestMethod]
     [DataRow(GitIdType.Sha1)]
+#if NET || NET48_OR_GREATER
     [DataRow(GitIdType.Sha256)]
+#endif
     public async Task TestGitSign(GitIdType idType)
     {
         var dir = TestContext.PerTestDirectory(idType.ToString());
