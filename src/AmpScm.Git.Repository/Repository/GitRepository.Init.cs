@@ -6,9 +6,8 @@ namespace AmpScm.Git;
 
 public enum GitReferenceFormatType
 {
-    None = 0,
     Files,
-    ReferenceTable,
+    RefTable,
 }
 
 public sealed class GitRepositoryInitArgs
@@ -54,7 +53,7 @@ public partial class GitRepository
             branchName = GitRepositoryInitArgs.DefaultInitialBranchName;
 
         bool sha256 = (init.IdType == GitIdType.Sha256);
-        bool refTable = (init.ReferenceFormatType == GitReferenceFormatType.ReferenceTable);
+        bool refTable = (init.ReferenceFormatType == GitReferenceFormatType.RefTable);
 
         Directory.CreateDirectory(Path.Combine(gitDir, "hooks"));
         Directory.CreateDirectory(Path.Combine(gitDir, "info"));

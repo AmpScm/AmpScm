@@ -4,9 +4,10 @@ public sealed class GitSymbolicReference : GitReference
 {
     private object? _reference;
 
-    internal GitSymbolicReference(GitReferenceRepository repository, string name)
+    internal GitSymbolicReference(GitReferenceRepository repository, string name, string? reference=null)
         : base(repository, name)
     {
+        _reference = reference;
     }
 
     public override async ValueTask ReadAsync()

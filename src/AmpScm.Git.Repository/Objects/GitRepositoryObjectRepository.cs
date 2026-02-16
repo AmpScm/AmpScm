@@ -131,7 +131,7 @@ internal class GitRepositoryObjectRepository : GitObjectRepository
                         break;
                     case "refstorage":
                         if (value is "reftable")
-                            _refereneFormatType = GitReferenceFormatType.ReferenceTable;
+                            _refereneFormatType = GitReferenceFormatType.RefTable;
                         else
                             throw new GitException($"Found unsupported refstorage type {value} in repository {Repository.FullPath}");
                         break;

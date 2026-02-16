@@ -9,6 +9,7 @@ public class GitInitArgs : GitPorcelainArgs
     public string? Branch { get; set; }
     public string? TemplatePath { get; set; }
     public GitIdType? IdType { get; set; }
+    public GitReferenceFormatType? ReferenceFormatType { get; set; }
 
     public override void Verify()
     {
@@ -49,6 +50,12 @@ public partial class GitPorcelain
         {
             args.Add("--object-format");
             args.Add(options.IdType.Value.ToString().ToLowerInvariant());
+        }
+
+        if (options.ReferenceFormatType.HasValue)
+        {
+            args.Add("--ref-format");
+            args.Add(options.ReferenceFormatType.Value.ToString().ToLowerInvariant());
         }
 
         args.Add(path);

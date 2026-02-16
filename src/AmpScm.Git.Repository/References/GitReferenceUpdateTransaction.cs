@@ -1,6 +1,6 @@
 ﻿namespace AmpScm.Git.References;
 
-public abstract class GitReferenceUpdateTransaction : IDisposable
+public abstract class GitReferenceUpdateTransaction : IDisposable, IAsyncDisposable
 {
     private protected GitReferenceUpdateTransaction(GitRepository repository)
     {
@@ -105,6 +105,14 @@ public abstract class GitReferenceUpdateTransaction : IDisposable
     {
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+
+        return default;
     }
 
     protected virtual void Dispose(bool disposing)
