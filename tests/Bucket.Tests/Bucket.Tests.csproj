@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Unix' ">$(TargetFrameworks);net47;net48</TargetFrameworks>
     <LangVersion>12</LangVersion>
@@ -16,29 +15,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="GitHubActionsTestLogger" Version="3.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="MSTest" Version="4.1.0" />
-    <PackageReference Include="System.IO.Hashing" Version="10.0.3" />
-    <PackageReference Include="System.Linq.Async" Version="7.0.0" />
+    <PackageReference Include="MSTest" />
+    <PackageReference Include="System.IO.Hashing" />
+    <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AmpScm.Buckets\AmpScm.Buckets.csproj" />
     <ProjectReference Include="..\..\src\AmpScm.Linq.AsyncQueryable\AmpScm.Linq.AsyncQueryable.csproj" />
-    <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
+    <ProjectReference Include="..\Test.Common\Test.Common.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Update="cases\pack-b5a9cccacd266c9fcbdedb43ff509b02aa185b5c.bitmap">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

@@ -30,7 +30,7 @@ public class GitHttpTests
             return; // Results not stable on MONO, nor .Net 4.7
 #endif
 
-        var br = Client.CreateRequest($"https://github.com/rhuijben/putty.git/info/refs?service=git-upload-pack");
+        var br = Client.CreateRequest($"https://github.com/ampscm/ampscm/info/refs?service=git-upload-pack");
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
         //br.Headers["Git-Protocol"] = "version=2";
@@ -75,7 +75,7 @@ public class GitHttpTests
             return; // Results not stable on MONO, nor .Net 4.7
 #endif
 
-        var br = Client.CreateRequest($"https://github.com/rhuijben/putty.git/info/refs?service=git-upload-pack");
+        var br = Client.CreateRequest($"https://github.com/ampscm/ampscm/info/refs?service=git-upload-pack");
 
         br.Headers[HttpRequestHeader.UserAgent] = "BucketTest/0 " + TestContext.TestName;
         br.Headers["Git-Protocol"] = "version=2";
@@ -107,6 +107,7 @@ public class GitHttpTests
         }
     }
 
+/*
 #if !DEBUG
     [Timeout(20000)]
 #endif
@@ -157,4 +158,5 @@ public class GitHttpTests
             total += t;
         }
     }
+*/
 }

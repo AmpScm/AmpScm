@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(MSBuildProjectName)' != '' and $(MSBuildProjectName.EndsWith('Tests'))">
+    <OutputType>Exe</OutputType>
+    <TestingPlatformDotnetTestRunner>true</TestingPlatformDotnetTestRunner>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(MSBuildProjectName)' != '' and $(MSBuildProjectName.EndsWith('Tests')) and '$(BuildingInsideVisualStudio)' != 'true'">
+      <PackageReference Include="GitHubActionsTestLogger" />
+  </ItemGroup>
+</Project>

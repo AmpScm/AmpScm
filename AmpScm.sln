@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmpScm.Buckets.Security", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Security.Bucket.Tests", "tests\Security.Bucket.Tests\Security.Bucket.Tests.csproj", "{A4D0083D-F390-40A6-8053-C8F8A44CE334}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Common", "tests\Tests.Common\Tests.Common.csproj", "{238C01C6-8812-46C9-A312-2438D5EF5A3B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Common", "tests\Test.Common\Test.Common.csproj", "{238C01C6-8812-46C9-A312-2438D5EF5A3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

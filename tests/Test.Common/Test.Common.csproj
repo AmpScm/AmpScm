@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Unix' ">$(TargetFrameworks);net47;net48</TargetFrameworks>
     <LangVersion>12</LangVersion>
@@ -14,11 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitHubActionsTestLogger" Version="3.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
+    <PackageReference Include="MSTest" />
   </ItemGroup>
 
   <ItemGroup>

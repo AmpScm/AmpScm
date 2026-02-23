@@ -40,7 +40,7 @@ AmpScm.Buckets.Client.BucketWebClient.BasicAuthentication -> System.EventHandler
 AmpScm.Buckets.Client.BucketWebClient.BucketWebClient() -> void
 AmpScm.Buckets.Client.BucketWebClient.CreateRequest(string! url) -> AmpScm.Buckets.Client.BucketWebRequest!
 AmpScm.Buckets.Client.BucketWebClient.CreateRequest(System.Uri! requestUri) -> AmpScm.Buckets.Client.BucketWebRequest!
-AmpScm.Buckets.Client.BucketWebClient.Dispose() -> void
+AmpScm.Buckets.Client.BucketWebClient.DisposeAsync() -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Client.BucketWebRequest
 AmpScm.Buckets.Client.BucketWebRequest.BasicAuthentication -> System.EventHandler<AmpScm.Buckets.Client.BasicBucketAuthenticationEventArgs!>?
 AmpScm.Buckets.Client.BucketWebRequest.BucketWebRequest(AmpScm.Buckets.Client.BucketWebClient! client, System.Uri! requestUri) -> void
@@ -168,7 +168,7 @@ static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.SHA384(this AmpScm
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.Trace(this AmpScm.Buckets.Bucket! bucket, string? name = null) -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Specialized.SpecializedBucketExtensions.VerifyEqual(AmpScm.Buckets.Bucket! source, AmpScm.Buckets.Bucket! mustBeSame) -> AmpScm.Buckets.Bucket!
 virtual AmpScm.Buckets.Bucket.AcceptDisposing() -> bool
-virtual AmpScm.Buckets.Client.BucketWebClient.Dispose(bool disposing) -> void
+virtual AmpScm.Buckets.Client.BucketWebClient.DisposeAsync(bool disposing) -> System.Threading.Tasks.ValueTask
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.get -> string?
 virtual AmpScm.Buckets.Client.BucketWebRequest.Method.set -> void
 virtual AmpScm.Buckets.Client.ResponseBucket.ContentLength.get -> long

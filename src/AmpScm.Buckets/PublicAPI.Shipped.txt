@@ -10,7 +10,6 @@ AmpScm.Buckets.AggregateBucket.Prepend(AmpScm.Buckets.Bucket! source) -> AmpScm.
 AmpScm.Buckets.Bucket
 AmpScm.Buckets.Bucket.Bucket() -> void
 AmpScm.Buckets.Bucket.DisposeAsync() -> System.Threading.Tasks.ValueTask
-AmpScm.Buckets.Bucket.DisposeAsync(bool disposing) -> System.Threading.Tasks.ValueTask
 AmpScm.Buckets.Bucket.ReadSkipAsync(int requested) -> System.Threading.Tasks.ValueTask<int>
 AmpScm.Buckets.BucketBytes
 AmpScm.Buckets.BucketBytes.All(System.Func<byte, bool>! predicate) -> bool
@@ -209,7 +208,7 @@ AmpScm.Buckets.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! source) -> v
 AmpScm.Buckets.WrappingBucket.WrappingBucket(AmpScm.Buckets.Bucket! source, bool noDispose) -> void
 const AmpScm.Buckets.Specialized.ZLibBucket.DefaultBufferSize = 8192 -> int
 override AmpScm.Buckets.AggregateBucket.CanReset.get -> bool
-override AmpScm.Buckets.AggregateBucket.Dispose(bool disposing) -> void
+override AmpScm.Buckets.AggregateBucket.DisposeAsync(bool disposing) -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.AggregateBucket.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
 override AmpScm.Buckets.AggregateBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.AggregateBucket.Position.get -> long?
@@ -238,11 +237,11 @@ override AmpScm.Buckets.MemoryBucket.Position.get -> long?
 override AmpScm.Buckets.MemoryBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 override AmpScm.Buckets.MemoryBucket.ReadRemainingBytesAsync() -> System.Threading.Tasks.ValueTask<long?>
 override AmpScm.Buckets.MemoryBucket.Reset() -> void
-override AmpScm.Buckets.SocketBucket.Dispose(bool disposing) -> void
+override AmpScm.Buckets.SocketBucket.DisposeAsync(bool disposing) -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.SocketBucket.Peek() -> AmpScm.Buckets.BucketBytes
 override AmpScm.Buckets.SocketBucket.Position.get -> long?
 override AmpScm.Buckets.SocketBucket.ReadAsync(int requested = 2146435071) -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
-override AmpScm.Buckets.Specialized.CombineBucket.Dispose(bool disposing) -> void
+override AmpScm.Buckets.Specialized.CombineBucket.DisposeAsync(bool disposing) -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.Specialized.ProxyBucket.Name.get -> string!
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.CanReset.get -> bool
 override AmpScm.Buckets.Specialized.ProxyBucket<TBucket>.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
@@ -264,7 +263,7 @@ override AmpScm.Buckets.ValueOrEof.Equals(object? obj) -> bool
 override AmpScm.Buckets.ValueOrEof.GetHashCode() -> int
 override AmpScm.Buckets.ValueOrEof<T>.Equals(object? obj) -> bool
 override AmpScm.Buckets.ValueOrEof<T>.GetHashCode() -> int
-override AmpScm.Buckets.WrappingBucket.Dispose(bool disposing) -> void
+override AmpScm.Buckets.WrappingBucket.DisposeAsync(bool disposing) -> System.Threading.Tasks.ValueTask
 override AmpScm.Buckets.WrappingBucket.Name.get -> string!
 static AmpScm.Buckets.Bucket.Empty.get -> AmpScm.Buckets.Bucket!
 static AmpScm.Buckets.Bucket.FromBucketArray(AmpScm.Buckets.Bucket![]! buckets) -> AmpScm.Buckets.Bucket!
@@ -396,9 +395,9 @@ static readonly AmpScm.Buckets.Bucket.EmptyTask -> System.Threading.Tasks.ValueT
 static readonly AmpScm.Buckets.Bucket.EofTask -> System.Threading.Tasks.ValueTask<AmpScm.Buckets.BucketBytes>
 static readonly AmpScm.Buckets.BucketBytes.Empty -> AmpScm.Buckets.BucketBytes
 static readonly AmpScm.Buckets.BucketBytes.Eof -> AmpScm.Buckets.BucketBytes
-virtual AmpScm.Buckets.AggregateBucket.InnerDispose() -> void
+virtual AmpScm.Buckets.AggregateBucket.InnerDisposeAsync() -> System.Threading.Tasks.ValueTask
 virtual AmpScm.Buckets.Bucket.CanReset.get -> bool
-virtual AmpScm.Buckets.Bucket.Dispose(bool disposing) -> void
+virtual AmpScm.Buckets.Bucket.DisposeAsync(bool disposing) -> System.Threading.Tasks.ValueTask
 virtual AmpScm.Buckets.Bucket.Duplicate(bool reset = false) -> AmpScm.Buckets.Bucket!
 virtual AmpScm.Buckets.Bucket.Name.get -> string!
 virtual AmpScm.Buckets.Bucket.Peek() -> AmpScm.Buckets.BucketBytes
